@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="action_sebigus_catalogo" model="ir.actions.act_window">
+        <field name="name">Catalogo Pedido</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">sebigus.catalogo.pedido</field>
+        <field name="view_mode">tree,form</field>
+        <field name="context">{}</field>
+    </record>
+    <record id="preventa_sebigus_catalogo_view_tree" model="ir.ui.view">
+        <field name="name">Catalogo Pedido</field>
+        <field name="model">sebigus.catalogo.pedido</field>
+        <field name="arch" type="xml">
+            <tree string="Catalogos" default_order="name" editable="top">
+                <field name="partner_id" />
+                <field name="fecha" />
+                <field name="categoria" />
+                <field name="spreadsheet_id" />
+                <field name="nombre_archivo" />
+                <button name="generar" string="Generar" type="object"></button>
+            </tree>
+        </field>
+    </record>
+    <record id="preventa_sebigus_catalogo_form" model="ir.ui.view">
+        <field name="name">Catalogo Pedido</field>
+        <field name="model">sebigus.catalogo.pedido</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group>
+                        <field name="partner_id" />
+                        <field name="fecha" />
+                        <field name="categoria" />
+                        <field name="spreadsheet_id" />
+                        <field name="nombre_archivo" />
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+    <record id="catalogo_pedido_view" model="ir.ui.view">
+        <field name="name">sebigus.catalogo.wizard</field>
+        <field name="model">sebigus.catalogo.wizard</field>
+        <field name="type">form</field>
+        <field name="arch" type="xml">
+            <form>
+                <group>
+                    <field name='categoria'></field>
+                </group>
+                <footer>
+                    <button name='generar_catalogo' string='Generar Catalogos' type='object'
+                        class='btn btn-primary'></button>
+                    <button string='Cancel' class='btn btn-secundary' special='cancel'></button>
+                </footer>
+            </form>
+        </field>
+    </record>
+    <record id='generar_catalogos_wizards' model='ir.actions.act_window'>
+        <field name='name'>Catalogos</field>
+        <field name='type'>ir.actions.act_window</field>
+        <field name='res_model'>sebigus.catalogo.pedido</field>
+        <field name='view_mode'>form</field>
+        <field name='view_id' ref='sebigus.catalogo_pedido_view'></field>
+        <field name='target'>new</field>
+    </record>
+    <act_window name="Generar Catalogo"
+        id="action_action_catalogo"
+        res_model="sebigus.catalogo.wizard"
+        binding_model="res.partner"
+        binding_views="list"
+        view_mode="form"
+        target="new"
+    />
+</odoo>

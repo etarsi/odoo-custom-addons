@@ -1,0 +1,13 @@
+
+<odoo>
+    <record id="stock_pricking_form_remito" model="ir.ui.view">
+        <field name="name">stock.picking.form.delivery</field>
+        <field name="model">stock.picking</field>
+        <field name="inherit_id" ref="stock.view_picking_form" />
+        <field name="arch" type="xml">
+            <button name="do_print_picking" position="after">
+                <button name="genero_remito" string="IMP REM" type="object" attrs="{'invisible': [('state','!=','done')]}" />
+	    </button>
+        </field>
+    </record>
+</odoo>

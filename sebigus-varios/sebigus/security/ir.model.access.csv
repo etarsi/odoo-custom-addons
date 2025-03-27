@@ -1,0 +1,7 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+sebigus.access_preventa_resumen,sebigus.preventa.resumen,sebigus.model_sebigus_preventa_resumen,base.group_user,1,1,1,1
+sebigus.access_preventa_compras,sebigus.preventa.compras,sebigus.model_sebigus_preventa_compras,base.group_user,1,1,1,1
+sebigus.access_preventa_ventas,sebigus.preventa.ventas,sebigus.model_sebigus_preventa_ventas,base.group_user,1,1,1,1
+sebigus.access_preventa_detalle,sebigus.preventa.detalle,sebigus.model_sebigus_preventa_detalle,base.group_user,1,1,1,1
+sebigus.access_catalogo_pedido,sebigus.catalogo.pedido,sebigus.model_sebigus_catalogo_pedido,base.group_user,1,1,1,1
+sebigus.access_catalogo_wizard,sebigus.catalogo.wizard,sebigus.model_sebigus_catalogo_wizard,base.group_user,1,1,1,1

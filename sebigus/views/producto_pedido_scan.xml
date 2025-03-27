@@ -1,0 +1,14 @@
+   <template id="producto_pedido_scan" name="Toma de pedidos">
+        <script type="text/javascript" src="https://unpkg.com/html5-qrcode"></script>
+            <div class="oe_structure">
+                <div class="container"><br />
+                    <div class='row'>
+                    <div class='col-md-7'>
+                      
+                    </div>
+                    </div>
+                </div>
+            </div>
+        </t>
+        <script type="text/javascript" src="/sebigus/static/src/js/qr-scan.js"></script> 
+    </template>

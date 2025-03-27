@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="0">
+        <template id="sebigus.report_saleorder_confirm" name="Toma de pedidos">
+            <t t-call="website.layout">
+                <div class="oe_structure">
+                    <div class="container">
+                        <br />
+                        <center>
+                            <h3>¡Gracias por elegir Sebigus! Tu pedido ha quedado asentado.</h3><br/>
+                            <h4> Por cualquier consulta puede comunicarse con su vendedor o seguir comprando.</h4>
+                            <a href="https://wa.me/2348100000000" class="whatsapp_float btn btn-primary"
+                                    target="_blank" rel="noopener noreferrer"
+                                    >
+                            Hablar con un vendedor</a>
+                            <a href="https://ventas.sebigus.com.ar/sebigus/pedidos-catalogos" class="btn btn-primary">
+                             Seguir comprando </a>
+                            <a href="https://www.sebigus.com.ar" class="btn btn-primary">
+                            Volver a Sebigus</a>
+                        </center>
+                        <t t-call="sale.sale_order_portal_content" />
+                        <br />
+                    </div>
+                </div>
+            </t>
+        </template>
+    </data>
+</odoo>

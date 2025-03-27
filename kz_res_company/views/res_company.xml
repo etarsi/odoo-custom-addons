@@ -1,0 +1,19 @@
+<odoo>
+
+    <record id="view_kz_res_company" model="ir.ui.view">
+        <field name="model">res.company</field>
+        <field name="inherit_id" ref="base.view_company_form" />
+        <field name="arch" type="xml">
+            <group name="social_media" position="after">
+               <group string="CAI" groups="base.group_system">
+                 <field name="cai" groups="base.group_system"/>
+                 <field name="date_cai" groups="base.group_system"/>
+                 <!--<field name="mail_cai" groups="base.group_system"/>-->
+                 <field name="user_cai" widget="many2many_tags" groups="base.group_system"/>
+                 <field name="template_cai" groups="base.group_system"/>
+               </group>
+            </group>
+        </field>
+    </record>
+
+</odoo>

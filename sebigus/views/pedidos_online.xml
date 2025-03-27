@@ -1,0 +1,253 @@
+<odoo>
+    <data noupdate="0">
+        <template id="pedidos_online_catalogos" name="Catalogos">
+            <t t-call="website.layout">
+                <div class="oe_structure">
+                    <div class="container">
+                        <div class="container cataBan">
+                            <div class="row">
+
+                                <div class="col-md-6" style="text-align: left;">
+                                    <!-- Contenido del primer elemento -->
+                                    <a
+                                        href="https://ventas.sebigus.com.ar/sebigus/pedidos?categoria=8">
+                                        <img
+                                            src="https://ventas.sebigus.com.ar/sebigus/static/images/catalogos/juguetes.png"
+                                            width="500"
+                                        />
+                                    </a>
+                                </div>
+
+                                <div class="col-md-6" style="text-align: left;">
+                                    <!-- Contenido del segundo elemento -->
+                                    <a
+                                        href="https://ventas.sebigus.com.ar/sebigus/pedidos?categoria=4">
+                                        <img
+                                            src="https://ventas.sebigus.com.ar/sebigus/static/images/catalogos/xtreme.png"
+                                            width="500" />
+                                    </a>
+                                </div>
+                                <div class="col-md-6" style="text-align: left;">
+                                    <!-- Contenido del tercer elemento -->
+                                    <a
+                                        href="https://ventas.sebigus.com.ar/sebigus/pedidos?categoria=5">
+                                        <img
+                                            src="https://ventas.sebigus.com.ar/sebigus/static/images/catalogos/karpikids.png"
+                                            width="500" />
+                                    </a>
+                                </div>
+                                <div class="col-md-6" style="text-align: left;">
+                                    <!-- Contenido del cuarto elemento -->
+                                    <a
+                                        href="https://ventas.sebigus.com.ar/sebigus/pedidos?categoria=2">
+                                        <img
+                                            src="https://ventas.sebigus.com.ar/sebigus/static/images/catalogos/xplash.png"
+                                            width="500" />
+                                    </a>
+                                </div>
+                                <div style="text-align: right">
+                                    <a href="https://wa.me/2348100000000" class="whatsapp_float"
+                                        target="_blank" rel="noopener noreferrer">
+                                        <span style="color: green">
+                                            <i class="fa fa-whatsapp fa-3x"></i>
+                                        </span>
+                                        ¿Tenes Dudas? </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </t>
+        </template>
+        <template id="pedidos_online" name="Lista de productos datatable">
+            <t t-call="website.layout">
+                <div class="oe_structure">
+                    <div class=" " style=" margin-left: 50px; margin-right: 50px;">
+                        <div class="row">
+
+                            <div class="col-9">
+                                <table id="productos" class="display">
+                                    <thead>
+                                        <th>DTRow_ID</th>
+                                        <th>Imagen</th>
+                                        <th>Codigo</th>
+                                        <th>Descripcion</th>
+                                        <th>Medidas</th>
+                                        <th>UxB</th>
+                                        <th>Precio</th>
+                                        <th>Pedido</th>
+                                        <th>Unidades Pedidas</th>
+                                        <th>Stock</th>
+                                    </thead>
+                                    <tbody>
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div class="col-3">
+                                <div class="row">
+                                    <div id='acciones'>
+                                        <button class='btn btn-default btn-primary'
+                                            onclick='enviar()'>Enviar Pedido</button>
+                                    </div>
+                                    <div id='detalle_producto'>
+                                    </div>
+                                </div>
+                            </div>
+                            <div style="text-align: right">
+                                <a href="https://wa.me/2348100000000" class="whatsapp_float"
+                                    target="_blank" rel="noopener noreferrer">
+                                    <span style="color: green">
+                                        <i class="fa fa-whatsapp fa-3x"></i>
+                                    </span>
+                                    ¿Tenes Dudas? </a>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Modal -->
+                    <div class="modal fade" id="modalConfirm" tabindex="-1" role="dialog"
+                        aria-labelledby="modalConfirmTitle" aria-hidden="true">
+                        <div class="modal-dialog modal-dialog-centered" role="document">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title" id="modalConfirm">Enviar Pedido</h5>
+                                </div>
+                                <div class="modal-body">
+                                    Estas enviando el pedido a Sebigus
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary"
+                                        data-dismiss="modal" onclick='seguir()'>Seguir Comprando</button>
+                                    <button type="button" class="btn btn-primary"
+                                        onclick='confirm()'>Confirmar</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </t>
+            <script type="text/javascript" src="/sebigus/static/src/js/jquery-3.7.1.min.js"></script>
+            <link rel="stylesheet" href="/sebigus/static/src/css/jquery.dataTables.css" />
+            <link rel="stylesheet" href="/sebigus/static/src/css/scroller.dataTables.min.css" />
+            <script type="text/javascript" src="/sebigus/static/src/js/jquery.dataTables.js"></script>
+            <script type="text/javascript" src="/sebigus/static/src/js/dataTables.scroller.min.js"></script>
+            <script type="text/javascript" src="/sebigus/static/src/js/pedidos.js"></script>
+        </template>
+        <template id='producto_detalle' name='Detalle producto'>
+            <div
+                class="o_wsale_product_images position-relative">
+                <div id="o-carousel-product"
+                    class="carousel slide position-sticky overflow-hidden o_carousel_product_left_indicators d-flex"
+                    data-bs-ride="carousel" data-bs-interval="0"
+                    data-name="Carrusel del Producto" style="top: 0px;">
+                    <div class="o_carousel_product_indicators ">
+                    </div>
+                    <div
+                        class="o_carousel_product_outer carousel-outer position-relative flex-grow-1">
+                        <div class="carousel-inner h-100">
+                            <div class="carousel-item h-100 active"
+                                style="min-height: 312.297px;">
+                                <div xpath="/t[1]/div[2]"
+                                    class="d-flex align-items-center justify-content-center h-100 oe_unmovable"
+                                    data-oe-model="product.template"
+                                    t-attf-data-oe-id="#{producto.id}"
+                                    data-oe-field="image_512"
+                                    data-oe-type="image"
+                                    data-oe-expression="product_image.image_512">
+                                    <img
+                                        t-attf-src="/web/image/product.template/#{producto.id}/image_512"
+                                        class="img img-fluid oe_unmovable product_detail_img mh-100"
+                                        t-attf-alt="#{producto.name}"
+                                        loading="lazy" />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div id="product_details" class="">
+                <h5>
+                    <span t-esc="producto.name" />
+                </h5>
+                <h6>
+                    <span t-esc="producto.barcode" />
+                </h6>
+                <h6>
+                    <span t-esc="producto.description_sale" /> (<span
+                        t-esc="producto.default_code" />) </h6>
+                <h5>
+                    <span
+                        style="text-decoration: white-space: nowrap;"
+                        itemprop="listPrice"
+                        class="oe_default_price"
+                        data-oe-type="monetary">
+                        <span class="oe_currency_value">
+                            <span>$</span>
+                            <span t-esc="producto.list_price" />
+                        </span>
+                    </span>
+                </h5>
+                <h7>Unidades por Bulto: <span t-esc="producto.uom_po_id.ratio" /></h7>
+            </div>
+        </template>
+        <template id='producto_sugeridos' name='Sugeridos'> El producto seleccionado no tiene stock
+            en este momento, puede elegir de los siguientes. <t t-foreach="productos"
+                t-as="producto">
+                <script> var ean = <t t-esc="producto.barcode" /> ; </script>
+                <script> var codigo = <t t-esc="producto.default_code" /> ; </script>
+                <div class="row">
+                    <div id="o-carousel-product"
+                        class="carousel slide position-sticky mb-3 overflow-hidden o_carousel_product_left_indicators d-flex"
+                        data-bs-ride="carousel" data-bs-interval="0"
+                        data-name="Carrusel del Producto" style="top: 5px;">
+                        <div class="o_carousel_product_indicators ">
+                        </div>
+                        <div
+                            class="o_carousel_product_outer carousel-outer position-relative flex-grow-1">
+                            <div class="carousel-inner h-100">
+                                <div class="carousel-item h-100 active"
+                                    style="min-height: 312.297px;">
+                                    <div xpath="/t[1]/div[2]"
+                                        class="d-flex align-items-center justify-content-center h-100 oe_unmovable"
+                                        data-oe-model="product.template"
+                                        t-attf-data-oe-id="#{producto.id}"
+                                        data-oe-field="image_256"
+                                        data-oe-type="image"
+                                        data-oe-expression="product_image.image_256">
+                                        <img
+                                            t-attf-src="/web/image/product.template/#{producto.id}/image_256"
+                                            class="img img-fluid oe_unmovable product_detail_img mh-100"
+                                            t-attf-alt="#{producto.name}"
+                                            loading="lazy" />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div id="product_details" class="col-lg-6 mt-md-4">
+                    <h7>
+                        <span t-esc="producto.name" />
+                        <span t-esc="producto.barcode" />
+                    </h7>
+                    <h8>
+                        <span t-esc="producto.description_sale" /> (<span
+                            t-esc="producto.default_code" />) </h8>
+                    <h7>
+                        <span
+                            style="text-decoration: white-space: nowrap;"
+                            itemprop="listPrice"
+                            class="oe_default_price"
+                            data-oe-type="monetary">
+                            <span class="oe_currency_value">
+                                <span>$</span>
+                                <span t-esc="producto.list_price" />
+                            </span>
+                        </span>
+                    </h7>
+                    <h7>Unidades por Bulto: <span t-esc="producto.uom_po_id.ratio" />
+                    </h7>
+                </div>
+            </t>
+        </template>
+    </data>
+</odoo>

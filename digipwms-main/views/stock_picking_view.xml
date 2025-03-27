@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="stock_pricking_form_delivery" model="ir.ui.view">
+        <field name="name">stock.picking.form.delivery</field>
+        <field name="model">stock.picking</field>
+        <!--<field name="inherit_id" ref="stock.view_picking_form" />-->
+        <field name="inherit_id" ref="delivery.view_picking_withcarrier_out_form" />
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='origin']" position="after">
+                <field name="sale_id" invisible="1"/>
+                <field name="purchase_id" invisible="1"/>
+                <field name="state_wms"  widget="badge" decoration-warning="state_wms == 'done'" decoration-success="state_wms == 'closed'" decoration-danger="state_wms == 'error'"/>
+            </xpath>
+            <xpath expr="//header" position="inside">
+                <button type="object" name="enviar" string="Enviar DigipWMS"  attrs="{'invisible': ['|','|',('sale_id', '=', False),('state_wms', 'in', ['closed','done']),('state', 'in', ['draft','cancel','done'])]}"/>
+            </xpath>
+            <xpath expr="//header" position="inside">
+                <button type="object" name="enviar_recepcion" string="Enviar DigipWMS"  attrs="{'invisible': ['|','|',('purchase_id', '=', False),('state_wms', 'in', ['closed','done']),('state', 'in', ['draft','cancel','done'])]}"  />
+            </xpath>
+            <xpath expr="//header" position="inside">
+                <button type="object" name="recibir" string="Recibir DigipWMS" attrs="{'invisible': ['|','|',('sale_id', '=', False),('state_wms', 'not in', ['closed','done']),('state','in',['draft','cancel','done'])]}"/>
+            </xpath>
+            <xpath expr="//header" position="inside">
+                <button type="object" name="recibir_recepcion" string="Recibir DigipWMS" attrs="{'invisible': ['|','|',('purchase_id', '=', False),('state_wms', 'not in', ['closed','done']),('state','in',['draft','cancel','done'])]}"/>
+            </xpath>
+            <xpath expr="//button[@name='button_validate'][1]" position="attributes">
+                <attribute name="attrs">{'invisible': ['|','|', ('state', 'in', ('waiting','confirmed')), ('show_validate', '=', False), ('state_wms', '!=', 'closed')]}</attribute>
+            </xpath>
+            <xpath expr="//button[@name='button_validate'][2]" position="attributes">
+                <attribute name="attrs">{'invisible': ['|','|', ('state', 'not in', ('waiting','confirmed')), ('show_validate', '=', False), ('state_wms', '!=', 'closed')]}</attribute>
+            </xpath>
+            <xpath expr="//field[@name='delivery_type']" position="after">
+                <field name="container" attrs="{'invisible': [('purchase_id', '=', False)], 'required': [('purchase_id', '=', True)]}"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="stock_pricking_tree" model="ir.ui.view">
+        <field name="name">stock.picking.view.form.inherit.module.name</field>
+        <field name="model">stock.picking</field>
+        <field name="inherit_id" ref="stock.vpicktree" />
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='state']" position="after">
+                <field name="state_wms"  widget="badge" decoration-warning="state_wms == 'done'" decoration-success="state_wms == 'closed'" decoration-danger="state_wms == 'error'" optional="show"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>

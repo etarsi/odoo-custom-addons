@@ -1,0 +1,47 @@
+
+<odoo>
+    <record id="view_order_form_inherited" model="ir.ui.view">
+    <field name="name">sale.order.form.inherited</field>
+    <field name="model">sale.order</field>
+    <field name="inherit_id" ref="sale.view_order_form"/>
+    <field name="arch" type="xml">
+<<<<<<< HEAD
+<!--
+    <xpath expr="//button[@name='action_confirm']" position="after">
+    <button name="action_split_and_cancel_order" string="Confirmar" type="object" class="btn-primary"  attrs="{'invisible': ['|', ('state', '=', 'cancel'), ('splitted','=',True)]}" />
+    </xpath>
+-->
+=======
+
+    <xpath expr="//button[@name='action_confirm']" position="after">
+    <button name="action_split_and_cancel_order" string="Confirmar" type="object" class="btn-primary"  attrs="{'invisible': ['|', ('state', '=', 'cancel'), ('splitted','=',True)]}" />
+    </xpath>
+
+>>>>>>> 1b61d784 (re-add)
+    <xpath expr="//form//field[@name='payment_term_id']" position="after">
+    <field name="condicion_venta" force_save="1" readonly="1" attrs="{'invisible': [('splitted','=',True)]}"/>
+    <field name="available_condiciones" widget="many2many_checkboxes" invisible="1"/>
+    <!-- <field name="condicion_m2m" widget="many2many_checkboxes" force_save="1" attrs="{'invisible': [('splitted','=',True)]}"/> -->
+    <field name="condicion_m2m" widget="selection" force_save="1" attrs="{'invisible': [('splitted','=',True)]}"/>
+    <field name="condicion_m2m_numeric" force_save="1" attrs="{'invisible': [('splitted','=',True)]}"/>
+    <field name="splitted" invisible="1"/>
+<<<<<<< HEAD
+	    <!--  <field name="company_default"/> -->
+    </xpath>
+<!--
+=======
+    </xpath>
+
+>>>>>>> 1b61d784 (re-add)
+    <xpath expr="//button[@name='action_confirm'][2]" position="attributes">
+    <attribute name="attrs"/>
+    <attribute name="invisible">[('splitted','=', False)]</attribute>
+    </xpath>
+<<<<<<< HEAD
+-->
+=======
+
+>>>>>>> 1b61d784 (re-add)
+    </field>
+    </record>
+</odoo>

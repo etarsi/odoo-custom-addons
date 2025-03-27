@@ -1,0 +1,1 @@
+Modulo de intregacion de odoo <-> digipwms

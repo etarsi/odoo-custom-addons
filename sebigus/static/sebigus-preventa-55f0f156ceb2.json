@@ -1,0 +1,13 @@
+{
+  "type": "service_account",
+  "project_id": "sebigus-preventa",
+  "private_key_id": "55f0f156ceb25ef6c851ee8d1b44e67ff7e5db74",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEuwIBADANBgkqhkiG9w0BAQEFAASCBKUwggShAgEAAoIBAQCwENZ/zoeW1xiE\n6scayGR4sm9mcfBzFoOtah2XJBLOofzJADLQPaPiI0ooN7vae8rYtrnlOm9K8+A1\nnZQaoG6e0z+utd9raY+yz6f6NF9RmalyGao7EsLuFZFZ05RVKzzIqaK3YjsMsHlY\n8SYjFZFIfHB7RcvCm4TpUni9vA9H10WToEo3LyI5ccOdbjNd/BkCbQeSx283K3Us\nsWqm11A8RsvAAzLYirt/1WB57gKH5dKK7yMsXGP9iXr0z230M4ot7yJox/b7wU4I\n1gqnMc18H667iQGhfI957xRUoyAzlDbXC+69WSeaF3lQHqsKZqrqAyaucgIhS0ca\nMJQPvN7NAgMBAAECggEAARjjGVH3wYPOz489/+elS/pCsaGpT7JMI5xwbu9xiDpK\ntBRNUhkRkyMd/xuqeZ1WttyGp+F3bZZmUeHiQ9CMTURAQUNkDyGN3MhTVz6/JFKf\n6MnfqCAWY7ucglyMRVlFtvNrA+0NCf0fOHkXlYA40vnm4oxyuAsA5vUAXcr/pmEz\n/02qZ2cn1tHFXtlc1eQTY4uENF5l8etbtUuIYkprra6h18E3cLM5ybVWazIPAZJ1\nybC68sdsZ0Y4Ef7sxUW+OQT/qa46+VFQzfSqu8iclNoiRG4Ezd2Y8xio24cqKQk4\nxRMkm9I1IaTYsENExt4XKL10DsU+ifAYgVD8yl8WGQKBgQDU2lRTPVPRKAHihRp0\n8XC7tiVOhbJm2IrAhn2rhzx5qlIUS//713M+nVVdxRqYD48HXI0lf725eumkSgbR\nC1M84nK15IEciJza/A168P/Nbr6p8eCYzDO5Lp3qPxd3jTkfHsX7ylbGF7iGxSEf\n8RLjodnxmHSeCANGe5W3INOhqQKBgQDTwX/27tmmbzuhZgKPg/LfwXLeXbg5iCw/\ncakBNLm6WfmcahpjnMAOIyO8y9K3BAjX774Y70x94frFc632k58QfH/p7FeTbvBY\n+L5PLmD9uXXWaoRGA11TAzez+C0MjXY4LisXEMslldDe8FoGfswOoreEBzonjK/T\n25Eh+IwShQJ/Gpsv7ze7Qmm90pLQu81ySgR6pVYQ9soajfZBvy8oYAzqNZ9KYDCO\nN0VzZkU9DcTkHAd1nTpafNTgX6jhMUA5J2Mm85WcjfSFptna1YNKdmNhcdzKNk9Q\nJ9Wr55v7UvZULY+rL84bCqfsaOw7N8LqmYmhtJFaAmb+AdFw5XM1AQKBgBRcwQ9f\nvHIytAs7Iffm+k3l7kPPw01U+NxI87V3+nwe9s/BrDPz+MvjOSaIewS6UJdjKGaB\nbFuWhWTDUPErFNqi/jHiVjGJM3d6w+IdVZpQYTJzH7ET1b+Lyal2re5NFBcm6WHY\nbZB5rZIijqWdP8YQg5EgmMkA0E+RB426ts15AoGBAMOHyNjCY8exmkA9IjGl+pH3\nLUyOZyQONDeprCReMzrSRrD7934vgTN4Zk8S/pRrfsuvEiZoWcrY+JAuT0OCF4zx\ndwNqfXcUwp+r3g/oKUE3x7B064tDSHBGxpR9Gqs0tg073iruJRAT+qJmHcbQCezq\nNt2EdTXRZSc4jdojG7bO\n-----END PRIVATE KEY-----\n",
+  "client_email": "preventa@sebigus-preventa.iam.gserviceaccount.com",
+  "client_id": "101435198543601976827",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/preventa%40sebigus-preventa.iam.gserviceaccount.com",
+  "universe_domain": "googleapis.com"
+}

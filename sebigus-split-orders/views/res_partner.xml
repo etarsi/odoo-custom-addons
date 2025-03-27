@@ -1,0 +1,21 @@
+<odoo>
+    <record id="view_partner_form_custom" model="ir.ui.view">
+        <field name="name">res.partner.form.custom</field>
+        <field name="model">res.partner</field>
+        <field name="inherit_id" ref="base.view_partner_form"/>
+        <field name="arch" type="xml">
+            <data>
+                <xpath expr="//group[1]" position="inside">
+                    <group>
+                        <field name="condicion_venta"/>
+<!--                    <field name="condicion_venta_numeric"/>
+                        <field name="available_condiciones" widget="many2many_checkboxes"/>
+                        <field name="condicion_m2m" widget="many2many_checkboxes" force_save="1"/>
+-->
+                    </group>
+                </xpath>
+            </data>
+        </field>
+    </record>
+</odoo>
+

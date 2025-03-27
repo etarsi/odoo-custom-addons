@@ -1,0 +1,102 @@
+from odoo import models, fields, api, _
+import logging
+
+_logger = logging.getLogger(__name__)
+
+class StockPicking(models.Model):
+    _inherit = 'stock.picking'
+
+    def check_available(self):
+        _logger.info('arranca.....')
+        #super(StockPicking, self).action_assign()
+        all_wh = self.env['stock.warehouse'].search([])
+        for picking in self:
+            # Check each move line
+            for move in picking.move_lines:
+                product = move.product_id
+                company = picking.company_id
+                current_wh = picking.location_id.warehouse_id
+                current_company_location = current_wh.lot_stock_id
+                _logger.info(('current_company_location...',current_company_location.complete_name))
+                # Check availability in the current company
+                available_qty = self._get_available_qty(product, current_company_location)
+                _logger.info(('available...',available_qty))
+                if available_qty < move.product_uom_qty:
+                    # If not enough in the current company, check other companies
+                    for other_wh in self.env['stock.warehouse'].search([('id', '!=', current_wh.id)]):
+                        other_location = other_wh.lot_stock_id
+                        other_available_qty = self._get_available_qty(product, other_location)
+                        _logger.info(('other_location...',other_location.complete_name,other_available_qty))
+                        if other_available_qty > 0:
+                            # Create inventory adjustments
+                            self._create_inventory_adjustment(product, other_location, other_available_qty - move.product_uom_qty)
+                            self._create_inventory_adjustment(product, current_company_location,  available_qty + move.product_uom_qty)
+
+    def _get_available_qty(self, product, location):
+        """Get available quantity of a product at a given location."""
+        domain = [
+            ('product_id', '=', product.id),
+            ('location_id', '=', location.id),
+            ('quantity', '>', 0),
+        ]
+        inventory_lines = self.env['stock.quant'].search(domain)
+        return sum(line.quantity for line in inventory_lines)
+
+#   def _create_inventory_adjustment(self, product, location, current_location,  qty):
+#       quant = self.env['stock.quant'].search([('location_id','=',location.id),('product_id','=',product.id)],limit=1)
+#       if quant:
+#           quant.write({'quantity':qty})
+#       else:
+#           inventory = self.env['stock.quant'].create({
+#               'location_ids': location.id,
+#               'product_id': product.id,
+#               'quantity': qty,
+#               'product_uom_id': product.uom_id.id,
+#           }),
+
+    def _create_inventory_adjustment(self, product, location,  qty):
+        _logger.info('CREO AJUSTE %s %s %s %s' %  (product, location, current_location,  qty))
+        inventory = self.env['stock.inventory'].create({
+            'name': f"{location.complete_name} -> {current_location.name} ({self.name})",
+            'location_ids': [(6, 0, [location.id])],
+            'product_selection': 'one',
+            'state': 'draft',
+            'product_ids': [product.id],
+        })
+        inventory_line = self.env['stock.quant'].create({
+            'stock_inventory_ids': [inventory.id],
+            'product_id': product.id,
+            'location_id': location.id,
+            'product_uom_id': product.uom_id.id,
+            'inventory_quantity': qty,
+        })
+        inventory.action_state_to_in_progress()
+        inventory_line.action_apply_inventory()
+#       inventory.action_state_to_done()
+
+
+
+#   def _create_inventory_adjustment(self, product_id, location_id, current_location, new_quantity):
+#       _logger.info('CREO AJUSTE %s %s %s %s' %  (product_id, location_id, current_location,  new_quantity))
+#       # Create a new inventory adjustment
+#       inventory_adjustment = self.env['stock.inventory'].create({
+#           'name': f"{location_id.complete_name} -> {current_location.name} ({self.name})",
+#           'location_id': location_id,
+#           'product_id': product_id,
+#       })
+
+#       # Add the inventory line
+#       inventory_line = self.env['stock.inventory.line'].create({
+#           'inventory_id': inventory_adjustment.id,
+#           'product_id': product_id,
+#           'location_id': location_id,
+#           'product_qty': new_quantity,
+#           'product_uom_id': self.env.ref('product_id.product_uom_unit').id,
+#           'theoretical_qty': new_quantity,
+#       })
+
+#       # Confirm the inventory adjustment
+#       inventory_adjustment.action_start()
+#       inventory_adjustment.action_validate()
+
+#       return inventory_adjustment

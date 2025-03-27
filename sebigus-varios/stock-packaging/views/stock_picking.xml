@@ -1,0 +1,33 @@
+
+<odoo>
+    <record id="stock_pricking_form_delivery" model="ir.ui.view">
+        <field name="name">stock.picking.form.delivery</field>
+        <field name="model">stock.picking</field>
+        <field name="inherit_id" ref="stock.view_picking_form" />
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='number_of_packages']" position="after">
+                <field name="packaging_qty"/>
+                <field name="available_pkg_qty" />
+                <field name="available_percent" />
+	</xpath>
+            <field name="product_packaging_id" position="before">
+                <field name="product_packaging_qty" optional="hide" groups="product.group_stock_packaging"/>
+            </field>
+        </field>
+    </record>
+    <record id="stock_pricking_tree" model="ir.ui.view">
+        <field name="name">packaing_tree</field>
+        <field name="model">stock.picking</field>
+        <field name="inherit_id" ref="stock.vpicktree" />
+        <field name="arch" type="xml">
+            <field name="state" position="before">
+                <field name="packaging_qty"/>
+                <field name="sale_order_lines" />
+                <field name="available_pkg_qty" />
+                <field name="available_percent" />
+            </field>
+        </field>
+    </record>
+
+
+</odoo>

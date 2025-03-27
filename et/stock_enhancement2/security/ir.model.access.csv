@@ -1,0 +1,2 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_stock_enhancement2_stock_enhancement2,stock_enhancement2.stock_enhancement2,model_stock_enhancement2_stock_enhancement2,base.group_user,1,1,1,1

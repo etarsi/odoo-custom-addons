@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+    <!-- Agregar Ejecutivo de cuentas arriba de Comercial -->
+    <record id="view_partner_executive_form" model="ir.ui.view">
+        <field name="model">res.partner</field>
+        <field name="inherit_id" ref="base.view_partner_form" />
+        <field name="arch" type="xml">
+            <xpath expr="//group[@name='sale']/field[@name='user_id']" position="before">
+                <field
+                    name="executive_id"
+                />
+            </xpath>
+        </field>
+    </record>
+        <record id="view_partner_form_kz" model="ir.ui.view">
+      <field name="name">add floor apartment in res.partner.form.address</field>
+      <field name="model">res.partner</field>
+      <field name="inherit_id" ref="base.view_partner_form" />
+      <field name="arch" type="xml">
+        <field name="street2" position="after">
+		Piso:
+                <field
+                    name="floor" placeholder="Piso..." class="o_address_state"
+                />
+		Departamento:
+                <field
+                    name="apartment" placeholder="Departamento..." class="o_address_state"
+                />
+        </field>
+      </field>
+    </record>
+        <record id="view_partner_address_form_kz" model="ir.ui.view">
+      <field name="name">add floor apartment in res.partner.form.address</field>
+      <field name="model">res.partner</field>
+      <field name="inherit_id" ref="base.view_partner_address_form" />
+      <field name="arch" type="xml">
+        <field name="street2" position="after">
+		Piso:
+                <field
+                    name="floor" placeholder="Piso..." class="o_address_state"
+                />
+		Departamento:
+                <field
+                    name="apartment" placeholder="Departamento..." class="o_address_state"
+                />
+        </field>
+      </field>
+    </record>
+
+    <record id="res_partner_view_form_private_kz" model="ir.ui.view">
+      <field name="name">add floor apartment in res.partner.form.private</field>
+      <field name="model">res.partner</field>
+      <field name="inherit_id" ref="base.res_partner_view_form_private" />
+      <field name="arch" type="xml">
+          <field name="street2" position="after">
+		Piso:
+                <field
+                    name="floor" placeholder="Piso..." class="o_address_state"
+                />
+		Departamento:
+                <field
+                    name="apartment" placeholder="Departamento..." class="o_address_state"
+                />
+          </field>
+      </field>
+    </record>
+</odoo>

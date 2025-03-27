@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- View libro_mayor View Tree -->
+    <record id="view_libro_mayor_tree" model="ir.ui.view">
+        <field name="name">view.libro_mayor.tree</field>
+        <field name="model">libro.mayor</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="date"/>
+                <field name="name"/>
+                <field name="date_maturity"/>
+                <field name="partner_id"/>
+                <field name="company_id"/>
+                <field name="amount_residual"/>
+                <field name="balance"/>
+                <field name="matching_number"/>
+            </tree>
+        </field>
+    </record>
+
+    <!-- View libro_mayor form -->
+    <record id="view_libro_mayor_form" model="ir.ui.view">
+        <field name="name">view.libro_mayor.form</field>
+        <field name="model">libro.mayor</field>
+        <field name="arch" type="xml">
+            <form string="Libro_mayor">
+                <sheet>
+                    <div class="oe_title">
+                        <label for="name"/>
+                        <h1>
+                            <field name="name" placeholder="Name..."/>
+                        </h1>
+                    </div>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- View libro_mayor search -->
+    <record id="view_libro_mayor_search" model="ir.ui.view">
+        <field name="name">view.libro_mayor.search</field>
+        <field name="model">libro.mayor</field>
+        <field name="arch" type="xml">
+            <search>
+                <group expand="1" string="Group By">
+                    <filter string="Name" name="name" domain="[]" context="{'group_by':'name'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- Action libro_mayor -->
+    <record id="action_libro_mayor" model="ir.actions.act_window">
+        <field name="name">Libro_mayor</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">libro.mayor</field>
+        <field name="view_mode">tree,form</field>
+        <field name="domain">[]</field>
+        <field name="context">{}</field>
+        <field name="help" type="html">
+            <p class="oe_view_nocontent_create">
+                There is no examples click here to add new Libro_mayor.
+            </p>
+        </field>
+    </record>
+
+</odoo>

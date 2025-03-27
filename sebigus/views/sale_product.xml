@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="add_to_cart_quant" inherit_id="website_sale.products_item"
+        name="Add to Cart Quantity" priority="20">
+        <xpath expr="//div[hasclass('o_wsale_product_btn')]" position="before">
+            <div id="o_wsale_cta_wrapper" class="d-flex flex-wrap align-items-center">
+                <t t-set="hasQuantities" t-value="false" />
+                <t t-set="hasBuyNow" t-value="false" />
+                <t t-set="ctaSizeBig" t-value="not hasQuantities or not hasBuyNow" />
+                <div t-attf-class="css_quantity input-group d-inline-flex me-2 mb-2 align-middle #{'input-group-lg' if ctaSizeBig else ''}" contenteditable="false">
+                    <a t-attf-href="#" class="btn btn-link js_add_cart_json" aria-label="Quitar" title="Restar">
+                        <i class="fa fa-minus"></i>
+                    </a>
+                    <input type="text" class="form-control quantity text-center" data-min="1" name="add_qty" t-att-value="add_qty or 1"/>
+                    <a t-attf-href="#" class="btn btn-link float_left js_add_cart_json" aria-label="Agregar" title="Sumar">
+                        <i class="fa fa-plus"></i>
+                    </a>
+                </div>
+                <div id="product_option_block" class="d-flex flex-wrap w-100" />
+            </div>
+        </xpath>
+    </template>
+
+</odoo>

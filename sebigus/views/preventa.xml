@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="action_sebigus_preventa" model="ir.actions.act_window">
+        <field name="name">Preventa Pedido</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">sebigus.preventa.resumen</field>
+        <field name="view_mode">tree,form</field>
+        <field name="context">{}</field>
+    </record>
+    <record id="preventa_sebigus_preventa_view_tree" model="ir.ui.view">
+        <field name="name">Preventa Pedido</field>
+        <field name="model">sebigus.preventa.resumen</field>
+        <field name="arch" type="xml">
+            <tree string="Preventa"  default_order="name" editable="top">
+                <field name="name" />
+                <field name="fecha" />
+                <field name="categoria" />
+                <field name="spreadsheet_id" />
+                <button name="procesar" string="Actualizar" type="object"></button>
+            </tree>
+        </field>
+    </record>
+    <record id="preventa_sebigus_preventa_form" model="ir.ui.view">
+        <field name="name">Preventa Pedido</field>
+        <field name="model">sebigus.preventa.resumen</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group>
+                        <field name="name" />
+                        <field name="fecha" />
+                        <field name="compras" />
+                        <field name="stock" />
+                        <field name="saldos" />
+                        <field name="vendido" />
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+    <record id="preventa_sebigus_preventa_analisis" model="ir.ui.view">
+        <field name="name">Preventa Pedido</field>
+        <field name="model">sebigus.preventa.detalle</field>
+        <field name="arch" type="xml">
+            <pivot string="Preventa"  default_order="name">
+                <field name="producto" />
+                <field name="bultos" />
+                <field name="cliente" />
+                <field name="uxb" />
+                <field name="image" widget="image"/>
+            </pivot>
+        </field>
+    </record>
+    <record id="preventa_sebigus_preventa_lista" model="ir.ui.view">
+        <field name="name">Preventa Pedido</field>
+        <field name="model">sebigus.preventa.detalle</field>
+        <field name="arch" type="xml">
+            <tree string="Preventa"  default_order="name">
+                <field name="producto" />
+                <field name="bultos" />
+                <field name="cliente" />
+                <field name="uxb" />
+                <field name="image" widget="image"/>
+            </tree>
+        </field>
+    </record>
+</odoo>

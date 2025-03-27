@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="sebigus_report_saleorder_document" inherit_id="sale.report_saleorder_document">
+
+        <xpath expr="//div[@name='total']" position="before">
+            <div class="clearfix" name="so_discount_summary">
+                <div id="general_discount" class="row" name="general_discount">
+                    <div
+                        t-attf-class="#{'col-6' if report_type != 'html' else 'col-sm-7 col-md-6'} ms-auto">
+                        <table class="table table-sm table-borderless">
+                            <tr>
+                                <td>
+                                    Descuento (%):
+                                </td>
+                                <td>
+                                    <p t-field="doc.general_discount" />
+                                </td>
+                                <td>
+                                    Tipo de Facturacion:
+                                </td>
+                                <td>
+                                    <p t-field="doc.partner_id.category_id" />
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </xpath>
+        <xpath expr="//t[@t-foreach='lines_to_report']" position="before">
+            <t t-set="lines_to_report"
+                t-value="lines_to_report.sorted(key=lambda a: (a.product_categ_id.name,a.name),reverse=False)" />
+            <t t-set="categ_group" t-value="0"></t>
+        </xpath>
+        <xpath expr="//td[@name='td_name']" position="before">
+            <tr t-if="categ_group != line.product_categ_id">
+                <td>
+                    <strong>
+                        <p t-field="line.product_categ_id"></p>
+                    </strong>
+                    <t t-set="categ_group" t-value="line.product_categ_id"></t>
+                </td>
+            </tr>
+        </xpath>
+        <xpath expr="//th[@name='th_quantity']" position="inside">
+            <th name="th_quantity" class="text-end">Bultos</th>
+        </xpath>
+        <xpath expr="//td[@name='td_quantity']" position="inside">
+            <td class="text-end">
+                <p t-field="line.product_packaging_qty" />
+            </td>
+        </xpath>
+        <xpath expr="//th[@name='th_priceunit']" position="replace">
+        </xpath>
+        <xpath expr="//td[@name='td_priceunit']" position="replace">
+        </xpath>
+        <xpath expr="//th[@name='th_subtotal']" position="replace">
+        </xpath>
+        <xpath expr="//td[@name='td_subtotal']" position="replace">
+        </xpath>
+        <xpath expr="//th[@name='th_taxes']" position="replace">
+        </xpath>
+        <xpath expr="//td[@name='td_taxes']" position="replace">
+        </xpath>
+        <xpath expr="//div[@t-field='doc.partner_id']" position="replace">
+            <p t-field='doc.partner_id'></p>
+            <p t-field='doc.partner_shipping_id'></p>
+            <p t-field='doc.partner_invoice_id'></p>
+        </xpath>
+    </template>
+    <template id="sebigus_report_saleorder_document_tax_totals"
+        inherit_id="account.document_tax_totals">
+        <xpath expr="//tr[@class='border-black o_subtotal']" position="replace">
+        </xpath>
+        <xpath expr="//t[@t-call='account.tax_groups_totals']" position="replace">
+        </xpath>
+    </template>
+</odoo>

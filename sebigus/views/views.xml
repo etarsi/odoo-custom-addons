@@ -1,0 +1,55 @@
+<odoo>
+  <data>
+    <!-- explicit list view definition -->
+<!--
+    <record model="ir.ui.view" id="sebigus.list">
+      <field name="name">sebigus list</field>
+      <field name="model">sebigus.sebigus</field>
+      <field name="arch" type="xml">
+        <tree>
+          <field name="name"/>
+          <field name="value"/>
+          <field name="value2"/>
+        </tree>
+      </field>
+    </record>
+-->
+
+    <!-- actions opening views on models -->
+<!--
+    <record model="ir.actions.act_window" id="sebigus.action_window">
+      <field name="name">sebigus window</field>
+      <field name="res_model">sebigus.sebigus</field>
+      <field name="view_mode">tree,form</field>
+    </record>
+-->
+
+    <!-- server action to the one above -->
+<!--
+    <record model="ir.actions.server" id="sebigus.action_server">
+      <field name="name">sebigus server</field>
+      <field name="model_id" ref="model_sebigus_sebigus"/>
+      <field name="state">code</field>
+      <field name="code">
+        action = {
+          "type": "ir.actions.act_window",
+          "view_mode": "tree,form",
+          "res_model": model._name,
+        }
+      </field>
+    </record>
+-->
+    <!-- Top menu item -->
+<!--
+    <menuitem name="sebigus" id="sebigus.menu_root"/>
+-->
+    <!-- menu categories 
+    <menuitem name="Informes" id="sebigus.menu_1" parent="sebigus.menu_root"/>
+    -->
+    <!-- actions 
+    <menuitem name="Preventa" id="sebigus.menu_1_preventa" parent="sebigus.menu_1"
+              action="preventa_sebigus_preventa_view_tree"/>
+    -->
+
+  </data>
+</odoo>

@@ -1,0 +1,29 @@
+
+<odoo>
+    <record id="view_order_form_inherited" model="ir.ui.view">
+    <field name="name">sale.order.form.inherited</field>
+    <field name="model">sale.order</field>
+    <field name="inherit_id" ref="sale.view_order_form"/>
+    <field name="arch" type="xml">
+
+
+    <xpath expr="//form//field[@name='payment_term_id']" position="after">
+    <field name="packaging_qty" />
+    </xpath>
+
+
+    </field>
+    </record>
+    <record id="view_order_tree_inherited" model="ir.ui.view">
+        <field name="name">sale.order.tree.inherited</field>
+        <field name="model">sale.order</field>
+        <field name="inherit_id" ref="sale.view_order_tree"/>
+        <field name="arch" type="xml">
+            <field name="amount_total" position="before">
+                    <field name="packaging_qty" />
+                    <field name="sale_order_lines" />
+            </field>
+        </field>
+    </record>
+
+</odoo>

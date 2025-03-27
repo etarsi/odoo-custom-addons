@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <!-- VISTA DE LISTA -->
+    <record id="view_condicion_venta_tree" model="ir.ui.view">
+        <field name="name">condicion.venta.tree</field>
+        <field name="model">condicion.venta</field>
+        <field name="arch" type="xml">
+            <tree string="Condiciones de Venta">
+                <field name="name"/>
+                <field name="condicion"/>
+                <field name="porcentaje"/>
+            </tree>
+        </field>
+    </record>
+
+    <!-- VISTA DE FORMULARIO -->
+    <record id="view_condicion_venta_form" model="ir.ui.view">
+        <field name="name">condicion.venta.form</field>
+        <field name="model">condicion.venta</field>
+        <field name="arch" type="xml">
+            <form string="Condición de Venta">
+                <sheet>
+                    <group>
+                        <field name="name"/>
+                        <field name="condicion"/>
+                        <field name="porcentaje"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- ACCIÓN PARA ABRIR LA VISTA DE LISTA -->
+    <record id="action_condicion_venta" model="ir.actions.act_window">
+        <field name="name">Condiciones de Venta</field>
+        <field name="res_model">condicion.venta</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
+    <!-- MENÚ-->
+    <menuitem id="menu_condicion_venta_root" name="Condiciones de Venta"/>
+    <menuitem id="menu_condicion_venta" name="Condiciones de Venta" parent="menu_condicion_venta_root" action="action_condicion_venta"/>
+</odoo>

@@ -1,0 +1,101 @@
+from odoo import fields, models
+
+class AccounTpaymentAddChecks(models.TransientModel):
+    _name = "account.payment.add.checks"
+    _description = "account.payment.add.checks"
+
+    check_ids = fields.Many2many(comodel_name="account.payment")
+
+    def confirm(self):
+        self.ensure_one()
+        payment_group = self.env["account.payment.group"].browse(self.env.context.get("active_id", False))
+        if payment_group:
+            vals_list = [{
+                'l10n_latam_check_id': check.id,
+                'amount': check.amount,
+                'partner_id': payment_group.partner_id.id,
+                'payment_group_id': payment_group.id,
+                'payment_type': 'outbound',
+                'journal_id': check.l10n_latam_check_current_journal_id.id,
+                'payment_method_line_id': check.l10n_latam_check_current_journal_id._get_available_payment_method_lines(
+                    'outbound').filtered(lambda x: x.code == 'out_third_party_checks').id,
+            } for check in self.check_ids]
+            self.env['account.payment'].create(vals_list)
+
+        return {"type": "ir.actions.act_window_close"}
+
+#import logging
+#from odoo import fields, models
+#
+#_logger = logging.getLogger(__name__)
+#
+#class AccounTpaymentAddChecks(models.TransientModel):
+#    _name = "account.payment.add.checks"
+#    _description = "account.payment.add.checks"
+#
+#    check_ids = fields.Many2many(comodel_name="account.payment")
+#
+#    def confirm(self):
+#        self.ensure_one()
+#        payment_group = self.env["account.payment.group"].browse(self.env.context.get("active_id", False))
+#        if payment_group:
+#            vals_list = [{
+#                'l10n_latam_check_id': check.id,
+#                'amount': check.amount,
+#                'partner_id': payment_group.partner_id.id,
+#                'payment_group_id': payment_group.id,
+#                'payment_type': 'outbound',
+#                'journal_id': check.l10n_latam_check_current_journal_id.id,
+#                'payment_method_line_id': check.l10n_latam_check_current_journal_id._get_available_payment_method_lines(
+#                    'outbound').filtered(lambda x: x.code == 'out_third_party_checks').id,
+#            } for check in self.check_ids]
+#
+#            _logger.info("Vals List for Account Payment: %s", vals_list)
+#
+#            self.env['account.payment'].create(vals_list)
+#
+#        return {"type": "ir.actions.act_window_close"}
+
+import logging
+from odoo import fields, models
+
+_logger = logging.getLogger(__name__)
+
+class AccounTpaymentAddChecks(models.TransientModel):
+    _name = "account.payment.add.checks"
+    _description = "account.payment.add.checks"
+
+    check_ids = fields.Many2many(comodel_name="account.payment")
+
+    def confirm(self):
+        self.ensure_one()
+        payment_group = self.env["account.payment.group"].browse(self.env.context.get("active_id", False))
+        if payment_group:
+            vals_list = []
+            for check in self.check_ids:
+
+                journal = check.l10n_latam_check_current_journal_id
+                partner = payment_group.partner_id
+
+                debit_account = journal.default_account_id  # Bank/Receivable account
+                credit_account = partner.property_account_payable_id  # Payable account for the partner
+                _logger.info("Debit Account: %s, Credit Account: %s", debit_account, credit_account)
+
+                vals = {
+                    'l10n_latam_check_id': check.id,
+                    'amount': abs(check.amount),  # Ensure the amount is positive
+                    'partner_id': partner.id,
+                    'payment_group_id': payment_group.id,
+                    'payment_type': 'outbound',
+                    'journal_id': journal.id,
+                    'partner_type': 'supplier',
+                    'payment_method_line_id': journal._get_available_payment_method_lines('outbound')
+                        .filtered(lambda x: x.code == 'out_third_party_checks').id,
+                }
+                vals_list.append(vals)
+
+            _logger.info("Vals List for Account Payment: %s", vals_list)
+
+            self.env['account.payment'].create(vals_list)
+
+        return {"type": "ir.actions.act_window_close"}

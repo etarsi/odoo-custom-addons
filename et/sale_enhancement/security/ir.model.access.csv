@@ -1,0 +1,2 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_sale_enhancement_sale_enhancement,sale_enhancement.sale_enhancement,model_sale_enhancement_sale_enhancement,base.group_user,1,1,1,1

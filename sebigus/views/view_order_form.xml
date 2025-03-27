@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_order_form" model="ir.ui.view">
+        <field name="name">sale.order.view.form.inherit.module.name</field>
+        <field name="model">sale.order</field>
+        <field name="inherit_id" ref="sale.view_order_form" />
+        <field name="arch" type="xml">
+            <xpath expr="//div[@class='oe_button_box']" position="inside">
+                <button type="object" name="cargar_showroom" string="Cargar Pedido" attrs="{'invisible': [('state', 'not in', ['draft'])]}" />
+            </xpath>
+            <xpath expr="//group[@name='order_details']" position="attributes">
+                <attribute name="class">d-none d-sm-block</attribute> 
+            </xpath>
+            <xpath expr="//div[@class='oe_chatter']" position="replace">
+            </xpath>
+            <xpath expr="//notebook" position="attributes">
+                <attribute name="class">d-none d-sm-block</attribute> 
+            </xpath>
+            <xpath expr="//field[@name='tax_totals']" position="attributes">
+                <attribute name="invisible">1</attribute> 
+            </xpath>    
+            <xpath expr="//field[@name='tax_totals']" position="before">
+                <field name="amount_total" />
+            </xpath>    
+        </field>
+    </record>
+
+</odoo>
