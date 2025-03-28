@@ -475,6 +475,10 @@ class AccountPaymentGroup(models.Model):
             rec.payment_ids.filtered(lambda p: p.partner_id != rec.partner_id.commercial_partner_id).write(
                 {'partner_id': rec.partner_id.commercial_partner_id.id})
 
+            check_numbers = {}
+            for payment in rec.payment_ids:
+                check_numbers = {}
+
             # no volvemos a postear lo que estaba posteado
             if not created_automatically:
                 rec.payment_ids.filtered(lambda x: x.state == 'draft').action_post()
