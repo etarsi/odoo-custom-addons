@@ -156,10 +156,22 @@ class RemitoReporte(models.Model):
         doc.showPage()
         doc.save()
         prt_file = '%s/%s' % (sal_directorio,sal_archivo)
+<<<<<<< HEAD
         if  self.company_id.short_name:
             os.system('lp -d %s -o fit-to-page -o media=legal /usr/local/apps/archivos/para_imprimir/%s.pdf' % (self.company_id.short_name,prt_file) )
         else:
             os.system('lp -d %s -o fit-to-page -o media=legal /usr/local/apps/archivos/para_imprimir/%s.pdf' % ('PRT',prt_file) )
+=======
+        _logger.info('PRT %s %s' % (prt_file,self.company_id.short_name)) 
+        if  self.company_id.short_name:
+            os.system('lp -d %s -o fit-to-page  %s' % (self.company_id.short_name,prt_file) )
+            os.system('lp -d %s -o fit-to-page  %s' % (self.company_id.short_name,prt_file) )
+            os.system('lp -d %s -o fit-to-page  %s' % (self.company_id.short_name,prt_file) )
+        else:
+            os.system('lp -d %s -o fit-to-page %s' % ('PRT',prt_file) )
+            os.system('lp -d %s -o fit-to-page %s' % ('PRT',prt_file) )
+            os.system('lp -d %s -o fit-to-page %s' % ('PRT',prt_file) )
+>>>>>>> 1b61d784 (re-add)
             
         return {
                 'type': 'ir.actions.act_url',
