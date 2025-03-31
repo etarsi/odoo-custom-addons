@@ -4,7 +4,13 @@ from odoo.exceptions import ValidationError
 class SaleOrderInherit(models.Model):
     _inherit = 'sale.order'
 
+    order_subtotal = fields.Float('Subtotal', compute='_compute_subtotal', readonly=True)
     global_discount = fields.Float('Descuento', default=0)
+
+    @api.depends('amount_tax', 'amount_untaxed')
+    def _compute_subtotal(self):
+        for record in self:
+            record.order_subtotal = record.amount_untaxed + record.amount_tax
 
     @api.onchange('global_discount')
     def _onchange_discount(self):
