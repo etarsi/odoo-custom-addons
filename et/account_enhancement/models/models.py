@@ -5,13 +5,23 @@ from odoo.exceptions import ValidationError
 class AccountPaymentInherit(models.Model):
     _inherit = 'account.payment'
 
+    issue_date = fields.Date(string='Fecha de Emisión')
+    hide_issue_date = fields.Boolean(default=True)
+
     @api.depends('journal_id', 'payment_method_code')
     def _compute_check_number(self):
         for pay in self:
             if pay.journal_id.check_manual_sequencing and pay.payment_method_code == 'check_printing':
                 sequence = pay.journal_id.check_sequence_id
                 pay.check_number = sequence.get_next_char(sequence.number_next_actual)
-                
+    
+    @api.onchange('journal_id')
+    def _onchange_hide_issue_date(self):
+        for record in self:
+            if record.journal_id.default_account_id.name == 'Cheques de terceros':
+                record.hide_issue_date = False
+            else:
+                record.hide_issue_date = True
 
 
 
