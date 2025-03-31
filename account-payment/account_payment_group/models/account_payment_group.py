@@ -449,11 +449,6 @@ class AccountPaymentGroup(models.Model):
             raise ValidationError(_(
                 "You can't post and already posted payment group. Payment group ids: %s") % posted_payment_groups.ids)
         for rec in self:
-            check_numbers = {}
-
-            for payment_line in rec.payment_ids:
-                check_numbers[payment_line.id] = payment_line.check_number
-                raise ValidationError(_(payment_line.check_number))
             if not rec.document_number:
                 if rec.receiptbook_id and not rec.receiptbook_id.sequence_id:
                     raise ValidationError(_(
@@ -500,10 +495,6 @@ class AccountPaymentGroup(models.Model):
                     lambda r: not r.reconciled and r.account_id.internal_type in ('payable', 'receivable'))
                 if counterpart_aml and rec.to_pay_move_line_ids:
                     (counterpart_aml + (rec.to_pay_move_line_ids)).reconcile()
-
-            for payment_line in rec.payment_ids:
-                if payment_line.id in check_numbers:
-                    payment_line.check_number = check_numbers[payment_line.id]
 
             rec.state = 'posted'
 
