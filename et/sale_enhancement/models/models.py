@@ -7,14 +7,14 @@ class SaleOrderInherit(models.Model):
     order_subtotal = fields.Float('Subtotal', compute='_compute_subtotal', readonly=True)
     global_discount = fields.Float('Descuento', default=0)
 
-    @api.depends('amount_tax', 'amount_untaxed')
-    def _compute_subtotal(self):
-        for record in self:
-            if record.order_line:
-                if record.order_line[0].tax_id.id in [62, 185, 309, 433]:
-                    record.order_subtotal = record.amount_untaxed * 1.21
-                else:
-                    record.order_subtotal = record.amount_untaxed
+    # @api.depends('amount_tax', 'amount_untaxed')
+    # def _compute_subtotal(self):
+    #     for record in self:
+    #         if record.order_line:
+    #             if record.order_line[0].tax_id.id in [62, 185, 309, 433]:
+    #                 record.order_subtotal = record.amount_untaxed * 1.21
+    #             else:
+    #                 record.order_subtotal = record.amount_untaxed
 
     @api.onchange('global_discount')
     def _onchange_discount(self):
