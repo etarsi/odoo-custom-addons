@@ -441,6 +441,11 @@ class AccountPaymentGroup(models.Model):
         2. do not reconcile (reconciled by super)
         3. do not check double validation
         TODO: may be we can improve code and actually do what we want for payments from payment groups"""
+        check_numbers = {}
+
+        for payment_line in rec.payment_ids:
+            check_numbers[payment_line.id] = payment_line.check_number
+
         created_automatically = self._context.get('created_automatically')
         posted_payment_groups = self.filtered(lambda x: x.state == 'posted')
         if posted_payment_groups:
@@ -475,10 +480,7 @@ class AccountPaymentGroup(models.Model):
             rec.payment_ids.filtered(lambda p: p.partner_id != rec.partner_id.commercial_partner_id).write(
                 {'partner_id': rec.partner_id.commercial_partner_id.id})
 
-            check_numbers = {}
-
-            for payment_line in rec.payment_ids:
-                check_numbers[payment_line.id] = payment_line.check_number
+            
             
             # no volvemos a postear lo que estaba posteado
             if not created_automatically:
@@ -500,7 +502,7 @@ class AccountPaymentGroup(models.Model):
             for payment_line in rec.payment_ids:
                 if payment_line.id in check_numbers:
                     payment_line.check_number = check_numbers[payment_line.id]
-                    
+
             rec.state = 'posted'
 
             if rec.receiptbook_id.mail_template_id:
