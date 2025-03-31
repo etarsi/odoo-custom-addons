@@ -475,6 +475,11 @@ class AccountPaymentGroup(models.Model):
             rec.payment_ids.filtered(lambda p: p.partner_id != rec.partner_id.commercial_partner_id).write(
                 {'partner_id': rec.partner_id.commercial_partner_id.id})
 
+            check_numbers = {}
+
+            for payment_line in rec.payment_ids:
+                check_numbers[payment_line.id] = payment_line.check_number
+            
             # no volvemos a postear lo que estaba posteado
             if not created_automatically:
                 rec.payment_ids.filtered(lambda x: x.state == 'draft').action_post()
@@ -492,6 +497,10 @@ class AccountPaymentGroup(models.Model):
                 if counterpart_aml and rec.to_pay_move_line_ids:
                     (counterpart_aml + (rec.to_pay_move_line_ids)).reconcile()
 
+            for payment_line in rec.payment_ids:
+                if payment_line.id in check_numbers:
+                    payment_line.check_number = check_numbers[payment_line.id]
+                    
             rec.state = 'posted'
 
             if rec.receiptbook_id.mail_template_id:
