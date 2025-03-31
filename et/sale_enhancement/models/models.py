@@ -1,4 +1,5 @@
-from odoo import models, fields, api
+from odoo import models, api, fields, _
+from odoo.exceptions import ValidationError
 
 class SaleOrderInherit(models.Model):
     _inherit = 'sale.order'
