@@ -157,14 +157,20 @@ class RemitoReporte(models.Model):
         doc.save()
         prt_file = '%s/%s' % (sal_directorio,sal_archivo)
         _logger.info('PRT %s %s' % (prt_file,self.company_id.short_name)) 
+        # Verifico si el picking tiene parte en otra empresa
         if  self.company_id.short_name:
-            os.system('lp -d %s -o fit-to-page  %s' % (self.company_id.short_name,prt_file) )
-            os.system('lp -d %s -o fit-to-page  %s' % (self.company_id.short_name,prt_file) )
-            os.system('lp -d %s -o fit-to-page  %s' % (self.company_id.short_name,prt_file) )
+            dest_prn = self.company_id.short_name
         else:
-            os.system('lp -d %s -o fit-to-page %s' % ('PRT',prt_file) )
-            os.system('lp -d %s -o fit-to-page %s' % ('PRT',prt_file) )
-            os.system('lp -d %s -o fit-to-page %s' % ('PRT',prt_file) )
+            dest_prn = 'PRT'
+        if self.company_id.name == 'Produccion B':
+            pickings = self.env['stock.picking'].sudo().search([('codigo_wms','=',self.codigo_wms)])
+            for pkl in pickings:
+                if pkl.id != self.id:
+                    # Hay un pkl en otro empresa y mando a imprimir en esa impresora
+                    dest_prn = pkl.company_id.short_name
+        os.system('lp -d %s -o fit-to-page %s' % (dest_prn,prt_file) )
+        os.system('lp -d %s -o fit-to-page %s' % (dest_prn,prt_file) )
+        os.system('lp -d %s -o fit-to-page %s' % (dest_prn,prt_file) )
             
         return {
                 'type': 'ir.actions.act_url',
