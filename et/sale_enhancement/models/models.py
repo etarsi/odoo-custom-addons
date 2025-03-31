@@ -10,7 +10,11 @@ class SaleOrderInherit(models.Model):
     @api.depends('amount_tax', 'amount_untaxed')
     def _compute_subtotal(self):
         for record in self:
-            record.order_subtotal = record.amount_untaxed + record.amount_tax
+            if record.order_line:
+                if record.order_line[0].tax_id.id in [62, 185, 309, 433]:
+                    record.order_subtotal = record.amount_untaxed * 1.21
+                else:
+                    record.order_subtotal = record.amount_untaxed
 
     @api.onchange('global_discount')
     def _onchange_discount(self):
