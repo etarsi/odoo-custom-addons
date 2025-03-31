@@ -441,10 +441,7 @@ class AccountPaymentGroup(models.Model):
         2. do not reconcile (reconciled by super)
         3. do not check double validation
         TODO: may be we can improve code and actually do what we want for payments from payment groups"""
-        check_numbers = {}
-
-        for payment_line in rec.payment_ids:
-            check_numbers[payment_line.id] = payment_line.check_number
+        
 
         created_automatically = self._context.get('created_automatically')
         posted_payment_groups = self.filtered(lambda x: x.state == 'posted')
@@ -452,6 +449,11 @@ class AccountPaymentGroup(models.Model):
             raise ValidationError(_(
                 "You can't post and already posted payment group. Payment group ids: %s") % posted_payment_groups.ids)
         for rec in self:
+            check_numbers = {}
+
+            for payment_line in rec.payment_ids:
+                check_numbers[payment_line.id] = payment_line.check_number
+                raise ValidationError(_(payment_line.check_number))
             if not rec.document_number:
                 if rec.receiptbook_id and not rec.receiptbook_id.sequence_id:
                     raise ValidationError(_(
