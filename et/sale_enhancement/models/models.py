@@ -30,6 +30,23 @@ class SaleOrderInherit(models.Model):
 class SaleOrderLineInherit(models.Model):
     _inherit = 'sale.order.line'
 
+    def _update_line_quantity(self, values):
+        orders = self.mapped('order_id')
+        for order in orders:
+            order_lines = self.filtered(lambda x: x.order_id == order)
+            msg = "<b>" + _("The ordered quantity has been updated.") + "</b><ul>"
+            for line in order_lines:
+                msg += "<li> %s: <br/>" % line.product_id.display_name
+                msg += _(
+                    "Ordered Quantity: %(old_qty)s -> %(new_qty)s",
+                    old_qty=line.product_uom_qty,
+                    new_qty=values["product_uom_qty"]
+                ) + "<br/>"
+                if line.product_id.type in ('consu', 'product'):
+                    msg += _("Delivered Quantity: %s", line.qty_delivered) + "<br/>"
+                msg += _("Invoiced Quantity: %s", line.qty_invoiced) + "<br/>"
+            msg += "</ul>"
+            # order.message_post(body=msg)
 
     ## TEMPORAL ### HACER UN DEFAULT VALUE PARA ESTOS CAMPOS
     @api.onchange('product_id')
