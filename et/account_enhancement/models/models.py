@@ -11,7 +11,7 @@ class AccountMoveInherit(models.Model):
             if record.partner_id:
                 tag_id = record.partner_id.category_id
                 journal_id = self.env['account.journal'].search([('l10n_ar_afio_pos_number', '=', 9), ('company_id', '=', record.company_id)])
-                if tag_id == 78 and journal_id:
+                if tag_id == 75 and journal_id:
                     record.journal_id = journal_id
 
 
