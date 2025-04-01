@@ -2,6 +2,19 @@
 from odoo import models, api, fields, _
 from odoo.exceptions import ValidationError
 
+class AccountMoveInherit(models.Model):
+    _inherit = 'account.move'
+
+    @api.onchange('partner_id')
+    def _onchange_journal_gc(self):
+        for record in self:
+            tag_id = record.partner_id.category_id
+            journal_id = self.env['account.journal'].search([('l10n_ar_afio_pos_number', '=', 9), ('company_id', '=', record.company_id)])
+            if tag_id == 78 and journal_id:
+                record.journal_id = journal_id
+
+
+
 class AccountPaymentInherit(models.Model):
     _inherit = 'account.payment'
 
