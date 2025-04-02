@@ -15,6 +15,16 @@ class SaleOrderInherit(models.Model):
         default=lambda self: self._default_percentage()
     )
 
+    def _default_percentage(self):
+        sale_order_id = self._context.get('active_id')
+        sale_order = self.env['sale.order'].browse(sale_order_id)
+        if sale_order and sale_order.condicion_m2m_numeric:
+            try:
+                return float(sale_order.condicion_m2m_numeric)
+            except ValueError:
+                raise UserError(_("condicion_m2m_numeric field must be a valid number."))
+        raise UserError(_("Por favor seleccioná una Condición de Venta."))
+
     def action_split_sale_orders(self):
 
         original_order = self.env['sale.order'].browse(self._context.get('active_id'))
