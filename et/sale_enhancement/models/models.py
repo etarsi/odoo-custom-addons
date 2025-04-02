@@ -23,7 +23,6 @@ class SaleOrderInherit(models.Model):
                 return float(sale_order.condicion_m2m_numeric)
             except ValueError:
                 raise UserError(_("condicion_m2m_numeric field must be a valid number."))
-        raise UserError(_("Por favor seleccioná una Condición de Venta."))
 
     def action_split_sale_orders(self):
 
