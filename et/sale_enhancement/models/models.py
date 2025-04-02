@@ -8,6 +8,12 @@ class SaleOrderInherit(models.Model):
 
     order_subtotal = fields.Float('Subtotal', compute='_compute_subtotal', readonly=True)
     global_discount = fields.Float('Descuento', default=0)
+    percentage = fields.Float(
+        string='Porcentaje (%)',
+        digits=(10, 2),
+        required=True,
+        default=lambda self: self._default_percentage()
+    )
 
     def action_split_sale_orders(self):
 
