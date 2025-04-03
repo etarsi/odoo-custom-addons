@@ -12,8 +12,8 @@ class AccountMoveInherit(models.Model):
     #             tag_id = record.partner_id.category_id
     #             journal_id = self.env['account.journal'].search([('l10n_ar_afip_pos_number', '=', 9), ('company_id', '=', record.company_id.id), ('type', '=', 'sale')])
     #             raise ValidationError(_(tag_id))
-                if 75 in tag_id and journal_id:
-                    record.journal_id = journal_id
+                # if 75 in tag_id and journal_id:
+                #     record.journal_id = journal_id
 
 
 
