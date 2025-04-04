@@ -5,15 +5,20 @@ from odoo.exceptions import ValidationError
 class AccountMoveInherit(models.Model):
     _inherit = 'account.move'
 
-    # @api.onchange('partner_id')
-    # def _onchange_journal_gc(self):
-    #     for record in self:
-    #         if record.partner_id:
-    #             tag_id = record.partner_id.category_id
-    #             journal_id = self.env['account.journal'].search([('l10n_ar_afip_pos_number', '=', 9), ('company_id', '=', record.company_id.id), ('type', '=', 'sale')])
-    #             raise ValidationError(_(tag_id))
-                # if 75 in tag_id and journal_id:
-                #     record.journal_id = journal_id
+    @api.onchange('partner_id')
+    def _onchange_journal_gc(self):
+        journal_id = self.env['account.journal'].search([
+            ('l10n_ar_afip_pos_number', '=', 9),
+            ('company_id', '=', self.env.company.id),
+            ('type', '=', 'sale')
+        ], limit=1) 
+
+        for record in self:
+            if record.partner_id:
+                category_ids = record.partner_id.category_id.mapped('id')
+                
+                if 75 in category_ids and journal_id:
+                    record.journal_id = journal_id
 
 
 
