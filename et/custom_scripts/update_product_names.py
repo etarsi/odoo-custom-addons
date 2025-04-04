@@ -18,8 +18,10 @@ models = xmlrpc.client.ServerProxy(f"{url}/xmlrpc/2/object")
 
 results = []
 
-products_ids = models.execute_kw(db, uid, password, 'product.template', 'search', [[('detailed_type', '=', 'product'), ('default_code', '=', '55707')]])
-products_data = models.execute_kw(db, uid, password, 'product.template', 'read', [products_ids], {'fields': ['name']})
+context = {'lang': 'es_ES'}
+
+products_ids = models.execute_kw(db, uid, password, 'product.template', 'search', [[('detailed_type', '=', 'product'), ('default_code', '=', '55707')]], {'context': context})
+products_data = models.execute_kw(db, uid, password, 'product.template', 'read', [products_ids], {'fields': ['name'], 'context': context})
 
 # output_file = "/opt/odoo15/odoo-custom-addons/et/custom_scripts/products_ids.txt"
 
@@ -34,4 +36,5 @@ for p in products_data:
     if raw_name != cleaned_name:
         models.execute_kw(db, uid, password, 'product.template', 'write', [[product_id], {'name': cleaned_name}])
         print(f"Producto {product_id} actualizado: {raw_name} -> {cleaned_name}")
-    
+    else:
+        print("Los nombres no coinciden")
