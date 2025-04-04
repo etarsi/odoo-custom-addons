@@ -17,7 +17,7 @@ models = xmlrpc.client.ServerProxy(f"{url}/xmlrpc/2/object")
 
 results = []
 
-products_ids = models.execute_kw(db, uid, password, 'product.template', 'search', [[('detailed_type', '=', 'product')]])
+products_ids = models.execute_kw(db, uid, password, 'product.template', 'search', [[('detailed_type', '=', 'product')], ['name']])
 
 output_file = "/opt/odoo15/odoo-custom-addons/et/custom_scripts/products_ids.txt"
 
