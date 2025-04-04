@@ -27,6 +27,6 @@ output_file = "/opt/odoo15/odoo-custom-addons/et/custom_scripts/products_ids.txt
 #         f.write(p)
 
 for p in products_data:
-    print(p)
+    print(p['name'])
         
     
