@@ -107,8 +107,9 @@ class ResCompany(models.Model):
                 pkey_path = tools.config.get("afip_prod_pkey_file")
                 cert_path = tools.config.get("afip_prod_cert_file")
             else:
-                pkey_path = tools.config.get("afip_homo_pkey_file")
-                cert_path = tools.config.get("afip_homo_cert_file")
+                return # cambio temportal para testear correctamente creación de facturas sin necesidad de certificado de homologación
+                # pkey_path = tools.config.get("afip_homo_pkey_file")
+                # cert_path = tools.config.get("afip_homo_cert_file")
             if pkey_path and cert_path:
                 try:
                     if os.path.isfile(pkey_path) and os.path.isfile(cert_path):
