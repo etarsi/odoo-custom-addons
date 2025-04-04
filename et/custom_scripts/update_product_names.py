@@ -18,7 +18,7 @@ models = xmlrpc.client.ServerProxy(f"{url}/xmlrpc/2/object")
 
 results = []
 
-context = {'lang': 'es_ES'}
+context = {'lang': 'es_AR'}
 
 products_ids = models.execute_kw(db, uid, password, 'product.template', 'search', [[('detailed_type', '=', 'product'), ('default_code', '=', '55707')]], {'context': context})
 products_data = models.execute_kw(db, uid, password, 'product.template', 'read', [products_ids], {'fields': ['name'], 'context': context})
