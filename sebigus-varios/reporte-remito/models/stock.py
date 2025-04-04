@@ -37,10 +37,13 @@ class RemitoReporte(models.Model):
         sal_archivo='REM%s_%s.pdf' % (self.id,uuid.uuid4())
         doc = canvas.Canvas('%s/%s' % (sal_directorio,sal_archivo),pagesize=papel)
         pos_ini = -0.5 * cm
+        pos_ini_pie = -0.5 * cm
         if self.company_id.id != 4:
             pos_ini = 0.7 * cm
+            pos_ini_pie = 1.7 * cm
         if self.company_id.id == 3:
             pos_ini = 1 * cm
+            pos_ini_pie = 1 * cm
         def verificar():
             null = None
             if self.codigo_wms:
@@ -110,16 +113,21 @@ class RemitoReporte(models.Model):
             font_size = 12
             doc.setFont(font_name, font_size)
             # Cabecera remito
-            doc.drawString(2*cm,4.0*cm+pos_ini,'Cantidad de Bultos:')
-            doc.drawString(6.5 * cm,4.0*cm+pos_ini,' %s' %  self.number_of_packages)
-            doc.drawString(8.5*cm,4.0*cm+pos_ini,'Cantidad UXB:')
-            doc.drawString(12*cm,4.0*cm+pos_ini,'%.2f' %  self.packaging_qty)
-            doc.drawString(15*cm,4.0*cm+pos_ini,'Valor: $')
-            doc.drawString(17*cm,4.0*cm+pos_ini,'%s' %  self.declared_value)
+            doc.drawString(2*cm,4.0*cm+pos_ini_pie,'Cantidad de Bultos:')
+            doc.drawString(6.5 * cm,4.0*cm+pos_ini_pie,' %s' %  self.number_of_packages)
+            doc.drawString(8.5*cm,4.0*cm+pos_ini_pie,'Cantidad UXB:')
+            doc.drawString(12*cm,4.0*cm+pos_ini_pie,'%.2f' %  self.packaging_qty)
+            doc.drawString(15*cm,4.0*cm+pos_ini_pie,'Valor: $')
+            doc.drawString(17*cm,4.0*cm+pos_ini_pie,'%s' %  self.declared_value)
         verificar()
         cabecera()
         pos = 17
         pos_l = 0
+        pos_t = 0
+        for l in self.move_ids_without_package:
+            if l.quantity_done == 0:
+                continue
+            pos_t = pos_t + 1
         #for l in rem['move_line_ids']:
         # Lotes
         lotes={}
@@ -130,6 +138,7 @@ class RemitoReporte(models.Model):
             font_size = 8
             doc.setFont(font_name, font_size)
             pos_l=pos_l +1
+            pos_t=pos_t -1
             pos = pos - 0.5
             desc = html2text.html2text(re.sub('\n','',l.product_id.display_name))
             if l.description_bom_line:
@@ -145,7 +154,7 @@ class RemitoReporte(models.Model):
                     dis = dis[:20]
                     doc.drawString(15*cm,pos*cm+pos_ini,'%s' % dis)
             doc.drawString(19*cm,pos*cm+pos_ini,'%d' % l.quantity_done)
-            if pos_l == 25:
+            if pos_l == 25 and pos_t > 0:
                 pie()
                 doc.showPage()
                 pos = 17

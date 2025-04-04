@@ -492,6 +492,7 @@ class StockPicking(models.Model):
                      if r['UnidadesSatisfecha'] and r['Unidades']:
                         if r['CodigoArticulo'] == det.product_id.default_code:
                             ratio = det.product_uom_qty/r['Unidades']
+                            _logger.info(' %s %s' % ( det.product_id.default_code , {'quantity_done': round(ratio*r['UnidadesSatisfecha'],0),'forecast_availability': round(ratio*r['UnidadesSatisfecha'],0) } ) )
                             det.write({'quantity_done': round(ratio*r['UnidadesSatisfecha'],0),'forecast_availability': round(ratio*r['UnidadesSatisfecha'],0) })
             self.write({'state_wms':'closed'})
 
