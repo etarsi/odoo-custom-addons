@@ -20,7 +20,7 @@ results = []
 
 context = {'lang': 'es_AR'}
 
-products_ids = models.execute_kw(db, uid, password, 'product.template', 'search', [[('detailed_type', '=', 'product'), ('default_code', '=', '55707')]], {'context': context})
+products_ids = models.execute_kw(db, uid, password, 'product.template', 'search', [[('detailed_type', '=', 'product'), ('default_code', '=', '55708')]], {'context': context})
 products_data = models.execute_kw(db, uid, password, 'product.template', 'read', [products_ids], {'fields': ['name'], 'context': context})
 
 # output_file = "/opt/odoo15/odoo-custom-addons/et/custom_scripts/products_ids.txt"
