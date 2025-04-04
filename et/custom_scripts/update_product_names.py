@@ -33,8 +33,8 @@ for p in products_data:
     cleaned_name = re.sub(r'\s+', ' ', cleaned_name)
 
     print(f"raw_name: {p['name']}")
-    if raw_name != cleaned_name:
-        models.execute_kw(db, uid, password, 'product.template', 'write', [[product_id], {'name': cleaned_name}], {'context': context})
-        print(f"Producto {product_id} actualizado: {raw_name} -> {cleaned_name}")
-    else:
-        print("Los nombres no coinciden")
+    # if raw_name != cleaned_name:
+    #     models.execute_kw(db, uid, password, 'product.template', 'write', [[product_id], {'name': cleaned_name}], {'context': context})
+    #     print(f"Producto {product_id} actualizado: {raw_name} -> {cleaned_name}")
+    # else:
+    #     print("Los nombres no coinciden")
