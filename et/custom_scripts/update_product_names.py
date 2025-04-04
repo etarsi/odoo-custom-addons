@@ -18,19 +18,19 @@ models = xmlrpc.client.ServerProxy(f"{url}/xmlrpc/2/object")
 
 results = []
 
-products_ids = models.execute_kw(db, uid, password, 'product.template', 'search', [[('detailed_type', '=', 'product')]])
+products_ids = models.execute_kw(db, uid, password, 'product.template', 'search', [[('detailed_type', '=', 'product'), ('default_code', '=', 55707)]])
 products_data = models.execute_kw(db, uid, password, 'product.template', 'read', [products_ids], {'fields': ['name']})
 
-output_file = "/opt/odoo15/odoo-custom-addons/et/custom_scripts/products_ids.txt"
+# output_file = "/opt/odoo15/odoo-custom-addons/et/custom_scripts/products_ids.txt"
 
-cleaned_names = []
 for p in products_data:
+    product_id = p['id']
     raw_name = p['name']
+    
     cleaned_name = " ".join(raw_name.splitlines()).strip()
     cleaned_name = re.sub(r'\s+', ' ', cleaned_name)
-    cleaned_names.append(cleaned_name)
 
-# Imprimir los nombres limpios
-for name in cleaned_names:
-    print(name)
+    if raw_name != cleaned_name:
+        models.execute_kw(db, uid, password, 'product.template', 'write', [[product_id], {'name': cleaned_name}])
+        print(f"Producto {product_id} actualizado: {raw_name} -> {cleaned_name}")
     
