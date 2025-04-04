@@ -1,4 +1,5 @@
 import xmlrpc.client
+import re
 
 url = 'http://localhost:8069'
 url2 = 'http://192.168.249.4:5432'
@@ -22,12 +23,14 @@ products_data = models.execute_kw(db, uid, password, 'product.template', 'read',
 
 output_file = "/opt/odoo15/odoo-custom-addons/et/custom_scripts/products_ids.txt"
 
-# with open(output_file, "w") as f:
-#     for p in products_ids:
-#         f.write(p)
-
+cleaned_names = []
 for p in products_data:
-    p_name = " ".join(p['name'].splitlines()).strip()
-    print(p_name)
-        
+    raw_name = p['name']
+    cleaned_name = " ".join(raw_name.splitlines()).strip()
+    cleaned_name = re.sub(r'\s+', ' ', cleaned_name)
+    cleaned_names.append(cleaned_name)
+
+# Imprimir los nombres limpios
+for name in cleaned_names:
+    print(name)
     
