@@ -1,31 +1,36 @@
 <odoo>
-  <record id="view_report_account_deuda_cliente_tree" model="ir.ui.view">
-    <field name="name">report.account_deuda_cliente.tree</field>
-    <field name="model">report.account_deuda_cliente</field>
-    <field name="arch" type="xml">
-      <tree string="Composición de Deuda por Cliente">
-        <field name="partner_id"/>
-        <field name="invoice_date"/>
-        <field name="invoice_date_due"/>
-        <field name="name"/>
-        <field name="amount_total_signed"/>
-        <field name="x_amount_paid"/>
-        <field name="amount_residual_signed"/>
-        <field name="x_accumulated_balance_client"/>
-        <field name="company_id"/>
-      </tree>
-    </field>
-  </record>
+    <record id="view_report_movimientos_clientes_tree" model="ir.ui.view">
+        <field name="name">report.movimientos.clientes.tree</field>
+        <field name="model">report.movimientos.clientes</field>
+        <field name="arch" type="xml">
+            <tree string="Composición de Deudas de Clientes">
+                <field name="partner_id"/>
+                <field name="fecha"/>
+                <field name="fecha_vencimiento"/>
+                <field name="nombre"/>
+                <field name="importe_original"/>
+                <field name="importe_aplicado"/>
+                <field name="importe_residual"/>
+                <field name="origen"/>
+                <field name="company_id"/>
+            </tree>
+        </field>
+    </record>
 
-  <record id="action_account_deuda_cliente" model="ir.actions.act_window">
-    <field name="name">Composición de Deuda</field>
-    <field name="res_model">report.account_deuda_cliente</field>
-    <field name="view_mode">tree</field>
-    <field name="target">current</field>
-  </record>
+    <record id="action_report_movimientos_clientes" model="ir.actions.act_window">
+        <field name="name">Composición de Deudas</field>
+        <field name="res_model">report.movimientos.clientes</field>
+        <field name="view_mode">tree</field>
+        <field name="context">{}</field>
+    </record>
 
-  <menuitem id="menu_account_deuda_cliente_root" name="Reportes Contables"/>
-  <menuitem id="menu_account_deuda_cliente" name="Composición de Deuda"
-            parent="menu_account_deuda_cliente_root"
-            action="action_account_deuda_cliente"/>
+    <menuitem id="menu_report_movimientos_clientes_root"
+              name="Reportes"
+              sequence="90" />
+
+    <menuitem id="menu_report_movimientos_clientes"
+              name="Composición de Deudas"
+              parent="menu_report_movimientos_clientes_root"
+              action="action_report_movimientos_clientes"
+              sequence="1" />
 </odoo>

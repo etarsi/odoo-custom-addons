@@ -5,74 +5,57 @@ class ReportDebtCompositionClient(models.Model):
     _auto = False
     _description = "Composición de deuda por cliente"
 
-    partner_id = fields.Many2one('res.partner', string="Cliente")
-    invoice_date = fields.Date(string="Fecha Comprobante")
-    invoice_date_due = fields.Date(string="Fecha Vencimiento")
-    name = fields.Char(string="Comprobante")
-    amount_total_signed = fields.Monetary(string="Importe Original")
-    amount_residual_signed = fields.Monetary(string="Importe Residual")
-    x_amount_paid = fields.Monetary(string="Importe Aplicado")
-    x_accumulated_balance_client = fields.Monetary(string="Saldo Acumulado")
-    company_id = fields.Many2one('res.company', string="Compañía")
-    currency_id = fields.Many2one('res.currency', string="Moneda")
+    partner_id = fields.Many2one('res.partner', string='Cliente', readonly=True)
+    fecha = fields.Date(string='Fecha', readonly=True)
+    fecha_vencimiento = fields.Date(string='Fecha Vencimiento', readonly=True)
+    nombre = fields.Char(string='Comprobante', readonly=True)
+    importe_original = fields.Monetary(string='Importe Original', readonly=True)
+    importe_residual = fields.Monetary(string='Importe Residual', readonly=True)
+    importe_aplicado = fields.Monetary(string='Importe Aplicado', readonly=True)
+    company_id = fields.Many2one('res.company', string='Compañía', readonly=True)
+    currency_id = fields.Many2one('res.currency', string='Moneda', readonly=True, default=lambda self: self.env.company.currency_id)
+    origen = fields.Selection([
+        ('factura', 'Factura / NC'),
+        ('recibo', 'Recibo')
+    ], string='Origen', readonly=True)
 
     def init(self):
         tools.drop_view_if_exists(self._cr, self._table)
         self._cr.execute(f"""
-            CREATE OR REPLACE VIEW report_composicion_deuda_cliente AS (
+            CREATE OR REPLACE VIEW report_movimientos_clientes AS (
+                -- FACTURAS Y NOTAS DE CRÉDITO
                 SELECT
-                    row_number() OVER () AS id,
+                    am.id AS id,
                     am.partner_id,
-                    am.invoice_date,
-                    am.invoice_date_due,
-                    am.name,
+                    am.invoice_date AS fecha,
+                    am.invoice_date_due AS fecha_vencimiento,
+                    am.name AS nombre,
+                    am.amount_total_signed AS importe_original,
+                    am.amount_residual_signed AS importe_residual,
+                    NULL::numeric AS importe_aplicado,
                     am.company_id,
-                    'factura' AS document_type,
-                    am.amount_total_signed AS amount_total_signed,
-                    COALESCE(applied.total_applied, 0) AS x_amount_paid,
-                    am.amount_residual_signed AS amount_residual_signed,
-                    (am.amount_total_signed - COALESCE(applied.total_applied, 0)) AS x_accumulated_balance_client
+                    'factura' AS origen
                 FROM account_move am
-                LEFT JOIN (
-                    SELECT
-                        aml.move_id,
-                        SUM(ABS(apr.amount)) AS total_applied
-                    FROM account_partial_reconcile apr
-                    JOIN account_move_line aml ON apr.debit_move_id = aml.id OR apr.credit_move_id = aml.id
-                    GROUP BY aml.move_id
-                ) applied ON applied.move_id = am.id
                 WHERE am.move_type IN ('out_invoice', 'out_refund')
                 AND am.state = 'posted'
-                AND am.amount_residual_signed != 0
 
                 UNION ALL
 
+                -- RECIBOS (account_payment_group)
                 SELECT
-                    row_number() OVER () + 1000000 AS id,
-                    am.partner_id,
-                    am.date AS invoice_date,
-                    NULL AS invoice_date_due,
-                    am.name,
-                    am.company_id,
-                    'recibo' AS document_type,
-                    am.amount_total_signed AS amount_total_signed,
-                    COALESCE(applied.total_applied, 0) AS x_amount_paid,
-                    am.amount_residual_signed AS amount_residual_signed,
-                    (am.amount_total_signed - COALESCE(applied.total_applied, 0)) AS x_accumulated_balance_client
-                FROM account_move am
-                JOIN account_move_line aml ON aml.move_id = am.id
-                LEFT JOIN (
-                    SELECT
-                        aml.move_id,
-                        SUM(ABS(apr.amount)) AS total_applied
-                    FROM account_partial_reconcile apr
-                    JOIN account_move_line aml ON apr.debit_move_id = aml.id OR apr.credit_move_id = aml.id
-                    GROUP BY aml.move_id
-                ) applied ON applied.move_id = am.id
-                WHERE am.move_type = 'entry'
-                AND aml.account_internal_type = 'receivable'
-                AND am.state = 'posted'
-                AND am.amount_residual_signed != 0
+                    -apg.id AS id,  -- negativo para que no choquen con los IDs de account_move
+                    apg.partner_id,
+                    apg.payment_date AS fecha,
+                    NULL AS fecha_vencimiento,
+                    apg.name AS nombre,
+                    apg.amount_total AS importe_original,
+                    apg.amount_unreconciled AS importe_residual,
+                    apg.amount_total - apg.amount_unreconciled AS importe_aplicado,
+                    apg.company_id,
+                    'recibo' AS origen
+                FROM account_payment_group apg
+                WHERE apg.state IN ('posted', 'reconciled')
             );
+
 
         """)
