@@ -1,0 +1,2 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_debt_composition_debt_composition,debt_composition.debt_composition,model_debt_composition_debt_composition,base.group_user,1,1,1,1
