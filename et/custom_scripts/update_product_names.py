@@ -21,8 +21,11 @@ products_ids = models.execute_kw(db, uid, password, 'product.template', 'search'
 
 output_file = "/opt/odoo15/odoo-custom-addons/et/custom_scripts/products_ids.txt"
 
-with open(output_file, "w") as f:
-    for p in products_ids:
-        f.write(p)
+# with open(output_file, "w") as f:
+#     for p in products_ids:
+#         f.write(p)
+
+for p in products_ids:
+    print(p)
         
     
