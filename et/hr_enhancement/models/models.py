@@ -12,9 +12,9 @@ class HrEmployee(models.Model):
     cuil = fields.Integer('CUIL')
     dni_fotos = fields.Char('Foto DNI')
     hijos = fields.Boolean('Hijos', default=False)
-    hijos_datos = fields.One2many('employee.children', string='Hijos')    
+    hijos_datos = fields.One2many('employee.children', 'parent_id', string='Hijos')    
     alta_afip = fields.Date('Fecha de Alta AFIP')
-    licencias = fields.One2many('employee.license', string="Licencias")
+    licencias = fields.One2many('employee.license','employee_id', string="Licencias")
     
     @api.model
     def action_open_my_profile(self):

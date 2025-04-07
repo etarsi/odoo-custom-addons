@@ -3,7 +3,7 @@ from odoo import models, fields, api
 class EmployeeLicense(models.Model):
     _name = 'employee.license'
 
-    employee = fields.Many2one('hr.employee', required=True)
+    employee_id = fields.Many2one('hr.employee', required=True)
     requested_date = fields.Datetime('Fecha solicitada', required=True)
     license_date = fields.Date('Fecha de licencia', required=True)
     days_qty = fields.Integer('Cantidad de días', default=0, required=True)
