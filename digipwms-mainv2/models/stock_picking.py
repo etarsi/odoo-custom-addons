@@ -507,6 +507,9 @@ class StockPicking(models.Model):
         #cod_recepcion = re.sub('\/','_',self.name)
         sp = self
         cod_recepcion = self.codigo_wms
+        if not sp.dispatch_number:
+            raise UserError('Debe definar el numero de despacho para poder continuar')
+
         respGet = requests.get('%s/v1/ControlCiego?DocumentoNumero=%s' % (url,cod_recepcion), headers=headers)
         if respGet.status_code in [200,201] and respGet.content.strip() != b'null':
            respGet_json = respGet.json()

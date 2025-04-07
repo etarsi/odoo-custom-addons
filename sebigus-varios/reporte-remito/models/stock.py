@@ -173,6 +173,7 @@ class RemitoReporte(models.Model):
             dest_prn = 'PRT'
         if self.company_id.name == 'Produccion B':
             pickings = self.env['stock.picking'].sudo().search([('codigo_wms','=',self.codigo_wms)])
+            dest_prn = 'SBG'
             for pkl in pickings:
                 if pkl.id != self.id:
                     # Hay un pkl en otro empresa y mando a imprimir en esa impresora
