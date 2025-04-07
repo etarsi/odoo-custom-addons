@@ -17,7 +17,7 @@ class HrEmployee(models.Model):
     # licencias = fields.One2many('employee.license', 'employee_id', string="Licencias")
     licencia_count = fields.Integer(string="Cantidad de Licencias", compute='_compute_licencia_count')
 
-    @api.depends_count('licencias')
+    @api.depends('licencias')
     def _compute_licencia_count(self):
         for rec in self:
             rec.licencia_count = len(rec.licencias)
