@@ -15,6 +15,12 @@ class HrEmployee(models.Model):
     hijos_datos = fields.One2many('employee.children', string='Hijos')    
     alta_afip = fields.Date('Fecha de Alta AFIP')
     licencias = fields.One2many('employee.license', string="Licencias")
+    licencia_count = fields.Integer(string="Cantidad de Licencias", compute='_compute_licencia_count')
+
+    @api.depends_count('licencias')
+    def _compute_licencia_count(self):
+        for rec in self:
+            rec.licencia_count = len(rec.licencias)
     
     @api.model
     def action_open_my_profile(self):
@@ -30,3 +36,14 @@ class HrEmployee(models.Model):
             }
         else:
             return {'type': 'ir.actions.act_window_close'}
+
+    def action_view_licencias(self):
+        self.ensure_one()
+        return {
+            'name': 'Licencias',
+            'type': 'ir.actions.act_window',
+            'res_model': 'employee.license',
+            'view_mode': 'tree,form',
+            'domain': [('employee_id', '=', self.id)],
+            'context': {'default_employee_id': self.id},
+        }
