@@ -8,13 +8,12 @@ class EmployeeLicense(models.Model):
     license_date = fields.Date('Fecha de licencia', required=True)
     days_qty = fields.Integer('Cantidad de días', default=0, required=True)
     reason = fields.Char('Motivo', required=True)
-    state = fields.Selection('Estado', selection=[
+    state = fields.Selection(selection=[
         ('draft', 'Borrador'),
         ('pending', 'Pendiente de Aprobación'),
         ('approved', 'Aprobado'),
         ('rejected', 'Rechazado'),
-    ],
-    required=True)
+    ], string='Estado', required=True)
 
     approver = fields.Many2one('res.users', string="Aprobador")
 
