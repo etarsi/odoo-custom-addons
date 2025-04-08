@@ -12,6 +12,9 @@ class StockPickingInherit(models.Model):
 
         return res
 
+    def ajustar_fecha(self):
+        for record in self:
+            record.wms_date = fields.Date.today()
 
     def split_auto(self):
         for picking in self:
