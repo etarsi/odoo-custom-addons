@@ -3,12 +3,12 @@ from odoo import models, fields, api
 class StockPickingInherit(models.Model):
     _inherit = 'stock.picking'
 
-    wms_date = fields.Datetime(string="Fecha WMS")
+    wms_date = fields.Date(string="Fecha WMS")
 
     def enviar(self):
         res = super().enviar()
         for record in self:
-            record.wms_date = fields.Datetime.now()
+            record.wms_date = fields.Datetime.today()
 
         return res
 
