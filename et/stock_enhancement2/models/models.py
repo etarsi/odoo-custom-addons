@@ -36,7 +36,7 @@ class StockPickingInherit(models.Model):
                         break
                     
                     bulto_qty = bulto_count + move.product_packaging_qty
-                    if bulto_qty <= 15:            
+                    if bulto_qty <= 20:      
                         line_count += 1
                         bulto_count += move.product_packaging_qty
                         selected_moves |= move
