@@ -8,7 +8,7 @@ class StockPickingInherit(models.Model):
     def enviar(self):
         res = super().enviar()
         for record in self:
-            record.wms_date = fields.Datetime.today()
+            record.wms_date = fields.Date.today()
 
         return res
 
