@@ -5,7 +5,7 @@ from odoo.exceptions import AccessError, UserError, ValidationError
 class AccountMoveInherit(models.Model):
     _inherit = 'account.move'
 
-    wms_code = fields.Char('Código WMS')
+    wms_codes = fields.Char('Código WMS')
 
 
 
@@ -167,7 +167,6 @@ class SaleOrderInherit(models.Model):
             'invoice_line_ids': [],
             'company_id': self.company_id.id,
 
-            'wms_code': wms_code,
+            'wms_codes': wms_code,
         }
         return invoice_vals
-
