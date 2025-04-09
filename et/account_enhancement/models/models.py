@@ -1,9 +1,13 @@
 # -*- coding: utf-8 -*-
 from odoo import models, api, fields, _
-from odoo.exceptions import ValidationError
+from odoo.exceptions import AccessError, UserError, ValidationError
 
 class AccountMoveInherit(models.Model):
     _inherit = 'account.move'
+
+    wms_code = fields.Char('Código WMS')
+
+
 
     @api.onchange('partner_id')
     def _onchange_journal_gc(self):
@@ -79,29 +83,21 @@ class AccountPaymentGroupInherit(models.Model):
                         rec.receiptbook_id.with_context(
                             ir_sequence_date=rec.payment_date
                         ).sequence_id.next_by_id())
-            # por ahora solo lo usamos en _get_last_sequence_domain para saber si viene de una transferencia (sin
-            # documen type) o es de un grupo de pagos. Pero mas alla de eso no tiene un gran uso, viene un poco legacy
-            # y ya está configurado en los receibooks
             rec.payment_ids.l10n_latam_document_type_id = rec.document_type_id.id
 
             if not rec.payment_ids:
                 raise ValidationError(_(
                     'You can not confirm a payment group without payment lines!'))
-            # si todos los pagos hijos estan posteados es probable que venga de un pago creado en otro lugar
-            # (expenses por ejemplo), en ese caso salteamos la dobule validation
             if (rec.payment_subtype == 'double_validation' and rec.payment_difference and not created_automatically):
                 raise ValidationError(_('To Pay Amount and Payment Amount must be equal!'))
 
-            # if the partner of the payment is different of ht payment group we change it.
             rec.payment_ids.filtered(lambda p: p.partner_id != rec.partner_id.commercial_partner_id).write(
                 {'partner_id': rec.partner_id.commercial_partner_id.id})
 
             
             
-            # no volvemos a postear lo que estaba posteado
             if not created_automatically:
                 rec.payment_ids.filtered(lambda x: x.state == 'draft').action_post()
-            # escribimos despues del post para que odoo no renumere el payment
             rec.payment_ids.name = rec.name
 
             if not rec.receiptbook_id and not rec.name:
@@ -124,3 +120,54 @@ class AccountPaymentGroupInherit(models.Model):
             if rec.receiptbook_id.mail_template_id:
                 rec.message_post_with_template(rec.receiptbook_id.mail_template_id.id)
         return True
+    
+
+class SaleOrderInherit(models.Model):
+    _inherit = 'sale.order'
+
+    def _prepare_invoice(self):
+        """
+        Prepare the dict of values to create the new invoice for a sales order. This method may be
+        overridden to implement custom invoice generation (making sure to call super() to establish
+        a clean extension chain).
+        """
+        self.ensure_one()
+        journal = self.env['account.move'].with_context(default_move_type='out_invoice')._get_default_journal()
+        if not journal:
+            raise UserError(_('Please define an accounting sales journal for the company %s (%s).', self.company_id.name, self.company_id.id))
+        
+        wms_codes = []
+        if self.picking_ids:
+            for p in self.picking_ids:
+                if p.wms_code:
+                    wms_codes.append(p.wms_code)
+
+        wms_code = ", ".join(wms_codes)
+
+        invoice_vals = {
+            'ref': self.client_order_ref or '',
+            'move_type': 'out_invoice',
+            'narration': self.note,
+            'currency_id': self.pricelist_id.currency_id.id,
+            'campaign_id': self.campaign_id.id,
+            'medium_id': self.medium_id.id,
+            'source_id': self.source_id.id,
+            'user_id': self.user_id.id,
+            'invoice_user_id': self.user_id.id,
+            'team_id': self.team_id.id,
+            'partner_id': self.partner_invoice_id.id,
+            'partner_shipping_id': self.partner_shipping_id.id,
+            'fiscal_position_id': (self.fiscal_position_id or self.fiscal_position_id.get_fiscal_position(self.partner_invoice_id.id)).id,
+            'partner_bank_id': self.company_id.partner_id.bank_ids.filtered(lambda bank: bank.company_id.id in (self.company_id.id, False))[:1].id,
+            'journal_id': journal.id,  # company comes from the journal
+            'invoice_origin': self.name,
+            'invoice_payment_term_id': self.payment_term_id.id,
+            'payment_reference': self.reference,
+            'transaction_ids': [(6, 0, self.transaction_ids.ids)],
+            'invoice_line_ids': [],
+            'company_id': self.company_id.id,
+
+            'wms_code': wms_code,
+        }
+        return invoice_vals
+
