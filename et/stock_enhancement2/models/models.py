@@ -7,7 +7,7 @@ class StockPickingInherit(models.Model):
     has_rodado = fields.Boolean(string="Rodados", compute="_compute_has_rodado", store=True)
 
     @api.depends('move_ids_without_package')
-    def _compute_has_monopatin(self):
+    def _compute_has_rodado(self):
         for record in self:
             for line in record.move_ids_without_package:
                 if line.product_id.category_id.parent_id.id == 320:
