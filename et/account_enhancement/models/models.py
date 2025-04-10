@@ -135,13 +135,19 @@ class SaleOrderInherit(models.Model):
         if not journal:
             raise UserError(_('Please define an accounting sales journal for the company %s (%s).', self.company_id.name, self.company_id.id))
         
-        # wms_codes = []
-        # if self.picking_ids:
-        #     for p in self.picking_ids:
-        #         if p.wms_code:
-        #             wms_codes.append(p.wms_code)
-
-        # wms_code = ", ".join(wms_codes)
+        WmsCode = self.env['wms.code']
+        wms_codes = set()
+        if self.picking_ids:
+            for p in self.picking_ids:
+                if p.codigo_wms:
+                    wms_codes.add(p.codigo_wms)
+        
+        wms_code_records = WmsCode.search([('name', 'in', list(wms_codes))])
+        existing_names = set(wms_code_records.mapped('name'))
+        missing_names = wms_codes - existing_names
+        
+        new_records = WmsCode.create([{'name': name} for name in missing_names])
+        wms_records = wms_code_records | new_records
 
         invoice_vals = {
             'ref': self.client_order_ref or '',
@@ -165,6 +171,7 @@ class SaleOrderInherit(models.Model):
             'transaction_ids': [(6, 0, self.transaction_ids.ids)],
             'invoice_line_ids': [],
             'company_id': self.company_id.id,
+            'wms_code_ids': wms_records,
         }
         return invoice_vals
     

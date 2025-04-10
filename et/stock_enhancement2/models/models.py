@@ -4,6 +4,15 @@ class StockPickingInherit(models.Model):
     _inherit = 'stock.picking'
 
     wms_date = fields.Date(string="Fecha WMS")
+    has_rodado = fields.Boolean(string="Rodados", compute="_compute_has_rodado")
+
+    @api.depends('move_ids_without_package')
+    def _compute_has_monopatin(self):
+        for record in self:
+            for line in record.move_ids_without_package:
+                if line.product_id.category_id.parent_id.id == 320:
+                    record.has_rodado = True
+
 
     def enviar(self):
         res = super().enviar()
