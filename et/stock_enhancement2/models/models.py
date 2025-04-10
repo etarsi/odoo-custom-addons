@@ -10,7 +10,7 @@ class StockPickingInherit(models.Model):
     def _compute_has_rodado(self):
         for record in self:
             for line in record.move_ids_without_package:
-                if line.product_id.category_id.parent_id.id == 320:
+                if line.product_id.categ_id.parent_id.id == 320:
                     record.has_rodado = True
 
 
