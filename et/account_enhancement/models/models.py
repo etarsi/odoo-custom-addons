@@ -5,19 +5,7 @@ from odoo.exceptions import AccessError, UserError, ValidationError
 class AccountMoveInherit(models.Model):
     _inherit = 'account.move'
 
-    wms_codes = fields.Char('Código WMS')
-    wms_codes_html = fields.Html(string="Códigos WMS", compute="_compute_wms_codes_html")
-    
-    @api.depends('wms_codes')
-    def _compute_wms_codes_html(self):
-        for rec in self:
-            if rec.wms_codes:
-                rec.wms_codes_html = " ".join(
-                    f'<span class="badge badge-info">{code.strip()}</span>'
-                    for code in rec.wms_codes.split(",") if code.strip()
-                )
-            else:
-                rec.wms_codes_html = ""
+    wms_code_ids = fields.Many2many("wms.code", string="Códigos WMS")
 
 
     @api.onchange('partner_id')
@@ -177,7 +165,11 @@ class SaleOrderInherit(models.Model):
             'transaction_ids': [(6, 0, self.transaction_ids.ids)],
             'invoice_line_ids': [],
             'company_id': self.company_id.id,
-
-            'wms_codes': wms_code,
         }
         return invoice_vals
+    
+    class WmsCode(models.Model):
+        _name = "wms.code"
+        _description = "Código WMS"
+
+        name = fields.Char("Código", required=True)
