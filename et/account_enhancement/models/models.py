@@ -16,6 +16,8 @@ class AccountMoveInherit(models.Model):
                     f'<span class="badge badge-info">{code.strip()}</span>'
                     for code in rec.wms_codes.split(",") if code.strip()
                 )
+            else:
+                rec.wms_codes_html = ""
 
 
     @api.onchange('partner_id')
