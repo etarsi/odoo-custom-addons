@@ -11,10 +11,11 @@ class AccountMoveInherit(models.Model):
     @api.depends('wms_codes')
     def _compute_wms_codes_html(self):
         for rec in self:
-            rec.wms_codes_html = " ".join(
-                f'<span class="badge badge-info">{code.strip()}</span>'
-                for code in rec.wms_codes.split(",") if code.strip()
-            )
+            if rec.wms_codes:
+                rec.wms_codes_html = " ".join(
+                    f'<span class="badge badge-info">{code.strip()}</span>'
+                    for code in rec.wms_codes.split(",") if code.strip()
+                )
 
 
     @api.onchange('partner_id')
