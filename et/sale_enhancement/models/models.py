@@ -21,6 +21,7 @@ class SaleOrderInherit(models.Model):
         default=lambda self: self._default_percentage()
     )
 
+
     def _default_percentage(self):
         sale_order_id = self._context.get('active_id')
         sale_order = self.env['sale.order'].browse(sale_order_id)
@@ -213,3 +214,10 @@ class SaleOrderLineInherit(models.Model):
     @api.onchange('product_packaging_id')
     def _onchange_product_packaging_id(self):
         return
+    
+
+    class ResPartnerInherit(models.Model):
+        _inherit = 'res.partner'
+
+
+        property_delivery_carrier_id = fields.Many2one('delivery.carrier', company_dependent=False, string="Delivery Method", help="Default delivery method used in sales orders.")
