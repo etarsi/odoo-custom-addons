@@ -6,6 +6,7 @@ _logger = logging.getLogger(__name__)
 class SaleOrderInherit(models.Model):
     _inherit = 'sale.order'
 
+    special_price = fields.Boolean('Precios especiales', default=False)
     pricelist_id = fields.Many2one(
         'product.pricelist', string='Pricelist', check_company=True,  # Unrequired company
         required=True, readonly=True, states={'draft': [('readonly', False)], 'sent': [('readonly', False)], 'sale': [('readonly', False)],},
@@ -65,6 +66,7 @@ class SaleOrderInherit(models.Model):
                 'condicion_m2m_numeric': original_order.condicion_m2m_numeric,
                 'state': 'sale',
                 'client_order_ref': original_order.company_id.name,
+                'special_price': original_order.special_price,
             }
             # _logger.info(f"Nueva SO: {new_order_vals}")
 
@@ -102,10 +104,12 @@ class SaleOrderInherit(models.Model):
                 # POR CASO DE DIFERENCIA MAYOR A CANTIDAD ORIGINAL
                 difference = int(-original_quantity if difference < 0 and abs(difference) > original_quantity else difference)
 
+                _logger.info(f"Diferencia: {difference}")
 
                 for new_order in new_orders:
                     for line in new_order.order_line:
                         if line.product_id == original_line.product_id:
+                            _logger.info(f"line.product_uom_qty 1 %%%: {line.product_uom_qty}")
                             # VAMOS CON TRY
                             try:
                                 line.product_uom_qty += difference
