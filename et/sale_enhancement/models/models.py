@@ -6,6 +6,11 @@ _logger = logging.getLogger(__name__)
 class SaleOrderInherit(models.Model):
     _inherit = 'sale.order'
 
+    pricelist_id = fields.Many2one(
+        'product.pricelist', string='Pricelist', check_company=True,  # Unrequired company
+        required=True, readonly=True, states={'draft': [('readonly', False)], 'sent': [('readonly', False)], 'done': [('readonly', False)],},
+        domain="['|', ('company_id', '=', False), ('company_id', '=', company_id)]", tracking=1,
+        help="If you change the pricelist, only newly added lines will be affected.")
     order_subtotal = fields.Float('Subtotal', compute='_compute_subtotal', readonly=True)
     global_discount = fields.Float('Descuento', default=0)
     percentage = fields.Float(
