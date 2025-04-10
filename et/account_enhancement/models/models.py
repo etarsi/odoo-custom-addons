@@ -6,7 +6,15 @@ class AccountMoveInherit(models.Model):
     _inherit = 'account.move'
 
     wms_codes = fields.Char('Código WMS')
-
+    wms_codes_html = fields.Html(string="Códigos WMS", compute="_compute_wms_codes_html")
+    
+    @api.depends('wms_codes')
+    def _compute_wms_codes_html(self):
+        for rec in self:
+            rec.wms_codes_html = " ".join(
+                f'<span class="badge badge-info">{code.strip()}</span>'
+                for code in rec.wms_codes.split(",") if code.strip()
+            )
 
 
     @api.onchange('partner_id')
