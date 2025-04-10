@@ -6,7 +6,7 @@ _logger = logging.getLogger(__name__)
 class SaleOrderInherit(models.Model):
     _inherit = 'sale.order'
 
-    special_price = fields.Boolean('Precios especiales', default=False)
+    special_price = fields.Boolean('Precios especiales')
     pricelist_id = fields.Many2one(
         'product.pricelist', string='Pricelist', check_company=True,  # Unrequired company
         required=True, readonly=True, states={'draft': [('readonly', False)], 'sent': [('readonly', False)], 'sale': [('readonly', False)],},
