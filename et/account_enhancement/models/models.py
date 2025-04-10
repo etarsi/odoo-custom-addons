@@ -135,11 +135,11 @@ class SaleOrderInherit(models.Model):
         if not journal:
             raise UserError(_('Please define an accounting sales journal for the company %s (%s).', self.company_id.name, self.company_id.id))
         
-        wms_codes = []
-        if self.picking_ids:
-            for p in self.picking_ids:
-                if p.wms_code:
-                    wms_codes.append(p.wms_code)
+        # wms_codes = []
+        # if self.picking_ids:
+        #     for p in self.picking_ids:
+        #         if p.wms_code:
+        #             wms_codes.append(p.wms_code)
 
         wms_code = ", ".join(wms_codes)
 
