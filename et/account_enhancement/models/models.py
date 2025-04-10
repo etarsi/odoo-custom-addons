@@ -141,7 +141,7 @@ class SaleOrderInherit(models.Model):
         #         if p.wms_code:
         #             wms_codes.append(p.wms_code)
 
-        wms_code = ", ".join(wms_codes)
+        # wms_code = ", ".join(wms_codes)
 
         invoice_vals = {
             'ref': self.client_order_ref or '',
