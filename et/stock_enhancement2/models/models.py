@@ -4,7 +4,7 @@ class StockPickingInherit(models.Model):
     _inherit = 'stock.picking'
 
     wms_date = fields.Date(string="Fecha WMS")
-    has_rodado = fields.Boolean(string="Rodados", compute="_compute_has_rodado")
+    has_rodado = fields.Boolean(string="Rodados", compute="_compute_has_rodado", store=True)
 
     @api.depends('move_ids_without_package')
     def _compute_has_monopatin(self):
