@@ -37,9 +37,6 @@ class AccountPaymentInherit(models.Model):
     def _onchange_no_diferido(self):
         if self.no_diferido:
             self.issue_date = False
-            self.hide_issue_date = True
-        else:
-            self.hide_issue_date = False
 
     @api.depends('journal_id', 'payment_method_code')
     def _compute_check_number(self):
