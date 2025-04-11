@@ -41,6 +41,9 @@ class RemitoReporte(models.Model):
         if self.company_id.id != 4:
             pos_ini = 0.7 * cm
             pos_ini_pie = 1.7 * cm
+        if self.company_id.id == 1:
+            pos_ini = 0.7 * cm
+            pos_ini_pie = 1.2 * cm
         if self.company_id.id == 3:
             pos_ini = 1 * cm
             pos_ini_pie = 1 * cm
@@ -154,7 +157,7 @@ class RemitoReporte(models.Model):
                     dis = dis[:20]
                     doc.drawString(15*cm,pos*cm+pos_ini,'%s' % dis)
             doc.drawString(19*cm,pos*cm+pos_ini,'%d' % l.quantity_done)
-            if pos_l == 25 and pos_t > 0:
+            if pos_l == 23 and pos_t > 0:
                 pie()
                 doc.showPage()
                 pos = 17
