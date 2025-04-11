@@ -96,10 +96,10 @@ class ResPartnerInherit(models.Model):
     _inherit = 'res.partner'
 
 
-    property_delivery_carrier_id = fields.Many2one('delivery.carrier', company_dependent=True, string="Delivery Method", help="Default delivery method used in sales orders.")
+    property_delivery_carrier_id = fields.Many2one('delivery.carrier', company_dependent=False, string="Delivery Method", help="Default delivery method used in sales orders.")
 
 
-class SaleOrderSplitWizardInheri(models.TransientModel):
+class SaleOrderSplitWizardInherit(models.TransientModel):
     _inherit = 'sale.order.split.wizard'
 
     percentage = fields.Float(
