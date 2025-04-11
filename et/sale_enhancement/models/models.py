@@ -14,6 +14,16 @@ class SaleOrderInherit(models.Model):
         help="If you change the pricelist, only newly added lines will be affected.")
     order_subtotal = fields.Float('Subtotal', compute='_compute_subtotal', readonly=True)
     global_discount = fields.Float('Descuento', default=0)
+
+    # Forzar comercial correcto
+    def create(self, vals):
+        res = super().create(vals)
+
+        comercial_id = res.partner_id.user_id
+
+        if comercial_id:
+            res.user_id = comercial_id
+        return res
     
 
     @api.depends('amount_tax', 'amount_untaxed', 'order_line.tax_id')
