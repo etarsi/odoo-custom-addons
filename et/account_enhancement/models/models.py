@@ -30,6 +30,16 @@ class AccountPaymentInherit(models.Model):
 
     issue_date = fields.Date(string='Fecha de Emisión')
     hide_issue_date = fields.Boolean(default=True)
+    no_diferido = fields.Boolean('No diferido', default=False)
+    no_a_la_orden = fields.Boolean('No a la Orden', default=False)
+
+    @api.onchange('no_diferido')
+    def _onchange_no_diferido(self):
+        if self.no_diferido:
+            self.issue_date = False
+            self.hide_issue_date = True
+        else:
+            self.hide_issue_date = False
 
     @api.depends('journal_id', 'payment_method_code')
     def _compute_check_number(self):
