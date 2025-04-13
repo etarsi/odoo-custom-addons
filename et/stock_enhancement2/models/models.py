@@ -101,7 +101,7 @@ class StockPickingInherit(models.Model):
 
             qty_done = move.quantity_done
             uxb = move.product_packaging_id.qty if move.product_packaging_id else 1
-            bultos = uxb * qty_done
+            bultos = qty_done / uxb
 
             total_bultos += bultos
             total_unidades += qty_done
