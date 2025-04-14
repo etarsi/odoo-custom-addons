@@ -55,7 +55,7 @@ class StockPickingInherit(models.Model):
     def print_remito(self):
         self.ensure_one()
         return {
-            'type': 'ir.actions.act_url',
+            'type': 'ir.actions.report',
             'url': f'/remito/auto/{self.id}',
             'target': 'self',
         }
