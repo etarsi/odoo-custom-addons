@@ -53,7 +53,7 @@ class StockPickingController(http.Controller):
         if not picking.exists():
             return request.not_found()
 
-        tipo = picking.tipo or 'TIPO 1'
+        tipo = picking.x_order_type or 'TIPO 1'
         _, negro_pct = self._get_proporcion_tipo(tipo)
 
         if negro_pct == 0:
@@ -85,7 +85,7 @@ class StockPickingController(http.Controller):
         if not picking.exists():
             return request.not_found()
 
-        tipo = picking.tipo or 'TIPO 1'
+        tipo = picking.x_order_type or 'TIPO 1'
         blanco_pct, negro_pct = self._get_proporcion_tipo(tipo)
 
         urls = []
