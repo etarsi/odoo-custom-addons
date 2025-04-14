@@ -63,7 +63,7 @@ class StockPickingInherit(models.Model):
     def _prepare_remito_data(self, picking, proportion, company_id):
         partner = picking.partner_id
 
-        lineas = []
+        lines = []
         total_bultos = 0
         total_unidades = 0
         date = picking.date_done
@@ -75,7 +75,7 @@ class StockPickingInherit(models.Model):
             bultos = qty / uxb if uxb else 1
             lote = move.lot_ids[:1].name if move.lot_ids else ''
 
-            lineas.append({
+            lines.append({
                 'bultos': bultos,
                 'codigo': move.product_id.default_code or '',
                 'nombre': move.product_id.name or '',
@@ -85,7 +85,7 @@ class StockPickingInherit(models.Model):
 
             total_bultos += bultos
             total_unidades += qty
-
+        
         remito = {
             'date': date,
             'client': {
@@ -101,7 +101,7 @@ class StockPickingInherit(models.Model):
                 'name': partner.name,
                 'address': f"{partner.street or ''}, {partner.zip or ''} {partner.city or ''}",
             },
-            'move_lines': lineas,
+            'move_lines': lines,
             'total_bultos': picking.number_of_packages,
             'total_units': picking.packaging_qty,
             'total_value': sum(move.product_id.list_price * move.quantity_done for move in picking.move_ids_without_package),
@@ -118,11 +118,11 @@ class StockPickingInherit(models.Model):
         c = canvas.Canvas(buffer, pagesize=A4)
         width, height = A4
 
-        # Fecha
+        # date
         c.setFont("Helvetica", 10)
         c.drawString(*coords['fecha'], remito['date'])
 
-        # Cliente
+        # client
         y = coords['cliente_y']
         c.drawString(40, y, remito['client']['name'])
         y -= 15
@@ -134,18 +134,18 @@ class StockPickingInherit(models.Model):
         y -= 15
         c.drawString(40, y, f"Condición de IVA: {remito['client']['iva']}")
 
-        # Origen / Picking
+        # origin / picking
         y = coords['origen_y']
         c.drawString(40, y, f"Origen: {remito['origin']}")
         c.drawString(250, y, remito['picking_name'])
 
-        # Dirección de entrega
+        # delivery address
         y = coords['entrega_y']
         c.drawString(40, y, remito['destination']['name'])
         y -= 15
         c.drawString(40, y, remito['destination']['address'])
 
-        # Tabla productos
+        # product table
         y = coords['tabla_y']
         c.setFont("Helvetica-Bold", 10)
         c.drawString(40, y, "Bultos")
@@ -153,7 +153,7 @@ class StockPickingInherit(models.Model):
         c.drawString(360, y, "Lote")
         c.drawString(500, y, "Unidades")
         y -= 15
-        c.setFont("Helvetica", 10)
+        c.setFont("Helvetica", 8)
 
         for linea in remito['move_lines']:
             if y < 100:
@@ -166,7 +166,7 @@ class StockPickingInherit(models.Model):
             c.drawString(500, y, f"{linea['unidades']:.2f}")
             y -= 15
 
-        # Resumen
+        # footer
         y = coords['resumen_y']
         c.setFont("Helvetica-Bold", 10)
         c.drawString(40, y, f"Cantidad de Bultos: {remito['total_bultos']:.2f}")
@@ -211,7 +211,6 @@ class StockPickingInherit(models.Model):
                 'resumen_y': 95,
             }
         else:
-            # Valores por defecto
             return {
                 'fecha': (480, 790),
                 'cliente_y': 740,
