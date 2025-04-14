@@ -72,7 +72,7 @@ class StockPickingController(http.Controller):
         if not picking.exists():
             return request.not_found()
 
-        tipo = picking.x_order_type
+        tipo = picking.x_order_type.name
         _, proportion = self._get_type_proportion(tipo)
 
         if proportion == 0:
@@ -93,7 +93,7 @@ class StockPickingController(http.Controller):
     def _get_type_proportion(self, type):
         type = str(type or '').strip().upper()
         _logger.info(f"type: {type}")
-        
+
 
         proportions = {
             'TIPO 1': (1.0, 0.0),
