@@ -59,8 +59,6 @@ class StockPickingController(http.Controller):
     
     def _get_type_proportion(self, type):
         type = str(type or '').strip().upper()
-        _logger.info(f"type: {type}")
-
 
         proportions = {
             'TIPO 1': (1.0, 0.0),

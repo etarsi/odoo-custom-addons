@@ -19,6 +19,12 @@
     'category': 'Uncategorized',
     'version': '0.1',
 
+    'assets': {
+        'web.assets_backend': [
+            'stock_enhancement2/static/src/js/remito_tabs.js',
+        ],
+    },
+
     # any module necessary for this one to work correctly
     'depends': ['stock', 'digipwms-mainv2', 'stock-packaging'],
 

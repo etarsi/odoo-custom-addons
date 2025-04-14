@@ -70,7 +70,7 @@ class StockPickingInherit(models.Model):
                 'urls': urls,
             }
         }
-    
+
     def _prepare_remito_data(self, picking, proportion, company_id):
         partner = picking.partner_id
 
@@ -230,3 +230,15 @@ class StockPickingInherit(models.Model):
                 'tabla_y': 580,
                 'resumen_y': 100,
             }
+        
+    def _get_type_proportion(self, type):
+        type = str(type or '').strip().upper()
+
+
+        proportions = {
+            'TIPO 1': (1.0, 0.0),
+            'TIPO 2': (0.5, 0.5),
+            'TIPO 3': (0.0, 1.0),
+            'TIPO 4': (0.25, 0.75),
+        }
+        return proportions.get(type, (1.0, 0.0))
