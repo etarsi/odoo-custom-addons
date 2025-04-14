@@ -57,7 +57,7 @@ class StockPickingInherit(models.Model):
         return {
             'type': 'ir.actions.act_url',
             'url': f'/remito/auto/{self.id}',
-            'target': 'self',
+            'target': 'new',
         }
     
     def _prepare_remito_data(self, picking, proportion, company_id):
