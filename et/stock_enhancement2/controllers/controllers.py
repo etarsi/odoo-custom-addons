@@ -4,6 +4,7 @@ from odoo.tools import file_open
 from odoo.tools.misc import xlsxwriter
 from odoo.http import content_disposition
 from odoo.exceptions import UserError
+from odoo import _logger
 
 class StockPickingController(http.Controller):
   
@@ -90,6 +91,8 @@ class StockPickingController(http.Controller):
     
     def _get_type_proportion(self, type):
         type = str(type or '').strip().upper()
+        _logger.info(f"type: {type}")
+
         proportions = {
             'TIPO 1': (1.0, 0.0),
             'TIPO 2': (0.5, 0.5),
