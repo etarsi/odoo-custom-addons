@@ -60,16 +60,15 @@ class StockPickingInherit(models.Model):
             'target': 'self',
         }
     
-    def _prepare_remito_data(self, picking):
+    def _prepare_remito_data(self, picking, proportion, company_id):
         partner = picking.partner_id
-        company = picking.company_id
 
         lineas = []
         total_bultos = 0
         total_unidades = 0
 
         for move in picking.move_ids_without_package:
-            qty = move.quantity_done
+            qty = move.quantity_done * proportion
             uxb = move.product_packaging_id.qty if move.product_packaging_id else 1
             bultos = qty / uxb if uxb else 1
             lote = move.lot_ids[:1].name if move.lot_ids else ''
@@ -86,7 +85,7 @@ class StockPickingInherit(models.Model):
             total_unidades += qty
 
         remito = {
-            'date': fields.Date.today().strftime('%d-%m-%Y'),
+            'date': picking.date_done,
             'client': {
                 'name': partner.name,
                 'address': partner.street,
@@ -101,28 +100,28 @@ class StockPickingInherit(models.Model):
                 'address': f"{partner.street or ''}, {partner.zip or ''} {partner.city or ''}",
             },
             'move_lines': lineas,
-            'total_bultos': total_bultos,
-            'total_units': total_unidades,
+            'total_bultos': picking.number_of_packages,
+            'total_units': picking.packaging_qty,
             'total_value': sum(move.product_id.list_price * move.quantity_done for move in picking.move_ids_without_package),
-            'company': company.name,
+            'company_name': company_id.name,
         }
 
         return remito
     
-    def _build_remito_pdf(self, picking):
-        remito = self._prepare_remito_data(picking)
+    def _build_remito_pdf(self, picking, proportion, company_id):
+        remito = self._prepare_remito_data(picking, proportion, company_id)
+        coords = self._get_remito_template_coords(remito['company_name'])
 
         buffer = BytesIO()
         c = canvas.Canvas(buffer, pagesize=A4)
         width, height = A4
-        y = height - 40
 
         # Fecha
         c.setFont("Helvetica", 10)
-        c.drawString(480, y, remito['date'])
-        y -= 20
+        c.drawString(*coords['fecha'], remito['date'])
 
         # Cliente
+        y = coords['cliente_y']
         c.drawString(40, y, remito['client']['name'])
         y -= 15
         c.drawString(40, y, remito['client']['address'])
@@ -134,18 +133,18 @@ class StockPickingInherit(models.Model):
         c.drawString(40, y, f"Condición de IVA: {remito['client']['iva']}")
 
         # Origen / Picking
-        y -= 20
+        y = coords['origen_y']
         c.drawString(40, y, f"Origen: {remito['origin']}")
         c.drawString(250, y, remito['picking_name'])
 
         # Dirección de entrega
-        y -= 20
+        y = coords['entrega_y']
         c.drawString(40, y, remito['destination']['name'])
         y -= 15
         c.drawString(40, y, remito['destination']['address'])
 
-        # Productos
-        y -= 40
+        # Tabla productos
+        y = coords['tabla_y']
         c.setFont("Helvetica-Bold", 10)
         c.drawString(40, y, "Bultos")
         c.drawString(90, y, "Producto")
@@ -166,15 +165,56 @@ class StockPickingInherit(models.Model):
             y -= 15
 
         # Resumen
-        y -= 20
+        y = coords['resumen_y']
         c.setFont("Helvetica-Bold", 10)
         c.drawString(40, y, f"Cantidad de Bultos: {remito['total_bultos']:.2f}")
         y -= 15
         c.drawString(40, y, f"Cantidad UXB: {remito['total_units']:.2f}")
         y -= 15
-        c.drawString(40, y, f"Valor: $ {remito['total_value']:,.2f}")
+        c.drawString(40, y, f"$ {remito['total_value']:,.2f}")
 
         c.save()
         pdf = buffer.getvalue()
         buffer.close()
         return pdf
+
+    
+    def _get_remito_template_coords(self, company_id):
+
+        if company_id.id == 2:
+            return {
+                'fecha': (480, 790),
+                'cliente_y': 740,
+                'origen_y': 655,
+                'entrega_y': 620,
+                'tabla_y': 580,
+                'resumen_y': 100,
+            }
+        elif company_id.id == 3:
+            return {
+                'fecha': (470, 780),
+                'cliente_y': 730,
+                'origen_y': 650,
+                'entrega_y': 615,
+                'tabla_y': 570,
+                'resumen_y': 90,
+            }
+        elif company_id.id == 4:
+            return {
+                'fecha': (460, 785),
+                'cliente_y': 735,
+                'origen_y': 660,
+                'entrega_y': 625,
+                'tabla_y': 585,
+                'resumen_y': 95,
+            }
+        else:
+            # Valores por defecto
+            return {
+                'fecha': (480, 790),
+                'cliente_y': 740,
+                'origen_y': 655,
+                'entrega_y': 620,
+                'tabla_y': 580,
+                'resumen_y': 100,
+            }
