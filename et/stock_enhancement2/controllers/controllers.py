@@ -89,7 +89,7 @@ class StockPickingController(http.Controller):
         )
     
     def _get_type_proportion(self, type):
-        type = (type or '').strip().upper()
+        type = str(type or '').strip().upper()
         proportions = {
             'TIPO 1': (1.0, 0.0),
             'TIPO 2': (0.5, 0.5),
