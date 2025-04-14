@@ -4,7 +4,6 @@ from odoo.tools import file_open
 from odoo.tools.misc import xlsxwriter
 from odoo.http import content_disposition
 from odoo.exceptions import UserError
-from odoo import _logger
 
 class StockPickingController(http.Controller):
   
