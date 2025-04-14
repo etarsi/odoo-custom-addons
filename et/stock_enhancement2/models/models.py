@@ -127,11 +127,10 @@ class StockPickingInherit(models.Model):
         
         return pdf
     
-    def action_descargar_remito(self):
+    def action_descargar_remitos_auto(self):
         self.ensure_one()
-        url = f"/remito/pdf/{self.id}"
         return {
             'type': 'ir.actions.act_url',
-            'url': url,
+            'url': f'/remito/auto/{self.id}',
             'target': 'self',
         }
