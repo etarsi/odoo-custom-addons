@@ -66,6 +66,8 @@ class StockPickingInherit(models.Model):
         lineas = []
         total_bultos = 0
         total_unidades = 0
+        date = picking.date_done
+        date = date.strftime('%d-%m-%Y')
 
         for move in picking.move_ids_without_package:
             qty = move.quantity_done * proportion
@@ -85,7 +87,7 @@ class StockPickingInherit(models.Model):
             total_unidades += qty
 
         remito = {
-            'date': picking.date_done,
+            'date': date,
             'client': {
                 'name': partner.name,
                 'address': partner.street,
