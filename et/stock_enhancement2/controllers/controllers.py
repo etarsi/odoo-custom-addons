@@ -38,7 +38,7 @@ class StockPickingController(http.Controller):
                 'lote': move.lot_ids[:1].name if move.lot_ids else '',
             })
 
-        pdf = picking._build_remito_pdf(movimientos, picking.company_id.name, "Remito BLANCO")
+        pdf = picking._build_remito_pdf(picking, "Remito BLANCO")
         return request.make_response(
             pdf,
             headers=[
@@ -83,20 +83,30 @@ class StockPickingController(http.Controller):
     def remito_auto(self, picking_id, **kwargs):
         picking = request.env['stock.picking'].browse(picking_id)
         if not picking.exists():
-            return request.not_found()
+            return request.not_found()     
 
         tipo = picking.x_order_type or 'TIPO 1'
         blanco_pct, negro_pct = self._get_proporcion_tipo(tipo)
-
-        urls = []
+        
+        html = """
+        <html><head><title>Generando remitos...</title></head>
+        <body>
+        <script>
+            function abrir(url, delay) {
+                setTimeout(function() {
+                    window.open(url, '_blank');
+                }, delay);
+            }
+        """
         if blanco_pct > 0:
-            urls.append(f"/remito/blanco/{picking.id}")
+            html += f"abrir('/remito/blanco/{picking.id}', 100);"
         if negro_pct > 0:
-            urls.append(f"/remito/negro/{picking.id}")
+            html += f"abrir('/remito/negro/{picking.id}', 500);"
 
-        html = "<html><body><script>"
-        for url in urls:
-            html += f"window.open('{url}', '_blank');"
-        html += "</script><p>Generando remitos...</p></body></html>"
+        html += """
+        </script>
+        <p>Generando remitos, podés cerrar esta pestaña.</p>
+        </body></html>
+        """
 
         return request.make_response(html, headers=[('Content-Type', 'text/html')])

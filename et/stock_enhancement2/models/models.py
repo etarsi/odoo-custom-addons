@@ -52,57 +52,129 @@ class StockPickingInherit(models.Model):
                 return picking._split_off_moves(selected_moves)
         return False
     
-    
-    
-    def _build_remito_pdf(self, movimientos, nombre_compania, titulo="Remito"):
-        buffer = BytesIO()
-        c = canvas.Canvas(buffer, pagesize=A4)
-        width, height = A4
-        y = height - 40
-
-        # Título y compañía
-        c.setFont("Helvetica-Bold", 12)
-        c.drawString(40, y, f"{titulo} - {nombre_compania}")
-        y -= 30
-
-        total_bultos = 0
-        total_unidades = 0
-
-        for mov in movimientos:
-            if y < 100:
-                c.showPage()
-                y = height - 100
-
-            producto = mov['product']
-            qty = mov['qty']
-            bultos = mov['bultos']
-            lote = mov['lote']
-
-            total_bultos += bultos
-            total_unidades += qty
-
-            c.setFont("Helvetica", 10)
-            c.drawString(40, y, f"{bultos:.2f}")
-            c.drawString(90, y, f"[{producto.default_code}] {producto.name}")
-            c.drawString(360, y, lote)
-            c.drawString(500, y, f"{qty:.2f}")
-            y -= 15
-
-        # Resumen
-        y -= 20
-        c.drawString(40, y, f"Cantidad de Bultos: {total_bultos:.0f}")
-        y -= 15
-        c.drawString(40, y, f"Cantidad UXB: {total_unidades:.2f}")
-
-        c.save()
-        pdf = buffer.getvalue()
-        buffer.close()
-        return pdf
-    
-    def action_descargar_remitos_auto(self):
+    def print_remito(self):
         self.ensure_one()
         return {
             'type': 'ir.actions.act_url',
             'url': f'/remito/auto/{self.id}',
             'target': 'self',
         }
+    
+    def _prepare_remito_data(self, picking):
+        partner = picking.partner_id
+        company = picking.company_id
+
+        lineas = []
+        total_bultos = 0
+        total_unidades = 0
+
+        for move in picking.move_ids_without_package:
+            qty = move.quantity_done
+            uxb = move.product_packaging_id.qty if move.product_packaging_id else 1
+            bultos = qty / uxb if uxb else 1
+            lote = move.lot_ids[:1].name if move.lot_ids else ''
+
+            lineas.append({
+                'bultos': bultos,
+                'codigo': move.product_id.default_code or '',
+                'nombre': move.product_id.name or '',
+                'lote': lote,
+                'unidades': qty,
+            })
+
+            total_bultos += bultos
+            total_unidades += qty
+
+        remito = {
+            'date': fields.Date.today().strftime('%d-%m-%Y'),
+            'client': {
+                'name': partner.name,
+                'address': partner.street,
+                'city': partner.city,
+                'cuit': partner.vat,
+                'iva': partner.l10n_ar_afip_responsibility_type_id.name if partner.l10n_ar_afip_responsibility_type_id else '',
+            },
+            'origin': picking.origin or '',
+            'picking_name': picking.name or '',
+            'destinaton': {
+                'name': partner.name,
+                'address': f"{partner.street or ''}, {partner.zip or ''} {partner.city or ''}",
+            },
+            'move_lines': lineas,
+            'total_bultos': total_bultos,
+            'total_units': total_unidades,
+            'total_value': sum(move.product_id.list_price * move.quantity_done for move in picking.move_ids_without_package),
+            'company': company.name,
+        }
+
+        return remito
+    
+    def _build_remito_pdf(self, picking):
+        remito = self._prepare_remito_data(picking)
+
+        buffer = BytesIO()
+        c = canvas.Canvas(buffer, pagesize=A4)
+        width, height = A4
+        y = height - 40
+
+        # Fecha
+        c.setFont("Helvetica", 10)
+        c.drawString(480, y, remito['date'])
+        y -= 20
+
+        # Cliente
+        c.drawString(40, y, remito['client']['name'])
+        y -= 15
+        c.drawString(40, y, remito['client']['address'])
+        y -= 15
+        c.drawString(40, y, remito['client']['city'])
+        y -= 15
+        c.drawString(40, y, f"CUIT: {remito['client']['cuit']}")
+        y -= 15
+        c.drawString(40, y, f"Condición de IVA: {remito['client']['iva']}")
+
+        # Origen / Picking
+        y -= 20
+        c.drawString(40, y, f"Origen: {remito['origin']}")
+        c.drawString(250, y, remito['picking_name'])
+
+        # Dirección de entrega
+        y -= 20
+        c.drawString(40, y, remito['destination']['name'])
+        y -= 15
+        c.drawString(40, y, remito['destination']['address'])
+
+        # Productos
+        y -= 40
+        c.setFont("Helvetica-Bold", 10)
+        c.drawString(40, y, "Bultos")
+        c.drawString(90, y, "Producto")
+        c.drawString(360, y, "Lote")
+        c.drawString(500, y, "Unidades")
+        y -= 15
+        c.setFont("Helvetica", 10)
+
+        for linea in remito['move_lines']:
+            if y < 100:
+                c.showPage()
+                y = height - 100
+
+            c.drawString(40, y, f"{linea['bultos']:.2f}")
+            c.drawString(90, y, f"[{linea['codigo']}] {linea['nombre']}")
+            c.drawString(360, y, linea['lote'])
+            c.drawString(500, y, f"{linea['unidades']:.2f}")
+            y -= 15
+
+        # Resumen
+        y -= 20
+        c.setFont("Helvetica-Bold", 10)
+        c.drawString(40, y, f"Cantidad de Bultos: {remito['total_bultos']:.2f}")
+        y -= 15
+        c.drawString(40, y, f"Cantidad UXB: {remito['total_units']:.2f}")
+        y -= 15
+        c.drawString(40, y, f"Valor: $ {remito['total_value']:,.2f}")
+
+        c.save()
+        pdf = buffer.getvalue()
+        buffer.close()
+        return pdf
