@@ -15,7 +15,6 @@ class StockPickingController(http.Controller):
 
         type = picking.x_order_type
         blanco_pct, negro_pct = self._get_type_proportion(type)
-        raise UserError(f"blanco: {blanco_pct} | negro: {negro_pct}")
 
         html = """
         <html><head><title>Generando remitos...</title></head>
@@ -90,6 +89,7 @@ class StockPickingController(http.Controller):
         )
     
     def _get_type_proportion(self, type):
+        type = (type or '').strip().upper()
         proportions = {
             'TIPO 1': (1.0, 0.0),
             'TIPO 2': (0.5, 0.5),
