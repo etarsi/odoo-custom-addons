@@ -57,12 +57,14 @@ class StockPickingInherit(models.Model):
         self.ensure_one()
         tipo = str(self.x_order_type.name or '').strip().upper()
         blanco_pct, negro_pct = self._get_type_proportion(tipo)
-        
+
         urls = []
         if blanco_pct > 0:
             urls.append(f"/remito/a/{self.id}")
         if negro_pct > 0:
             urls.append(f"/remito/b/{self.id}")
+
+        raise UserError(urls[0])
 
         return {
             'type': 'ir.actions.client',
