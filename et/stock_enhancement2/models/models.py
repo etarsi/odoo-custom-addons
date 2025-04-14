@@ -112,7 +112,7 @@ class StockPickingInherit(models.Model):
     
     def _build_remito_pdf(self, picking, proportion, company_id):
         remito = self._prepare_remito_data(picking, proportion, company_id)
-        coords = self._get_remito_template_coords(remito['company_name'])
+        coords = self._get_remito_template_coords(company_id)
 
         buffer = BytesIO()
         c = canvas.Canvas(buffer, pagesize=A4)
