@@ -54,77 +54,49 @@ class StockPickingInherit(models.Model):
     
     
     
-    def _build_remito_pdf(self):        
-        picking = self
+    def _build_remito_pdf(self, movimientos, nombre_compania, titulo="Remito"):
         buffer = BytesIO()
         c = canvas.Canvas(buffer, pagesize=A4)
         width, height = A4
         y = height - 40
 
-        # date
-        c.setFont("Helvetica", 10)
-        c.drawString(480, y, datetime.today().strftime('%d-%m-%Y'))
-        y -= 20
+        # Título y compañía
+        c.setFont("Helvetica-Bold", 12)
+        c.drawString(40, y, f"{titulo} - {nombre_compania}")
+        y -= 30
 
-        # client
-        partner = picking.partner_id
-        c.drawString(40, y, partner.name or '')
-        y -= 15
-        c.drawString(40, y, partner.street or '')
-        y -= 15
-        c.drawString(40, y, partner.city or '')
-        y -= 15
-        c.drawString(40, y, partner.vat or '')
-        y -= 15
-        c.drawString(40, y, partner.l10n_ar_afip_responsibility_type_id.name or '')  # IVA
-
-        # order / picking name
-        y -= 20
-        c.drawString(40, y, f"Origen: {picking.origin or ''}")
-        c.drawString(250, y, picking.name or '')
-
-        # delivery address
-        y -= 20
-        dest = picking.partner_id
-        c.drawString(40, y, dest.name or '')
-        y -= 15
-        c.drawString(40, y, f"{dest.street or ''}, {dest.zip or ''} {dest.city or ''}")
-
-        # products
-        y -= 40
         total_bultos = 0
         total_unidades = 0
-        for move in picking.move_ids_without_package:
+
+        for mov in movimientos:
             if y < 100:
                 c.showPage()
                 y = height - 100
 
-            qty_done = move.quantity_done
-            uxb = move.product_packaging_id.qty if move.product_packaging_id else 1
-            bultos = qty_done / uxb
+            producto = mov['product']
+            qty = mov['qty']
+            bultos = mov['bultos']
+            lote = mov['lote']
 
             total_bultos += bultos
-            total_unidades += qty_done
+            total_unidades += qty
 
-            # lines of products
+            c.setFont("Helvetica", 10)
             c.drawString(40, y, f"{bultos:.2f}")
-            c.drawString(90, y, f"[{move.product_id.default_code}] {move.product_id.name}")
-            c.drawString(360, y, move.lot_ids[0].name if move.lot_ids else "")
-            c.drawString(500, y, f"{qty_done:.2f}")
+            c.drawString(90, y, f"[{producto.default_code}] {producto.name}")
+            c.drawString(360, y, lote)
+            c.drawString(500, y, f"{qty:.2f}")
             y -= 15
 
-        # resume
+        # Resumen
         y -= 20
         c.drawString(40, y, f"Cantidad de Bultos: {total_bultos:.0f}")
         y -= 15
         c.drawString(40, y, f"Cantidad UXB: {total_unidades:.2f}")
-        y -= 15
-        c.drawString(40, y, f"Valor: $ {sum(move.product_id.list_price * move.quantity_done for move in picking.move_ids_without_package):,.2f}")
 
         c.save()
         pdf = buffer.getvalue()
         buffer.close()
-        
         return pdf
     
     def action_descargar_remitos_auto(self):
