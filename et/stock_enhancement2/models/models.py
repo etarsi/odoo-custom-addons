@@ -4,6 +4,7 @@ from reportlab.lib.pagesizes import A4
 from reportlab.pdfgen import canvas
 from io import BytesIO
 from datetime import datetime
+from odoo.exceptions import UserError
 
 class StockPickingInherit(models.Model):
     _inherit = 'stock.picking'
@@ -56,7 +57,7 @@ class StockPickingInherit(models.Model):
         self.ensure_one()
         tipo = str(self.x_order_type or '').strip().upper()
         blanco_pct, negro_pct = self._get_type_proportion(tipo)
-
+        raise UserError(f"blanco: {blanco_pct} | negro: {negro_pct}")
         urls = []
         if blanco_pct > 0:
             urls.append(f"/remito/a/{self.id}")
