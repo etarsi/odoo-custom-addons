@@ -52,12 +52,23 @@ class StockPickingInherit(models.Model):
                 return picking._split_off_moves(selected_moves)
         return False
     
-    def print_remito(self):
+    def action_open_remito_links(self):
         self.ensure_one()
+        order_type = self.x_order_type.name
+        blanco_pct, negro_pct = self._get_type_proportion(order_type)
+
+        urls = []
+        if blanco_pct > 0:
+            urls.append(f"/remito/a/{self.id}")
+        if negro_pct > 0:
+            urls.append(f"/remito/b/{self.id}")
+
         return {
-            'type': 'ir.actions.act_url',
-            'url': f'/remito/auto/{self.id}',
-            'target': 'new',
+            'type': 'ir.actions.client',
+            'tag': 'open_remito_tabs',
+            'params': {
+                'urls': urls,
+            }
         }
     
     def _prepare_remito_data(self, picking, proportion, company_id):
