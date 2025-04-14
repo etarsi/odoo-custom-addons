@@ -54,8 +54,8 @@ class StockPickingInherit(models.Model):
     
     def action_open_remito_links(self):
         self.ensure_one()
-        order_type = self.x_order_type.name
-        blanco_pct, negro_pct = self._get_type_proportion(order_type)
+        tipo = str(self.x_order_type or '').strip().upper()
+        blanco_pct, negro_pct = self._get_type_proportion(tipo)
 
         urls = []
         if blanco_pct > 0:
