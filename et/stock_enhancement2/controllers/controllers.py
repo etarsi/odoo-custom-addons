@@ -35,7 +35,7 @@ class StockPickingController(http.Controller):
                 'product': move.product_id,
                 'qty': qty,
                 'bultos': qty / uxb,
-                'lote': move.lot_ids[0].name if move.lot_ids else '',
+                'lote': move.lot_ids[:1].name if move.lot_ids else '',
             })
 
         pdf = picking._build_remito_pdf(movimientos, picking.company_id.name, "Remito BLANCO")
@@ -67,7 +67,7 @@ class StockPickingController(http.Controller):
                 'product': move.product_id,
                 'qty': qty,
                 'bultos': qty / uxb,
-                'lote': move.lot_ids[0].name if move.lot_ids else '',
+                'lote': move.lot_ids[:1].name if move.lot_ids else '',
             })
 
         pdf = picking._build_remito_pdf(movimientos, "Producción B", "Remito NEGRO")
