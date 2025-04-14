@@ -60,7 +60,7 @@ class StockPickingController(http.Controller):
             pdf,
             headers=[
                 ('Content-Type', 'application/pdf'),
-                ('Content-Disposition', content_disposition(f"remito_blanco_{picking.name.replace('/', '-')}.pdf"))
+                ('Content-Disposition', f'inline; filename="REM_{picking.name.replace("/", "-")}.pdf"')
             ]
         )
 
@@ -84,7 +84,7 @@ class StockPickingController(http.Controller):
             pdf,
             headers=[
                 ('Content-Type', 'application/pdf'),
-                ('Content-Disposition', content_disposition(f"remito_negro_{picking.name.replace('/', '-')}.pdf"))
+                ('Content-Disposition', f'inline; filename="REM_{picking.name.replace("/", "-")}.pdf"')
             ]
         )
     
