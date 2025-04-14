@@ -97,7 +97,7 @@ class StockPickingInherit(models.Model):
             },
             'origin': picking.origin or '',
             'picking_name': picking.name or '',
-            'destinaton': {
+            'destination': {
                 'name': partner.name,
                 'address': f"{partner.street or ''}, {partner.zip or ''} {partner.city or ''}",
             },
