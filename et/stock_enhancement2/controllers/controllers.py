@@ -3,6 +3,7 @@ from odoo.http import request
 from odoo.tools import file_open
 from odoo.tools.misc import xlsxwriter
 from odoo.http import content_disposition
+from odoo.exceptions import UserError
 
 class StockPickingController(http.Controller):
   
@@ -14,7 +15,8 @@ class StockPickingController(http.Controller):
 
         type = picking.x_order_type
         blanco_pct, negro_pct = self._get_type_proportion(type)
-        
+        raise UserError(_(f"blanco: {blanco_pct} | negro: {negro_pct}"))
+
         html = """
         <html><head><title>Generando remitos...</title></head>
         <body>
@@ -27,6 +29,7 @@ class StockPickingController(http.Controller):
         """
         if blanco_pct > 0:
             html += f"abrir('/remito/a/{picking.id}', 100);"
+            
         if negro_pct > 0:
             html += f"abrir('/remito/b/{picking.id}', 500);"
 
