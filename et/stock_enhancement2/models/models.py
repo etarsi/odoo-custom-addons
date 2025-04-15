@@ -13,7 +13,7 @@ class StockPickingInherit(models.Model):
 
     wms_date = fields.Date(string="Fecha WMS")
     has_rodado = fields.Boolean(string="Rodados", compute="_compute_has_rodado", store=True)
-    available_pkg_qty = fields.Float(string='Bultos Disponibles' ,compute='sum_bultos', group_operator='sum', store=True)
+    # available_pkg_qty = fields.Float(string='Bultos Disponibles' ,compute='sum_bultos', group_operator='sum', store=True)
 
     @api.depends('move_ids_without_package')
     def _compute_has_rodado(self):
