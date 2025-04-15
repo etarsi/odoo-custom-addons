@@ -168,7 +168,7 @@ class StockPickingInherit(models.Model):
         y = coords['cliente_y']
         y -= 60
         c.drawString(50, y, remito['destination']['name'])
-        y -= 10
+        y -= 15
         c.drawString(50, y, remito['destination']['address'])
 
         # product table
@@ -211,8 +211,8 @@ class StockPickingInherit(models.Model):
 
         if company_id.id in (1, 2):
             return {
-                'fecha': (480, 790),
-                'cliente_y': 630,
+                'fecha': (400, 790),
+                'cliente_y': 450,
                 'origen_y': 655,
                 'entrega_y': 620,
                 'tabla_y': 580,
