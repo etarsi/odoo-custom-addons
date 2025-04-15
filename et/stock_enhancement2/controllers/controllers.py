@@ -29,9 +29,9 @@ class StockPickingController(http.Controller):
             }
         """
         if blanco_pct > 0:
-            html += f"abrir('/remito/a/{picking.id}', 100);"
+            html += f"abrir('/remito/a/{picking.id}', 50);"
         if negro_pct > 0:
-            html += f"abrir('/remito/b/{picking.id}', 500);"
+            html += f"abrir('/remito/b/{picking.id}', 200);"
 
         html += """
         </script>
@@ -78,7 +78,7 @@ class StockPickingController(http.Controller):
         if proportion == 0:
             return request.not_found()
         
-        company_id = self.env['res.company'].browse(1)
+        company_id = request.env['res.company'].browse(1)
         _logger.info(f'company_id: {company_id} - company_id.name: {company_id.name}')
 
         pdf = picking._build_remito_pdf(picking, proportion, company_id)
