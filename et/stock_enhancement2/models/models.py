@@ -13,7 +13,7 @@ class StockPickingInherit(models.Model):
 
     wms_date = fields.Date(string="Fecha WMS")
     has_rodado = fields.Boolean(string="Rodados", compute="_compute_has_rodado", store=True)
-    # available_pkg_qty = fields.Float(string='Bultos Disponibles' ,compute='sum_bultos', group_operator='sum', store=True)
+    available_pkg_qty = fields.Float(string='Bultos Disponibles' ,compute='sum_bultos', group_operator='sum', store=True)
 
     @api.depends('move_ids_without_package')
     def _compute_has_rodado(self):
@@ -63,26 +63,6 @@ class StockPickingInherit(models.Model):
             'target': 'new',
         }
     
-    def action_print_remito(self):
-        self.ensure_one()
-
-        tipo = str(self.x_order_type.name or '').strip().upper()
-        blanco_pct, negro_pct = self._get_type_proportion(tipo)
-
-        urls = []
-        if blanco_pct > 0:
-            urls.append(f"/remito/a/{self.id}")
-        if negro_pct > 0:
-            urls.append(f"/remito/b/{self.id}")
-
-        return {
-            'type': 'ir.actions.client',
-            'tag': 'reload_and_open_remitos',
-            'params': {
-                'urls': urls,
-            }
-        }
-
     def _prepare_remito_data(self, picking, proportion, company_id):
         partner = picking.partner_id
 
@@ -175,9 +155,9 @@ class StockPickingInherit(models.Model):
         y = coords['tabla_y']
         c.setFont("Helvetica-Bold", 10)
         c.drawString(40, y, "Bultos")
-        c.drawString(90, y, "Producto")
-        c.drawString(360, y, "Lote")
-        c.drawString(500, y, "Unidades")
+        c.drawString(90, y, "Unidades")
+        c.drawString(360, y, "Producto")
+        c.drawString(500, y, "Lote")
         y -= 15
         c.setFont("Helvetica", 8)
 
@@ -187,9 +167,9 @@ class StockPickingInherit(models.Model):
                 y = height - 100
 
             c.drawString(40, y, f"{linea['bultos']:.2f}")
-            c.drawString(90, y, f"[{linea['codigo']}] {linea['nombre']}")
-            c.drawString(360, y, linea['lote'])
-            c.drawString(500, y, f"{linea['unidades']:.2f}")
+            c.drawString(90, y, f"{linea['unidades']:.2f}")
+            c.drawString(150, y, f"[{linea['codigo']}] {linea['nombre']}")
+            c.drawString(500, y, linea['lote'])
             y -= 15
 
         # footer
