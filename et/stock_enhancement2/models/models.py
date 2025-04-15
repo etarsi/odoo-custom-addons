@@ -67,7 +67,7 @@ class StockPickingInherit(models.Model):
             self._action_generate_remitos('b')
     
     def _action_generate_remitos(self, type):
-        self.ensure_one()
+        raise UserError('/remito/{type}/{self.id}')
         return {
             'type': 'ir.actions.act_url',
             'url': f'/remito/{type}/{self.id}',
