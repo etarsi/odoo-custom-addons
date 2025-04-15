@@ -48,7 +48,7 @@ class StockPickingController(http.Controller):
         if not picking.exists():
             return request.not_found()
 
-        tipo = picking.x_order_type
+        tipo = picking.x_order_type.name
         proportion, _ = self._get_type_proportion(tipo)
 
         if proportion == 0:
