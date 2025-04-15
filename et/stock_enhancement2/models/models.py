@@ -64,8 +64,6 @@ class StockPickingInherit(models.Model):
         if negro_pct > 0:
             urls.append(f"/remito/b/{self.id}")
 
-        raise UserError(urls[0])
-
         return {
             'type': 'ir.actions.client',
             'tag': 'open_remito_tabs',
