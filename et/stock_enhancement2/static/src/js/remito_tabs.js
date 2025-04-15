@@ -5,9 +5,9 @@ odoo.define('stock_enhancement2.remito_tabs', function (require) {
     const core = require('web.core');
 
     const OpenRemitoTabs = AbstractAction.extend({
-        start: function () {
-            const urls = this.params.urls || [];
+        start: function () {            
             console.log("Recibido en JS:", this.params);
+            const urls = this.params.urls || [];
             urls.forEach(function (url, index) {
                 setTimeout(() => {
                     window.open(url, '_blank');
