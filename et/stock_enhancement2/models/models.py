@@ -153,19 +153,20 @@ class StockPickingInherit(models.Model):
         c.drawString(50, y, remito['client']['address'])
         y -= 10
         c.drawString(50, y, remito['client']['city'])
-        y -= 15
-        c.drawString(130, y, f"{remito['client']['iva']}")
-        c.drawString(180, y, f"{remito['client']['cuit']}")
+        y -= 20
+        c.setFont("Helvetica", 10)
+        c.drawString(40, y, f"{remito['client']['iva']}")
+        c.drawString(200, y, f"{remito['client']['cuit']}")
 
         # origin / picking
-        y = coords['origen_y']
-        c.drawString(380, y, f"Origen: {remito['origin']}")
+        y = coords['cliente_y']
+        c.drawString(390, y, f"Origen: {remito['origin']}")
         y -= 15
-        c.drawString(380, y, remito['picking_name'])
+        c.drawString(390, y, remito['picking_name'])
 
         # delivery address
         y = coords['cliente_y']
-        y -= 50
+        y -= 60
         c.drawString(50, y, remito['destination']['name'])
         y -= 10
         c.drawString(50, y, remito['destination']['address'])
