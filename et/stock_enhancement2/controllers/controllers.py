@@ -78,8 +78,10 @@ class StockPickingController(http.Controller):
         if proportion == 0:
             return request.not_found()
         
-        company_id = request.env['res.company'].browse(1)
-        _logger.info(f'company_id: {company_id} - company_id.name: {company_id.name}')
+        if tipo == 'TIPO 3':
+            company_id = request.env['res.company'].browse(1)
+        else:
+            company_id = picking.company_id
 
         pdf = picking._build_remito_pdf(picking, proportion, company_id)
         

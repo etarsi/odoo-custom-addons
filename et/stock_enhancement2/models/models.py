@@ -142,20 +142,20 @@ class StockPickingInherit(models.Model):
         width, height = A4
 
         # date
-        c.setFont("Helvetica", 10)
+        c.setFont("Helvetica-Bold", 12)
         c.drawString(*coords['fecha'], remito['date'])
 
         # client
+        c.setFont("Helvetica-Bold", 11)
         y = coords['cliente_y']
-        c.drawString(40, y, remito['client']['name'])
+        c.drawString(100, y, remito['client']['name'])
+        y -= 10
+        c.drawString(100, y, remito['client']['address'])
+        y -= 10
+        c.drawString(100, y, remito['client']['city'])
         y -= 15
-        c.drawString(40, y, remito['client']['address'])
-        y -= 15
-        c.drawString(40, y, remito['client']['city'])
-        y -= 15
-        c.drawString(40, y, f"CUIT: {remito['client']['cuit']}")
-        y -= 15
-        c.drawString(40, y, f"Condición de IVA: {remito['client']['iva']}")
+        c.drawString(400, y, f"Condición de IVA: {remito['client']['iva']}")
+        c.drawString(450, y, f"CUIT: {remito['client']['cuit']}")
 
         # origin / picking
         y = coords['origen_y']
@@ -209,7 +209,7 @@ class StockPickingInherit(models.Model):
         if company_id.id in (1, 2):
             return {
                 'fecha': (480, 790),
-                'cliente_y': 740,
+                'cliente_y': 680,
                 'origen_y': 655,
                 'entrega_y': 620,
                 'tabla_y': 580,
