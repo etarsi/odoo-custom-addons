@@ -21,7 +21,7 @@
 
     'assets': {
         'web.assets_backend': [
-            'stock_enhancement2/static/src/js/remito_tabs.js',
+            'stock_enhancement2/static/src/js/remito_open.js',
         ],
     },
 
