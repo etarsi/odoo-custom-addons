@@ -1,0 +1,38 @@
+<odoo>
+    <record id="view_remito_test_form" model="ir.ui.view">
+        <field name="name">remito.test.form</field>
+        <field name="model">remito.test</field>
+        <field name="arch" type="xml">
+            <form string="Remito JS Test">
+                <sheet>
+                    <group>
+                        <field name="name"/>
+                        <button name="action_abrir_remitos"
+                                string="Abrir Remitos"
+                                type="object"
+                                class="btn-primary"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_remito_test_tree" model="ir.ui.view">
+        <field name="name">remito.test.tree</field>
+        <field name="model">remito.test</field>
+        <field name="arch" type="xml">
+            <tree string="Remito JS Test">
+                <field name="name"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="action_remito_test" model="ir.actions.act_window">
+        <field name="name">Remitos JS Test</field>
+        <field name="res_model">remito.test</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
+    <menuitem id="menu_remito_test_root" name="Remitos Test"/>
+    <menuitem id="menu_remito_test" name="Prueba de JS" parent="menu_remito_test_root" action="action_remito_test"/>
+</odoo>
