@@ -23,16 +23,16 @@ class StockPickingInherit(models.Model):
                     record.has_rodado = True
 
 
-    def enviar(self):
-        res = super().enviar()
-        for record in self:
-            record.wms_date = fields.Date.today()
+    # def enviar(self):
+    #     res = super().enviar()
+    #     for record in self:
+    #         record.wms_date = fields.Date.today()
 
-        return res
+    #     return res
 
-    def ajustar_fecha(self):
-        for record in self:
-            record.wms_date = fields.Date.today()
+    # def ajustar_fecha(self):
+    #     for record in self:
+    #         record.wms_date = fields.Date.today()
 
     def split_auto(self):
         for picking in self:

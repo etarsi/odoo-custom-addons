@@ -26,7 +26,7 @@
     },
 
     # any module necessary for this one to work correctly
-    'depends': ['stock', 'digipwms-mainv2', 'stock-packaging'],
+    'depends': ['stock', 'stock-packaging'],
 
     # always loaded
     'data': [
