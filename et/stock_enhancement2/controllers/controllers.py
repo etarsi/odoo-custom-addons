@@ -35,7 +35,7 @@ class StockPickingController(http.Controller):
 
         html += """
         </script>
-        <p>Puede cerrar esta página.</p>
+        <p>Puede cerrar esta pagina.</p>
         </body></html>
         """
 
@@ -79,6 +79,7 @@ class StockPickingController(http.Controller):
             return request.not_found()
         
         company_id = self.env['res.company'].browse(1)
+        _logger.info(f'company_id: {company_id} - company_id.name: {company_id.name}')
 
         pdf = picking._build_remito_pdf(picking, proportion, company_id)
         

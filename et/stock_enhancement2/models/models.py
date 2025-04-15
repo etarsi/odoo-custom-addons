@@ -206,7 +206,7 @@ class StockPickingInherit(models.Model):
     
     def _get_remito_template_coords(self, company_id):
 
-        if company_id.id == 2:
+        if company_id.id in (1, 2):
             return {
                 'fecha': (480, 790),
                 'cliente_y': 740,
