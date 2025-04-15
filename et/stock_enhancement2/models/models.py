@@ -156,8 +156,8 @@ class StockPickingInherit(models.Model):
         c.setFont("Helvetica-Bold", 10)
         c.drawString(40, y, "Bultos")
         c.drawString(90, y, "Unidades")
-        c.drawString(360, y, "Producto")
-        c.drawString(500, y, "Lote")
+        c.drawString(150, y, "Producto")
+        c.drawString(450, y, "Lote")
         y -= 15
         c.setFont("Helvetica", 8)
 
@@ -169,7 +169,7 @@ class StockPickingInherit(models.Model):
             c.drawString(40, y, f"{linea['bultos']:.2f}")
             c.drawString(90, y, f"{linea['unidades']:.2f}")
             c.drawString(150, y, f"[{linea['codigo']}] {linea['nombre']}")
-            c.drawString(500, y, linea['lote'])
+            c.drawString(450, y, linea['lote'])
             y -= 15
 
         # footer
