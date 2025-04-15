@@ -5,6 +5,8 @@ from reportlab.pdfgen import canvas
 from io import BytesIO
 from datetime import datetime
 from odoo.exceptions import UserError
+import logging
+_logger = logging.getLogger(__name__)
 
 class StockPickingInherit(models.Model):
     _inherit = 'stock.picking'
@@ -55,7 +57,8 @@ class StockPickingInherit(models.Model):
     
     def action_open_remito_links(self):
         self.ensure_one()
-        tipo = str(self.x_order_type.name or '').strip().upper()
+
+        tipo = str(self.x_order_type or '').strip().upper()
         blanco_pct, negro_pct = self._get_type_proportion(tipo)
 
         urls = []
@@ -63,6 +66,9 @@ class StockPickingInherit(models.Model):
             urls.append(f"/remito/a/{self.id}")
         if negro_pct > 0:
             urls.append(f"/remito/b/{self.id}")
+
+        _logger.info(f"[REMITO DEBUG] Generando remitos para {self.name} (TIPO {tipo})")
+        _logger.info(f"[REMITO DEBUG] URLs a abrir: {urls}")
 
         return {
             'type': 'ir.actions.client',
