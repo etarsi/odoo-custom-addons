@@ -2,7 +2,7 @@ odoo.define('stock_enhancement2.remito_open', function (require) {
     "use strict";
 
     const AbstractAction = require('web.AbstractAction');
-    const actionRegistry = require('web.action_registry');
+    const core = require('web.core');
 
     const OpenRemitoTabs = AbstractAction.extend({
         start: function () {
@@ -16,6 +16,6 @@ odoo.define('stock_enhancement2.remito_open', function (require) {
         },
     });
 
-    actionRegistry.add('reload_and_open_remitos', OpenRemitoTabs);
+    core.action_registry.add('reload_and_open_remitos', OpenRemitoTabs);
     return OpenRemitoTabs;
 });
