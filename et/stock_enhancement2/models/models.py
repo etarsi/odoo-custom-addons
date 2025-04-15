@@ -154,8 +154,8 @@ class StockPickingInherit(models.Model):
         y -= 10
         c.drawString(50, y, remito['client']['city'])
         y -= 15
-        c.drawString(130, y, f"Condición de IVA: {remito['client']['iva']}")
-        c.drawString(180, y, f"CUIT: {remito['client']['cuit']}")
+        c.drawString(130, y, f"{remito['client']['iva']}")
+        c.drawString(180, y, f"{remito['client']['cuit']}")
 
         # origin / picking
         y = coords['origen_y']
@@ -166,9 +166,9 @@ class StockPickingInherit(models.Model):
         # delivery address
         y = coords['cliente_y']
         y -= 50
-        c.drawString(380, y, remito['destination']['name'])
+        c.drawString(50, y, remito['destination']['name'])
         y -= 10
-        c.drawString(40, y, remito['destination']['address'])
+        c.drawString(50, y, remito['destination']['address'])
 
         # product table
         y = coords['tabla_y']
