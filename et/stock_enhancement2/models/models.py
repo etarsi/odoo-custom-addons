@@ -148,24 +148,26 @@ class StockPickingInherit(models.Model):
         # client
         c.setFont("Helvetica-Bold", 11)
         y = coords['cliente_y']
-        c.drawString(100, y, remito['client']['name'])
+        c.drawString(50, y, remito['client']['name'])
         y -= 10
-        c.drawString(100, y, remito['client']['address'])
+        c.drawString(50, y, remito['client']['address'])
         y -= 10
-        c.drawString(100, y, remito['client']['city'])
+        c.drawString(50, y, remito['client']['city'])
         y -= 15
-        c.drawString(400, y, f"Condición de IVA: {remito['client']['iva']}")
-        c.drawString(450, y, f"CUIT: {remito['client']['cuit']}")
+        c.drawString(130, y, f"Condición de IVA: {remito['client']['iva']}")
+        c.drawString(180, y, f"CUIT: {remito['client']['cuit']}")
 
         # origin / picking
         y = coords['origen_y']
-        c.drawString(40, y, f"Origen: {remito['origin']}")
-        c.drawString(250, y, remito['picking_name'])
+        c.drawString(380, y, f"Origen: {remito['origin']}")
+        y -= 15
+        c.drawString(380, y, remito['picking_name'])
 
         # delivery address
-        y = coords['entrega_y']
-        c.drawString(40, y, remito['destination']['name'])
-        y -= 15
+        y = coords['cliente_y']
+        y -= 50
+        c.drawString(380, y, remito['destination']['name'])
+        y -= 10
         c.drawString(40, y, remito['destination']['address'])
 
         # product table
@@ -209,7 +211,7 @@ class StockPickingInherit(models.Model):
         if company_id.id in (1, 2):
             return {
                 'fecha': (480, 790),
-                'cliente_y': 680,
+                'cliente_y': 660,
                 'origen_y': 655,
                 'entrega_y': 620,
                 'tabla_y': 580,
