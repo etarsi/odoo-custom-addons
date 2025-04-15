@@ -148,14 +148,14 @@ class StockPickingInherit(models.Model):
         # client
         c.setFont("Helvetica", 11)
         y = coords['cliente_y']
-        c.drawString(65, y, remito['client']['name'])
+        c.drawString(70, y, remito['client']['name'])
         y -= 10
-        c.drawString(65, y, remito['client']['address'])
+        c.drawString(70, y, remito['client']['address'])
         y -= 10
-        c.drawString(65, y, remito['client']['city'])
+        c.drawString(70, y, remito['client']['city'])
         y -= 20
         c.setFont("Helvetica", 10)
-        c.drawString(40, y, f"{remito['client']['iva']}")
+        c.drawString(50, y, f"{remito['client']['iva']}")
         c.drawString(300, y, f"{remito['client']['cuit']}")
 
         # origin / picking
@@ -211,39 +211,39 @@ class StockPickingInherit(models.Model):
 
         if company_id.id in (1, 2):
             return {
-                'fecha': (500, 790),
-                'cliente_y': 650,
-                'origen_y': 655,
-                'entrega_y': 620,
-                'tabla_y': 580,
-                'resumen_y': 100,
+                'fecha': (500, 780),
+                'cliente_y': 700,
+                'origen_y': 650,
+                'entrega_y': 615,
+                'tabla_y': 560,
+                'resumen_y': 90,
             }
         elif company_id.id == 3:
             return {
                 'fecha': (500, 780),
-                'cliente_y': 650,
+                'cliente_y': 700,
                 'origen_y': 650,
                 'entrega_y': 615,
-                'tabla_y': 570,
+                'tabla_y': 560,
                 'resumen_y': 90,
             }
         elif company_id.id == 4:
             return {
-                'fecha': (460, 785),
-                'cliente_y': 735,
-                'origen_y': 660,
-                'entrega_y': 625,
-                'tabla_y': 585,
-                'resumen_y': 95,
+                'fecha': (500, 780),
+                'cliente_y': 700,
+                'origen_y': 650,
+                'entrega_y': 615,
+                'tabla_y': 560,
+                'resumen_y': 90,
             }
         else:
             return {
-                'fecha': (480, 790),
-                'cliente_y': 740,
-                'origen_y': 655,
-                'entrega_y': 620,
-                'tabla_y': 580,
-                'resumen_y': 100,
+                'fecha': (500, 780),
+                'cliente_y': 700,
+                'origen_y': 650,
+                'entrega_y': 615,
+                'tabla_y': 560,
+                'resumen_y': 90,
             }
         
     def _get_type_proportion(self, type):
