@@ -211,8 +211,8 @@ class StockPickingInherit(models.Model):
 
         if company_id.id in (1, 2):
             return {
-                'fecha': (400, 790),
-                'cliente_y': 450,
+                'fecha': (500, 790),
+                'cliente_y': 650,
                 'origen_y': 655,
                 'entrega_y': 620,
                 'tabla_y': 580,
@@ -220,8 +220,8 @@ class StockPickingInherit(models.Model):
             }
         elif company_id.id == 3:
             return {
-                'fecha': (470, 780),
-                'cliente_y': 730,
+                'fecha': (500, 780),
+                'cliente_y': 650,
                 'origen_y': 650,
                 'entrega_y': 615,
                 'tabla_y': 570,
