@@ -256,12 +256,12 @@ class SaleOrderSplitWizardInherit(models.TransientModel):
 
         name = fields.Char('Nombre')
         carga_bultos = fields.Boolean(string="Carga por bultos", default=True)
-        carga_unidaes = fields.Boolean(string="Carga por unidades")
+        carga_unidades = fields.Boolean(string="Carga por unidades")
 
         @api.onchange('carga_bultos', 'carga_unidades')
         def _onchange_carga(self):
             for record in self:
                 if record.carga_bultos:
-                    record.carga_unidaes = False
-                if record.carga_unidaes:
+                    record.carga_unidades = False
+                if record.carga_unidades:
                     record.carga_bultos = False

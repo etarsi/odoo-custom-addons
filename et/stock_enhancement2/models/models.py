@@ -205,7 +205,7 @@ class StockPickingInherit(models.Model):
             c.drawString(50, y, f"{linea['bultos']:.2f}")
             c.drawString(88, y, linea['nombre'])
             c.drawString(390, y, linea['lote'])
-            c.drawString(510, y, f"{linea['unidades']:.2f}")
+            c.drawString(490, y, f"{linea['unidades']:.2f}")
             y -= 15
 
         draw_footer()
@@ -222,12 +222,12 @@ class StockPickingInherit(models.Model):
             return {
                 'fecha': (430, 740),
                 'cliente_nombre': (85, 644),
-                'cliente_dire': (85, 629),
-                'cliente_localidad': (85, 614),
+                'cliente_dire': (85, 634),
+                'cliente_localidad': (85, 624),
                 'cliente_y': 644,
                 'origen_y': 645,
-                'iva':(70, 603),
-                'cuit':(300, 603),
+                'iva':(70, 600),
+                'cuit':(300, 600),
                 'entrega_y': 570,
                 'tabla_y': 510,
                 'resumen_y': 150,
@@ -235,10 +235,10 @@ class StockPickingInherit(models.Model):
             }
         elif company_id.id == 3:
             return {
-                'fecha': (420, 740),
+                'fecha': (420, 720),
                 'cliente_nombre': (95, 643),
-                'cliente_dire': (95, 628),
-                'cliente_localidad': (95, 613),
+                'cliente_dire': (95, 633),
+                'cliente_localidad': (95, 623),
                 'cliente_y': 643,
                 'origen_y': 645,
                 'iva':(80, 597),
@@ -246,22 +246,22 @@ class StockPickingInherit(models.Model):
                 'entrega_y': 570,
                 'tabla_y': 510,
                 'resumen_y': 152,
-                'valor_y': 132,
+                'valor_y': 130,
             }
         elif company_id.id == 4:
             return {
                 'fecha': (410, 680),
                 'cliente_nombre': (85, 602),
-                'cliente_dire': (85, 587),
-                'cliente_localidad': (85, 572),
+                'cliente_dire': (85, 592),
+                'cliente_localidad': (85, 582),
                 'cliente_y': 602,
                 'origen_y': 602,
                 'iva':(70, 560),
                 'cuit':(300, 560),
                 'entrega_y': 530,
                 'tabla_y': 475,
-                'resumen_y': 110,
-                'valor_y': 85,
+                'resumen_y': 115,
+                'valor_y': 90,
             }
         else:
             return {
