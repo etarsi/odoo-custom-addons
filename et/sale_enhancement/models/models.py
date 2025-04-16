@@ -102,8 +102,7 @@ class SaleOrderLineInherit(models.Model):
     ## DESHABILITAR ADVERTENCIA DE UNIDAD X BULTO                    
     @api.onchange('product_packaging_id')
     def _onchange_product_packaging_id(self):
-        return
-    
+        return    
 
     @api.onchange('product_uom_qty')
     def _onchange_price_unit(self):
@@ -259,10 +258,14 @@ class SaleOrderSplitWizardInherit(models.TransientModel):
         carga_unidades = fields.Boolean(string="Carga por unidades")
         activo = fields.Boolean("Activo", default=False)
 
-        @api.onchange('carga_bultos', 'carga_unidades')
-        def _onchange_carga(self):
+        @api.onchange('carga_bultos')
+        def _onchange_carga_bultos(self):
             for record in self:
                 if record.carga_bultos:
                     record.carga_unidades = False
+
+        @api.onchange('carga_unidades')
+        def _onchange_carga_unidades(self):
+            for record in self:
                 if record.carga_unidades:
                     record.carga_bultos = False
