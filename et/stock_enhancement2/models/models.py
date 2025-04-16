@@ -165,22 +165,25 @@ class StockPickingInherit(models.Model):
             c.drawString(50, y, remito['destination']['address'])
 
         draw_header()
+        
+        def draw_body():
+            # product table
+            y = coords['tabla_y']
+            c.setFont("Helvetica-Bold", 10)
+            c.drawString(40, y, "Bultos")
+            c.drawString(90, y, "Unidades")
+            c.drawString(150, y, "Producto")
+            c.drawString(450, y, "Lote")
+            y -= 15
+            c.setFont("Helvetica", 8)
 
-        # product table
-        y = coords['tabla_y']
-        c.setFont("Helvetica-Bold", 10)
-        c.drawString(40, y, "Bultos")
-        c.drawString(90, y, "Unidades")
-        c.drawString(150, y, "Producto")
-        c.drawString(450, y, "Lote")
-        y -= 15
-        c.setFont("Helvetica", 8)
+        draw_body()
 
         for linea in remito['move_lines']:
             if y < 100:
                 c.showPage()
                 draw_header()
-                y = coords['tabla_y']
+                draw_body()
 
             c.drawString(40, y, f"{linea['bultos']:.2f}")
             c.drawString(90, y, f"{linea['unidades']:.2f}")
@@ -191,7 +194,7 @@ class StockPickingInherit(models.Model):
             y = coords['resumen_y']
             c.setFont("Helvetica-Bold", 10)
             c.drawString(150, y, f"Cantidad de Bultos: {remito['total_bultos']:.2f}")
-            c.drawString(210, y, f"Cantidad UXB: {remito['total_units']:.2f}")
+            c.drawString(320, y, f"Cantidad UXB: {remito['total_units']:.2f}")
             y -= 35
             c.drawString(450, y, f"$ {remito['total_value']:,.2f}")
 
