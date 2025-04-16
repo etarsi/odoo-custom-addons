@@ -148,23 +148,22 @@ class StockPickingInherit(models.Model):
             # client
             c.setFont("Helvetica", 11)
             y = coords['cliente_y']
-            c.drawString(80, y, remito['client']['name'])
-            y -= 10
+            c.drawString(*coords['cliente'], remito['client']['name'])
+            y -= 11
             c.drawString(80, y, remito['client']['address'])
-            y -= 10
+            y -= 11
             c.drawString(80, y, remito['client']['city'])
-            y -= 25
             c.setFont("Helvetica", 10)
-            c.drawString(60, y, f"{remito['client']['iva']}")
-            c.drawString(300, y, f"{remito['client']['cuit']}")
+            c.drawString(*coords['iva'], f"{remito['client']['iva']}")
+            c.drawString(*coords['cuit'], f"{remito['client']['cuit']}")
 
             # origin / picking
             y = coords['origen_y']
-            c.drawString(420, y, f"Origen: {remito['origin']}")
+            c.drawString(400, y, f"Origen: {remito['origin']}")
             y -= 15
-            c.drawString(420, y, remito['picking_name'])
+            c.drawString(40, y, remito['picking_name'])
             y -= 15
-            c.drawString(420, y, remito['codigo_wms'])
+            c.drawString(40, y, remito['codigo_wms'])
 
             # delivery address
             y = coords['entrega_y']
@@ -185,21 +184,30 @@ class StockPickingInherit(models.Model):
                 c.drawString(150, y, f"Cantidad de Bultos: {remito['total_bultos']:.2f}")
                 c.drawString(320, y, f"Cantidad UXB: {remito['total_units']:.2f}")
                 y = coords['valor_y']
-                c.drawString(450, y, f"$ {remito['total_value']:,.2f}")
+                c.drawString(500, y, f"$ {remito['total_value']:,.2f}")
         
         for linea in remito['move_lines']:
-            if y < 100:
-                draw_footer()
-                c.showPage()
-                draw_header()
-                y = coords['tabla_y']
-                y -= 15
-            
+            if company_id.id in (1, 2, 3):
+                if y < 165:
+                    draw_footer()
+                    c.showPage()
+                    draw_header()
+                    y = coords['tabla_y']
+                    y -= 15
+            elif company_id.id == 4:
+                if y < 125:
+                    draw_footer()
+                    c.showPage()
+                    draw_header()
+                    y = coords['tabla_y']
+                    y -= 15
+
+
             c.setFont("Helvetica", 8)
             c.drawString(50, y, f"{linea['bultos']:.2f}")
-            c.drawString(85, y, linea['nombre'])
+            c.drawString(88, y, linea['nombre'])
             c.drawString(390, y, linea['lote'])
-            c.drawString(540, y, f"{linea['unidades']:.2f}")
+            c.drawString(520, y, f"{linea['unidades']:.2f}")
             y -= 15
 
         draw_footer()
@@ -214,39 +222,51 @@ class StockPickingInherit(models.Model):
 
         if company_id.id in (1, 2):
             return {
-                'fecha': (430, 730),
-                'cliente_y': 645,
+                'fecha': (430, 740),
+                'cliente': (85, 644),
+                'cliente_y': 644,
                 'origen_y': 645,
-                'entrega_y': 580,
+                'iva':(70, 603),
+                'cuit':(300, 603),
+                'entrega_y': 570,
                 'tabla_y': 510,
-                'resumen_y': 150, # ok
-                'valor_y': 125, # ok
+                'resumen_y': 150,
+                'valor_y': 125,
             }
         elif company_id.id == 3:
             return {
-                'fecha': (420, 710),
-                'cliente_y': 645,
+                'fecha': (420, 740),
+                'cliente': (95, 643),
+                'cliente_y': 643,
                 'origen_y': 645,
-                'entrega_y': 580,
+                'iva':(80, 597),
+                'cuit':(305, 597),
+                'entrega_y': 570,
                 'tabla_y': 510,
-                'resumen_y': 150, # ok
-                'valor_y': 125, # ok
+                'resumen_y': 152,
+                'valor_y': 132,
             }
         elif company_id.id == 4:
             return {
-                'fecha': (420, 710),
-                'cliente_y': 600,
-                'origen_y': 600,
-                'entrega_y': 520,
-                'tabla_y': 460,
+                'fecha': (410, 680),
+                'cliente': (85, 602),
+                'cliente_y': 602,
+                'origen_y': 602,
+                'iva':(70, 560),
+                'cuit':(300, 560),
+                'entrega_y': 530,
+                'tabla_y': 475,
                 'resumen_y': 110,
-                'valor_y': 90,
+                'valor_y': 85,
             }
         else:
             return {
                 'fecha': (430, 750),
+                'cliente': (85, 644),
                 'cliente_y': 700,
                 'origen_y': 700,
+                'iva':(70, 603),
+                'cuit':(300, 603),
                 'entrega_y': 630,
                 'tabla_y': 500,
                 'resumen_y': 150,
