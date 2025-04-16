@@ -90,7 +90,7 @@ class SaleOrderLineInherit(models.Model):
 
             so_config = self.env['sale.order.settings'].browse(1)
             if record.product_id and so_config:
-                if so_config.carga_bultos:
+                if so_config.carga_bultos and so_config.activo:
                     packaging_ids = record.product_id.packaging_ids
                     if packaging_ids:
                         record.write(
@@ -110,7 +110,7 @@ class SaleOrderLineInherit(models.Model):
         for record in self:
             so_config = self.env['sale.order.settings'].browse(1)
             if so_config:
-                if so_config.carga_unidades:
+                if so_config.carga_unidades and so_config.activo:
                     if record.product_packaging_id:
                         record.product_packaging_qty = record.product_uom_qty / record.product_packaging_id.qty
 
@@ -257,6 +257,7 @@ class SaleOrderSplitWizardInherit(models.TransientModel):
         name = fields.Char('Nombre')
         carga_bultos = fields.Boolean(string="Carga por bultos", default=True)
         carga_unidades = fields.Boolean(string="Carga por unidades")
+        activo = fields.Boolean("Activo", default=False)
 
         @api.onchange('carga_bultos', 'carga_unidades')
         def _onchange_carga(self):
