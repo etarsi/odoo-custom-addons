@@ -56,9 +56,10 @@ class SaleOrderInherit(models.Model):
     @api.onchange('order_line')
     def _onchange_lines_bultos(self):
         for record in self:
-            record.packaging_qty
+            record.packaging_qty = 0
             for line in record.order_line:
                 record.packaging_qty += line.product_packaging_qty
+
 
 class SaleOrderLineInherit(models.Model):
     _inherit = 'sale.order.line'
@@ -237,3 +238,11 @@ class SaleOrderSplitWizardInherit(models.TransientModel):
             if new_order.amount_total == 0:
                 new_order.action_cancel()
                 new_order.unlink()
+
+    
+    class SaleOrderSettings(models.Model):
+        _name = 'sale.order.settings'
+
+        name = fields.Char('Nombre')
+        carga_bultos = fields.Boolean(string="Carga por bultos", default=True)
+        carga_unidaes = fields.Boolean(string="Carga por unidades")
