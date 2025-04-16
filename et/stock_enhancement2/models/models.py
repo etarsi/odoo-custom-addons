@@ -204,7 +204,9 @@ class StockPickingInherit(models.Model):
             c.drawString(90, y, f"{linea['unidades']:.2f}")
             c.drawString(150, y, linea['nombre'])
             c.drawString(450, y, linea['lote'])
-            y -= 15    
+            y -= 15
+            
+        draw_footer()
 
         c.save()
         pdf = buffer.getvalue()
