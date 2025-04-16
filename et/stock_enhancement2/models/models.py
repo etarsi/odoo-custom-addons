@@ -6,6 +6,8 @@ from io import BytesIO
 from datetime import datetime
 from odoo.exceptions import UserError
 import logging
+import math
+
 _logger = logging.getLogger(__name__)
 
 class StockPickingInherit(models.Model):
@@ -63,7 +65,7 @@ class StockPickingInherit(models.Model):
             'target': 'new',
         }
     
-    def _prepare_remito_data(self, picking, proportion, company_id):
+    def _prepare_remito_data(self, picking, proportion, company_id, type):
         partner = picking.partner_id
 
         lines = []
@@ -74,14 +76,25 @@ class StockPickingInherit(models.Model):
 
         for move in picking.move_ids_without_package:
             qty = move.quantity_done * proportion
+
+            # redeondeo unidades con decimal según blanco/negro el remito
+            if qty % 1 != 0:
+                if type == 'a':
+                    qty = math.floor(qty) # redondeo para abajo
+                if type == 'b':
+                    qty = math.ceil(qty) # redondeo para arriba
+
             uxb = move.product_packaging_id.qty if move.product_packaging_id else 1
             bultos = qty / uxb if uxb else 1
             lote = move.lot_ids[:1].name if move.lot_ids else ''
+            product_name = f"{move.product_id.default_code} {move.product_id.name}"
+            product_name = product_name[:60]
 
+            
             lines.append({
                 'bultos': bultos,
-                'codigo': move.product_id.default_code or '',
-                'nombre': move.product_id.name or '',
+                # 'codigo': move.product_id.default_code or '',
+                'nombre': product_name,
                 'lote': lote,
                 'unidades': qty,
             })
@@ -113,43 +126,45 @@ class StockPickingInherit(models.Model):
 
         return remito
     
-    def _build_remito_pdf(self, picking, proportion, company_id):
-        remito = self._prepare_remito_data(picking, proportion, company_id)
+    def _build_remito_pdf(self, picking, proportion, company_id, type):
+        remito = self._prepare_remito_data(picking, proportion, company_id, type)
         coords = self._get_remito_template_coords(company_id)
 
         buffer = BytesIO()
         c = canvas.Canvas(buffer, pagesize=A4)
         width, height = A4
+        
+        def draw_header():
+            # date
+            c.setFont("Helvetica-Bold", 12)
+            c.drawString(*coords['fecha'], remito['date'])
 
-        # date
-        c.setFont("Helvetica-Bold", 12)
-        c.drawString(*coords['fecha'], remito['date'])
+            # client
+            c.setFont("Helvetica", 11)
+            y = coords['cliente_y']
+            c.drawString(70, y, remito['client']['name'])
+            y -= 10
+            c.drawString(70, y, remito['client']['address'])
+            y -= 10
+            c.drawString(70, y, remito['client']['city'])
+            y -= 20
+            c.setFont("Helvetica", 10)
+            c.drawString(50, y, f"{remito['client']['iva']}")
+            c.drawString(300, y, f"{remito['client']['cuit']}")
 
-        # client
-        c.setFont("Helvetica", 11)
-        y = coords['cliente_y']
-        c.drawString(70, y, remito['client']['name'])
-        y -= 10
-        c.drawString(70, y, remito['client']['address'])
-        y -= 10
-        c.drawString(70, y, remito['client']['city'])
-        y -= 20
-        c.setFont("Helvetica", 10)
-        c.drawString(50, y, f"{remito['client']['iva']}")
-        c.drawString(300, y, f"{remito['client']['cuit']}")
+            # origin / picking
+            y = coords['origen_y']
+            c.drawString(420, y, f"Origen: {remito['origin']}")
+            y -= 15
+            c.drawString(420, y, remito['picking_name'])
 
-        # origin / picking
-        y = coords['cliente_y']
-        c.drawString(420, y, f"Origen: {remito['origin']}")
-        y -= 15
-        c.drawString(420, y, remito['picking_name'])
+            # delivery address
+            y = coords['entrega_y']
+            c.drawString(50, y, remito['destination']['name'])
+            y -= 15
+            c.drawString(50, y, remito['destination']['address'])
 
-        # delivery address
-        y = coords['cliente_y']
-        y -= 60
-        c.drawString(50, y, remito['destination']['name'])
-        y -= 15
-        c.drawString(50, y, remito['destination']['address'])
+        draw_header()
 
         # product table
         y = coords['tabla_y']
@@ -164,22 +179,21 @@ class StockPickingInherit(models.Model):
         for linea in remito['move_lines']:
             if y < 100:
                 c.showPage()
-                y = height - 100
+                draw_header()
+                y = coords['tabla_y']
 
             c.drawString(40, y, f"{linea['bultos']:.2f}")
             c.drawString(90, y, f"{linea['unidades']:.2f}")
-            c.drawString(150, y, f"[{linea['codigo']}] {linea['nombre']}")
+            c.drawString(150, y, linea['nombre'])
             c.drawString(450, y, linea['lote'])
             y -= 15
 
-        # footer
-        y = coords['resumen_y']
-        c.setFont("Helvetica-Bold", 10)
-        c.drawString(40, y, f"Cantidad de Bultos: {remito['total_bultos']:.2f}")
-        y -= 15
-        c.drawString(40, y, f"Cantidad UXB: {remito['total_units']:.2f}")
-        y -= 15
-        c.drawString(40, y, f"$ {remito['total_value']:,.2f}")
+            y = coords['resumen_y']
+            c.setFont("Helvetica-Bold", 10)
+            c.drawString(150, y, f"Cantidad de Bultos: {remito['total_bultos']:.2f}")
+            c.drawString(210, y, f"Cantidad UXB: {remito['total_units']:.2f}")
+            y -= 35
+            c.drawString(450, y, f"$ {remito['total_value']:,.2f}")
 
         c.save()
         pdf = buffer.getvalue()
@@ -193,8 +207,8 @@ class StockPickingInherit(models.Model):
             return {
                 'fecha': (500, 780),
                 'cliente_y': 700,
-                'origen_y': 650,
-                'entrega_y': 615,
+                'origen_y': 700,
+                'entrega_y': 630,
                 'tabla_y': 560,
                 'resumen_y': 90,
             }

@@ -48,6 +48,7 @@ class StockPickingController(http.Controller):
         if not picking.exists():
             return request.not_found()
 
+        type = 'a'
         tipo = picking.x_order_type.name
         proportion, _ = self._get_type_proportion(tipo)
 
@@ -56,7 +57,7 @@ class StockPickingController(http.Controller):
 
         company_id = picking.company_id
 
-        pdf = picking._build_remito_pdf(picking, proportion, company_id)
+        pdf = picking._build_remito_pdf(picking, proportion, company_id, type)
 
         return request.make_response(
             pdf,
@@ -72,6 +73,7 @@ class StockPickingController(http.Controller):
         if not picking.exists():
             return request.not_found()
 
+        type = 'b'
         tipo = picking.x_order_type.name
         _, proportion = self._get_type_proportion(tipo)
 
@@ -83,7 +85,7 @@ class StockPickingController(http.Controller):
         else:
             company_id = picking.company_id
 
-        pdf = picking._build_remito_pdf(picking, proportion, company_id)
+        pdf = picking._build_remito_pdf(picking, proportion, company_id, type)
         
         return request.make_response(
             pdf,
