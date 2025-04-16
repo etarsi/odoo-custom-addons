@@ -87,7 +87,7 @@ class StockPickingInherit(models.Model):
             uxb = move.product_packaging_id.qty if move.product_packaging_id else 1
             bultos = qty / uxb if uxb else 1
             lote = move.lot_ids[:1].name if move.lot_ids else ''
-            product_name = f"{move.product_id.default_code} {move.product_id.name}"
+            product_name = f"[{move.product_id.default_code}] {move.product_id.name}"
             product_name = product_name[:60]
 
             
@@ -205,7 +205,7 @@ class StockPickingInherit(models.Model):
             c.drawString(150, y, linea['nombre'])
             c.drawString(450, y, linea['lote'])
             y -= 15
-            
+
         draw_footer()
 
         c.save()
