@@ -184,6 +184,7 @@ class StockPickingInherit(models.Model):
                 c.showPage()
                 draw_header()
                 draw_body()
+                y = coords['tabla_y']
 
             c.drawString(40, y, f"{linea['bultos']:.2f}")
             c.drawString(90, y, f"{linea['unidades']:.2f}")
