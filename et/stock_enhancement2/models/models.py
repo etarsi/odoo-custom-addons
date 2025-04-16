@@ -202,6 +202,7 @@ class StockPickingInherit(models.Model):
                 c.showPage()
                 draw_header()
                 draw_body()
+                y = coords['tabla_y']
                 y -= 17
             
             c.setFont("Helvetica", 8)
