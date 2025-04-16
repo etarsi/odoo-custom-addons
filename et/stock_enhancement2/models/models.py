@@ -177,6 +177,7 @@ class StockPickingInherit(models.Model):
             c.drawString(90, y, "Unidades")
             c.drawString(150, y, "Producto")
             c.drawString(450, y, "Lote")
+            y -= 15
             return y
 
         y = draw_body()
