@@ -218,7 +218,7 @@ class StockPickingInherit(models.Model):
                 'cliente_y': 650,
                 'origen_y': 650,
                 'entrega_y': 580,
-                'tabla_y': 540,
+                'tabla_y': 520,
                 'resumen_y': 150, # ok
                 'valor_y': 125, # ok
             }
@@ -228,7 +228,7 @@ class StockPickingInherit(models.Model):
                 'cliente_y': 650,
                 'origen_y': 650,
                 'entrega_y': 580,
-                'tabla_y': 540,
+                'tabla_y': 520,
                 'resumen_y': 150, # ok
                 'valor_y': 125, # ok
             }
@@ -238,7 +238,7 @@ class StockPickingInherit(models.Model):
                 'cliente_y': 640,
                 'origen_y': 640,
                 'entrega_y': 560,
-                'tabla_y': 520,
+                'tabla_y': 500,
                 'resumen_y': 120,
                 'valor_y': 105,
             }
