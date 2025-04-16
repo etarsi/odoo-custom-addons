@@ -176,6 +176,7 @@ class StockPickingInherit(models.Model):
             return y
 
         y = draw_header()
+        y = coords['tabla_y']
         
 
         def draw_footer():
