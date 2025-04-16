@@ -161,9 +161,9 @@ class StockPickingInherit(models.Model):
             y = coords['origen_y']
             c.drawString(400, y, f"Origen: {remito['origin']}")
             y -= 15
-            c.drawString(40, y, remito['picking_name'])
+            c.drawString(400, y, remito['picking_name'])
             y -= 15
-            c.drawString(40, y, remito['codigo_wms'])
+            c.drawString(400, y, remito['codigo_wms'])
 
             # delivery address
             y = coords['entrega_y']
