@@ -175,8 +175,6 @@ class StockPickingInherit(models.Model):
             c.drawString(90, y, "Unidades")
             c.drawString(150, y, "Producto")
             c.drawString(450, y, "Lote")
-            y -= 15
-            c.setFont("Helvetica", 8)
 
         draw_body()
 
@@ -200,12 +198,13 @@ class StockPickingInherit(models.Model):
 
         for linea in remito['move_lines']:
             if y < 160:
+                draw_footer()
                 c.showPage()
                 draw_header()
                 draw_body()
-                draw_footer()
-                y = coords['tabla_y']
-
+                y -= 17
+            
+            c.setFont("Helvetica", 8)
             c.drawString(40, y, f"{linea['bultos']:.2f}")
             c.drawString(90, y, f"{linea['unidades']:.2f}")
             c.drawString(150, y, linea['nombre'])
