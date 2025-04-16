@@ -133,7 +133,8 @@ class StockPickingInherit(models.Model):
         buffer = BytesIO()
         c = canvas.Canvas(buffer, pagesize=A4)
         width, height = A4
-        
+        y = 0
+
         def draw_header():
             # date
             c.setFont("Helvetica-Bold", 12)
@@ -190,7 +191,7 @@ class StockPickingInherit(models.Model):
         c.setFont("Helvetica", 8)
 
         for linea in remito['move_lines']:
-            if y < 100:
+            if y < 160:
                 c.showPage()
                 draw_header()
                 # draw_body()
@@ -224,34 +225,34 @@ class StockPickingInherit(models.Model):
                 'origen_y': 700,
                 'entrega_y': 630,
                 'tabla_y': 560,
-                'resumen_y': 90,
+                'resumen_y': 150,
             }
         elif company_id.id == 3:
             return {
                 'fecha': (500, 780),
                 'cliente_y': 700,
-                'origen_y': 650,
-                'entrega_y': 615,
+                'origen_y': 700,
+                'entrega_y': 630,
                 'tabla_y': 560,
-                'resumen_y': 90,
+                'resumen_y': 150,
             }
         elif company_id.id == 4:
             return {
                 'fecha': (500, 780),
                 'cliente_y': 700,
-                'origen_y': 650,
-                'entrega_y': 615,
+                'origen_y': 700,
+                'entrega_y': 630,
                 'tabla_y': 560,
-                'resumen_y': 90,
+                'resumen_y': 150,
             }
         else:
             return {
                 'fecha': (500, 780),
                 'cliente_y': 700,
-                'origen_y': 650,
-                'entrega_y': 615,
+                'origen_y': 700,
+                'entrega_y': 630,
                 'tabla_y': 560,
-                'resumen_y': 90,
+                'resumen_y': 150,
             }
         
     def _get_type_proportion(self, type):
