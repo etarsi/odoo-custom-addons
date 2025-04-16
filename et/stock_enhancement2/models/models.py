@@ -237,8 +237,8 @@ class StockPickingInherit(models.Model):
                 'fecha': (420, 710),
                 'cliente_y': 600,
                 'origen_y': 600,
-                'entrega_y': 500,
-                'tabla_y': 480,
+                'entrega_y': 520,
+                'tabla_y': 460,
                 'resumen_y': 110,
                 'valor_y': 90,
             }
