@@ -197,15 +197,14 @@ class StockPickingInherit(models.Model):
                 draw_header()
                 draw_body()
                 y = coords['tabla_y']
-                y -= 17
+                y -= 15
             
             c.setFont("Helvetica", 8)
             c.drawString(40, y, f"{linea['bultos']:.2f}")
             c.drawString(90, y, f"{linea['unidades']:.2f}")
             c.drawString(150, y, linea['nombre'])
             c.drawString(450, y, linea['lote'])
-            y -= 15
-                        
+            y -= 15    
 
         c.save()
         pdf = buffer.getvalue()
@@ -217,7 +216,7 @@ class StockPickingInherit(models.Model):
 
         if company_id.id in (1, 2):
             return {
-                'fecha': (500, 780),
+                'fecha': (430, 750),
                 'cliente_y': 700,
                 'origen_y': 700,
                 'entrega_y': 630,
@@ -226,7 +225,7 @@ class StockPickingInherit(models.Model):
             }
         elif company_id.id == 3:
             return {
-                'fecha': (500, 780),
+                'fecha': (430, 750),
                 'cliente_y': 700,
                 'origen_y': 700,
                 'entrega_y': 630,
@@ -235,7 +234,7 @@ class StockPickingInherit(models.Model):
             }
         elif company_id.id == 4:
             return {
-                'fecha': (500, 780),
+                'fecha': (430, 750),
                 'cliente_y': 700,
                 'origen_y': 700,
                 'entrega_y': 630,
@@ -244,7 +243,7 @@ class StockPickingInherit(models.Model):
             }
         else:
             return {
-                'fecha': (500, 780),
+                'fecha': (430, 750),
                 'cliente_y': 700,
                 'origen_y': 700,
                 'entrega_y': 630,
@@ -254,7 +253,6 @@ class StockPickingInherit(models.Model):
         
     def _get_type_proportion(self, type):
         type = str(type or '').strip().upper()
-
 
         proportions = {
             'TIPO 1': (1.0, 0.0),
