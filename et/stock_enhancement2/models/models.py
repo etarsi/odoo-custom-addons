@@ -113,9 +113,10 @@ class StockPickingInherit(models.Model):
             },
             'origin': picking.origin or '',
             'picking_name': picking.name or '',
+            'codigo_wms': picking.codigo_wms or '',
             'destination': {
                 'name': f"{partner.property_delivery_carrier_id.name or ''}",
-                'address': f"{partner.property_delivery_carrier_id.partner_id.street or ''}, {partner.property_delivery_carrier_id.partner_id.city or ''}",
+                'address': f"{partner.property_delivery_carrier_id.partner_id.name or ''}",
             },
             'move_lines': lines,
             'total_bultos': picking.number_of_packages,
@@ -143,14 +144,14 @@ class StockPickingInherit(models.Model):
             # client
             c.setFont("Helvetica", 11)
             y = coords['cliente_y']
-            c.drawString(70, y, remito['client']['name'])
+            c.drawString(80, y, remito['client']['name'])
             y -= 10
-            c.drawString(70, y, remito['client']['address'])
+            c.drawString(80, y, remito['client']['address'])
             y -= 10
-            c.drawString(70, y, remito['client']['city'])
+            c.drawString(80, y, remito['client']['city'])
             y -= 20
             c.setFont("Helvetica", 10)
-            c.drawString(50, y, f"{remito['client']['iva']}")
+            c.drawString(60, y, f"{remito['client']['iva']}")
             c.drawString(300, y, f"{remito['client']['cuit']}")
 
             # origin / picking
@@ -158,29 +159,20 @@ class StockPickingInherit(models.Model):
             c.drawString(420, y, f"Origen: {remito['origin']}")
             y -= 15
             c.drawString(420, y, remito['picking_name'])
+            y -= 15
+            c.drawString(420, y, remito['codigo_wms'])
 
             # delivery address
             y = coords['entrega_y']
             c.drawString(50, y, remito['destination']['name'])
             y -= 15
             c.drawString(50, y, remito['destination']['address'])
+            y -= 15
             
             return y
 
         y = draw_header()
         
-        def draw_body():
-            # product table
-            y = coords['tabla_y']
-            c.setFont("Helvetica-Bold", 10)
-            c.drawString(40, y, "Bultos")
-            c.drawString(90, y, "Unidades")
-            c.drawString(150, y, "Producto")
-            c.drawString(450, y, "Lote")
-            y -= 15
-            return y
-
-        y = draw_body()
 
         def draw_footer():
                 y = coords['resumen_y']
@@ -195,7 +187,6 @@ class StockPickingInherit(models.Model):
                 draw_footer()
                 c.showPage()
                 draw_header()
-                draw_body()
                 y = coords['tabla_y']
                 y -= 15
             
@@ -218,21 +209,23 @@ class StockPickingInherit(models.Model):
 
         if company_id.id in (1, 2):
             return {
-                'fecha': (430, 750),
-                'cliente_y': 700,
-                'origen_y': 700,
-                'entrega_y': 630,
-                'tabla_y': 560,
-                'resumen_y': 150,
+                'fecha': (430, 730),
+                'cliente_y': 650,
+                'origen_y': 650,
+                'entrega_y': 580,
+                'tabla_y': 520,
+                'resumen_y': 150, # ok
+                'valor_y': 125, # ok
             }
         elif company_id.id == 3:
             return {
-                'fecha': (430, 750),
-                'cliente_y': 700,
-                'origen_y': 700,
-                'entrega_y': 630,
-                'tabla_y': 560,
-                'resumen_y': 150,
+                'fecha': (420, 710),
+                'cliente_y': 650,
+                'origen_y': 650,
+                'entrega_y': 580,
+                'tabla_y': 520,
+                'resumen_y': 150, # ok
+                'valor_y': 125, # ok
             }
         elif company_id.id == 4:
             return {
@@ -241,7 +234,8 @@ class StockPickingInherit(models.Model):
                 'origen_y': 700,
                 'entrega_y': 630,
                 'tabla_y': 560,
-                'resumen_y': 150,
+                'resumen_y': 120,
+                'valor_y': 105,
             }
         else:
             return {
