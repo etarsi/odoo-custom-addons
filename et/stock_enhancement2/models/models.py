@@ -114,7 +114,7 @@ class StockPickingInherit(models.Model):
             'origin': picking.origin or '',
             'picking_name': picking.name or '',
             'destination': {
-                'name': partner.property_delivery_carrier_id.name,
+                'name': f"{partner.property_delivery_carrier_id.name or ''}",
                 'address': f"{partner.property_delivery_carrier_id.partner_id.address or ''}",
             },
             'move_lines': lines,
