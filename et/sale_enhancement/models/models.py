@@ -86,22 +86,33 @@ class SaleOrderLineInherit(models.Model):
     @api.onchange('product_id')
     def _onchange_product(self):
         for record in self:
-            if record.product_id:
-                record.discount = record.order_id.global_discount              
-                packaging_ids = record.product_id.packaging_ids
-                if packaging_ids:
-                    # record.product_packaging_id = packaging_ids[0]
-                    record.write(
-                                {
-                                    'product_uom_qty': int(packaging_ids[0].qty * record.product_packaging_qty),
-                                    'product_packaging_id': packaging_ids[0],
-                                })
-                    
+            record.discount = record.order_id.global_discount
+
+            so_config = self.env['sale.order.settings'].browse(1)
+            if record.product_id and so_config:
+                if so_config.carga_bultos:
+                    packaging_ids = record.product_id.packaging_ids
+                    if packaging_ids:
+                        record.write(
+                                    {
+                                        'product_uom_qty': int(packaging_ids[0].qty * record.product_packaging_qty),
+                                        'product_packaging_id': packaging_ids[0],
+                                    })
+                        
     ## DESHABILITAR ADVERTENCIA DE UNIDAD X BULTO                    
     @api.onchange('product_packaging_id')
     def _onchange_product_packaging_id(self):
         return
     
+
+    @api.onchange('product_uom_qty')
+    def _onchange_price_unit(self):
+        for record in self:
+            so_config = self.env['sale.order.settings'].browse(1)
+            if so_config:
+                if so_config.carga_unidades:
+                    if record.product_packaging_id:
+                        record.product_packaging_qty = record.product_uom_qty / record.product_packaging_id.qty
 
 class ResPartnerInherit(models.Model):
     _inherit = 'res.partner'
@@ -246,3 +257,11 @@ class SaleOrderSplitWizardInherit(models.TransientModel):
         name = fields.Char('Nombre')
         carga_bultos = fields.Boolean(string="Carga por bultos", default=True)
         carga_unidaes = fields.Boolean(string="Carga por unidades")
+
+        @api.onchange('carga_bultos', 'carga_unidades')
+        def _onchange_carga(self):
+            for record in self:
+                if record.carga_bultos:
+                    record.carga_unidaes = False
+                if record.carga_unidaes:
+                    record.carga_bultos = False

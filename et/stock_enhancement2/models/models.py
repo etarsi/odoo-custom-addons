@@ -153,7 +153,7 @@ class StockPickingInherit(models.Model):
             c.drawString(80, y, remito['client']['address'])
             y -= 10
             c.drawString(80, y, remito['client']['city'])
-            y -= 20
+            y -= 25
             c.setFont("Helvetica", 10)
             c.drawString(60, y, f"{remito['client']['iva']}")
             c.drawString(300, y, f"{remito['client']['cuit']}")
@@ -199,7 +199,7 @@ class StockPickingInherit(models.Model):
             c.drawString(50, y, f"{linea['bultos']:.2f}")
             c.drawString(85, y, linea['nombre'])
             c.drawString(390, y, linea['lote'])
-            c.drawString(510, y, f"{linea['unidades']:.2f}")
+            c.drawString(540, y, f"{linea['unidades']:.2f}")
             y -= 15
 
         draw_footer()
@@ -215,32 +215,32 @@ class StockPickingInherit(models.Model):
         if company_id.id in (1, 2):
             return {
                 'fecha': (430, 730),
-                'cliente_y': 650,
-                'origen_y': 650,
+                'cliente_y': 645,
+                'origen_y': 645,
                 'entrega_y': 580,
-                'tabla_y': 520,
+                'tabla_y': 510,
                 'resumen_y': 150, # ok
                 'valor_y': 125, # ok
             }
         elif company_id.id == 3:
             return {
                 'fecha': (420, 710),
-                'cliente_y': 650,
-                'origen_y': 650,
+                'cliente_y': 645,
+                'origen_y': 645,
                 'entrega_y': 580,
-                'tabla_y': 520,
+                'tabla_y': 510,
                 'resumen_y': 150, # ok
                 'valor_y': 125, # ok
             }
         elif company_id.id == 4:
             return {
-                'fecha': (420, 635),
-                'cliente_y': 640,
-                'origen_y': 640,
-                'entrega_y': 560,
-                'tabla_y': 500,
-                'resumen_y': 120,
-                'valor_y': 105,
+                'fecha': (420, 710),
+                'cliente_y': 600,
+                'origen_y': 600,
+                'entrega_y': 520,
+                'tabla_y': 480,
+                'resumen_y': 110,
+                'valor_y': 90,
             }
         else:
             return {
