@@ -73,6 +73,10 @@ class StockPickingInherit(models.Model):
         total_unidades = 0
         date = picking.date_done
         date = date.strftime('%d-%m-%Y')
+        partner_name = partner.name
+
+        if type == 'b':
+            partner_name = f"{partner_name}*"
 
         for move in picking.move_ids_without_package:
             qty = move.quantity_done * proportion
@@ -105,9 +109,9 @@ class StockPickingInherit(models.Model):
         remito = {
             'date': date,
             'client': {
-                'name': partner.name,
-                'address': partner.street,
-                'city': partner.city,
+                'name': partner_name,
+                'address': partner.street or '',
+                'city': partner.city or '',
                 'cuit': partner.vat,
                 'iva': partner.l10n_ar_afip_responsibility_type_id.name if partner.l10n_ar_afip_responsibility_type_id else '',
             },
@@ -179,11 +183,11 @@ class StockPickingInherit(models.Model):
                 c.setFont("Helvetica-Bold", 10)
                 c.drawString(150, y, f"Cantidad de Bultos: {remito['total_bultos']:.2f}")
                 c.drawString(320, y, f"Cantidad UXB: {remito['total_units']:.2f}")
-                y -= 35
+                y = coords['valor_y']
                 c.drawString(450, y, f"$ {remito['total_value']:,.2f}")
         
         for linea in remito['move_lines']:
-            if y < 160:
+            if y < 100:
                 draw_footer()
                 c.showPage()
                 draw_header()
@@ -191,10 +195,10 @@ class StockPickingInherit(models.Model):
                 y -= 15
             
             c.setFont("Helvetica", 8)
-            c.drawString(40, y, f"{linea['bultos']:.2f}")
-            c.drawString(90, y, f"{linea['unidades']:.2f}")
-            c.drawString(150, y, linea['nombre'])
-            c.drawString(450, y, linea['lote'])
+            c.drawString(50, y, f"{linea['bultos']:.2f}")
+            c.drawString(100, y, linea['nombre'])
+            c.drawString(400, y, linea['lote'])
+            c.drawString(500, y, f"{linea['unidades']:.2f}")
             y -= 15
 
         draw_footer()
@@ -229,11 +233,11 @@ class StockPickingInherit(models.Model):
             }
         elif company_id.id == 4:
             return {
-                'fecha': (430, 750),
-                'cliente_y': 700,
-                'origen_y': 700,
-                'entrega_y': 630,
-                'tabla_y': 560,
+                'fecha': (420, 635),
+                'cliente_y': 640,
+                'origen_y': 640,
+                'entrega_y': 560,
+                'tabla_y': 520,
                 'resumen_y': 120,
                 'valor_y': 105,
             }
@@ -245,6 +249,7 @@ class StockPickingInherit(models.Model):
                 'entrega_y': 630,
                 'tabla_y': 560,
                 'resumen_y': 150,
+                'valor_y': 125,
             }
         
     def _get_type_proportion(self, type):
