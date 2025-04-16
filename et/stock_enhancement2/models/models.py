@@ -148,11 +148,9 @@ class StockPickingInherit(models.Model):
             # client
             c.setFont("Helvetica", 11)
             y = coords['cliente_y']
-            c.drawString(*coords['cliente'], remito['client']['name'])
-            y -= 11
-            c.drawString(80, y, remito['client']['address'])
-            y -= 11
-            c.drawString(80, y, remito['client']['city'])
+            c.drawString(*coords['cliente_nombre'], remito['client']['name'])
+            c.drawString(*coords['cliente_dire'], remito['client']['address'])
+            c.drawString(*coords['cliente_localidad'], remito['client']['city'])
             c.setFont("Helvetica", 10)
             c.drawString(*coords['iva'], f"{remito['client']['iva']}")
             c.drawString(*coords['cuit'], f"{remito['client']['cuit']}")
@@ -207,7 +205,7 @@ class StockPickingInherit(models.Model):
             c.drawString(50, y, f"{linea['bultos']:.2f}")
             c.drawString(88, y, linea['nombre'])
             c.drawString(390, y, linea['lote'])
-            c.drawString(520, y, f"{linea['unidades']:.2f}")
+            c.drawString(510, y, f"{linea['unidades']:.2f}")
             y -= 15
 
         draw_footer()
@@ -223,7 +221,9 @@ class StockPickingInherit(models.Model):
         if company_id.id in (1, 2):
             return {
                 'fecha': (430, 740),
-                'cliente': (85, 644),
+                'cliente_nombre': (85, 644),
+                'cliente_dire': (85, 629),
+                'cliente_localidad': (85, 614),
                 'cliente_y': 644,
                 'origen_y': 645,
                 'iva':(70, 603),
@@ -236,7 +236,9 @@ class StockPickingInherit(models.Model):
         elif company_id.id == 3:
             return {
                 'fecha': (420, 740),
-                'cliente': (95, 643),
+                'cliente_nombre': (95, 643),
+                'cliente_dire': (95, 628),
+                'cliente_localidad': (95, 613),
                 'cliente_y': 643,
                 'origen_y': 645,
                 'iva':(80, 597),
@@ -249,7 +251,9 @@ class StockPickingInherit(models.Model):
         elif company_id.id == 4:
             return {
                 'fecha': (410, 680),
-                'cliente': (85, 602),
+                'cliente_nombre': (85, 602),
+                'cliente_dire': (85, 587),
+                'cliente_localidad': (85, 572),
                 'cliente_y': 602,
                 'origen_y': 602,
                 'iva':(70, 560),
