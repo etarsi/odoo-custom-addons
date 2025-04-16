@@ -114,8 +114,8 @@ class StockPickingInherit(models.Model):
             'origin': picking.origin or '',
             'picking_name': picking.name or '',
             'destination': {
-                'name': partner.property_delivery_carry_id.name,
-                'address': f"{partner.property_delivery_carry_id.partner_id.address or ''}",
+                'name': partner.property_delivery_carrier_id.name,
+                'address': f"{partner.property_delivery_carrier_id.partner_id.address or ''}",
             },
             'move_lines': lines,
             'total_bultos': picking.number_of_packages,
