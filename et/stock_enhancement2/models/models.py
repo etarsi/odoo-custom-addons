@@ -166,24 +166,34 @@ class StockPickingInherit(models.Model):
 
         draw_header()
         
-        def draw_body():
-            # product table
-            y = coords['tabla_y']
-            c.setFont("Helvetica-Bold", 10)
-            c.drawString(40, y, "Bultos")
-            c.drawString(90, y, "Unidades")
-            c.drawString(150, y, "Producto")
-            c.drawString(450, y, "Lote")
-            y -= 15
-            c.setFont("Helvetica", 8)
+        # def draw_body():
+        #     # product table
+        #     y = coords['tabla_y']
+        #     c.setFont("Helvetica-Bold", 10)
+        #     c.drawString(40, y, "Bultos")
+        #     c.drawString(90, y, "Unidades")
+        #     c.drawString(150, y, "Producto")
+        #     c.drawString(450, y, "Lote")
+        #     y -= 15
+        #     c.setFont("Helvetica", 8)
 
-        draw_body()
+        # draw_body()
+
+        # product table
+        y = coords['tabla_y']
+        c.setFont("Helvetica-Bold", 10)
+        c.drawString(40, y, "Bultos")
+        c.drawString(90, y, "Unidades")
+        c.drawString(150, y, "Producto")
+        c.drawString(450, y, "Lote")
+        y -= 15
+        c.setFont("Helvetica", 8)
 
         for linea in remito['move_lines']:
             if y < 100:
                 c.showPage()
                 draw_header()
-                draw_body()
+                # draw_body()
                 y = coords['tabla_y']
 
             c.drawString(40, y, f"{linea['bultos']:.2f}")
