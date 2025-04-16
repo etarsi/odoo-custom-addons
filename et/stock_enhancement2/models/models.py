@@ -164,8 +164,10 @@ class StockPickingInherit(models.Model):
             c.drawString(50, y, remito['destination']['name'])
             y -= 15
             c.drawString(50, y, remito['destination']['address'])
+            
+            return y
 
-        draw_header()
+        y = draw_header()
         
         def draw_body():
             # product table
@@ -175,8 +177,9 @@ class StockPickingInherit(models.Model):
             c.drawString(90, y, "Unidades")
             c.drawString(150, y, "Producto")
             c.drawString(450, y, "Lote")
+            return y
 
-        draw_body()
+        y = draw_body()
 
         def draw_footer():
                 y = coords['resumen_y']
@@ -185,7 +188,7 @@ class StockPickingInherit(models.Model):
                 c.drawString(320, y, f"Cantidad UXB: {remito['total_units']:.2f}")
                 y -= 35
                 c.drawString(450, y, f"$ {remito['total_value']:,.2f}")
-        raise UserError(y)
+        
         for linea in remito['move_lines']:
             if y < 160:
                 draw_footer()
