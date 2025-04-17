@@ -182,7 +182,7 @@ class StockPickingInherit(models.Model):
                 c.drawString(160, y, f"Cantidad de Bultos: {remito['total_bultos']:.2f}")
                 c.drawString(320, y, f"Cantidad UXB: {remito['total_units']:.2f}")
                 y = coords['valor_y']
-                c.drawString(480, y, f"$ {remito['total_value']:,.2f}")
+                c.drawString(400, y, f"$ {remito['total_value']:,.2f}")
         
         for linea in remito['move_lines']:
             if company_id.id in (1, 2, 3):
@@ -236,19 +236,19 @@ class StockPickingInherit(models.Model):
             }
         elif company_id.id == 3:
             return {
-                'fecha': (420, 720),
-                'cliente_nombre': (95, 643),
-                'cliente_dire': (95, 633),
-                'cliente_localidad': (95, 623),
-                'cliente_y': 643,
+                'fecha': (430, 720),
+                'cliente_nombre': (85, 644),
+                'cliente_dire': (85, 632),
+                'cliente_localidad': (85, 620),
+                'cliente_y': 644,
                 'origen_y': 645,
-                'iva':(80, 597),
-                'cuit':(305, 597),
+                'iva':(70, 600),
+                'cuit':(300, 600),
                 'entrega_y': 570,
-                'producto_nombre_x': 93,
                 'tabla_y': 510,
-                'resumen_y': 152,
-                'valor_y': 130,
+                'producto_nombre_x': 100,
+                'resumen_y': 150,
+                'valor_y': 125,
             }
         elif company_id.id == 4:
             return {
