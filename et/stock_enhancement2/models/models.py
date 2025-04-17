@@ -220,7 +220,7 @@ class StockPickingInherit(models.Model):
 
         if company_id.id in (1, 2):
             return {
-                'fecha': (430, 740),
+                'fecha': (430, 738),
                 'cliente_nombre': (85, 644),
                 'cliente_dire': (85, 634),
                 'cliente_localidad': (85, 624),
@@ -230,6 +230,7 @@ class StockPickingInherit(models.Model):
                 'cuit':(300, 600),
                 'entrega_y': 570,
                 'tabla_y': 510,
+                'producto_nombre_x': 92,
                 'resumen_y': 150,
                 'valor_y': 125,
             }
@@ -244,6 +245,7 @@ class StockPickingInherit(models.Model):
                 'iva':(80, 597),
                 'cuit':(305, 597),
                 'entrega_y': 570,
+                'producto_nombre_x': 93,
                 'tabla_y': 510,
                 'resumen_y': 152,
                 'valor_y': 130,
@@ -259,6 +261,7 @@ class StockPickingInherit(models.Model):
                 'iva':(70, 560),
                 'cuit':(300, 560),
                 'entrega_y': 530,
+                'producto_nombre_x': 88,
                 'tabla_y': 475,
                 'resumen_y': 115,
                 'valor_y': 90,
