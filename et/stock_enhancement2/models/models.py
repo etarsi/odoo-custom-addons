@@ -191,14 +191,12 @@ class StockPickingInherit(models.Model):
                     c.showPage()
                     draw_header()
                     y = coords['tabla_y']
-                    y -= 15
             elif company_id.id == 4:
                 if y < 135:
                     draw_footer()
                     c.showPage()
                     draw_header()
                     y = coords['tabla_y']
-                    y -= 15
 
 
             c.setFont("Helvetica", 8)
@@ -221,9 +219,9 @@ class StockPickingInherit(models.Model):
         if company_id.id in (1, 2):
             return {
                 'fecha': (430, 739),
-                'cliente_nombre': (85, 644),
-                'cliente_dire': (85, 632),
-                'cliente_localidad': (85, 620),
+                'cliente_nombre': (89, 644),
+                'cliente_dire': (89, 632),
+                'cliente_localidad': (89, 620),
                 'cliente_y': 644,
                 'origen_y': 645,
                 'iva':(70, 600),
@@ -254,8 +252,8 @@ class StockPickingInherit(models.Model):
             return {
                 'fecha': (410, 680),
                 'cliente_nombre': (85, 602),
-                'cliente_dire': (85, 592),
-                'cliente_localidad': (85, 582),
+                'cliente_dire': (85, 590),
+                'cliente_localidad': (85, 579),
                 'cliente_y': 602,
                 'origen_y': 602,
                 'iva':(70, 560),
@@ -264,7 +262,7 @@ class StockPickingInherit(models.Model):
                 'producto_nombre_x': 88,
                 'tabla_y': 475,
                 'resumen_y': 115,
-                'valor_y': 90,
+                'valor_y': 87,
             }
         else:
             return {
