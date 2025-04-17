@@ -71,6 +71,23 @@ class StockPicking(models.Model):
                 codigos[j['CodigoArticulo']] =  j['UnidadesDisponibles'] 
         return codigos
 
+    def get_stocksv2(self):
+        url = self.env['ir.config_parameter'].sudo().get_param('digipwms.urlv2')
+        headers = CaseInsensitiveDict()
+        headers["X-API-KEY"] = self.env['ir.config_parameter'].sudo().get_param('digipwms.key')
+        respGet = requests.get(f'{url}/v2/Stock/Tipo', headers=headers)
+        if respGet.status_code not in [200, 201] or respGet.content.strip() == b'null':
+            _logger.info('STOCK %s ' % respGet.status_code )
+            return [0]
+
+        json_response = respGet.json()
+        unidades = 0
+        codigos = {}
+        for j in json_response:
+            if 'stock' in j and 'disponible' in j['stock']:
+                codigos[j['codigo']] =  j['stock']['disponible']
+        return codigos
+
     def create_update_cliente(self,p):
         url = self.env['ir.config_parameter'].sudo().get_param('digipwms.url')
         headers = CaseInsensitiveDict()
@@ -112,6 +129,27 @@ class StockPicking(models.Model):
             respPost = requests.post('%s/v1/Proveedor' % url, headers=headers, json=data)
             _logger.info(('----POST---Prov--->',respPost))
         return True
+    def cargo_stock_desde_digipv2(self,records):
+        stock_codigo = self.get_stocksv2()
+        con_stock = {}
+        for sp in records:
+            self.env['stock.move.line'].search([('picking_id','=', sp.id)]).unlink()
+            for move in sp.move_ids_without_package:
+                codigo = '%s' % move.product_id.default_code
+                if codigo[0] == '9':
+                    codigo = codigo[1:]
+                if codigo in stock_codigo and stock_codigo[codigo]  > 0:
+                    move.write({'quantity_done': 0})
+                    try:
+                        if move.product_uom_qty <= stock_codigo[codigo]:
+                            move.write({'quantity_done': move.product_uom_qty })
+                            stock_codigo[codigo] = stock_codigo[codigo] - move.product_uom_qty 
+                        else:
+                            move.write({'quantity_done': stock_codigo[codigo] })
+                            stock_codigo[codigo] = 0
+                    except Exception as Ex:
+                        raise ValidationError('Codigos no se puede cambiar la cantidad %s %s . ' % (move.product_id.default_code, Ex))
+
     def cargo_stock_desde_digip(self):
         stock_codigo = self.get_stocks()
         con_stock = {}
