@@ -205,7 +205,7 @@ class StockPickingInherit(models.Model):
             c.drawString(50, y, f"{linea['bultos']:.2f}")
             c.drawString(coords['producto_nombre_x'], y, linea['nombre'])
             c.drawString(390, y, linea['lote'])
-            c.drawRightString(550, y, f"{linea['unidades']:.2f}")
+            c.drawRightString(540, y, f"{linea['unidades']:.2f}")
             y -= 15
 
         draw_footer()
