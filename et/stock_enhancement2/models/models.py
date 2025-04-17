@@ -179,10 +179,10 @@ class StockPickingInherit(models.Model):
         def draw_footer():
                 y = coords['resumen_y']
                 c.setFont("Helvetica-Bold", 10)
-                c.drawString(150, y, f"Cantidad de Bultos: {remito['total_bultos']:.2f}")
+                c.drawString(160, y, f"Cantidad de Bultos: {remito['total_bultos']:.2f}")
                 c.drawString(320, y, f"Cantidad UXB: {remito['total_units']:.2f}")
                 y = coords['valor_y']
-                c.drawString(500, y, f"$ {remito['total_value']:,.2f}")
+                c.drawString(480, y, f"$ {remito['total_value']:,.2f}")
         
         for linea in remito['move_lines']:
             if company_id.id in (1, 2, 3):
@@ -203,9 +203,9 @@ class StockPickingInherit(models.Model):
 
             c.setFont("Helvetica", 8)
             c.drawString(50, y, f"{linea['bultos']:.2f}")
-            c.drawString(88, y, linea['nombre'])
+            c.drawString(coords['producto_nombre_x'], y, linea['nombre'])
             c.drawString(390, y, linea['lote'])
-            c.drawString(490, y, f"{linea['unidades']:.2f}")
+            c.drawRightString(550, y, f"{linea['unidades']:.2f}")
             y -= 15
 
         draw_footer()
@@ -220,17 +220,17 @@ class StockPickingInherit(models.Model):
 
         if company_id.id in (1, 2):
             return {
-                'fecha': (430, 738),
+                'fecha': (430, 739),
                 'cliente_nombre': (85, 644),
-                'cliente_dire': (85, 634),
-                'cliente_localidad': (85, 624),
+                'cliente_dire': (85, 632),
+                'cliente_localidad': (85, 620),
                 'cliente_y': 644,
                 'origen_y': 645,
                 'iva':(70, 600),
                 'cuit':(300, 600),
                 'entrega_y': 570,
                 'tabla_y': 510,
-                'producto_nombre_x': 92,
+                'producto_nombre_x': 100,
                 'resumen_y': 150,
                 'valor_y': 125,
             }
