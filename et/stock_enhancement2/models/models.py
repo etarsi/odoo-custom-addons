@@ -26,7 +26,6 @@ class StockPickingInherit(models.Model):
             for move in record.move_ids_without_package:
                 all_product_codes.add(move.product_id.default_code)
 
-
         stock_by_code = self._get_stock(list(all_product_codes))
 
         if not stock_by_code:
@@ -47,8 +46,10 @@ class StockPickingInherit(models.Model):
                     available_percent = (disponible * 100) / move.product_uom_qty
 
                 move.product_available_percent = available_percent
-            
-            record.available_percent = sum(record.move_ids_without_package.product_available_percent)
+
+            values = record.move_ids_without_package.mapped('product_available_percent')
+            record.available_percent = sum(values) / len(values) if values else 0
+
 
             
                 
