@@ -47,14 +47,3 @@ class SaleOrder(models.Model):
 
         return res
 
-    def _default_note(self):
-        use_invoice_terms = (
-            self.env["ir.config_parameter"]
-            .sudo()
-            .get_param("account.use_invoice_terms")
-        )
-        if use_invoice_terms and self.brand_id:
-            if self.brand_id.terms_type == "html":
-                return _("Terms & Conditions: %s", self.brand_id.terms_url)
-            return self.brand_id.invoice_terms or ""
-        return super()._default_note()

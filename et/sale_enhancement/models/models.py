@@ -64,6 +64,10 @@ class SaleOrderInherit(models.Model):
                 record.packaging_qty += line.product_packaging_qty
 
 
+    @api.model
+    def _default_note(self):
+        return
+
 class SaleOrderLineInherit(models.Model):
     _inherit = 'sale.order.line'
 
