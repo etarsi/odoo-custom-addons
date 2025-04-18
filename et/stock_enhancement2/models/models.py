@@ -35,15 +35,14 @@ class StockPickingInherit(models.Model):
                 for move in move_lines:
                     for product in products_with_stock:
                         if move.product_id.default_code == product['codigo']:
-
                             # calcular porcentaje
                             available_percent = 0
-                            diff = move.product_uom_qty - product['disponible']
-                            if diff < 0:
+                            if product['disponible'] > move.product_uom_qty:
                                 available_percent = 100
                             else:
+                                diff = move.product_uom_qty - product['disponible']        
                                 percent = diff * 100 / move.product_uom_qty
-                                available_percent = percent
+                                available_percent = percent                                
                             move.product_available_percent = available_percent
             else:
                 raise UserError('No hay nada disponible para ningún producto')
