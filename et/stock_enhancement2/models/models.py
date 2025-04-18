@@ -36,6 +36,8 @@ class StockPickingInherit(models.Model):
                     for product in products_with_stock:
                         if move.product_id.default_code == product['codigo']:
                             move.product_available_percent = product['disponble']
+            else:
+                raise UserError('No hay nada disponible para ningún producto')
 
             
                 
@@ -53,9 +55,9 @@ class StockPickingInherit(models.Model):
         if response.status_code == 200:
             products = response.json()
             for p in products:                
-                p_stock = {'codigo': p['codigo'], 'disponible': 0}
-                for s in p['stock']:
-                    p_stock['disponible'] = s['disponible']
+                p_stock = {}
+                p_stock['codigo'] = p['codigo']
+                p_stock['disponible'] = p['stock']['disponible']
 
                 codes_with_stock.append(p_stock)
 
