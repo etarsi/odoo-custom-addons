@@ -45,7 +45,7 @@ class StockPickingInherit(models.Model):
 
         if response.status_code == 200:
             json_response = response.json()
-            raise UserError(type(json_responseson_response))
+            raise UserError(type(json_response))
         elif response.status_code == 400:
             raise UserError('ERROR: 400 BAD REQUEST. Avise a su administrador de sistema.')
         elif response.status_code == 404:
