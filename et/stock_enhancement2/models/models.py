@@ -7,6 +7,7 @@ from datetime import datetime
 from odoo.exceptions import UserError
 import logging
 import math
+import requests
 
 _logger = logging.getLogger(__name__)
 
@@ -16,6 +17,44 @@ class StockPickingInherit(models.Model):
     wms_date = fields.Date(string="Fecha WMS")
     has_rodado = fields.Boolean(string="Rodados", compute="_compute_has_rodado", store=True)
     available_pkg_qty = fields.Float(string='Bultos Disponibles' ,compute='sum_bultos', group_operator='sum', store=True)
+
+    def update_percent_available(self):        
+        for record in self:
+            
+            product_codes = set()
+            codes_with_stock = {}
+            move_lines = record.move_ids_without_package
+            if move_lines:
+                for move in move_lines:
+                    product_codes.add(move.product_id.default_code)
+            
+            codes_with_stock = record._get_stock(list(product_codes))
+
+            
+                
+    
+    def _get_stock(self, product_codes):
+        codes_with_stock = {}
+        headers = {}
+        params = {}
+        
+        url = self.env['ir.config_parameter'].sudo().get_param('digipwms-v2.url')
+        headers["x-api-key"] = self.env['ir.config_parameter'].sudo().get_param('digipwms.key')
+        params = {'ArticuloCodigo': product_codes}        
+        response = requests.get(f'{url}/v2/Stock/Tipo', headers=headers, params=params)
+
+        if response.status_code == 200:
+            json_response = response.json()
+            raise UserError(type(json_responseson_response))
+        elif response.status_code == 400:
+            raise UserError('ERROR: 400 BAD REQUEST. Avise a su administrador de sistema.')
+        elif response.status_code == 404:
+            raise UserError('ERROR: 404 NOT FOUND. Avise a su administrador de sistema.')
+        elif response.status_code == 500:
+            raise UserError('ERROR: 500 INTERNAL SERVER ERROR. Avise a su administrador de sistema.')
+
+        
+        return codes_with_stock
 
     @api.depends('move_ids_without_package')
     def _compute_has_rodado(self):
