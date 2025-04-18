@@ -38,7 +38,7 @@ class StockPickingInherit(models.Model):
 
                             # calcular porcentaje
                             available_percent = 0
-                            diff = product['disponible'] - move.product_uom_qty
+                            diff = move.product_uom_qty - product['disponible']
                             if diff < 0:
                                 available_percent = 100
                             else:
