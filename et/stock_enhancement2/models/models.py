@@ -66,8 +66,7 @@ class StockPickingInherit(models.Model):
 
         if response.status_code == 200:
             products = response.json()
-            for p in products:                
-                stock_by_code = {p['codigo']: p['stock']['disponible']}
+            stock_by_code = {p['codigo']: p['stock']['disponible'] for p in products}
 
             return stock_by_code or None
 
@@ -77,9 +76,6 @@ class StockPickingInherit(models.Model):
             raise UserError('ERROR: 404 NOT FOUND. Avise a su administrador de sistema.')
         elif response.status_code == 500:
             raise UserError('ERROR: 500 INTERNAL SERVER ERROR. Avise a su administrador de sistema.')
-
-        
-        return codes_with_stock
 
     @api.depends('move_ids_without_package')
     def _compute_has_rodado(self):
