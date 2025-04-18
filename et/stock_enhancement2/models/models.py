@@ -28,12 +28,9 @@ class StockPickingInherit(models.Model):
 
 
         stock_by_code = self._get_stock(list(all_product_codes))
-        raise UserError(stock_by_code.values())
 
         if not stock_by_code:
             raise UserError('No hay nada disponible para ningún producto')
-
-        # stock_by_code = {p['codigo']: p['disponible'] for p in products_with_stock}
 
         for record in self:
             for move in record.move_ids_without_package:
