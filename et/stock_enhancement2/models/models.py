@@ -48,7 +48,8 @@ class StockPickingInherit(models.Model):
                 move.product_available_percent = available_percent
 
             values = record.move_ids_without_package.mapped('product_available_percent')
-            record.available_percent = sum(values) / len(values) if values else 0
+            avg = (sum(values) / len(values)) if values else 0
+            record.available_percent = round(avg, 2)
 
 
             
