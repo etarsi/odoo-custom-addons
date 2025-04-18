@@ -47,6 +47,8 @@ class StockPickingInherit(models.Model):
                     available_percent = (disponible * 100) / move.product_uom_qty
 
                 move.product_available_percent = available_percent
+            
+            record.available_percent = sum(record.move_ids_without_package.product_available_percent)
 
             
                 
