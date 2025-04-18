@@ -35,7 +35,7 @@ class StockPickingInherit(models.Model):
                 for move in move_lines:
                     for product in products_with_stock:
                         if move.product_id.default_code == product['codigo']:
-                            move.product_available_percent = product['disponble']
+                            move.product_available_percent = product['disponible']
             else:
                 raise UserError('No hay nada disponible para ningún producto')
 
