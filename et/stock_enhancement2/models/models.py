@@ -18,42 +18,43 @@ class StockPickingInherit(models.Model):
     has_rodado = fields.Boolean(string="Rodados", compute="_compute_has_rodado", store=True)
     available_pkg_qty = fields.Float(string='Bultos Disponibles' ,compute='sum_bultos', group_operator='sum', store=True)
 
-    def update_available_percent(self):        
+
+    def update_available_percent(self):
+        all_product_codes = set()
+
         for record in self:
-            
-            product_codes = set()
-            products_with_stock = []            
-            move_lines = record.move_ids_without_package
+            for move in record.move_ids_without_package:
+                all_product_codes.add(move.product_id.default_code)
 
-            if move_lines:
-                for move in move_lines:
-                    product_codes.add(move.product_id.default_code)
-            
-            products_with_stock = record._get_stock(list(product_codes))
 
-            if products_with_stock:
-                for move in move_lines:
-                    for product in products_with_stock:
-                        if move.product_id.default_code == product['codigo']:
-                            # calcular porcentaje
-                            available_percent = 0
-                            if product['disponible'] > move.product_uom_qty:
-                                available_percent = 100
-                            elif product['disponible'] == 0:
-                                available_percent = 0
-                            else:
-                                diff = move.product_uom_qty - product['disponible']        
-                                percent = diff * 100 / move.product_uom_qty
-                                available_percent = percent                                
-                            move.product_available_percent = available_percent
-            else:
-                raise UserError('No hay nada disponible para ningún producto')
+        stock_by_code = self._get_stock(list(all_product_codes))
+
+        if not stock_by_code:
+            raise UserError('No hay nada disponible para ningún producto')
+
+        # stock_by_code = {p['codigo']: p['disponible'] for p in products_with_stock}
+
+        for record in self:
+            for move in record.move_ids_without_package:
+                code = move.product_id.default_code
+                disponible = stock_by_code.get(code, 0)
+
+                if move.product_uom_qty == 0:
+                    available_percent = 0
+                elif disponible >= move.product_uom_qty:
+                    available_percent = 100
+                elif disponible == 0:
+                    available_percent = 0
+                else:
+                    available_percent = (disponible * 100) / move.product_uom_qty
+
+                move.product_available_percent = available_percent
 
             
                 
     
     def _get_stock(self, product_codes):
-        codes_with_stock = []
+        stock_by_code = {}
         headers = {}
         params = {}
         
@@ -65,13 +66,9 @@ class StockPickingInherit(models.Model):
         if response.status_code == 200:
             products = response.json()
             for p in products:                
-                p_stock = {}
-                p_stock['codigo'] = p['codigo']
-                p_stock['disponible'] = p['stock']['disponible']
+                stock_by_code = {p['codigo']: p['stock']['disponible']}
 
-                codes_with_stock.append(p_stock)
-
-            return codes_with_stock or None
+            return stock_by_code or None
 
         elif response.status_code == 400:
             raise UserError('ERROR: 400 BAD REQUEST. Avise a su administrador de sistema.')
