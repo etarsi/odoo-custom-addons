@@ -18,23 +18,30 @@ class StockPickingInherit(models.Model):
     has_rodado = fields.Boolean(string="Rodados", compute="_compute_has_rodado", store=True)
     available_pkg_qty = fields.Float(string='Bultos Disponibles' ,compute='sum_bultos', group_operator='sum', store=True)
 
-    def update_percent_available(self):        
+    def update_available_percent(self):        
         for record in self:
             
             product_codes = set()
-            codes_with_stock = {}
+            products_with_stock = []            
             move_lines = record.move_ids_without_package
+
             if move_lines:
                 for move in move_lines:
                     product_codes.add(move.product_id.default_code)
             
-            codes_with_stock = record._get_stock(list(product_codes))
+            products_with_stock = record._get_stock(list(product_codes))
+
+            if products_with_stock:
+                for move in move_lines:
+                    for product in products_with_stock:
+                        if move.product_id.default_code == product['codigo']:
+                            move.product_available_percent = product['disponble']
 
             
                 
     
     def _get_stock(self, product_codes):
-        codes_with_stock = {}
+        codes_with_stock = []
         headers = {}
         params = {}
         
@@ -44,8 +51,16 @@ class StockPickingInherit(models.Model):
         response = requests.get(f'{url}/v2/Stock/Tipo', headers=headers, params=params)
 
         if response.status_code == 200:
-            json_response = response.json()
-            raise UserError(type(json_response))
+            products = response.json()
+            for p in products:                
+                p_stock = {'codigo': p['codigo'], 'disponible': 0}
+                for s in p['stock']:
+                    p_stock['disponible'] = s['disponible']
+
+                codes_with_stock.append(p_stock)
+
+            return codes_with_stock or None
+
         elif response.status_code == 400:
             raise UserError('ERROR: 400 BAD REQUEST. Avise a su administrador de sistema.')
         elif response.status_code == 404:
