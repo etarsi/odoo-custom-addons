@@ -38,21 +38,27 @@ class StockPickingInherit(models.Model):
 
                 if move.product_uom_qty == 0:
                     available_percent = 0
+                    available_bultos = 0
                 elif disponible >= move.product_uom_qty:
                     available_percent = 100
+                    available_bultos = move.product_uom_qty / move.product_packaging_id.qty
                 elif disponible == 0:
                     available_percent = 0
+                    available_bultos = 0
                 else:
                     available_percent = (disponible * 100) / move.product_uom_qty
+                    available_bultos = move.product_uom_qty / move.product_packaging_id.qty
 
                 move.product_available_percent = available_percent
+                move.product_available_pkg_qty = available_bultos
 
-            values = record.move_ids_without_package.mapped('product_available_percent')
-            avg = (sum(values) / len(values)) if values else 0
-            record.available_percent = round(avg, 2)
+            u_values = record.move_ids_without_package.mapped('product_available_percent')
+            u_avg = (sum(u_values) / len(u_values)) if u_values else 0
+            bultos_sum = record.move_ids_without_package.mapped('product_available_pkg_qty')
 
+            record.available_percent = round(u_avg, 2)
+            record.available_pkg_qty = bultos_sum
 
-            
                 
     
     def _get_stock(self, product_codes):
