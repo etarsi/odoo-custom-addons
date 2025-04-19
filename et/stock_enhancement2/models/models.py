@@ -54,7 +54,8 @@ class StockPickingInherit(models.Model):
 
             u_values = record.move_ids_without_package.mapped('product_available_percent')
             u_avg = (sum(u_values) / len(u_values)) if u_values else 0
-            bultos_sum = record.move_ids_without_package.mapped('product_available_pkg_qty')
+            bultos = record.move_ids_without_package.mapped('product_available_pkg_qty')
+            bultos_sum = sum(bultos)
 
             record.available_percent = round(u_avg, 2)
             record.available_pkg_qty = bultos_sum
