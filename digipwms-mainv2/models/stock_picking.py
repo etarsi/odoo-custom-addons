@@ -78,7 +78,7 @@ class StockPicking(models.Model):
         respGet = requests.get(f'{url}/v2/Stock/Tipo', headers=headers)
         if respGet.status_code not in [200, 201] or respGet.content.strip() == b'null':
             _logger.info('STOCK %s ' % respGet.status_code )
-            return [0]
+            return None
 
         json_response = respGet.json()
         unidades = 0
@@ -131,6 +131,8 @@ class StockPicking(models.Model):
         return True
     def cargo_stock_desde_digipv2(self,records):
         stock_codigo = self.get_stocksv2()
+        if not stock_codigo:
+            raise UserError('No se pudo obtener stock de digip')
         con_stock = {}
         for sp in records:
             self.env['stock.move.line'].search([('picking_id','=', sp.id)]).unlink()
