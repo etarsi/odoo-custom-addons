@@ -79,9 +79,10 @@ class StockPickingInherit(models.Model):
         
         url = self.env['ir.config_parameter'].sudo().get_param('digipwms-v2.url')
         headers["x-api-key"] = self.env['ir.config_parameter'].sudo().get_param('digipwms.key')
-        params = {'ArticuloCodigo': product_codes}        
+        params = {'ArticuloCodigo': product_codes}       
         response = requests.get(f'{url}/v2/Stock/Tipo', headers=headers, params=params)
         _logger.info(f'response.status_code: {response.status_code}')
+        _logger.info(f'product_codes: {product_codes}')
 
         if response.status_code == 200:
             products = response.json()
