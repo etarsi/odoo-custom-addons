@@ -89,7 +89,6 @@ class StockPickingInherit(models.Model):
                 
     
     def _get_stock(self, product_codes):
-        stock_by_code = {}
         headers = {}
         params = {}
         
@@ -97,13 +96,9 @@ class StockPickingInherit(models.Model):
         headers["x-api-key"] = self.env['ir.config_parameter'].sudo().get_param('digipwms.key')
         params = {'ArticuloCodigo': product_codes}       
         response = requests.get(f'{url}/v2/Stock/Tipo', headers=headers, params=params)
-        _logger.info(f'response.status_code: {response.status_code}')
-        _logger.info(f'product_codes: {product_codes}')
 
         if response.status_code == 200:
             products = response.json()
-            stock_by_code = {p['codigo']: p['stock']['disponible'] for p in products}
-
             if products:
                 return products
 
@@ -112,7 +107,7 @@ class StockPickingInherit(models.Model):
         elif response.status_code == 404:
             raise UserError('ERROR: 404 NOT FOUND. Avise a su administrador de sistema.')
         elif response.status_code == 500:
-            raise UserError('ERROR: 500 INTERNAL SERVER ERROR. Avise a su administrador de sistema.')
+            raise UserError('ERROR: 500 INTERNAL SERVER ERROR. Avise a su administrador de sistema. Probablemente alguno de los productos no se encuentra creado en Digip.')
 
     @api.depends('move_ids_without_package')
     def _compute_has_rodado(self):
