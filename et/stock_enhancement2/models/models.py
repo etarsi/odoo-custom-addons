@@ -26,9 +26,13 @@ class StockPickingInherit(models.Model):
             for move in record.move_ids_without_package:
                 all_product_codes.add(move.product_id.default_code)
 
-        stock_by_code = self._get_stock(list(all_product_codes))
-        _logger.info(f'stock_by_code_TYPE: {type(stock_by_code)}')
-        _logger.info(f'stock_by_code: {stock_by_code}')
+        stock_data = self._get_stock_en_lotes(all_product_codes, max_por_lote=387)
+
+        stock_by_code = {
+            p['codigo']: p['stock']['disponible']
+            for p in stock_data
+        }
+
         if not stock_by_code:
             raise UserError('No hay nada disponible para ningún producto')
 
@@ -70,6 +74,18 @@ class StockPickingInherit(models.Model):
             record.available_pkg_qty = bultos_sum
             record.packaging_qty = pkg_qty_sum
 
+    def _get_stock_en_lotes(self, product_codes, max_por_lote=387):
+        product_codes = list(product_codes)
+        resultados_totales = []
+
+        for i in range(0, len(product_codes), max_por_lote):
+            lote = product_codes[i:i + max_por_lote]
+            _logger.info(f"[STOCK] Llamando API para lote {i // max_por_lote + 1} con {len(lote)} códigos")
+            respuesta = self._get_stock(lote)
+            if respuesta:
+                resultados_totales.extend(respuesta)
+
+        return resultados_totales
                 
     
     def _get_stock(self, product_codes):
