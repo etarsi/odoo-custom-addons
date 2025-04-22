@@ -104,8 +104,8 @@ class StockPickingInherit(models.Model):
             products = response.json()
             stock_by_code = {p['codigo']: p['stock']['disponible'] for p in products}
 
-            if stock_by_code:
-                return stock_by_code
+            if products:
+                return products
 
         elif response.status_code == 400:
             raise UserError('ERROR: 400 BAD REQUEST. Avise a su administrador de sistema.')
