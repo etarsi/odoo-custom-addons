@@ -27,7 +27,8 @@ class StockPickingInherit(models.Model):
                 all_product_codes.add(move.product_id.default_code)
 
         stock_by_code = self._get_stock(list(all_product_codes))
-
+        _logger.info(f'stock_by_code_TYPE: {type(stock_by_code)}')
+        _logger.info(f'stock_by_code: {stock_by_code}')
         if not stock_by_code:
             raise UserError('No hay nada disponible para ningún producto')
 
@@ -54,7 +55,10 @@ class StockPickingInherit(models.Model):
 
                 move.product_available_percent = available_percent
                 move.product_available_pkg_qty = available_bultos
-            
+                if move.product_packaging_id.qty > 0:
+                    move.product_packaging_qty = move.product_uom_qty / move.product_packaging_id.qty
+
+
             pkg_qty = record.move_ids_without_package.mapped('product_packaging_qty')
             u_values = record.move_ids_without_package.mapped('product_available_percent')
             u_avg = (sum(u_values) / len(u_values)) if u_values else 0
@@ -77,12 +81,14 @@ class StockPickingInherit(models.Model):
         headers["x-api-key"] = self.env['ir.config_parameter'].sudo().get_param('digipwms.key')
         params = {'ArticuloCodigo': product_codes}        
         response = requests.get(f'{url}/v2/Stock/Tipo', headers=headers, params=params)
+        _logger.info(f'response.status_code: {response.status_code}')
 
         if response.status_code == 200:
             products = response.json()
             stock_by_code = {p['codigo']: p['stock']['disponible'] for p in products}
 
-            return stock_by_code or None
+            if stock_by_code:
+                return stock_by_code
 
         elif response.status_code == 400:
             raise UserError('ERROR: 400 BAD REQUEST. Avise a su administrador de sistema.')
