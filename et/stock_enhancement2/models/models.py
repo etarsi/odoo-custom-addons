@@ -47,10 +47,13 @@ class StockPickingInherit(models.Model):
                 elif disponible >= move.product_uom_qty:
                     available_percent = 100
                     available_bultos = move.product_uom_qty / move.product_packaging_id.qty
+                    move.quantity_done = move.product_uom_qty
                 elif disponible == 0:
                     available_percent = 0
                     available_bultos = 0
+                    move.quantity_done = 0
                 else:
+                    move.quantity_done = disponible
                     available_percent = (disponible * 100) / move.product_uom_qty
                     if move.product_packaging_id.qty > 0:
                         available_bultos = move.product_uom_qty / move.product_packaging_id.qty
@@ -70,9 +73,9 @@ class StockPickingInherit(models.Model):
             bultos_sum = sum(bultos)
             pkg_qty_sum = sum(pkg_qty)
 
+            record.packaging_qty = pkg_qty_sum
             record.available_percent = round(u_avg, 2)
             record.available_pkg_qty = bultos_sum
-            record.packaging_qty = pkg_qty_sum
 
     def _get_stock_en_lotes(self, product_codes, max_por_lote=387):
         product_codes = list(product_codes)
@@ -186,10 +189,15 @@ class StockPickingInherit(models.Model):
         total_unidades = 0
         date = picking.date_done
         date = date.strftime('%d-%m-%Y')
-        partner_name = partner.name
 
+        if partner.type == 'contact':            
+            partner_name = f"{partner.name}"
+        else:            
+            partner_name = f"{partner.parent_id.name}"
+        
         if type == 'b':
             partner_name = f"{partner_name}*"
+            
 
         for move in picking.move_ids_without_package:
             qty = move.quantity_done * proportion
@@ -210,7 +218,6 @@ class StockPickingInherit(models.Model):
             
             lines.append({
                 'bultos': bultos,
-                # 'codigo': move.product_id.default_code or '',
                 'nombre': product_name,
                 'lote': lote,
                 'unidades': qty,
@@ -316,7 +323,7 @@ class StockPickingInherit(models.Model):
             c.drawString(50, y, f"{linea['bultos']:.2f}")
             c.drawString(coords['producto_nombre_x'], y, linea['nombre'])
             c.drawString(390, y, linea['lote'])
-            c.drawRightString(540, y, f"{linea['unidades']:.2f}")
+            c.drawRightString(540, y, f"{linea['unidades']}")
             y -= 15
 
         draw_footer()
@@ -401,3 +408,11 @@ class StockPickingInherit(models.Model):
             'TIPO 4': (0.25, 0.75),
         }
         return proportions.get(type, (1.0, 0.0))
+    
+    class StockMoveInherit(models.Model):
+        _inherit = 'stock.move'
+
+        @api.depends('product_uom_qty', 'quantity_done')
+        def _calculate_available_percent(self):
+            for record in self:
+                record.product_available_percent = (record.quantity_done * 100) / record.product_uom_qty
