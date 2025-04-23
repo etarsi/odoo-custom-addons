@@ -412,7 +412,7 @@ class StockPickingInherit(models.Model):
     class StockMoveInherit(models.Model):
         _inherit = 'stock.move'
 
-        @api.depends('product_uom_qty', 'quantity_done')
+        @api.onchange('product_uom_qty', 'quantity_done')
         def _calculate_available_percent(self):
             for record in self:
                 record.product_available_percent = (record.quantity_done * 100) / record.product_uom_qty
