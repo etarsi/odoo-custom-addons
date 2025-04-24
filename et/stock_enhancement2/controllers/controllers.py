@@ -41,7 +41,7 @@ class StockPickingController(http.Controller):
 
         return request.make_response(html, headers=[('Content-Type', 'text/html')])
 
-    @http.route('/remito/pdf/<int:picking_id>', type='http', auth='user')
+    @http.route('/remito/pdf/<int:picking_id>', type='http', auth='user', website=False)
     def remito_a(self, picking_id, **kwargs):
         picking = request.env['stock.picking'].browse(picking_id)
         if not picking.exists():
