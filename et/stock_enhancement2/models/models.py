@@ -414,8 +414,22 @@ class StockMoveInherit(models.Model):
     _inherit = "stock.move"
 
     product_available_percent = fields.Float(string='Porc Disponible', compute='_calculate_available_percent', store=True, group_operator='avg')
+    product_packaging_qty = fields.Float(string='Bultos', compute='_calculate_bultos', store=True, group_operator='sum')
+    product_available_pkg_qty = fields.Float(string='Bultos Disponibles', compute='_calculate_available_pkg_qty', store=True, group_operator='sum')
 
     @api.depends('product_uom_qty', 'quantity_done')
     def _calculate_available_percent(self):
         for record in self:
             record.product_available_percent = (record.quantity_done * 100) / record.product_uom_qty
+    
+    @api.depends('product_uom_qty', 'quantity_done')
+    def _calculate_available_pkg_qty(self):
+        for record in self:
+            if record.product_packaging_id:
+                record.product_available_pkg_qty =  record.quantity_done / record.product_packaging_id.qty
+
+    @api.depends('product_uom_qty', 'product_packaging_id')
+    def _calculate_bultos(self):
+        for record in self:
+            if record.product_packaging_id:
+                record.product_packaging_qty = record.product_uom_qty / record.product_packaging_id.qty
