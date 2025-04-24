@@ -39,7 +39,31 @@ class StockPickingController(http.Controller):
         </body></html>
         """
 
-        return request.make_response(html, headers=[('Content-Type', 'text/html')])    
+        return request.make_response(html, headers=[('Content-Type', 'text/html')])
+
+    @http.route('/remito/<int:picking_id>', type='http', auth='user')
+    def remito_a(self, picking_id, **kwargs):
+        picking = request.env['stock.picking'].browse(picking_id)
+        if not picking.exists():
+            return request.not_found()
+
+        
+        company_id = picking.company_id
+        type = 'a'
+        if company_id.id != 1:
+            type = 'b'
+
+        proportion = 1.0
+
+        pdf = picking._build_remito_pdf(picking, proportion, company_id, type)
+
+        return request.make_response(
+            pdf,
+            headers=[
+                ('Content-Type', 'application/pdf'),
+                ('Content-Disposition', f'inline; filename="REM_{picking.name.replace("/", "-")}.pdf"')
+            ]
+        )   
     
     
     @http.route('/remito/a/<int:picking_id>', type='http', auth='user')

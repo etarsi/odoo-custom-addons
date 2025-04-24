@@ -173,11 +173,19 @@ class StockPickingInherit(models.Model):
                 return picking._split_off_moves(selected_moves)
         return False
     
-    def action_print_remito2(self):
+    def action_print_remito(self):
         self.ensure_one()
         return {
             'type': 'ir.actions.act_url',
             'url': f'/remito/auto/{self.id}',
+            'target': 'new',
+        }
+    
+    def action_print_remito2(self):
+        self.ensure_one()
+        return {
+            'type': 'ir.actions.act_url',
+            'url': f'/remito/{self.id}',
             'target': 'new',
         }
     
