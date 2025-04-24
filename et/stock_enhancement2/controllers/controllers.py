@@ -50,7 +50,7 @@ class StockPickingController(http.Controller):
         
         company_id = picking.company_id
         type = 'a'
-        if company_id.id != 1:
+        if company_id.id == 1:
             type = 'b'
 
         proportion = 1.0
