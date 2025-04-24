@@ -17,15 +17,7 @@ class StockPickingInherit(models.Model):
     wms_date = fields.Date(string="Fecha WMS")
     has_rodado = fields.Boolean(string="Rodados", compute="_compute_has_rodado", store=True)
     available_pkg_qty = fields.Float(string='Bultos Disponibles' ,compute='sum_bultos', group_operator='sum', store=True)
-
-    @api.onchange('move_ids_without_package')
-    def _calculate_available_percent(self):
-        for record in self:
-            if record.move_ids_without_package:
-                for move in record.move_ids_without_package:
-                    move.product_available_percent = (move.quantity_done * 100) / move.product_uom_qty
-            ap_total = record.move_ids_without_package.mapped('product_available_percent')
-            record.available_percent = ap_total
+    
 
     def update_available_percent(self):
         all_product_codes = set()
@@ -416,3 +408,14 @@ class StockPickingInherit(models.Model):
             'TIPO 4': (0.25, 0.75),
         }
         return proportions.get(type, (1.0, 0.0))
+
+
+class StockMoveInherit(models.Model):
+    _inherit = "stock.move"
+
+    product_available_percent = fields.Float(string='Porc Disponible', compute='_calculate_available_percent', store=True, group_operator='avg')
+
+    @api.depends('product_uom_qty', 'quantity_done')
+    def _calculate_available_percent(self):
+        for record in self:
+            record.product_available_percent = (record.quantity_done * 100) / record.product_uom_qty
