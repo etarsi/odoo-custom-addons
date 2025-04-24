@@ -185,7 +185,7 @@ class StockPickingInherit(models.Model):
         self.ensure_one()
         return {
             'type': 'ir.actions.act_url',
-            'url': f'/remito/pdf/{self.id}',
+            'url': f'/backend/remito/pdf/{self.id}',
             'target': 'new',
         }
     
