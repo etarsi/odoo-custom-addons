@@ -420,6 +420,7 @@ class StockMoveInherit(models.Model):
     @api.depends('product_uom_qty', 'quantity_done', 'product_packaging_id.qty')
     def _calculate_bultos(self):
         for record in self:
-            record.product_available_percent = (record.quantity_done * 100) / record.product_uom_qty
-            record.product_available_pkg_qty =  record.quantity_done / record.product_packaging_id.qty
-            record.product_packaging_qty = record.product_uom_qty / record.product_packaging_id.qty
+            product_available_percent = (record.quantity_done * 100) / record.product_uom_qty
+            product_available_pkg_qty =  record.quantity_done / record.product_packaging_id.qty
+            product_packaging_qty = record.product_uom_qty / record.product_packaging_id.qty
+            record.update({'product_packaging_qty':product_packaging_qty,'product_available_pkg_qty':product_available_pkg_qty,'product_available_percent':product_available_percent})
