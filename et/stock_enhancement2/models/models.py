@@ -504,11 +504,19 @@ class SaleOrderInherit(models.Model):
                 if proportion_blanco > 0:
                     blanco_vals = base_vals.copy()
                     blanco_vals['quantity'] = base_vals['quantity'] * proportion_blanco
+
+                    impuestos_blancos = line.product_id.taxes_id.filtered(lambda t: t.company_id.id == order.company_id.id)
+                    blanco_vals['tax_ids'] = [(6, 0, impuestos_blancos.ids)]
+
                     invoice_line_vals_blanco.append((0, 0, blanco_vals))
 
                 if proportion_negro > 0:
                     negro_vals = base_vals.copy()
                     negro_vals['quantity'] = base_vals['quantity'] * proportion_negro
+
+                    impuestos_negros = line.product_id.taxes_id.filtered(lambda t: t.company_id.id == company_negra.id)
+                    negro_vals['tax_ids'] = [(6, 0, impuestos_negros.ids)]
+
                     invoice_line_vals_negro.append((0, 0, negro_vals))
 
                 invoice_item_sequence += 1
@@ -532,6 +540,14 @@ class SaleOrderInherit(models.Model):
                     ('type', '=', 'sale'),
                     ('company_id', '=', company_negra.id)
                 ], limit=1)
+
+                if not journal:
+                    raise UserError("No se encontró un diario de ventas para la compañía negra.")
+
+                invoice_vals_negro['journal_id'] = journal.id
+                invoice_vals_negro['invoice_line_ids'] += invoice_line_vals_negro
+                invoice_vals_list.append(invoice_vals_negro)
+
                 
                 if not journal:
                     raise UserError("No se encontró un diario de ventas para la compañía negra.")
