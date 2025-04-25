@@ -17,6 +17,13 @@ class StockPickingInherit(models.Model):
     wms_date = fields.Date(string="Fecha WMS")
     has_rodado = fields.Boolean(string="Rodados", compute="_compute_has_rodado", store=True)
     available_pkg_qty = fields.Float(string='Bultos Disponibles' ,compute='sum_bultos', group_operator='sum', store=True)
+    partner_delivery_carrier_id = fields.Many2one(
+        'delivery.carrier',
+        string='Transportista del cliente',
+        related='partner_id.property_delivery_carrier_id',
+        store=True,
+        readonly=True
+    )
     
 
     def update_available_percent(self):
