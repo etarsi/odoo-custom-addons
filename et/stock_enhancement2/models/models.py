@@ -250,13 +250,14 @@ class StockPickingInherit(models.Model):
         if total_value == 0:
             total_value = False
         
+        client_location = f"{partner.city}, {partner.state_id.name}"
 
         remito = {
             'date': date,
             'client': {
                 'name': partner_name,
                 'address': partner.street or '',
-                'city': partner.city or '',
+                'location': client_location or '',
                 'cuit': partner.vat,
                 'iva': partner.l10n_ar_afip_responsibility_type_id.name if partner.l10n_ar_afip_responsibility_type_id else '',
             },
@@ -295,7 +296,7 @@ class StockPickingInherit(models.Model):
             y = coords['cliente_y']
             c.drawString(*coords['cliente_nombre'], remito['client']['name'])
             c.drawString(*coords['cliente_dire'], remito['client']['address'])
-            c.drawString(*coords['cliente_localidad'], remito['client']['city'])
+            c.drawString(*coords['cliente_localidad'], remito['client']['location'])
             c.setFont("Helvetica", 10)
             c.drawString(*coords['iva'], f"{remito['client']['iva']}")
             c.drawString(*coords['cuit'], f"{remito['client']['cuit']}")
@@ -349,7 +350,7 @@ class StockPickingInherit(models.Model):
             c.drawString(50, y, f"{linea['bultos']:.2f}")
             c.drawString(coords['producto_nombre_x'], y, linea['nombre'])
             c.drawString(390, y, linea['lote'])
-            c.drawRightString(540, y, f"{linea['unidades']}")
+            c.drawRightString(540, y, f"{int(linea['unidades'])}")
             y -= 15
 
         draw_footer()
