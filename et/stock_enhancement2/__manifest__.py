@@ -26,7 +26,7 @@
     },
 
     # any module necessary for this one to work correctly
-    'depends': ['stock', 'stock-packaging'],
+    'depends': ['stock', 'stock-packaging', 'sale'],
 
     # always loaded
     'data': [
