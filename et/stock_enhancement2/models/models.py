@@ -522,10 +522,25 @@ class SaleOrderInherit(models.Model):
 
             # Crear invoice negro si corresponde
             if invoice_line_vals_negro:
-                order_negra = order.with_company(company_negra)
-                invoice_vals_negro = order_negra._prepare_invoice()
+                invoice_vals_negro = order._prepare_invoice()
+
+                # Forzar compañía negra
+                invoice_vals_negro['company_id'] = company_negra.id
+
+                # Buscar el diario correcto para esa compañía
+                journal = self.env['account.journal'].search([
+                    ('type', '=', 'sale'),
+                    ('company_id', '=', company_negra.id)
+                ], limit=1)
+                
+                if not journal:
+                    raise UserError("No se encontró un diario de ventas para la compañía negra.")
+
+                invoice_vals_negro['journal_id'] = journal.id
                 invoice_vals_negro['invoice_line_ids'] += invoice_line_vals_negro
+
                 invoice_vals_list.append(invoice_vals_negro)
+
 
         if not invoice_vals_list:
             raise self._nothing_to_invoice_error()
