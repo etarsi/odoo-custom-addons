@@ -522,9 +522,9 @@ class SaleOrderInherit(models.Model):
 
             # Crear invoice negro si corresponde
             if invoice_line_vals_negro:
-                invoice_vals_negro = order._prepare_invoice()
+                order_negra = order.with_company(company_negra)
+                invoice_vals_negro = order_negra._prepare_invoice()
                 invoice_vals_negro['invoice_line_ids'] += invoice_line_vals_negro
-                invoice_vals_negro['company_id'] = company_negra.id
                 invoice_vals_list.append(invoice_vals_negro)
 
         if not invoice_vals_list:
