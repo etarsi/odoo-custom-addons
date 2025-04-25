@@ -485,7 +485,7 @@ class SaleOrderInherit(models.Model):
             if not any(not line.display_type for line in invoiceable_lines):
                 continue
 
-            tipo = (order.x_order_type.name or '').upper().strip()
+            tipo = (order.condicion_m2m.name or '').upper().strip()
             proportion_blanco, proportion_negro = {
                 'TIPO 1': (1.0, 0.0),
                 'TIPO 2': (0.5, 0.5),
