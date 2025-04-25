@@ -20,10 +20,15 @@ class StockPickingInherit(models.Model):
     partner_delivery_carrier_id = fields.Many2one(
         'delivery.carrier',
         string='Transportista del cliente',
-        related='partner_id.property_delivery_carrier_id',
         store=True,
         readonly=True
     )
+
+    @api.onchange('partner_id')
+    def _onchange_delivery_carrier_id(self):
+        for record in self:
+            if record.partner_id:
+                record.partner_delivery_carrier_id = record.partner_id.property_delivery_carrier_id
     
 
     def update_available_percent(self):
