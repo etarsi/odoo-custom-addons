@@ -234,6 +234,11 @@ class StockPickingInherit(models.Model):
             total_bultos += bultos
             total_unidades += qty
         
+        total_value = picking.declared_value
+        if total_value == 0:
+            total_value = False
+        
+
         remito = {
             'date': date,
             'client': {
@@ -253,7 +258,7 @@ class StockPickingInherit(models.Model):
             'move_lines': lines,
             'total_bultos': picking.number_of_packages,
             'total_units': picking.packaging_qty,
-            'total_value': sum(move.product_id.list_price * move.quantity_done for move in picking.move_ids_without_package),
+            'total_value': total_value,
             'company_name': company_id.name,
         }
 
@@ -310,7 +315,8 @@ class StockPickingInherit(models.Model):
                 c.drawString(160, y, f"Cantidad de Bultos: {remito['total_bultos']:.2f}")
                 c.drawString(320, y, f"Cantidad UXB: {remito['total_units']:.2f}")
                 y = coords['valor_y']
-                c.drawString(450, y, f"$ {remito['total_value']:,.2f}")
+                if remito['total_value']:
+                    c.drawString(450, y, f"$ {remito['total_value']:,.2f}")
         
         for linea in remito['move_lines']:
             if company_id.id in (1, 2, 3):
