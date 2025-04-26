@@ -219,6 +219,7 @@ class StockPickingInherit(models.Model):
         if type == 'b':
             partner_name = f"{partner_name}*"
             
+        partner_name = partner_name[:45]
 
         for move in picking.move_ids_without_package:
             qty = move.quantity_done * proportion
