@@ -89,22 +89,17 @@ class SaleOrderLineInherit(models.Model):
             msg += "</ul>"
             # order.message_post(body=msg)
 
-    ## TEMPORAL ### HACER UN DEFAULT VALUE PARA ESTOS CAMPOS
     @api.onchange('product_id')
-    def _onchange_product(self):
+    def _onchange_product_id(self):
         for record in self:
             record.discount = record.order_id.global_discount
-
-            so_config = self.env['sale.order.settings'].browse(1)
-            if record.product_id and so_config:
-                if so_config.carga_bultos and so_config.activo:
-                    packaging_ids = record.product_id.packaging_ids
-                    if packaging_ids:
-                        record.write(
-                                    {
-                                        'product_uom_qty': int(packaging_ids[0].qty * record.product_packaging_qty),
-                                        'product_packaging_id': packaging_ids[0],
-                                    })
+            packaging_ids = record.product_id.packaging_ids
+            if packaging_ids:
+                record.write(
+                            {
+                                'product_packaging_id': packaging_ids[0],
+                            })            
+            
                         
     ## DESHABILITAR ADVERTENCIA DE UNIDAD X BULTO                    
     @api.onchange('product_packaging_id')
