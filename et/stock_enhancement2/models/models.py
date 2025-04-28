@@ -505,23 +505,26 @@ class SaleOrderInherit(models.Model):
             for line in invoiceable_lines:
                 base_vals = line._prepare_invoice_line(sequence=invoice_item_sequence)
 
-                if proportion_blanco > 0:
-                    blanco_vals = base_vals.copy()
-                    blanco_vals['quantity'] = base_vals['quantity'] * proportion_blanco
+                qty_total = base_vals['quantity']
+                qty_blanco = math.floor(qty_total * proportion_blanco)
+                qty_negro = qty_total - qty_blanco
 
-                    impuestos_blancos = line.product_id.taxes_id.filtered(lambda t: t.company_id.id == order.company_id.id)
-                    blanco_vals['tax_ids'] = [(6, 0, impuestos_blancos.ids)]
+                impuestos_blancos = line.product_id.taxes_id.filtered(lambda t: t.company_id.id == order.company_id.id)
+                impuestos_negros = line.product_id.taxes_id.filtered(lambda t: t.company_id.id == company_negra.id)
 
-                    invoice_line_vals_blanco.append((0, 0, blanco_vals))
+                if qty_blanco > 0:
+                    invoice_line_vals_blanco.append((0, 0, {
+                        **base_vals,
+                        'quantity': qty_blanco,
+                        'tax_ids': [(6, 0, impuestos_blancos.ids)],
+                    }))
 
-                if proportion_negro > 0:
-                    negro_vals = base_vals.copy()
-                    negro_vals['quantity'] = base_vals['quantity'] * proportion_negro
-
-                    impuestos_negros = line.product_id.taxes_id.filtered(lambda t: t.company_id.id == company_negra.id)
-                    negro_vals['tax_ids'] = [(6, 0, impuestos_negros.ids)]
-
-                    invoice_line_vals_negro.append((0, 0, negro_vals))
+                if qty_negro > 0:
+                    invoice_line_vals_negro.append((0, 0, {
+                        **base_vals,
+                        'quantity': qty_negro,
+                        'tax_ids': [(6, 0, impuestos_negros.ids)],
+                    }))
 
                 invoice_item_sequence += 1
 
