@@ -22,19 +22,18 @@ class StockPickingInherit(models.Model):
         'delivery.carrier',
         string='Transportista del cliente',
         store=True,
-        readonly=True
+        readonly=True,
+        default=lambda self: self._default_delivery_carrier()
     )
 
     old_picking = fields.Boolean(default=False)
     old_picking_txt = fields.Text('PICKING VIEJO - FACTURAR E IMPRIMIR REMITO DE LA VIEJA FORMA')
 
-    @api.onchange('partner_id')
-    def _onchange_delivery_carrier_id(self):
-        for record in self:
-            if record.partner_id:
-                record.partner_delivery_carrier_id = record.partner_id.property_delivery_carrier_id
-    
 
+    def _default_delivery_carrier(self):        
+        return self.partner_id.property_delivery_carrier_id.id
+
+    
     def update_available_percent(self):
         all_product_codes = set()
 
