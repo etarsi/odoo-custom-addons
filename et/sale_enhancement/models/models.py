@@ -19,7 +19,7 @@ class SaleOrderInherit(models.Model):
     global_discount = fields.Float('Descuento', default=0)
 
     def action_confirm(self):
-        res = super().create()
+        res = super().action_confirm()
 
         company_letter = res._get_company_letter(res)
 
