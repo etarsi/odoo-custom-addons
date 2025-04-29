@@ -21,9 +21,11 @@ class SaleOrderInherit(models.Model):
     def action_confirm(self):
         res = super().action_confirm()
         for record in self:
-            company_letter = res._get_company_letter(record)
+            company_letter = record._get_company_letter(record)
 
             record.name = f"{record.name} - {company_letter}"
+        
+        return res
 
     def _get_company_letter(self, order):
         company_id = order.company_id
