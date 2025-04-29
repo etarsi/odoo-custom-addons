@@ -25,7 +25,7 @@ class SaleOrderInherit(models.Model):
 
             record.name = f"{record.name} - {company_letter}"
 
-    def _get_company_letter(res, order):
+    def _get_company_letter(self, order):
         company_id = order.company_id
         l = 'S'
 
