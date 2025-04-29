@@ -27,7 +27,7 @@ class StockPickingInherit(models.Model):
     )
 
     old_picking = fields.Boolean(default=False)
-    old_picking_txt = fields.Text('PICKING VIEJO - FACTURAR E IMPRIMIR REMITO DE LA VIEJA FORMA')
+    old_picking_txt = fields.Text(default='⚠️ PICKING VIEJO - FACTURAR E IMPRIMIR REMITO DE LA VIEJA FORMA')
 
 
     def _default_delivery_carrier(self):        
