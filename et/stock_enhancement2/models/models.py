@@ -25,7 +25,7 @@ class StockPickingInherit(models.Model):
         readonly=True
     )
 
-    old_picking = fields.Boolean()
+    old_picking = fields.Boolean(default=False)
     old_picking_txt = fields.Text('PICKING VIEJO - FACTURAR E IMPRIMIR REMITO DE LA VIEJA FORMA')
 
     @api.onchange('partner_id')
