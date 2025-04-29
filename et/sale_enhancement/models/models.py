@@ -18,6 +18,27 @@ class SaleOrderInherit(models.Model):
     order_subtotal = fields.Float('Subtotal', compute='_compute_subtotal', readonly=True)
     global_discount = fields.Float('Descuento', default=0)
 
+    def action_confirm(self):
+        res = super().create()
+
+        company_letter = res._get_company_letter(res)
+
+        res.name = f"{res.name} - {company_letter}"
+
+    def _get_company_letter(res, order):
+        company_id = order.company_id
+        l = 'S'
+
+        if company_id.id == 2:
+            l = 'S'
+        elif company_id.id == 3:
+            l = 'B'
+        elif company_id.d == 4:
+            l = 'F'
+
+        return l
+
+
     # Forzar comercial correcto
     def create(self, vals):
         res = super().create(vals)

@@ -25,6 +25,9 @@ class StockPickingInherit(models.Model):
         readonly=True
     )
 
+    old_picking = fields.Boolean()
+    old_picking_txt = fields.Text('PICKING VIEJO - FACTURAR E IMPRIMIR REMITO DE LA VIEJA FORMA')
+
     @api.onchange('partner_id')
     def _onchange_delivery_carrier_id(self):
         for record in self:
@@ -508,9 +511,9 @@ class SaleOrderInherit(models.Model):
                 qty_total = base_vals['quantity']
                 qty_blanco = math.floor(qty_total * proportion_blanco)
                 qty_negro = qty_total - qty_blanco
+                price_unit_negro = base_vals['price_unit'] * 1.21
 
                 impuestos_blancos = line.product_id.taxes_id.filtered(lambda t: t.company_id.id == order.company_id.id)
-                impuestos_negros = line.product_id.taxes_id.filtered(lambda t: t.company_id.id == company_negra.id)
 
                 if qty_blanco > 0:
                     invoice_line_vals_blanco.append((0, 0, {
@@ -523,7 +526,8 @@ class SaleOrderInherit(models.Model):
                     invoice_line_vals_negro.append((0, 0, {
                         **base_vals,
                         'quantity': qty_negro,
-                        'tax_ids': [(6, 0, impuestos_negros.ids)],
+                        'price_unit': price_unit_negro,
+                        'tax_ids': False,
                     }))
 
                 invoice_item_sequence += 1
