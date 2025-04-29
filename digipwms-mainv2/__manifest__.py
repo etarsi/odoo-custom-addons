@@ -19,7 +19,7 @@
     'sequence': -100,
 
     # any module necessary for this one to work correctly
-    'depends': ['base', 'stock', 'sale', 'sale_stock', 'purchase', 'purchase_stock', 'stock_voucher'],
+    'depends': ['base', 'stock', 'sale', 'sale_stock', 'purchase', 'purchase_stock', 'stock_voucher', 'stock_enhancement2'],
 
     # always loaded
     'data': [
