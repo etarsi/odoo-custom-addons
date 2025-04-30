@@ -29,6 +29,24 @@ class StockPickingInherit(models.Model):
     old_picking = fields.Boolean(default=False)
     old_picking_txt = fields.Text(default='⚠️ PICKING VIEJO - FACTURAR E IMPRIMIR REMITO DE LA VIEJA FORMA')
 
+    def button_validate(self):
+        res = super().button_validate()
+
+        for record in self:
+            
+            if record.partner_id.property_delivery_carrier_id.name != 'Reparto Propio':
+                total_declarado = 0
+                for move in record.move_ids_without_package:
+
+                    price_unit = move.sale_line_id.price_unit
+                    line_value = move.product_uom_qty * price_unit
+
+                    total_declarado += line_value
+                
+                record.declared_value = total_declarado * 0.25           
+            
+
+        return res
 
     def _default_delivery_carrier(self):        
         return self.partner_id.property_delivery_carrier_id.id
