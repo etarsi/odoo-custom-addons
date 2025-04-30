@@ -94,6 +94,13 @@ class SaleOrderInherit(models.Model):
 class SaleOrderLineInherit(models.Model):
     _inherit = 'sale.order.line'
 
+    qty_to_invoice = fields.Float(
+        compute='_get_to_invoice_qty', string='To Invoice Quantity', store=True,
+        digits='Product Unit of Measure', readonly=False)
+    qty_invoiced = fields.Float(
+        compute='_compute_qty_invoiced', string='Invoiced Quantity', store=True,
+        digits='Product Unit of Measure', readonly=False)
+
     def _update_line_quantity(self, values):
         orders = self.mapped('order_id')
         for order in orders:
