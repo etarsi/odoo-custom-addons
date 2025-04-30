@@ -36,7 +36,7 @@
         </field>
     </record>
 
-    <record id="stock_pricking_tree" model="ir.ui.view">
+    <!-- <record id="stock_pricking_tree" model="ir.ui.view">
         <field name="name">stock.picking.view.form.inherit.module.name</field>
         <field name="model">stock.picking</field>
         <field name="inherit_id" ref="stock.vpicktree" />
@@ -46,5 +46,5 @@
                 <field name="codigo_wms" optional="show"/>
             </xpath>
         </field>
-    </record>
+    </record> -->
 </odoo>
