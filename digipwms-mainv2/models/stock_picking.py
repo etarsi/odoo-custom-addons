@@ -323,7 +323,7 @@ class StockPicking(models.Model):
 
     def enviar(self):
         if self.state_wms != 'no':
-            return False
+            raise UserError('El pedido ya fué enviado a Digip')
         url = self.env['ir.config_parameter'].sudo().get_param('digipwms.url')
         headers = CaseInsensitiveDict()
         headers["X-API-KEY"] = self.env['ir.config_parameter'].sudo().get_param('digipwms.key')
