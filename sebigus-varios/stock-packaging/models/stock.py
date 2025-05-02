@@ -8,7 +8,7 @@ class StockTransfer(models.Model):
     packaging_qty = fields.Float(string='Cantidad de Bultos' ,compute='sum_bultos', group_operator='sum',store=True)
     available_pkg_qty = fields.Float(string='Bultos Disponibles' ,compute='sum_bultos', group_operator='sum')
     available_percent = fields.Float(string='Porc Disponible' ,compute='sum_bultos',store=True,  group_operator='avg')
-    sale_order_lines = fields.Float(string='Lineas de Pedido',compute='get_lines', group_operator='sum', store=True)
+    sale_order_lines = fields.Float(string='Lineas de Pedido',compute='get_lines', group_operator='sum')
 
     def get_lines(self):
         for order in self:      
