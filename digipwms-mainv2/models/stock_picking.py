@@ -341,7 +341,7 @@ class StockPicking(models.Model):
         saleorder = sp.env['sale.order'].sudo().search([('name','=',str(sp.origin)[:6]),('state','in',['sale','done','cancel'])],limit=1)
         saleorder = sp.env['sale.order'].sudo().search([('name','=',str(sp.origin)),('state','in',['sale','done','cancel'])],limit=1)
         if not saleorder:
-            return False
+            raise UserError('No hay sale order')
         # Corrijo metodo de entrega
         if self.partner_id.property_delivery_carrier_id:
             self.write({'carrier_id':self.partner_id.property_delivery_carrier_id})
@@ -358,7 +358,7 @@ class StockPicking(models.Model):
                 sps = sp.env['stock.picking'].sudo().search([('company_id','=',company),('state_wms','in',['no','error']),('origin', 'ilike', str(sale_name)),('state','not in',['draft','done','cancel'])],limit=1,order='id desc')
                 stock_pickings.append(sps)
         if not stock_pickings:
-            return False
+            raise UserError('No hay stock pickings')
         # Verifico que todos los productos tengan stock antes de enviar
         sinstock=True
         stock_codigos = self.get_stocks()
