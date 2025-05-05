@@ -458,6 +458,9 @@ class StockPicking(models.Model):
               sp.change_state_wms(cod_pedido,'done')
            else:
               sp.change_state_wms(cod_pedido,'error')
+        else:
+            _logger.info(f'STATUS_CODE: {respPost.status_code}')
+            _logger.info(f'STATUS_ERROR: {respPost.response}')
         return True
 
     def change_state_wms(self,cod_pedido,rta):
