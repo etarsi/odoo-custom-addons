@@ -360,21 +360,27 @@ class StockPicking(models.Model):
         if not stock_pickings:
             raise UserError('No hay stock pickings')
         # Verifico que todos los productos tengan stock antes de enviar
-        sinstock=True
-        stock_codigos = self.get_stocks()
-        packaging_qty= 0
-        for picking in stock_pickings:
-             packaging_qty = packaging_qty + picking.packaging_qty
-             for move in picking.move_ids_without_package:
-                  # Access product_id and product_uom_qty
-                  product_code = move.product_id.default_code
-                  if product_code[0] == '9':
-                      product_code = product_code[1:]
-                  quantity = move.product_uom_qty
-                  if product_code in stock_codigos and stock_codigos[product_code]  > 0:
-                      sinstock=False
-        if sinstock:
-            raise ValidationError('El pedido no se puede enviar, no hay stock para niguna de las lineas.')
+
+
+
+        # sinstock=True
+        # stock_codigos = self.get_stocks()
+        # packaging_qty= 0
+        # for picking in stock_pickings:
+        #      packaging_qty = packaging_qty + picking.packaging_qty
+        #      for move in picking.move_ids_without_package:
+        #           # Access product_id and product_uom_qty
+        #           product_code = move.product_id.default_code
+        #           if product_code[0] == '9':
+        #               product_code = product_code[1:]
+        #           quantity = move.product_uom_qty
+        #           if product_code in stock_codigos and stock_codigos[product_code]  > 0:
+        #               sinstock=False
+        # if sinstock:
+        #     raise ValidationError('El pedido no se puede enviar, no hay stock para niguna de las lineas.')
+
+
+
        #if self.codigo_wms:
        #    cod_pedido = self.codigo_wms
        #else:
