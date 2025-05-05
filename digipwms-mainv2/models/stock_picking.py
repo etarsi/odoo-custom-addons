@@ -384,7 +384,7 @@ class StockPicking(models.Model):
        #    picking.sudo().write({'codigo_wms':cod_pedido})
        #self.env.cr.commit()
 
-        cod_pedido = self.env['ir.sequence'].sudo().next_by_code('DIGIP')
+        cod_pedido = self.env['ir.sequence'].sudo().next_by_code('DIGIP2')
         _logger.info(cod_pedido)
         _logger.info(stock_pickings)
         respGet = requests.get('%s/v1/Pedidos/%s' % (url,cod_pedido), headers=headers)
@@ -578,7 +578,7 @@ class StockPicking(models.Model):
         headers["X-API-KEY"] = self.env['ir.config_parameter'].sudo().get_param('digipwms.key')
         sp = self
         if (not sp.purchase_id or not sp.sale_id) and not sp.picking_type_code == 'incoming':
-            return False
+            raise UserError('No se puede enviar una transferencia que no es de RECEPCIÓN')
         # Verifico que todos los codigos tengan default code
         for move in self.move_ids_without_package:
             if move.product_id.default_code == None:
