@@ -363,21 +363,21 @@ class StockPicking(models.Model):
 
 
 
-        # sinstock=True
-        # stock_codigos = self.get_stocks()
-        # packaging_qty= 0
-        # for picking in stock_pickings:
-        #      packaging_qty = packaging_qty + picking.packaging_qty
-        #      for move in picking.move_ids_without_package:
-        #           # Access product_id and product_uom_qty
-        #           product_code = move.product_id.default_code
-        #           if product_code[0] == '9':
-        #               product_code = product_code[1:]
-        #           quantity = move.product_uom_qty
-        #           if product_code in stock_codigos and stock_codigos[product_code]  > 0:
-        #               sinstock=False
-        # if sinstock:
-        #     raise ValidationError('El pedido no se puede enviar, no hay stock para niguna de las lineas.')
+        sinstock=True
+        stock_codigos = self.get_stocksv2()
+        packaging_qty= 0
+        for picking in stock_pickings:
+             packaging_qty = packaging_qty + picking.packaging_qty
+             for move in picking.move_ids_without_package:
+                  # Access product_id and product_uom_qty
+                  product_code = move.product_id.default_code
+                  if product_code[0] == '9':
+                      product_code = product_code[1:]
+                  quantity = move.product_uom_qty
+                  if product_code in stock_codigos and stock_codigos[product_code]  > 0:
+                      sinstock=False
+        if sinstock:
+            raise ValidationError('El pedido no se puede enviar, no hay stock para niguna de las lineas.')
 
 
 
@@ -418,11 +418,18 @@ class StockPicking(models.Model):
            if respPost.status_code not in [200,201]:
                 raise ValidationError('Error al crear pedido %s %s %s.' % (respPost.status_code,respPost.content,newc))
            # Envio detalle
+
+
            # Busco los codigos pendientes, y los pongo todos juntos, para enviarlos de una sola vez
            #for det in sp.move_ids_without_package:
-           for det in saleorder.order_line:
-               if det.product_id.default_code not in stock_codigos:
-                   self.create_update_articulo(det.product_id)
+
+
+
+        #    for det in saleorder.order_line:
+        #        if det.product_id.default_code not in stock_codigos:
+        #            self.create_update_articulo(det.product_id)
+
+
 #              new = {}
 #              new["CodigoPedido"] = newc['Codigo']
 #              new["CodigoArticulo"]= det.product_id.default_code
