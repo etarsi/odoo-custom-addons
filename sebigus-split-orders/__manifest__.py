@@ -16,6 +16,7 @@
         # 'views/sale_order.xml',
         # 'views/sale_order_views.xml',
         # 'views/condicion_venta.xml',
+        'views/views.xml',
         'security/ir.model.access.xml',
     ],
     'installable': True,
