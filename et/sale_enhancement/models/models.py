@@ -19,7 +19,7 @@ class SaleOrderInherit(models.Model):
     order_subtotal = fields.Float('Subtotal', compute='_compute_subtotal', readonly=True)
     global_discount = fields.Float('Descuento', default=0)
     old_sale = fields.Boolean(default=False)
-    old_sale_txt = fields.Text(default='⚠️ PICKING VIEJO - FACTURAR E IMPRIMIR REMITO DE LA VIEJA FORMA')
+    old_sale_txt = fields.Text(default='⚠️ PEDIDO VIEJO - FACTURAR DE LA VIEJA FORMA')
 
     def action_confirm(self):
         res = super().action_confirm()
