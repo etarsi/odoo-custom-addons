@@ -13,8 +13,8 @@
     'depends': ['sale'],
     'data': [
         'views/res_partner.xml',
-        'views/sale_order.xml',
-        'views/sale_order_views.xml',
+        # 'views/sale_order.xml',
+        # 'views/sale_order_views.xml',
         'views/condicion_venta.xml',
         'security/ir.model.access.xml',
     ],
