@@ -25,12 +25,32 @@ class SaleOrderInherit(models.Model):
             company_letter = record._get_company_letter(record)
 
             record.name = f"{record.name} - {company_letter}"
-        
+
+            for picking in record.picking_ids:
+                picking.origin = record.name
+
+            if company_letter == 'P':               
+                pricelist = self.env['product.pricelist'].search([('id','=',35)])
+
+                if pricelist:
+                    record.pricelist_id = pricelist
+                    discounts = {}
+                    for line in record.order_line:
+                        discounts[line.id] = line.discount
+                        
+                    record.update_prices()
+                    
+                    for line in record.order_line:
+                        if line.id in discounts:
+                            line.discount = discounts[line.id]
+                else: 
+                    raise UserError("No se encontró precio de lista con ID 35")
+
         return res
 
     def _get_company_letter(self, order):
         company_id = order.company_id
-        l = 'S'
+        l = 'P'
 
         if company_id.id == 2:
             l = 'S'
