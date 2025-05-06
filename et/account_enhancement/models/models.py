@@ -9,7 +9,7 @@ class AccountMoveInherit(models.Model):
     invoice_incoterm_id = fields.Many2one('account.incoterms', default=lambda self: self._default_incoterm())
 
     def _default_incoterm(self):
-        return self.env['account.incoterms'].search([('code', '=', 'FSA')], limit=1).id
+        return self.env['account.incoterms'].search([('code', '=', 'FAS')], limit=1).id
 
     @api.onchange('partner_id')
     def _onchange_journal_gc(self):

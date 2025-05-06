@@ -14,6 +14,7 @@ class SaleOrderInherit(models.Model):
         domain="['|', ('company_id', '=', False), ('company_id', '=', company_id)]", tracking=1,
         help="If you change the pricelist, only newly added lines will be affected.")
 
+    # custom
     special_price = fields.Boolean('Precios especiales')
     order_subtotal = fields.Float('Subtotal', compute='_compute_subtotal', readonly=True)
     global_discount = fields.Float('Descuento', default=0)
@@ -40,6 +41,12 @@ class SaleOrderInherit(models.Model):
 
         return l
 
+    @api.onchange('condicion_m2m')
+    def _onchange_condicion_m2m(self):
+        for record in self:
+            if record.condicion_m2m.name == 'TIPO 3':
+                for line in record.order_line:
+                    line.tax_ids = False
 
     # Forzar comercial correcto
     def create(self, vals):
