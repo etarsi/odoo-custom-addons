@@ -15,7 +15,6 @@
         'views/res_partner.xml',
         'views/sale_order.xml',
         'views/sale_order_views.xml',
-        'views/sale_order_split_wizard.xml',
         'views/condicion_venta.xml',
         'security/ir.model.access.xml',
     ],
