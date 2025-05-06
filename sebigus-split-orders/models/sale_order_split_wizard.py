@@ -13,6 +13,8 @@ class SaleOrderSplitWizard(models.TransientModel):
         required=True,
         default=lambda self: self._default_percentage()
     )
+    
+    old_sale = fields.Boolean()
 
     def _default_percentage(self):
         sale_order_id = self._context.get('active_id')
