@@ -46,7 +46,10 @@ class SaleOrderInherit(models.Model):
         for record in self:
             if record.condicion_m2m.name == 'TIPO 3':
                 for line in record.order_line:
-                    line.tax_ids = False
+                    line.tax_id = False
+            # elif record.condicion_m2m.name in ('TIPO 1', 'TIPO 2', 'TIPO 4'):
+            #     for line in record.order_line:
+            #         line.tax_ids = 
 
     # Forzar comercial correcto
     def create(self, vals):
