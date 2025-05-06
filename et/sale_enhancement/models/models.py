@@ -70,7 +70,7 @@ class SaleOrderInherit(models.Model):
                 if pricelist:
                     record.pricelist_id = pricelist
                     discounts = {}
-                    
+
                     for line in record.order_line:
                         line.tax_id = False
                         discounts[line.id] = line.discount
@@ -182,7 +182,7 @@ class SaleOrderLineInherit(models.Model):
         return    
 
     @api.onchange('product_uom_qty')
-    def _onchange_price_unit(self):
+    def _onchange_product_uom_qty(self):
         for record in self:
             so_config = self.env['sale.order.settings'].browse(1)
             if so_config:
@@ -190,6 +190,12 @@ class SaleOrderLineInherit(models.Model):
                     if record.product_packaging_id:
                         record.product_packaging_qty = record.product_uom_qty / record.product_packaging_id.qty
 
+    # @api.onchange('product_uom_qty')
+    # def _onchange_product_uom_qty2(self):
+    #     for record in self:
+    #         if record.product_uom_qty == 0:
+
+    
 class ResPartnerInherit(models.Model):
     _inherit = 'res.partner'
 

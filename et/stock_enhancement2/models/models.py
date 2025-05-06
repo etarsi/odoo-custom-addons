@@ -529,6 +529,9 @@ class SaleOrderInherit(models.Model):
                 qty_blanco = math.floor(qty_total * proportion_blanco)
                 qty_negro = qty_total - qty_blanco
                 price_unit_negro = base_vals['price_unit'] * 1.21
+                if tipo == 'TIPO 3':
+                    price_unit_negro = base_vals['price_unit']
+            
 
                 impuestos_blancos = line.product_id.taxes_id.filtered(lambda t: t.company_id.id == order.company_id.id)
 
