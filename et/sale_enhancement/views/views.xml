@@ -7,9 +7,9 @@
         <field name="inherit_id" ref="sale.view_sale_advance_payment_inv"/>
         <field name="arch" type="xml">
             <!-- Insertar el campo en el grupo -->
-            <xpath expr="//group" position="inside">
-                <field name="old_sale" invisible="1"/>
-            </xpath>
+            <!-- <xpath expr="//group" position="inside"> -->
+                <!-- <field name="old_sale" invisible="1"/> -->
+            <!-- </xpath> -->
 
             <!-- Ocultar botón según old_sale -->
             <xpath expr="//footer/button[@id='create_invoice_open']" position="attributes">
