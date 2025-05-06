@@ -65,8 +65,23 @@ class SaleOrderInherit(models.Model):
     def _onchange_condicion_m2m(self):
         for record in self:
             if record.condicion_m2m.name == 'TIPO 3':
-                for line in record.order_line:
-                    line.tax_id = False
+                pricelist = self.env['product.pricelist'].search([('id','=',35)])
+
+                if pricelist:
+                    record.pricelist_id = pricelist
+                    discounts = {}
+                    
+                    for line in record.order_line:
+                        line.tax_id = False
+                        discounts[line.id] = line.discount
+                        
+                    record.update_prices()
+                    
+                    for line in record.order_line:
+                        if line.id in discounts:
+                            line.discount = discounts[line.id]
+                else: 
+                    raise UserError("No se encontró precio de lista con ID 35")
             # elif record.condicion_m2m.name in ('TIPO 1', 'TIPO 2', 'TIPO 4'):
             #     for line in record.order_line:
             #         line.tax_ids = 
