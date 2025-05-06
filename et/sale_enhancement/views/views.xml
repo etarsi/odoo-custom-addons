@@ -12,12 +12,12 @@
             <!-- </xpath> -->
 
             <!-- Ocultar botón según old_sale -->
-            <xpath expr="//footer/button[@id='create_invoice_open']" position="attributes">
+            <!-- <xpath expr="//footer/button[@id='create_invoice_open']" position="attributes">
                 <attribute name="attrs">{'invisible': [('old_sale','=',True)]}</attribute>
             </xpath>
 
             <xpath expr="//footer/button[@id='create_invoice_open2']" position="attributes">
-                <attribute name="attrs">{'invisible': [('old_sale','=',True)]}</attribute>
+                <attribute name="attrs">{'invisible': [('old_sale','=',True)]}</attribute> -->
             </xpath>
         </field>
     </record>
