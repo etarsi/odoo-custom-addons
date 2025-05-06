@@ -215,7 +215,7 @@ class SaleOrderSplitWizardInherit(models.TransientModel):
         default=lambda self: self._default_percentage()
     )
 
-    old_sale = fields.Boolean(default=False)
+    old_sale = fields.Boolean()
 
 
     def _default_percentage(self):
