@@ -31,6 +31,13 @@ class SaleOrderInherit(models.Model):
             if record.partner_id:
                 record.check_price_list()
 
+
+    @api.onchange('pricelist_id')
+    def _onchange_pricelist_id(self):
+        for record in self:
+            record.update_lines_prices()
+
+
     @api.onchange('condicion_m2m')
     def _onchange_condicion_m2m(self):
         for record in self:
