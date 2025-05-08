@@ -201,9 +201,11 @@ class SaleOrderLineInherit(models.Model):
 class ResPartnerInherit(models.Model):
     _inherit = 'res.partner'
 
-
+    # heredado
     property_delivery_carrier_id = fields.Many2one('delivery.carrier', company_dependent=False, string="Delivery Method", help="Default delivery method used in sales orders.")
 
+    # custom
+    declared_value_type = fields.Selection()
 
 class SaleOrderSplitWizardInherit(models.TransientModel):
     _inherit = 'sale.order.split.wizard'

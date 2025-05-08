@@ -6,10 +6,18 @@ class AccountMoveInherit(models.Model):
     _inherit = 'account.move'
 
     wms_code_ids = fields.Many2many("wms.code", string="Códigos WMS")
-    invoice_incoterm_id = fields.Many2one('account.incoterms', default=lambda self: self._default_incoterm())
+    # invoice_incoterm_id = fields.Many2one('account.incoterms', default=lambda self: self._default_incoterm())
 
-    def _default_incoterm(self):
-        return self.env['account.incoterms'].search([('code', '=', 'FAS')], limit=1).id
+    # def _default_incoterm(self):
+    #     return self.env['account.incoterms'].search([('code', '=', 'FAS')], limit=1).id
+    
+    @api.onchange('journal_id')
+    def _onchange_journal_id(self):
+        for record in self:
+            if record.journal_id:
+                if record.journal_id.code == '00011':
+                    invoice_incoterm_id = self.env['account.incoterms'].search([('code', '=', 'FAS')], limit=1).id
+                    record.invoice_incoterm_id = invoice_incoterm_id
 
     @api.onchange('partner_id')
     def _onchange_journal_gc(self):
