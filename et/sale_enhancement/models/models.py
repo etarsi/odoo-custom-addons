@@ -184,7 +184,7 @@ class SaleOrderInherit(models.Model):
 
     def update_lines_prices(self):
         for record in self:
-            if record.order_line:
+            if record.order_line and not record.special_price:
                 discounts = {}
                 for line in record.order_line:
                     discounts[line.id] = line.discount
