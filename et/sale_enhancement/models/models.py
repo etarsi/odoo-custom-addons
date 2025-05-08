@@ -6,7 +6,7 @@ _logger = logging.getLogger(__name__)
 class SaleOrderInherit(models.Model):
     _inherit = 'sale.order'
 
-    # heredados
+    # inherited
     note = fields.Html('Terms and conditions')
     pricelist_id = fields.Many2one(
         'product.pricelist', string='Pricelist', check_company=True,  # Unrequired company
@@ -20,6 +20,78 @@ class SaleOrderInherit(models.Model):
     global_discount = fields.Float('Descuento', default=0)
     old_sale = fields.Boolean(default=False)
     old_sale_txt = fields.Text(default='⚠️ PEDIDO VIEJO - FACTURAR DE LA VIEJA FORMA')
+
+
+
+    ### ONCHANGE
+
+    @api.onchange('condicion_m2m')
+    def _onchange_condicion_m2m(self):
+        for record in self:
+            if record.condicion_m2m.name == 'TIPO 3':
+                pricelist = self.env['product.pricelist'].search([('id','=',35)])
+
+                if pricelist:
+                    record.pricelist_id = pricelist
+                    discounts = {}
+
+                    for line in record.order_line:
+                        line.tax_id = False
+                        discounts[line.id] = line.discount
+                        
+                    record.update_prices()
+                    
+                    for line in record.order_line:
+                        if line.id in discounts:
+                            line.discount = discounts[line.id]
+                else: 
+                    raise UserError("No se encontró precio de lista con ID 35")
+
+
+    @api.onchange('global_discount')
+    def _onchange_discount(self):
+        for record in self:
+            if record.order_line:
+                for line in record.order_line:
+                    line.discount = record.global_discount
+
+
+    @api.onchange('order_line')
+    def _onchange_lines_bultos(self):
+        for record in self:
+            record.packaging_qty = 0
+            for line in record.order_line:
+                record.packaging_qty += line.product_packaging_qty
+
+    ### DEPENDS
+
+    @api.depends('amount_tax', 'amount_untaxed', 'order_line.tax_id')
+    def _compute_subtotal(self):
+        for record in self:
+            if not record.order_line:
+                record.order_subtotal = record.amount_untaxed
+                continue  
+            taxes_found = any(
+                tax.id in [62, 185, 309, 433] for line in record.order_line for tax in line.tax_id
+            )
+
+            record.order_subtotal = record.amount_untaxed * 1.21 if taxes_found else record.amount_untaxed
+
+
+
+    ### INHERITED
+    
+    def create(self, vals):
+        res = super().create(vals)
+
+        res.check_taxes()
+
+        comercial_id = res.partner_id.user_id
+
+        if comercial_id:
+            res.user_id = comercial_id # Forzar comercial correcto
+        return res
+
 
     def action_confirm(self):
         res = super().action_confirm()
@@ -50,6 +122,17 @@ class SaleOrderInherit(models.Model):
 
         return res
 
+    def update_prices(self):
+        self.ensure_one()
+        for line in self._get_update_prices_lines():
+            line.product_uom_change()
+            line.discount = 0
+            line._onchange_discount()
+        self.show_update_pricelist = False
+
+
+    ### CUSTOM  
+
     def _get_company_letter(self, order):
         company_id = order.company_id
         l = 'P'
@@ -62,77 +145,13 @@ class SaleOrderInherit(models.Model):
             l = 'F'
 
         return l
-
-    @api.onchange('condicion_m2m')
-    def _onchange_condicion_m2m(self):
+      
+    
+    def check_taxes(self):
         for record in self:
             if record.condicion_m2m.name == 'TIPO 3':
-                pricelist = self.env['product.pricelist'].search([('id','=',35)])
-
-                if pricelist:
-                    record.pricelist_id = pricelist
-                    discounts = {}
-
-                    for line in record.order_line:
-                        line.tax_id = False
-                        discounts[line.id] = line.discount
-                        
-                    record.update_prices()
-                    
-                    for line in record.order_line:
-                        if line.id in discounts:
-                            line.discount = discounts[line.id]
-                else: 
-                    raise UserError("No se encontró precio de lista con ID 35")
-            # elif record.condicion_m2m.name in ('TIPO 1', 'TIPO 2', 'TIPO 4'):
-            #     for line in record.order_line:
-            #         line.tax_ids = 
-
-    # Forzar comercial correcto
-    def create(self, vals):
-        res = super().create(vals)
-
-        comercial_id = res.partner_id.user_id
-
-        if comercial_id:
-            res.user_id = comercial_id
-        return res
-    
-
-    @api.depends('amount_tax', 'amount_untaxed', 'order_line.tax_id')
-    def _compute_subtotal(self):
-        for record in self:
-            if not record.order_line:
-                record.order_subtotal = record.amount_untaxed
-                continue  
-            taxes_found = any(
-                tax.id in [62, 185, 309, 433] for line in record.order_line for tax in line.tax_id
-            )
-
-            record.order_subtotal = record.amount_untaxed * 1.21 if taxes_found else record.amount_untaxed
-
-    @api.onchange('global_discount')
-    def _onchange_discount(self):
-        for record in self:
-            if record.order_line:
                 for line in record.order_line:
-                    line.discount = record.global_discount
-
-    def update_prices(self):
-        self.ensure_one()
-        for line in self._get_update_prices_lines():
-            line.product_uom_change()
-            line.discount = 0
-            line._onchange_discount()
-        self.show_update_pricelist = False
-
-    @api.onchange('order_line')
-    def _onchange_lines_bultos(self):
-        for record in self:
-            record.packaging_qty = 0
-            for line in record.order_line:
-                record.packaging_qty += line.product_packaging_qty
-
+                    line.tax_id = False
 
     @api.model
     def _default_note(self):
