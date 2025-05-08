@@ -205,7 +205,7 @@ class SaleOrderInherit(models.Model):
 
     def update_lines_discount(self):
         for record in self:
-            if record.order_line and record.global_discount > 0:
+            if record.order_line:
                 for line in record.order_line:
                     line.discount = record.global_discount
 
