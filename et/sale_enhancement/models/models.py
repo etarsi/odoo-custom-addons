@@ -25,6 +25,12 @@ class SaleOrderInherit(models.Model):
 
     ### ONCHANGE
 
+    @api.onchange('partner_id')
+    def _onchange_partner_id(self):
+        for record in self:
+            if record.partner_id:
+                record.check_price_list()
+
     @api.onchange('condicion_m2m')
     def _onchange_condicion_m2m(self):
         for record in self:
@@ -51,9 +57,7 @@ class SaleOrderInherit(models.Model):
     @api.onchange('global_discount')
     def _onchange_discount(self):
         for record in self:
-            if record.order_line:
-                for line in record.order_line:
-                    line.discount = record.global_discount
+            record.update_lines_discount()
 
 
     @api.onchange('order_line')
@@ -81,15 +85,11 @@ class SaleOrderInherit(models.Model):
 
     ### INHERITED
     
-    def create(self, vals):
+    def create(self, vals):        
         res = super().create(vals)
 
-        res.check_taxes()
+        res.check_order()
 
-        comercial_id = res.partner_id.user_id
-
-        if comercial_id:
-            res.user_id = comercial_id # Forzar comercial correcto
         return res
 
 
@@ -146,12 +146,61 @@ class SaleOrderInherit(models.Model):
 
         return l
       
-    
+
+    def check_order(self):
+        for record in self:            
+            record.check_comercial_id() # Forzar comercial correcto
+            record.check_price_list()
+            record.update_lines_discount()
+            record.update_lines_prices()
+            record.check_taxes()
+
+
     def check_taxes(self):
         for record in self:
             if record.condicion_m2m.name == 'TIPO 3':
                 for line in record.order_line:
                     line.tax_id = False
+
+
+    def check_comercial_id(self):
+        for record in self:
+            comercial_id = record.partner_id.user_id
+            if comercial_id:
+                record.user_id = comercial_id 
+
+
+    def check_price_list(self):
+        for record in self:
+            if record.condicion_m2m.name != 'TIPO 3':
+                pricelist = self.env['product.pricelist'].browse(34)
+                if pricelist:
+                    record.pricelist_id = pricelist
+            elif record.condicion_m2m.name == 'TIPO 3':
+                pricelist = self.env['product.pricelist'].browse(35)
+                if pricelist:
+                    record.pricelist_id = pricelist
+
+
+    def update_lines_prices(self):
+        for record in self:
+            if record.order_line:
+                discounts = {}
+                for line in record.order_line:
+                    discounts[line.id] = line.discount
+                    
+                record.update_prices()
+                
+                for line in record.order_line:
+                    if line.id in discounts:
+                        line.discount = discounts[line.id]
+
+
+    def update_lines_discount(self):
+        for record in self:
+            if record.order_line and record.global_discount > 0:
+                for line in record.order_line:
+                    line.discount = record.global_discount
 
     @api.model
     def _default_note(self):
