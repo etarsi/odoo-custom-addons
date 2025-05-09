@@ -148,7 +148,7 @@ class SaleOrderInherit(models.Model):
             l = 'S'
         elif company_id.id == 3:
             l = 'B'
-        elif company_id.d == 4:
+        elif company_id.id == 4:
             l = 'F'
 
         return l
