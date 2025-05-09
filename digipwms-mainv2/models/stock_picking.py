@@ -389,8 +389,10 @@ class StockPicking(models.Model):
        #for picking in stock_pickings:
        #    picking.sudo().write({'codigo_wms':cod_pedido})
        #self.env.cr.commit()
-
-        cod_pedido = self.env['ir.sequence'].sudo().next_by_code('DIGIP2')
+        if sp.old_picking:
+            cod_pedido = self.env['ir.sequence'].sudo().next_by_code('DIGIP')
+        else:    
+            cod_pedido = self.env['ir.sequence'].sudo().next_by_code('DIGIP2')
         _logger.info(cod_pedido)
         _logger.info(stock_pickings)
         respGet = requests.get('%s/v1/Pedidos/%s' % (url,cod_pedido), headers=headers)
