@@ -244,6 +244,10 @@ class SaleOrderLineInherit(models.Model):
     @api.onchange('product_id')
     def _onchange_product_id(self):
         for record in self:
+
+            if record.order_id.company_id.id == 1:
+                record.tax_id = False
+
             record.discount = record.order_id.global_discount
             packaging_ids = record.product_id.packaging_ids
             if packaging_ids:
