@@ -336,7 +336,7 @@ class StockPicking(models.Model):
         if ('Preparacion' not in sp.picking_type_id.name) and ('Fabricaci' not in sp.picking_type_id.name):
             if not sp.picking_type_code =='outgoing' or not sp.origin:
                 _logger.info('WMS Sale porque no es valido %s' % sp.picking_type_id.name)
-                return False
+                raise UserError('El tipo de operación de la transferencia DEBE ser: Entrega/Expediciones')
         product_dict = defaultdict(float)
         saleorder = sp.env['sale.order'].sudo().search([('name','=',str(sp.origin)[:6]),('state','in',['sale','done','cancel'])],limit=1)
         saleorder = sp.env['sale.order'].sudo().search([('name','=',str(sp.origin)),('state','in',['sale','done','cancel'])],limit=1)
