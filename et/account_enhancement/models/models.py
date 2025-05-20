@@ -46,10 +46,6 @@ class AccountPaymentInherit(models.Model):
     no_diferido = fields.Boolean('No diferido', default=False)
     no_a_la_orden = fields.Boolean('No a la Orden', default=False)
 
-    @api.onchange('date')
-    def _onchange_date(self):
-        for record in self:
-            record.date = record.payment_group_id.payment_date
 
     @api.onchange('no_diferido')
     def _onchange_no_diferido(self):
@@ -76,8 +72,7 @@ class AccountPaymentInherit(models.Model):
 class AccountPaymentGroupInherit(models.Model):
     _inherit = 'account.payment.group'
 
-    @api.onchange('payment_date')
-    def _onchange_payment_date(self):
+    def set_payments_date(self):
         for record in self:
             for payment_line in record.payment_ids:
                 payment_line.date = record.payment_date
