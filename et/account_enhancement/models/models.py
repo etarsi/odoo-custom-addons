@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 from odoo import models, api, fields, _
 from odoo.exceptions import AccessError, UserError, ValidationError
+import logging
+_logger = logging.getLogger(__name__)
 
 class AccountMoveInherit(models.Model):
     _inherit = 'account.move'
@@ -132,8 +134,8 @@ class AccountPaymentGroupInherit(models.Model):
 
             for payment_line in rec.payment_ids:
                 if payment_line.id in check_numbers:
-                    raise UserError(f'id: {payment_line.id} - check_number: {check_numbers[payment_line.id]}')
-                    payment_line.check_number = int(check_numbers[payment_line.id])
+                    _logger.warning(f"Asignando {check_numbers[payment_line.id]} a payment_line {payment_line.id}")
+                    payment_line.check_number = check_numbers[payment_line.id]
 
             rec.state = 'posted'
 
