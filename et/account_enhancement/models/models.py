@@ -89,6 +89,7 @@ class AccountPaymentGroupInherit(models.Model):
 
             for payment_line in rec.payment_ids:
                 if payment_line.check_number:
+                    raise UserError(f'id: {payment_line.id} - check_number: {payment_line.check_number}')
                     check_numbers[payment_line.id] = payment_line.check_number
 
             if not rec.document_number:
