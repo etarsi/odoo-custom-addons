@@ -90,8 +90,11 @@ class AccountPaymentGroupInherit(models.Model):
             check_numbers = {}
 
             for payment_line in rec.payment_ids:
-                if payment_line.payment_method_description == 'Cheques':
+                if payment_line.check_number:
                     check_numbers[payment_line.id] = payment_line.check_number
+
+
+            _logger.info(check_numbers.items)
 
             if not rec.document_number:
                 if rec.receiptbook_id and not rec.receiptbook_id.sequence_id:
@@ -134,10 +137,10 @@ class AccountPaymentGroupInherit(models.Model):
 
             for payment_line in rec.payment_ids:
                 if payment_line.id in check_numbers:
-                    _logger.warning(f"Asignando {check_numbers[payment_line.id]} a payment_line {payment_line.id}")
-                    _logger.warning(f"Asignando {check_numbers[payment_line.id]} a payment_line {payment_line.id}")
-                    _logger.warning(f"Asignando {check_numbers[payment_line.id]} a payment_line {payment_line.id}")
-                    # payment_line.check_number = check_numbers[payment_line.id]
+                    _logger.info(f"Asignando {check_numbers[payment_line.id]} a payment_line {payment_line.id}")
+                    _logger.info(f"Asignando {check_numbers[payment_line.id]} a payment_line {payment_line.id}")
+                    _logger.info(f"Asignando {check_numbers[payment_line.id]} a payment_line {payment_line.id}")
+                    payment_line.check_number = check_numbers[payment_line.id]
 
             rec.state = 'posted'
 
