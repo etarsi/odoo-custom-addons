@@ -90,7 +90,7 @@ class AccountPaymentGroupInherit(models.Model):
             for payment_line in rec.payment_ids:
                 if payment_line.check_number:
                     check_numbers[payment_line.id] = payment_line.check_number
-                    
+
             if not rec.document_number:
                 if rec.receiptbook_id and not rec.receiptbook_id.sequence_id:
                     raise ValidationError(_(
@@ -132,7 +132,7 @@ class AccountPaymentGroupInherit(models.Model):
 
             for payment_line in rec.payment_ids:
                 if payment_line.id in check_numbers:
-                    payment_line.check_number = check_numbers[payment_line.id]
+                    payment_line.check_number = int(check_numbers[payment_line.id])
 
             rec.state = 'posted'
 
