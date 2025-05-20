@@ -72,6 +72,15 @@ class AccountPaymentInherit(models.Model):
 class AccountPaymentGroupInherit(models.Model):
     _inherit = 'account.payment.group'
 
+
+    executive_id = fields.Many2one(
+        'res.users',
+        string="Ejecutivo de Cuenta",
+        related='partner_id.executive_id',
+        store=True,
+        readonly=True
+    )
+
     def set_payments_date(self):
         for record in self:
             for payment_line in record.payment_ids:
