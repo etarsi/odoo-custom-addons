@@ -179,10 +179,6 @@ class SaleOrderInherit(models.Model):
 
     def check_price_list(self):
         for record in self:
-            if record.condicion_m2m.name != 'TIPO 3':
-                pricelist = self.env['product.pricelist'].browse(34)
-                if pricelist:
-                    record.pricelist_id = pricelist
             if record.condicion_m2m.name == 'TIPO 3':
                 pricelist = self.env['product.pricelist'].browse(35)
                 if pricelist:
