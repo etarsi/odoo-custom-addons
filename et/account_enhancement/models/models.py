@@ -8,6 +8,13 @@ class AccountMoveInherit(models.Model):
     _inherit = 'account.move'
 
     wms_code_ids = fields.Many2many("wms.code", string="Códigos WMS")
+    executive_id = fields.Many2one(
+        'res.users',
+        string="Ejecutivo de Cuenta",
+        related='partner_id.executive_id',
+        store=True,
+        readonly=True
+    )
     # invoice_incoterm_id = fields.Many2one('account.incoterms', default=lambda self: self._default_incoterm())
 
     # def _default_incoterm(self):
