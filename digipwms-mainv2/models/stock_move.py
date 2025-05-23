@@ -14,5 +14,5 @@ _logger = logging.getLogger(__name__)
 class StockMove(models.Model):
     _inherit = "stock.move"
 
-    codigo_wms = fields.Char(string="Código WMS", related='picking_id.condigo_wms', store=True)
+    codigo_wms = fields.Char(string="Código WMS", related='picking_id.codigo_wms', store=True)
     
