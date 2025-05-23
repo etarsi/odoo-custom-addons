@@ -180,11 +180,11 @@ class StockPickingInherit(models.Model):
 
             for move in picking.move_ids_without_package:
                 if move.product_available_percent == 100:
-                    if line_count > 24 or bulto_count >= 15:
+                    if line_count > 29 or bulto_count >= 25:
                         break
                     
                     bulto_qty = bulto_count + move.product_packaging_qty
-                    if bulto_qty <= 20:      
+                    if bulto_qty <= 30:      
                         line_count += 1
                         bulto_count += move.product_packaging_qty
                         selected_moves |= move
