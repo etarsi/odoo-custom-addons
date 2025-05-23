@@ -478,6 +478,7 @@ class StockMoveInherit(models.Model):
     product_available_pkg_qty = fields.Float(string='Bultos Disponibles', compute='_calculate_bultos', store=True)
 
     license = fields.Char(string="Licencia", related='picking_id.carrier_tracking_ref', store=True)
+    codigo_wms = fields.Char(string="Código WMS", related='picking_id.codigo_wms', store=True)
 
     @api.depends('quantity_done', 'product_uom_qty')
     def _calculate_bultos(self):
