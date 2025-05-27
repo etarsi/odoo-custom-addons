@@ -228,7 +228,7 @@ class WmsCode(models.Model):
     name = fields.Char("Código", required=True)
 
 
-class AccountPaymentInherit(models.Model):
+class AccountPaymentInherit(models.TransientModel):
     _inherit = 'account.payment.mass.transfer'
 
 
