@@ -63,7 +63,7 @@ class StockPickingInherit(models.Model):
         if not SaleOrder:
             raise UserError("La transferencia no está vinculada a ningún pedido de venta.")
 
-        tipo = (SaleOrder.x_order_type.name or '').upper().strip()
+        tipo = (self.x_order_type.name or '').upper().strip()
         proportion_blanco, proportion_negro = {
             'TIPO 1': (1.0, 0.0),
             'TIPO 2': (0.5, 0.5),
