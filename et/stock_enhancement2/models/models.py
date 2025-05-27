@@ -78,7 +78,7 @@ class StockPickingInherit(models.Model):
         invoice_lines_negro = []
         sequence = 1
 
-        for move in self.move_ids_without_package.filtered(lambda m: not m.display_type):
+        for move in self.move_ids_without_package:
             base_vals = move.sale_line_id._prepare_invoice_line(sequence=sequence)
 
             if proportion_blanco > 0:
