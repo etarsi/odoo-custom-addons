@@ -91,6 +91,7 @@ class StockPickingInherit(models.Model):
             if proportion_negro > 0:
                 negro_vals = base_vals.copy()
                 negro_vals['quantity'] = move.quantity_done * proportion_negro
+                negro_vals['price_unit'] = move.price_unit * 1.21
                 negro_vals['tax_ids'] = [(6, 0, move.product_id.taxes_id.filtered(
                     lambda t: t.company_id.id == company_negra.id).ids)]
                 invoice_lines_negro.append((0, 0, negro_vals))
@@ -133,6 +134,9 @@ class StockPickingInherit(models.Model):
         })
 
         self.invoice_ids = [(6, 0, invoices.ids)]
+
+        for move in self.move_ids_without_package.filtered(lambda m: m.sale_line_id):
+            move.sale_line_id.qty_invoiced += move.quantity_done
 
         return {
             'name': "Facturas generadas",
