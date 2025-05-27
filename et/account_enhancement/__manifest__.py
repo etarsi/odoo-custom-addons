@@ -20,7 +20,7 @@
     'version': '0.1',
 
     # any module necessary for this one to work correctly
-    'depends': ['account_check_printing', 'account_payment_group', 'l10n_latam_check'],
+    'depends': ['account_check_printing', 'account_payment_group'],
 
     # always loaded
     'data': [
