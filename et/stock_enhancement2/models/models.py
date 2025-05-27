@@ -42,6 +42,11 @@ class StockPickingInherit(models.Model):
 
         for record in self:
             
+            record.invoice_state = '2binvoiced'
+            for move in record.move_ids_without_package:
+                move.invoice_state = '2binvoiced'
+
+
             if record.partner_id.property_delivery_carrier_id.name != 'Reparto Propio':
                 total_declarado = 0
                 for move in record.move_ids_without_package:
@@ -137,6 +142,7 @@ class StockPickingInherit(models.Model):
 
         for move in self.move_ids_without_package.filtered(lambda m: m.sale_line_id):
             move.sale_line_id.qty_invoiced += move.quantity_done
+            move.state = 'invoiced'
 
         return {
             'name': "Facturas generadas",
