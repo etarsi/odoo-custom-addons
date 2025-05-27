@@ -49,6 +49,108 @@ class StockPickingInherit(models.Model):
 
         return res
 
+    def action_create_invoice_from_picking(self):
+        self.ensure_one()
+
+        SaleOrder = self.sale_id
+        if not SaleOrder:
+            raise UserError("La transferencia no está vinculada a ningún pedido de venta.")
+
+        tipo = (SaleOrder.x_order_type.name or '').upper().strip()
+        proportion_blanco, proportion_negro = {
+            'TIPO 1': (1.0, 0.0),
+            'TIPO 2': (0.5, 0.5),
+            'TIPO 3': (0.0, 1.0),
+            'TIPO 4': (0.25, 0.75),
+        }.get(tipo, (1.0, 0.0))
+
+        company_blanca = self.company_id
+        company_negra = self.env['res.company'].browse(1)  # Producción B (ajustar si cambia)
+
+        invoice_lines_blanco = []
+        invoice_lines_negro = []
+        sequence = 1
+
+        for move in self.move_ids_without_package.filtered(lambda m: not m.display_type):
+            base_vals = move.sale_line_id._prepare_invoice_line(sequence=sequence)
+
+            if proportion_blanco > 0:
+                blanco_vals = base_vals.copy()
+                blanco_vals['quantity'] = move.quantity_done * proportion_blanco
+                blanco_vals['tax_ids'] = [(6, 0, move.product_id.taxes_id.filtered(
+                    lambda t: t.company_id.id == company_blanca.id).ids)]
+                invoice_lines_blanco.append((0, 0, blanco_vals))
+
+            if proportion_negro > 0:
+                negro_vals = base_vals.copy()
+                negro_vals['quantity'] = move.quantity_done * proportion_negro
+                negro_vals['tax_ids'] = [(6, 0, move.product_id.taxes_id.filtered(
+                    lambda t: t.company_id.id == company_negra.id).ids)]
+                invoice_lines_negro.append((0, 0, negro_vals))
+
+            sequence += 1
+
+        invoices = self.env['account.move']
+
+        # Crear factura blanca
+        if invoice_lines_blanco:
+            vals_blanco = self._prepare_invoice_base_vals(company_blanca)
+            vals_blanco['invoice_line_ids'] = invoice_lines_blanco
+            invoices += self.env['account.move'].create(vals_blanco)
+
+        # Crear factura negra
+        if invoice_lines_negro:
+            vals_negro = self._prepare_invoice_base_vals(company_negra)
+            vals_negro['invoice_line_ids'] = invoice_lines_negro
+
+            # Asignar journal correcto
+            journal = self.env['account.journal'].search([
+                ('type', '=', 'sale'),
+                ('company_id', '=', company_negra.id)
+            ], limit=1)
+            if not journal:
+                raise UserError("No se encontró un diario de ventas para Producción B.")
+            vals_negro['journal_id'] = journal.id
+
+            # Limpiar partner_bank si no es válido
+            if vals_negro.get('partner_bank_id'):
+                bank = self.env['res.partner.bank'].browse(vals_negro['partner_bank_id'])
+                if bank.company_id and bank.company_id != company_negra:
+                    vals_negro['partner_bank_id'] = False
+
+            invoices += self.env['account.move'].create(vals_negro)
+
+        # Relacionar con la transferencia
+        invoices.write({
+            'invoice_origin': self.origin or self.name,
+        })
+
+        return {
+            'name': "Facturas generadas",
+            'type': 'ir.actions.act_window',
+            'res_model': 'account.move',
+            'view_mode': 'tree,form',
+            'domain': [('id', 'in', invoices.ids)],
+        }
+
+    def _prepare_invoice_base_vals(self, company):
+        partner = self.partner_id
+        return {
+            'move_type': 'out_invoice',
+            'partner_id': partner.id,
+            'invoice_date': fields.Date.context_today(self),
+            'company_id': company.id,
+            'currency_id': company.currency_id.id,
+            'invoice_user_id': self.env.user.id,
+            'invoice_origin': self.origin or self.name,
+            'payment_reference': self.name,
+            'invoice_payment_term_id': partner.property_payment_term_id.id,
+            'partner_bank_id': partner.bank_ids.filtered(lambda b: b.company_id == company)[:1].id,
+            'fiscal_position_id': partner.property_account_position_id.id,
+        }
+
+
+
     def _default_delivery_carrier(self):        
         return self.partner_id.property_delivery_carrier_id.id
 
