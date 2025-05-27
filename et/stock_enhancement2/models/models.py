@@ -26,6 +26,13 @@ class StockPickingInherit(models.Model):
         readonly=True,
         default=lambda self: self._default_delivery_carrier()
     )
+    invoice_ids = fields.Many2many(
+        'account.move',
+        'stock_picking_invoice_rel',
+        'picking_id',
+        'invoice_id',
+        string='Facturas relacionadas'
+    )
 
     old_picking = fields.Boolean(default=False)
     old_picking_txt = fields.Text(default='⚠️ PICKING VIEJO - FACTURAR E IMPRIMIR REMITO DE LA VIEJA FORMA')
@@ -124,6 +131,8 @@ class StockPickingInherit(models.Model):
         invoices.write({
             'invoice_origin': self.origin or self.name,
         })
+
+        self.invoice_ids = [(6, 0, invoices.ids)]
 
         return {
             'name': "Facturas generadas",

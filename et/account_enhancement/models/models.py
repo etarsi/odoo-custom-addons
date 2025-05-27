@@ -15,6 +15,15 @@ class AccountMoveInherit(models.Model):
         store=True,
         readonly=True
     )
+
+    picking_ids = fields.Many2many(
+        'stock.picking',
+        'stock_picking_invoice_rel',
+        'invoice_id',
+        'picking_id',
+        string='Remitos relacionados'
+    )
+
     # invoice_incoterm_id = fields.Many2one('account.incoterms', default=lambda self: self._default_incoterm())
 
     # def _default_incoterm(self):
