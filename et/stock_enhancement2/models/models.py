@@ -173,18 +173,24 @@ class StockPickingInherit(models.Model):
         sequence = 1
 
         for move in self.move_ids_without_package:
-            base_vals = move.sale_line_id._prepare_invoice_line(sequence=sequence)
+            base_vals = move.sale_line_id.with_company(self.company_id)._prepare_invoice_line(sequence=sequence)
 
             if proportion > 0:
                 invoice_vals = base_vals.copy()
                 invoice_vals['quantity'] = move.quantity_done
-                invoice_vals['tax_ids'] = [(6, 0, move.product_id.taxes_id.filtered(
-                    lambda t: t.company_id.id == company_id.id).ids)]
-                invoice_lines.append((0, 0, invoice_vals))
+                taxes = move.product_id.taxes_id.filtered(lambda t: t.company_id.id == self.company_id.id)
+                if not taxes:
+                    raise UserError(f"No se encontraron impuestos para el producto {move.product_id.name} en la compañía {self.company_id.name}")
+
+                invoice_vals['tax_ids'] = [(6, 0, taxes.ids)]
 
                 if company_id.id == 1:
                     invoice_vals['tax_ids'] = False
-                    invoice_lines['price_unit'] *= 1.21
+                    invoice_vals['price_unit'] *= 1.21
+
+                invoice_lines.append((0, 0, invoice_vals))
+
+                
 
                     # # Asignar journal correcto
                     # journal = self.env['account.journal'].search([
