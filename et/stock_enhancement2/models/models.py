@@ -207,8 +207,9 @@ class StockPickingInherit(models.Model):
             invoice_vals['currency_id'] = sale_order.currency_id.id
 
             # raise UserError('1')
-        
+            self._validate_invoice_vals_company_consistency(invoice_vals, company_id)
             invoice = self.env['account.move'].with_company(company_id).create(invoice_vals)
+
             invoices += invoice
 
         invoices.write({
@@ -250,38 +251,52 @@ class StockPickingInherit(models.Model):
             'fiscal_position_id': partner.property_account_position_id.id,
         }
 
-    def validate_picking_multicompany_integrity(self, company):
-        for move in self.move_ids_without_package:
-            if not move.sale_line_id:
-                continue
-
-            product = move.product_id
-
-            # Verificar que el producto sea compatible con la compañía
-            if product.company_id and product.company_id.id != company.id:
-                raise UserError(f"El producto '{product.display_name}' pertenece a otra compañía: {product.company_id.name}")
-
-            # Verificar impuestos compatibles
-            taxes = product.taxes_id.filtered(lambda t: t.company_id.id == company.id)
-            if not taxes and company.id != 1:
-                raise UserError(f"No se encontraron impuestos válidos para el producto '{product.display_name}' en {company.name}")
-
-            # Verificar cuentas contables de los impuestos
-            for tax in taxes:
-                for repartition_line in (tax.invoice_repartition_line_ids | tax.refund_repartition_line_ids):
-                    account = repartition_line.account_id
-                    if account and account.company_id.id != company.id:
-                        raise UserError(
-                            f"La cuenta '{account.display_name}' del impuesto '{tax.name}' no pertenece a la compañía {company.name}"
-                        )
-
-            # Validar también el campo 'property_account_income_id' si lo tuvieras seteado
-            income_account = product.property_account_income_id or \
-                            product.categ_id.property_account_income_categ_id
-            if income_account and income_account.company_id.id != company.id:
+    def _validate_invoice_vals_company_consistency(self, invoice_vals, expected_company):
+        """
+        Verifica que todos los objetos relacionados en invoice_vals pertenezcan a la compañía esperada.
+        Lanza UserError si encuentra alguno incorrecto.
+        """
+        def check_record_company(record, record_type, field_name):
+            if record and record.company_id and record.company_id.id != expected_company.id:
                 raise UserError(
-                    f"La cuenta de ingresos del producto '{product.display_name}' pertenece a {income_account.company_id.name} y no a {company.name}"
+                    f"El {record_type} '{record.display_name}' del campo '{field_name}' pertenece a '{record.company_id.name}', "
+                    f"pero se espera que pertenezca a '{expected_company.name}'."
                 )
+
+        # Verifica campos de nivel factura
+        for field_name in ['journal_id', 'currency_id', 'partner_id']:
+            if field_name in invoice_vals and invoice_vals[field_name]:
+                record = self.env[self.env['account.move']._fields[field_name].comodel_name].browse(invoice_vals[field_name])
+                check_record_company(record, field_name, field_name)
+
+        # Verifica cada línea
+        for line_tuple in invoice_vals.get('invoice_line_ids', []):
+            line_data = line_tuple[2]
+            for field_name, model_name in [
+                ('product_id', 'product.product'),
+                ('account_id', 'account.account'),
+                ('analytic_account_id', 'account.analytic.account'),
+            ]:
+                if line_data.get(field_name):
+                    record = self.env[model_name].browse(line_data[field_name])
+                    check_record_company(record, model_name, field_name)
+
+            # Taxes
+            if 'tax_ids' in line_data:
+                tax_ids = []
+                if isinstance(line_data['tax_ids'], list) and line_data['tax_ids']:
+                    if line_data['tax_ids'][0][0] == 6:  # M2M full replace
+                        tax_ids = line_data['tax_ids'][0][2]
+                for tax_id in tax_ids:
+                    tax = self.env['account.tax'].browse(tax_id)
+                    check_record_company(tax, 'account.tax', 'tax_ids')
+
+            # Línea también debe tener el company_id correcto si lo define
+            if line_data.get('company_id') and line_data['company_id'] != expected_company.id:
+                raise UserError(
+                    f"La línea contiene company_id={line_data['company_id']}, pero se esperaba {expected_company.id} ({expected_company.name})"
+                )
+
 
 
     def _default_delivery_carrier(self):        
