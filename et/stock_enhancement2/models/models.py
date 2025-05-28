@@ -203,6 +203,8 @@ class StockPickingInherit(models.Model):
             invoice_vals['invoice_line_ids'] = invoice_lines
             invoice_vals['company_id'] = company_id.id
 
+            self.validate_picking_multicompany_integrity(self.company_id)
+
             # Crear factura con contexto forzado a la compañía del picking
             invoice = self.env['account.move'].with_company(company_id).create(invoice_vals)
             invoices += invoice
@@ -244,6 +246,38 @@ class StockPickingInherit(models.Model):
             'fiscal_position_id': partner.property_account_position_id.id,
         }
 
+    def validate_picking_multicompany_integrity(self, company):
+        for move in self.move_ids_without_package:
+            if not move.sale_line_id:
+                continue
+
+            product = move.product_id
+
+            # Verificar que el producto sea compatible con la compañía
+            if product.company_id and product.company_id.id != company.id:
+                raise UserError(f"El producto '{product.display_name}' pertenece a otra compañía: {product.company_id.name}")
+
+            # Verificar impuestos compatibles
+            taxes = product.taxes_id.filtered(lambda t: t.company_id.id == company.id)
+            if not taxes and company.id != 1:
+                raise UserError(f"No se encontraron impuestos válidos para el producto '{product.display_name}' en {company.name}")
+
+            # Verificar cuentas contables de los impuestos
+            for tax in taxes:
+                for repartition_line in (tax.invoice_repartition_line_ids | tax.refund_repartition_line_ids):
+                    account = repartition_line.account_id
+                    if account and account.company_id.id != company.id:
+                        raise UserError(
+                            f"La cuenta '{account.display_name}' del impuesto '{tax.name}' no pertenece a la compañía {company.name}"
+                        )
+
+            # Validar también el campo 'property_account_income_id' si lo tuvieras seteado
+            income_account = product.property_account_income_id or \
+                            product.categ_id.property_account_income_categ_id
+            if income_account and income_account.company_id.id != company.id:
+                raise UserError(
+                    f"La cuenta de ingresos del producto '{product.display_name}' pertenece a {income_account.company_id.name} y no a {company.name}"
+                )
 
 
     def _default_delivery_carrier(self):        
