@@ -187,7 +187,7 @@ class StockPickingInherit(models.Model):
             else:
                 if not taxes:
                     raise UserError(f"No hay impuestos configurados para el producto {move.product_id.display_name} en la compañía {company_id.name}")
-                invoice_vals['tax_ids'] = [(6, 0, taxes.ids)]
+                # invoice_vals['tax_ids'] = [(6, 0, taxes.ids)]
 
             # Limpiar posibles campos que generen conflicto
             invoice_vals.pop('analytic_account_id', None)
