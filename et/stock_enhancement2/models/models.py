@@ -160,49 +160,52 @@ class StockPickingInherit(models.Model):
     def action_create_invoice_from_picking2(self):
         self.ensure_one()
 
-        SaleOrder = self.sale_id
-        if not SaleOrder:
+        sale_order = self.sale_id
+        if not sale_order:
             raise UserError("La transferencia no está vinculada a ningún pedido de venta.")
 
-        proportion = 1.0
-
         company_id = self.company_id
+        self = self.with_company(company_id)  # Fuerza contexto de compañía
+
+        proportion = 1.0  # En esta versión, todo el picking
 
         invoice_lines = []
         sequence = 1
 
         for move in self.move_ids_without_package:
-            base_vals = move.sale_line_id.with_company(self.company_id)._prepare_invoice_line(sequence=sequence)
+            if not move.sale_line_id:
+                continue
 
-            if proportion > 0:
-                invoice_vals = base_vals.copy()
-                invoice_vals['company_id'] = self.company_id.id
-                invoice_vals['quantity'] = move.quantity_done
-                taxes = move.product_id.taxes_id.filtered(lambda t: t.company_id.id == self.company_id.id)
-                if not taxes:
-                    raise UserError(f"No se encontraron impuestos para el producto {move.product_id.name} en la compañía {self.company_id.name}")
+            # Preparar la línea base desde la orden de venta, dentro del contexto de la compañía correcta
+            base_vals = move.sale_line_id.with_company(company_id)._prepare_invoice_line(sequence=sequence)
+            invoice_vals = base_vals.copy()
+            invoice_vals['company_id'] = company_id.id
+            invoice_vals['quantity'] = move.quantity_done
 
-                invoice_vals['tax_ids'] = [(6, 0, taxes.ids)]
+            # Verificar impuestos según la compañía
+            taxes = move.product_id.taxes_id.filtered(lambda t: t.company_id.id == company_id.id)
+            if not taxes and company_id.id != 1:
+                raise UserError(f"No se encontraron impuestos para el producto {move.product_id.display_name} en la compañía {company_id.name}")
 
-                if company_id.id == 1:
-                    invoice_vals['tax_ids'] = False
-                    invoice_vals['price_unit'] *= 1.21
+            invoice_vals['tax_ids'] = [(6, 0, taxes.ids)] if company_id.id != 1 else False
 
-                invoice_lines.append((0, 0, invoice_vals))
+            # Si es Producción B (ID 1), aplicar precio con IVA incluido y sin impuestos
+            if company_id.id == 1:
+                invoice_vals['price_unit'] *= 1.21
+                invoice_vals['tax_ids'] = False
 
+            invoice_lines.append((0, 0, invoice_vals))
             sequence += 1
 
         invoices = self.env['account.move']
-
-        # Crear factura
         if invoice_lines:
-            vals_invoice = self._prepare_invoice_base_vals(company_id)
-            vals_invoice['invoice_line_ids'] = invoice_lines
-            vals_invoice['company_id'] = self.company_id.id  # <- obligatorio
-            invoices += self.env['account.move'].with_company(self.company_id).create(vals_invoice)
+            invoice_vals = self._prepare_invoice_base_vals(company_id)
+            invoice_vals['invoice_line_ids'] = invoice_lines
+            invoice_vals['company_id'] = company_id.id
 
-
-
+            # Crear factura con contexto forzado a la compañía del picking
+            invoice = self.env['account.move'].with_company(company_id).create(invoice_vals)
+            invoices += invoice
 
         # Relacionar con la transferencia
         invoices.write({
@@ -210,8 +213,8 @@ class StockPickingInherit(models.Model):
         })
 
         self.invoice_ids = [(6, 0, invoices.ids)]
-
         self.invoice_state = 'invoiced'
+
         for move in self.move_ids_without_package.filtered(lambda m: m.sale_line_id):
             move.sale_line_id.qty_invoiced += move.quantity_done
             move.invoice_state = 'invoiced'
@@ -223,6 +226,7 @@ class StockPickingInherit(models.Model):
             'view_mode': 'tree,form',
             'domain': [('id', 'in', invoices.ids)],
         }
+
 
     def _prepare_invoice_base_vals(self, company):
         partner = self.partner_id
