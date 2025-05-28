@@ -209,7 +209,7 @@ class StockPickingInherit(models.Model):
             'partner_id': self.partner_id.id,
             'invoice_origin': self.origin or self.name,
             'invoice_user_id': self.user_id.id,
-            'currency_id': self.currency_id.id,
+            'currency_id': self.sale_id.currency_id.id,
             'company_id': company.id,
             'invoice_line_ids': invoice_lines,
         }
