@@ -158,6 +158,7 @@ class StockPickingInherit(models.Model):
         }
     
     def action_create_invoice_from_picking2(self):
+        self = self.with_company(self.company_id)
         self.ensure_one()
 
         SaleOrder = self.sale_id
@@ -176,7 +177,7 @@ class StockPickingInherit(models.Model):
 
             if proportion > 0:
                 invoice_vals = base_vals.copy()
-                invoice_vals['quantity'] = move.quantity_done * proportion
+                invoice_vals['quantity'] = move.quantity_done
                 invoice_vals['tax_ids'] = [(6, 0, move.product_id.taxes_id.filtered(
                     lambda t: t.company_id.id == company_id.id).ids)]
                 invoice_lines.append((0, 0, invoice_vals))
