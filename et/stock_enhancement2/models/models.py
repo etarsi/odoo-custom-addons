@@ -207,7 +207,6 @@ class StockPickingInherit(models.Model):
             invoice_vals['currency_id'] = sale_order.currency_id.id
 
             # raise UserError('1')
-            self._validate_invoice_vals_company_consistency(invoice_vals, company_id)
             invoice = self.env['account.move'].with_company(company_id).create(invoice_vals)
 
             invoices += invoice
