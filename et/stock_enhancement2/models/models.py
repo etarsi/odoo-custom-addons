@@ -160,64 +160,62 @@ class StockPickingInherit(models.Model):
     def action_create_invoice_from_picking2(self):
         self.ensure_one()
 
-        if not self.sale_id:
+        sale_order = self.sale_id
+        if not sale_order:
             raise UserError("La transferencia no está vinculada a ningún pedido de venta.")
 
-        company = self.company_id
-        self = self.with_company(company)
+        company_id = self.company_id
+        self = self.with_company(company_id)
 
+        proportion = 1.0
         invoice_lines = []
         sequence = 1
 
         for move in self.move_ids_without_package:
-            sale_line = move.sale_line_id.with_company(company)
-            product = move.product_id.with_company(company)
+            if not move.sale_line_id:
+                continue
 
-            # Obtener cuenta contable válida para esta compañía
-            income_account = product.property_account_income_id or \
-                            product.categ_id.property_account_income_categ_id
-            if not income_account or income_account.company_id != company:
-                raise UserError(f"El producto {product.display_name} no tiene una cuenta de ingresos válida para {company.name}")
+            base_vals = move.sale_line_id.with_company(company_id)._prepare_invoice_line(sequence=sequence)
+            invoice_vals = base_vals.copy()
+            invoice_vals['company_id'] = company_id.id
+            invoice_vals['quantity'] = move.quantity_done
 
-            # Obtener impuestos válidos
-            taxes = product.taxes_id.filtered(lambda t: t.company_id == company)
-            if company.id == 1:
-                taxes = self.env['account.tax']  # Sin impuestos para Producción B
+            taxes = move.product_id.taxes_id.filtered(lambda t: t.company_id.id == company_id.id)
+            if company_id.id == 1:
+                invoice_vals['price_unit'] *= 1.21
+                invoice_vals['tax_ids'] = False
+            else:
+                if not taxes:
+                    raise UserError(f"No hay impuestos configurados para el producto {move.product_id.display_name} en la compañía {company_id.name}")
+                invoice_vals['tax_ids'] = [(6, 0, taxes.ids)]
 
-            # Construir línea de factura
-            line_vals = {
-                'product_id': product.id,
-                'name': sale_line.name,
-                'quantity': move.quantity_done,
-                'price_unit': sale_line.price_unit * (1.21 if company.id == 1 else 1.0),
-                'discount': sale_line.discount,
-                'account_id': income_account.id,
-                'tax_ids': [(6, 0, taxes.ids)],
-                'company_id': company.id,
-                'sequence': sequence,
-            }
+            # Limpiar posibles campos que generen conflicto
+            invoice_vals.pop('analytic_account_id', None)
+            invoice_vals.pop('analytic_tag_ids', None)
 
-            invoice_lines.append((0, 0, line_vals))
+            # Forzar el product_id dentro del contexto de la compañía
+            invoice_vals['product_id'] = move.product_id.with_company(company_id).id
+
+            invoice_lines.append((0, 0, invoice_vals))
             sequence += 1
 
-        if not invoice_lines:
-            raise UserError("No hay líneas para facturar.")
+        invoices = self.env['account.move']
+        if invoice_lines:
+            invoice_vals = self._prepare_invoice_base_vals(company_id)
+            invoice_vals['invoice_line_ids'] = invoice_lines
+            invoice_vals['company_id'] = company_id.id
+            invoice_vals['currency_id'] = sale_order.currency_id.id
 
-        # Crear factura
-        invoice_vals = {
-            'move_type': 'out_invoice',
-            'partner_id': self.partner_id.id,
+            self.validate_picking_multicompany_integrity(self.company_id)
+
+            invoice = self.env['account.move'].with_company(company_id).create(invoice_vals)
+            invoices += invoice
+
+        invoices.write({
             'invoice_origin': self.origin or self.name,
-            'invoice_user_id': self.user_id.id,
-            'currency_id': self.sale_id.currency_id.id,
-            'company_id': company.id,
-            'invoice_line_ids': invoice_lines,
-        }
+        })
 
-        invoice = self.env['account.move'].with_company(company).create(invoice_vals)
-
-        # Relacionar con el picking
-        self.invoice_ids = [(6, 0, invoice.ids)]
+        self.invoice_ids = [(6, 0, invoices.ids)]
         self.invoice_state = 'invoiced'
 
         for move in self.move_ids_without_package.filtered(lambda m: m.sale_line_id):
@@ -225,12 +223,13 @@ class StockPickingInherit(models.Model):
             move.invoice_state = 'invoiced'
 
         return {
-            'name': "Factura generada",
+            'name': "Facturas generadas",
             'type': 'ir.actions.act_window',
             'res_model': 'account.move',
-            'view_mode': 'form',
-            'res_id': invoice.id,
+            'view_mode': 'tree,form',
+            'domain': [('id', 'in', invoices.ids)],
         }
+
 
 
 
