@@ -160,14 +160,16 @@ class StockPickingInherit(models.Model):
     def action_create_invoice_from_picking2(self):
         self.ensure_one()
 
-        sale_order = self.sale_id
-        if not sale_order:
+        if not self.sale_id:
             raise UserError("La transferencia no está vinculada a ningún pedido de venta.")
 
-        company_id = self.company_id
-        self = self.with_company(company_id)
-
+        company = self.company_id
+        tipo = (self.x_order_type.name or '').upper().strip()
         proportion = 1.0
+
+        if tipo in ['TIPO 2', 'TIPO 4']:
+            _logger.info("Pedido viejo TIPO %s detectado. Se factura 100%% en la compa\u00f1\u00eda del picking (%s)", tipo, company.name)
+
         invoice_lines = []
         sequence = 1
 
@@ -175,47 +177,52 @@ class StockPickingInherit(models.Model):
             if not move.sale_line_id:
                 continue
 
-            base_vals = move.sale_line_id.with_company(company_id)._prepare_invoice_line(sequence=sequence)
-            invoice_vals = base_vals.copy()
-            invoice_vals['company_id'] = company_id.id
-            invoice_vals['quantity'] = move.quantity_done
+            base_vals = move.sale_line_id.with_company(company)._prepare_invoice_line(sequence=sequence)
+            line_vals = base_vals.copy()
+            line_vals['company_id'] = company.id
+            line_vals['quantity'] = move.quantity_done
 
-            taxes = move.product_id.taxes_id.filtered(lambda t: t.company_id.id == company_id.id)
-            if company_id.id == 1:
-                invoice_vals['price_unit'] *= 1.21
-                invoice_vals['tax_ids'] = False
+            taxes = move.product_id.taxes_id.filtered(lambda t: t.company_id.id == company.id)
+            if company.id == 1:
+                # Si es Producci\u00f3n B, sin impuestos y con precio con IVA incluido
+                line_vals['tax_ids'] = False
+                line_vals['price_unit'] *= 1.21
             else:
-                if not taxes:
-                    raise UserError(f"No hay impuestos configurados para el producto {move.product_id.display_name} en la compañía {company_id.name}")
-                # invoice_vals['tax_ids'] = [(6, 0, taxes.ids)]
+                line_vals['tax_ids'] = [(6, 0, taxes.ids)] if taxes else False
 
-            # Limpiar posibles campos que generen conflicto
-            invoice_vals.pop('analytic_account_id', None)
-            invoice_vals.pop('analytic_tag_ids', None)
-
-            # Forzar el product_id dentro del contexto de la compañía
-            invoice_vals['product_id'] = move.product_id.with_company(company_id).id
-
-            invoice_lines.append((0, 0, invoice_vals))
+            invoice_lines.append((0, 0, line_vals))
             sequence += 1
 
-        invoices = self.env['account.move']
-        if invoice_lines:
-            invoice_vals = self._prepare_invoice_base_vals(company_id)
-            invoice_vals['invoice_line_ids'] = invoice_lines
-            invoice_vals['company_id'] = company_id.id
-            invoice_vals['currency_id'] = sale_order.currency_id.id
+        if not invoice_lines:
+            raise UserError("No se encontraron l\u00edneas facturables en la transferencia.")
 
-            # raise UserError('1')
-            invoice = self.env['account.move'].with_company(company_id).create(invoice_vals)
+        invoice_vals = self._prepare_invoice_base_vals(company)
+        invoice_vals['invoice_line_ids'] = invoice_lines
+        invoice_vals['company_id'] = company.id
 
-            invoices += invoice
+        # Validaciones y ajustes
+        if invoice_vals.get('partner_bank_id'):
+            bank = self.env['res.partner.bank'].browse(invoice_vals['partner_bank_id'])
+            if bank.company_id and bank.company_id != company:
+                invoice_vals['partner_bank_id'] = False
 
-        invoices.write({
+        if not invoice_vals.get('journal_id'):
+            journal = self.env['account.journal'].search([
+                ('type', '=', 'sale'),
+                ('company_id', '=', company.id)
+            ], limit=1)
+            if not journal:
+                raise UserError(f"No se encontr\u00f3 un diario de ventas para la compa\u00f1\u00eda {company.name}.")
+            invoice_vals['journal_id'] = journal.id
+
+        invoice = self.env['account.move'].with_company(company).create(invoice_vals)
+
+        # Relacionar con picking
+        invoice.write({
             'invoice_origin': self.origin or self.name,
         })
 
-        self.invoice_ids = [(6, 0, invoices.ids)]
+        self.invoice_ids = [(6, 0, invoice.ids)]
         self.invoice_state = 'invoiced'
 
         for move in self.move_ids_without_package.filtered(lambda m: m.sale_line_id):
@@ -227,8 +234,9 @@ class StockPickingInherit(models.Model):
             'type': 'ir.actions.act_window',
             'res_model': 'account.move',
             'view_mode': 'tree,form',
-            'domain': [('id', 'in', invoices.ids)],
+            'domain': [('id', '=', invoice.id)],
         }
+
 
 
 
