@@ -86,16 +86,20 @@ class StockPickingInherit(models.Model):
         for move in self.move_ids_without_package:
             base_vals = move.sale_line_id._prepare_invoice_line(sequence=sequence)
 
+            qty_total = move.quantity_done
+            qty_blanco = math.floor(qty_total * proportion_blanco)
+            qty_negro = qty_total - qty_blanco
+
             if proportion_blanco > 0:
                 blanco_vals = base_vals.copy()
-                blanco_vals['quantity'] = move.quantity_done * proportion_blanco
+                blanco_vals['quantity'] = qty_blanco
                 blanco_vals['tax_ids'] = [(6, 0, move.product_id.taxes_id.filtered(
                     lambda t: t.company_id.id == company_blanca.id).ids)]
                 invoice_lines_blanco.append((0, 0, blanco_vals))
 
             if proportion_negro > 0:
                 negro_vals = base_vals.copy()
-                negro_vals['quantity'] = move.quantity_done * proportion_negro
+                negro_vals['quantity'] = qty_negro
                 negro_vals['price_unit'] *= 1.21
                 negro_vals['tax_ids'] = [(6, 0, move.product_id.taxes_id.filtered(
                     lambda t: t.company_id.id == company_negra.id).ids)]
