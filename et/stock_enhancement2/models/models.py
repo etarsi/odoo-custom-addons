@@ -176,7 +176,7 @@ class StockPickingInherit(models.Model):
 
             if proportion > 0:
                 invoice_vals = base_vals.copy()
-                invoice_vals['company_id'] = self.company_id
+                invoice_vals['company_id'] = self.company_id.id
                 invoice_vals['quantity'] = move.quantity_done
                 taxes = move.product_id.taxes_id.filtered(lambda t: t.company_id.id == self.company_id.id)
                 if not taxes:
