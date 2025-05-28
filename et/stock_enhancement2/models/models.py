@@ -165,10 +165,9 @@ class StockPickingInherit(models.Model):
             raise UserError("La transferencia no está vinculada a ningún pedido de venta.")
 
         company_id = self.company_id
-        self = self.with_company(company_id)  # Fuerza contexto de compañía
+        self = self.with_company(company_id)
 
-        proportion = 1.0  # En esta versión, todo el picking
-
+        proportion = 1.0  # 100% del picking
         invoice_lines = []
         sequence = 1
 
@@ -176,20 +175,25 @@ class StockPickingInherit(models.Model):
             if not move.sale_line_id:
                 continue
 
-            # Preparar la línea base desde la orden de venta, dentro del contexto de la compañía correcta
-            base_vals = move.sale_line_id.with_company(company_id)._prepare_invoice_line(sequence=sequence)
+            # Forzar contexto correcto para el producto y la línea de venta
+            product = move.product_id.with_company(company_id)
+            sale_line = move.sale_line_id.with_company(company_id)
+
+            # Preparar los valores base para la línea de factura
+            base_vals = sale_line._prepare_invoice_line(sequence=sequence)
             invoice_vals = base_vals.copy()
             invoice_vals['company_id'] = company_id.id
+            invoice_vals['product_id'] = product.id
             invoice_vals['quantity'] = move.quantity_done
 
-            # Verificar impuestos según la compañía
-            taxes = move.product_id.taxes_id.filtered(lambda t: t.company_id.id == company_id.id)
+            # Obtener los impuestos válidos para la compañía
+            taxes = product.taxes_id.filtered(lambda t: t.company_id.id == company_id.id)
             if not taxes and company_id.id != 1:
-                raise UserError(f"No se encontraron impuestos para el producto {move.product_id.display_name} en la compañía {company_id.name}")
+                raise UserError(f"No se encontraron impuestos para el producto {product.display_name} en la compañía {company_id.name}")
 
             invoice_vals['tax_ids'] = [(6, 0, taxes.ids)] if company_id.id != 1 else False
 
-            # Si es Producción B (ID 1), aplicar precio con IVA incluido y sin impuestos
+            # Si es Producción B (ID 1), aplicar IVA incluido y sin impuestos
             if company_id.id == 1:
                 invoice_vals['price_unit'] *= 1.21
                 invoice_vals['tax_ids'] = False
@@ -203,13 +207,14 @@ class StockPickingInherit(models.Model):
             invoice_vals['invoice_line_ids'] = invoice_lines
             invoice_vals['company_id'] = company_id.id
 
-            self.validate_picking_multicompany_integrity(self.company_id)
+            # Validación extra para evitar errores multiempresa
+            self.validate_picking_multicompany_integrity(company_id)
 
-            # Crear factura con contexto forzado a la compañía del picking
+            # Crear factura en el contexto correcto
             invoice = self.env['account.move'].with_company(company_id).create(invoice_vals)
             invoices += invoice
 
-        # Relacionar con la transferencia
+        # Relacionar con el picking
         invoices.write({
             'invoice_origin': self.origin or self.name,
         })
@@ -228,6 +233,7 @@ class StockPickingInherit(models.Model):
             'view_mode': 'tree,form',
             'domain': [('id', 'in', invoices.ids)],
         }
+
 
 
     def _prepare_invoice_base_vals(self, company):
