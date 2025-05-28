@@ -142,7 +142,7 @@ class StockPickingInherit(models.Model):
 
         for move in self.move_ids_without_package.filtered(lambda m: m.sale_line_id):
             move.sale_line_id.qty_invoiced += move.quantity_done
-            move.state = 'invoiced'
+            move.invoice_state = 'invoiced'
 
         return {
             'name': "Facturas generadas",
