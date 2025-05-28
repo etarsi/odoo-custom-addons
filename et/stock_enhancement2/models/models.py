@@ -151,6 +151,79 @@ class StockPickingInherit(models.Model):
             'view_mode': 'tree,form',
             'domain': [('id', 'in', invoices.ids)],
         }
+    
+    def action_create_invoice_from_picking2(self):
+        self.ensure_one()
+
+        SaleOrder = self.sale_id
+        if not SaleOrder:
+            raise UserError("La transferencia no está vinculada a ningún pedido de venta.")
+
+        proportion = 1.0
+
+        company_id = self.company_id
+
+        invoice_lines = []
+        sequence = 1
+
+        for move in self.move_ids_without_package:
+            base_vals = move.sale_line_id._prepare_invoice_line(sequence=sequence)
+
+            if proportion > 0:
+                invoice_vals = base_vals.copy()
+                invoice_vals['quantity'] = move.quantity_done * proportion
+                invoice_vals['tax_ids'] = [(6, 0, move.product_id.taxes_id.filtered(
+                    lambda t: t.company_id.id == company_id.id).ids)]
+                invoice_lines.append((0, 0, invoice_vals))
+
+                if company_id.id == 1:
+                    invoice_vals['tax_ids'] = False
+                    invoice_lines['price_unit'] *= 1.21
+
+                    # # Asignar journal correcto
+                    # journal = self.env['account.journal'].search([
+                    #     ('type', '=', 'sale'),
+                    #     ('company_id', '=', company_id.id)
+                    # ], limit=1)
+                    # if not journal:
+                    #     raise UserError("No se encontró un diario de ventas para Producción B.")
+                    # vals_blanco['journal_id'] = journal.id
+
+                    # # Limpiar partner_bank si no es válido
+                    # if vals_blanco.get('partner_bank_id'):
+                    #     bank = self.env['res.partner.bank'].browse(vals_blanco['partner_bank_id'])
+                    #     if bank.company_id and bank.company_id != company_id:
+                    #         vals_blanco['partner_bank_id'] = False
+
+            sequence += 1
+
+        invoices = self.env['account.move']
+
+        # Crear factura
+        if invoice_lines:
+            vals_invoice = self._prepare_invoice_base_vals(company_id)
+            vals_invoice['invoice_line_ids'] = invoice_lines
+            invoices += self.env['account.move'].create(vals_invoice)
+
+
+        # Relacionar con la transferencia
+        invoices.write({
+            'invoice_origin': self.origin or self.name,
+        })
+
+        self.invoice_ids = [(6, 0, invoices.ids)]
+
+        for move in self.move_ids_without_package.filtered(lambda m: m.sale_line_id):
+            move.sale_line_id.qty_invoiced += move.quantity_done
+            move.state = 'invoiced'
+
+        return {
+            'name': "Facturas generadas",
+            'type': 'ir.actions.act_window',
+            'res_model': 'account.move',
+            'view_mode': 'tree,form',
+            'domain': [('id', 'in', invoices.ids)],
+        }
 
     def _prepare_invoice_base_vals(self, company):
         partner = self.partner_id
