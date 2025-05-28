@@ -158,7 +158,6 @@ class StockPickingInherit(models.Model):
         }
     
     def action_create_invoice_from_picking2(self):
-        self = self.with_company(self.company_id)
         self.ensure_one()
 
         SaleOrder = self.sale_id
@@ -191,23 +190,6 @@ class StockPickingInherit(models.Model):
 
                 invoice_lines.append((0, 0, invoice_vals))
 
-                
-
-                    # # Asignar journal correcto
-                    # journal = self.env['account.journal'].search([
-                    #     ('type', '=', 'sale'),
-                    #     ('company_id', '=', company_id.id)
-                    # ], limit=1)
-                    # if not journal:
-                    #     raise UserError("No se encontró un diario de ventas para Producción B.")
-                    # vals_blanco['journal_id'] = journal.id
-
-                    # # Limpiar partner_bank si no es válido
-                    # if vals_blanco.get('partner_bank_id'):
-                    #     bank = self.env['res.partner.bank'].browse(vals_blanco['partner_bank_id'])
-                    #     if bank.company_id and bank.company_id != company_id:
-                    #         vals_blanco['partner_bank_id'] = False
-
             sequence += 1
 
         invoices = self.env['account.move']
@@ -216,7 +198,10 @@ class StockPickingInherit(models.Model):
         if invoice_lines:
             vals_invoice = self._prepare_invoice_base_vals(company_id)
             vals_invoice['invoice_line_ids'] = invoice_lines
-            invoices += self.env['account.move'].create(vals_invoice)
+            vals_invoice['company_id'] = self.company_id.id  # <- obligatorio
+            invoices += self.env['account.move'].with_company(self.company_id).create(vals_invoice)
+
+
 
 
         # Relacionar con la transferencia
