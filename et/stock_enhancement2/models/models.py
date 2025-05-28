@@ -206,7 +206,7 @@ class StockPickingInherit(models.Model):
             invoice_vals['company_id'] = company_id.id
             invoice_vals['currency_id'] = sale_order.currency_id.id
 
-            raise UserError('1')
+            # raise UserError('1')
         
             invoice = self.env['account.move'].with_company(company_id).create(invoice_vals)
             invoices += invoice
