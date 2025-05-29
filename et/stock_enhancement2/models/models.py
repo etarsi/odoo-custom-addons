@@ -9,6 +9,7 @@ import logging
 import math
 import requests
 from itertools import groupby
+from datetime import timedelta
 
 _logger = logging.getLogger(__name__)
 
@@ -93,18 +94,18 @@ class StockPickingInherit(models.Model):
             if proportion_blanco > 0:
                 blanco_vals = base_vals.copy()
                 blanco_vals['quantity'] = qty_blanco
-                taxes = move.sale_line_id.tax_id.filtered(lambda t: t.company_id.id == self.company.id)
 
-                blanco_vals['tax_ids'] = [(6, 0, move.product_id.taxes_id.filtered(
-                    lambda t: t.company_id.id == company_blanca.id).ids)]
+                taxes = move.sale_line_id.tax_id.filtered(lambda t: t.company_id.id == self.company.id)
+                blanco_vals['tax_ids'] = [(6, 0, taxes.ids)] if taxes else False
+
+
                 invoice_lines_blanco.append((0, 0, blanco_vals))
 
             if proportion_negro > 0:
                 negro_vals = base_vals.copy()
                 negro_vals['quantity'] = qty_negro
                 negro_vals['price_unit'] *= 1.21
-                negro_vals['tax_ids'] = [(6, 0, move.product_id.taxes_id.filtered(
-                    lambda t: t.company_id.id == company_negra.id).ids)]
+                negro_vals['tax_ids'] = False
                 invoice_lines_negro.append((0, 0, negro_vals))
 
             sequence += 1
@@ -115,10 +116,12 @@ class StockPickingInherit(models.Model):
         if invoice_lines_blanco:            
             vals_blanco = self._prepare_invoice_base_vals(company_blanca)
 
-            vals_blanco['partner_bank_id'] = False
-            if self.l10n_latam_document_type_id.code == 201:
-                res_partner_bank = self.env['res.partner.bank'].search([('bank_name', '=', 'Banco Industrial S.A.'), ('company_id', '=', company_blanca)])
-                vals_blanco['partner_bank_id'] = res_partner_bank
+            if self.l10n_latam_document_type_id.code == '201':
+                res_partner_bank = self.env['res.partner.bank'].search([
+                    ('bank_name', '=', 'Banco Industrial S.A.'),
+                    ('company_id', '=', self.company_id.id)
+                ], limit=1)
+                vals_blanco['partner_bank_id'] = res_partner_bank.id if res_partner_bank else False
 
             vals_blanco['invoice_line_ids'] = invoice_lines_blanco
             vals_blanco['invoice_user_id'] = self.sale_id.user_id
@@ -206,13 +209,16 @@ class StockPickingInherit(models.Model):
         invoice_vals['invoice_user_id'] = self.sale_id.user_id
         invoice_vals['invoice_line_ids'] = invoice_lines
         invoice_vals['company_id'] = company.id
+        invoice_vals['partner_bank_id'] = False
+        
+        if self.l10n_latam_document_type_id.code == '201':
+            res_partner_bank = self.env['res.partner.bank'].search([
+                ('bank_name', '=', 'Banco Industrial S.A.'),
+                ('company_id', '=', self.company_id.id)
+            ], limit=1)
+            invoice_vals['partner_bank_id'] = res_partner_bank.id if res_partner_bank else False
 
-        # Validaciones y ajustes
-        if invoice_vals.get('partner_bank_id'):
-            bank = self.env['res.partner.bank'].browse(invoice_vals['partner_bank_id'])
-            if bank.company_id and bank.company_id != company:
-                invoice_vals['partner_bank_id'] = False
-
+       
         if not invoice_vals.get('journal_id'):
             journal = self.env['account.journal'].search([
                 ('type', '=', 'sale'),
@@ -248,16 +254,30 @@ class StockPickingInherit(models.Model):
 
     def _prepare_invoice_base_vals(self, company):
         partner = self.partner_id
+        invoice_date_due = fields.Date.context_today(self)
+
+        if self.sale_id.payment_term_id:
+            extra_days = max(self.sale_id.payment_term_id.line_ids.mapped('days') or [0])
+            invoice_date_due = self.set_due_date_plus_x(extra_days)
+        
+        
         return {
             'move_type': 'out_invoice',
             'partner_id': partner.id,
             'invoice_date': fields.Date.context_today(self),
+            'invoice_date_due':invoice_date_due,
             'company_id': company.id,
             'currency_id': company.currency_id.id,
             'invoice_origin': self.origin or self.name,
             'payment_reference': self.name,
             'fiscal_position_id': partner.property_account_position_id.id,
+            'payment_term_id':self.sale_id.payment_term_id,
         }
+    
+    def set_due_date_plus_x(self, x):
+        today = fields.Date.context_today(self)
+        new_date = today + timedelta(days=x)
+        return new_date
 
     def _validate_invoice_vals_company_consistency(self, invoice_vals, expected_company):
         """
