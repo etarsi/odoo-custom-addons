@@ -93,7 +93,7 @@ class StockPickingInherit(models.Model):
             if proportion_blanco > 0:
                 blanco_vals = base_vals.copy()
                 blanco_vals['quantity'] = qty_blanco
-                taxes = move.sale_line_id.tax_id.filtered(lambda t: t.company_id.id == company.id)
+                taxes = move.sale_line_id.tax_id.filtered(lambda t: t.company_id.id == self.company.id)
 
                 blanco_vals['tax_ids'] = [(6, 0, move.product_id.taxes_id.filtered(
                     lambda t: t.company_id.id == company_blanca.id).ids)]
