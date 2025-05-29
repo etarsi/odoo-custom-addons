@@ -271,7 +271,7 @@ class StockPickingInherit(models.Model):
             'invoice_origin': self.origin or self.name,
             'payment_reference': self.name,
             'fiscal_position_id': partner.property_account_position_id.id,
-            'payment_term_id':self.sale_id.payment_term_id,
+            'invoice_payment_term_id':self.sale_id.payment_term_id,
         }
     
     def set_due_date_plus_x(self, x):
