@@ -93,6 +93,8 @@ class StockPickingInherit(models.Model):
             if proportion_blanco > 0:
                 blanco_vals = base_vals.copy()
                 blanco_vals['quantity'] = qty_blanco
+                taxes = move.sale_line_id.tax_id.filtered(lambda t: t.company_id.id == company.id)
+
                 blanco_vals['tax_ids'] = [(6, 0, move.product_id.taxes_id.filtered(
                     lambda t: t.company_id.id == company_blanca.id).ids)]
                 invoice_lines_blanco.append((0, 0, blanco_vals))
@@ -110,15 +112,23 @@ class StockPickingInherit(models.Model):
         invoices = self.env['account.move']
 
         # Crear factura blanca
-        if invoice_lines_blanco:
+        if invoice_lines_blanco:            
             vals_blanco = self._prepare_invoice_base_vals(company_blanca)
+
+            vals_blanco['partner_bank_id'] = False
+            if self.l10n_latam_document_type_id.code == 201:
+                res_partner_bank = self.env['res.partner.bank'].search([('bank_name', '=', 'Banco Industrial S.A.'), ('company_id', '=', company_blanca)])
+                vals_blanco['partner_bank_id'] = res_partner_bank
+
             vals_blanco['invoice_line_ids'] = invoice_lines_blanco
+            vals_blanco['invoice_user_id'] = self.sale_id.user_id
             invoices += self.env['account.move'].create(vals_blanco)
 
         # Crear factura negra
         if invoice_lines_negro:
             vals_negro = self._prepare_invoice_base_vals(company_negra)
             vals_negro['invoice_line_ids'] = invoice_lines_negro
+            vals_negro['invoice_user_id'] = self.sale_id.user_id
 
             # Asignar journal correcto
             journal = self.env['account.journal'].search([
@@ -128,12 +138,7 @@ class StockPickingInherit(models.Model):
             if not journal:
                 raise UserError("No se encontró un diario de ventas para Producción B.")
             vals_negro['journal_id'] = journal.id
-
-            # Limpiar partner_bank si no es válido
-            if vals_negro.get('partner_bank_id'):
-                bank = self.env['res.partner.bank'].browse(vals_negro['partner_bank_id'])
-                if bank.company_id and bank.company_id != company_negra:
-                    vals_negro['partner_bank_id'] = False
+            vals_negro['partner_bank_id'] = False
 
             invoices += self.env['account.move'].create(vals_negro)
 
@@ -197,6 +202,7 @@ class StockPickingInherit(models.Model):
             raise UserError("No se encontraron l\u00edneas facturables en la transferencia.")
 
         invoice_vals = self._prepare_invoice_base_vals(company)
+        invoice_vals['invoice_user_id'] = self.sale_id.user_id
         invoice_vals['invoice_line_ids'] = invoice_lines
         invoice_vals['company_id'] = company.id
 
@@ -250,11 +256,8 @@ class StockPickingInherit(models.Model):
             'invoice_date': fields.Date.context_today(self),
             'company_id': company.id,
             'currency_id': company.currency_id.id,
-            'invoice_user_id': self.env.user.id,
             'invoice_origin': self.origin or self.name,
             'payment_reference': self.name,
-            'invoice_payment_term_id': partner.property_payment_term_id.id,
-            'partner_bank_id': partner.bank_ids.filtered(lambda b: b.company_id == company)[:1].id,
             'fiscal_position_id': partner.property_account_position_id.id,
         }
 
