@@ -187,7 +187,8 @@ class StockPickingInherit(models.Model):
             line_vals['company_id'] = company.id
             line_vals['quantity'] = move.quantity_done
 
-            taxes = move.product_id.taxes_id.filtered(lambda t: t.company_id.id == company.id)
+            # Tomar impuestos directamente desde la línea del pedido de venta, no desde el producto
+            taxes = move.sale_line_id.tax_id.filtered(lambda t: t.company_id.id == company.id)
             if company.id == 1:
                 # Si es Producci\u00f3n B, sin impuestos y con precio con IVA incluido
                 line_vals['tax_ids'] = False
@@ -242,9 +243,6 @@ class StockPickingInherit(models.Model):
             'view_mode': 'tree,form',
             'domain': [('id', '=', invoice.id)],
         }
-
-
-
 
 
 
