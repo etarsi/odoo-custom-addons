@@ -116,12 +116,12 @@ class StockPickingInherit(models.Model):
         if invoice_lines_blanco:            
             vals_blanco = self._prepare_invoice_base_vals(company_blanca)
 
-            if self.l10n_latam_document_type_id.code == '201':
-                res_partner_bank = self.env['res.partner.bank'].search([
-                    ('bank_name', '=', 'Banco Industrial S.A.'),
-                    ('company_id', '=', self.company_id.id)
-                ], limit=1)
-                vals_blanco['partner_bank_id'] = res_partner_bank.id if res_partner_bank else False
+            # if self.sale_id.l10n_latam_document_type_id.code == '201':
+            #     res_partner_bank = self.env['res.partner.bank'].search([
+            #         ('bank_name', '=', 'Banco Industrial S.A.'),
+            #         ('company_id', '=', self.company_id.id)
+            #     ], limit=1)
+            #     vals_blanco['partner_bank_id'] = res_partner_bank.id if res_partner_bank else False
 
             vals_blanco['invoice_line_ids'] = invoice_lines_blanco
             vals_blanco['invoice_user_id'] = self.sale_id.user_id
@@ -211,12 +211,12 @@ class StockPickingInherit(models.Model):
         invoice_vals['company_id'] = company.id
         invoice_vals['partner_bank_id'] = False
         
-        if self.l10n_latam_document_type_id.code == '201':
-            res_partner_bank = self.env['res.partner.bank'].search([
-                ('bank_name', '=', 'Banco Industrial S.A.'),
-                ('company_id', '=', self.company_id.id)
-            ], limit=1)
-            invoice_vals['partner_bank_id'] = res_partner_bank.id if res_partner_bank else False
+        # if self.l10n_latam_document_type_id.code == '201':
+        #     res_partner_bank = self.env['res.partner.bank'].search([
+        #         ('bank_name', '=', 'Banco Industrial S.A.'),
+        #         ('company_id', '=', self.company_id.id)
+        #     ], limit=1)
+        #     invoice_vals['partner_bank_id'] = res_partner_bank.id if res_partner_bank else False
 
        
         if not invoice_vals.get('journal_id'):
