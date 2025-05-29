@@ -95,7 +95,7 @@ class StockPickingInherit(models.Model):
                 blanco_vals = base_vals.copy()
                 blanco_vals['quantity'] = qty_blanco
 
-                taxes = move.sale_line_id.tax_id.filtered(lambda t: t.company_id.id == self.company.id)
+                taxes = move.sale_line_id.tax_id.filtered(lambda t: t.company_id.id == self.company_id.id)
                 blanco_vals['tax_ids'] = [(6, 0, taxes.ids)] if taxes else False
 
 
@@ -263,7 +263,7 @@ class StockPickingInherit(models.Model):
         
         return {
             'move_type': 'out_invoice',
-            'partner_id': partner.id,
+            'partner_id': self.sale_id.partner_id,
             'invoice_date': fields.Date.context_today(self),
             'invoice_date_due':invoice_date_due,
             'company_id': company.id,
