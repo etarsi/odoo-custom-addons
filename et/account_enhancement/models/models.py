@@ -51,13 +51,24 @@ class AccountMoveInherit(models.Model):
                     sale_price = order_prices[inv_line.product_id.id]
                     if inv_line.price_unit != sale_price:
                         inv_line.price_unit = sale_price
-                        inv_line._onchange_price_subtotal()  # <- recalcula el subtotal y total
+                        inv_line._onchange_price_subtotal()
+                        _logger.info('---------------------')
+                        _logger.info('---------------------')
+                        _logger.info('---------------------')
+                        _logger.info('---------------------')
+                        _logger.info('---------------------')
+
                         cambios += 1
 
             if cambios:
+                record.invalidate_cache()
+                if hasattr(record, '_recompute_dynamic_lines'):
+                    record._recompute_dynamic_lines()
                 record._onchange_invoice_line_ids()
                 record._compute_amount()
                 record.write({})
+                record.invalidate_cache()
+
 
 
 
