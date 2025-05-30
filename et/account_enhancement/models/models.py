@@ -24,6 +24,40 @@ class AccountMoveInherit(models.Model):
         string='Remitos relacionados'
     )
 
+    def corregir_precios(self):
+        for record in self:
+            sale_order = False
+            if record.invoice_origin:
+                sale_order = self.env['sale.order'].search([('name', '=', record.invoice_origin)], limit=1)
+            if not sale_order:
+                continue
+
+            tipo = sale_order.condicion_m2m
+            tipo_nombre = tipo and tipo.name or ''
+            if tipo_nombre.upper().strip() != 'TIPO 3':
+                continue
+
+            order_prices = {
+                line.product_id.id: line.price_unit
+                for line in sale_order.order_line
+            }
+
+            cambios = False
+            for inv_line in record.invoice_line_ids:
+                if inv_line.product_id and inv_line.product_id.id in order_prices:
+                    sale_price = order_prices[inv_line.product_id.id]
+                    if inv_line.price_unit != sale_price:
+                        inv_line.price_unit = sale_price  # <---- así!
+                        cambios = True
+
+            # Solo recalcular si hubo cambios
+            if cambios:
+                for line in record.invoice_line_ids:
+                    line._onchange_price_subtotal()
+                record._onchange_invoice_line_ids()
+                record._compute_amount()
+                record.write({})
+
     # invoice_incoterm_id = fields.Many2one('account.incoterms', default=lambda self: self._default_incoterm())
 
     # def _default_incoterm(self):
@@ -42,7 +76,7 @@ class AccountMoveInherit(models.Model):
     def _onchange_document_type(self):
             for record in self:
                 if record.l10n_latam_document_type_id.code == 201:
-                    
+
                     res_partner_bank = self.env['res.partner.bank'].search([
                     ('bank_name', '=', 'Banco Industrial S.A.'),
                     ('company_id', '=', record.company_id.id)
