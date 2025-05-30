@@ -26,6 +26,9 @@ class AccountMoveInherit(models.Model):
 
     def corregir_precios(self):
         for record in self:
+            if record.state != 'draft':
+                raise UserError("Solo se pueden corregir precios en facturas en borrador.")
+
             sale_order = False
             if record.invoice_origin:
                 sale_order = self.env['sale.order'].search([('name', '=', record.invoice_origin)], limit=1)
@@ -42,21 +45,23 @@ class AccountMoveInherit(models.Model):
                 for line in sale_order.order_line
             }
 
-            cambios = False
+            cambios = 0
             for inv_line in record.invoice_line_ids:
                 if inv_line.product_id and inv_line.product_id.id in order_prices:
                     sale_price = order_prices[inv_line.product_id.id]
                     if inv_line.price_unit != sale_price:
-                        inv_line.price_unit = sale_price  # <---- así!
-                        cambios = True
+                        inv_line.price_unit = sale_price
+                        inv_line._onchange_price_unit()
+                        inv_line._onchange_quantity()
+                        cambios += 1
 
-            # Solo recalcular si hubo cambios
             if cambios:
-                for line in record.invoice_line_ids:
-                    line._onchange_price_subtotal()
-                record._onchange_invoice_line_ids()
+                # Este método recalcula todas las líneas dinámicamente (Odoo 13+)
+                if hasattr(record, '_recompute_dynamic_lines'):
+                    record._recompute_dynamic_lines()
                 record._compute_amount()
                 record.write({})
+
 
     # invoice_incoterm_id = fields.Many2one('account.incoterms', default=lambda self: self._default_incoterm())
 
