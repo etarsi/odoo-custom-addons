@@ -50,15 +50,16 @@ class AccountMoveInherit(models.Model):
                 if inv_line.product_id and inv_line.product_id.id in order_prices:
                     sale_price = order_prices[inv_line.product_id.id]
                     if inv_line.price_unit != sale_price:
-                        inv_line.price_unit = sale_price
+                        _logger.info(f"ANTES de asignar: {inv_line.name}, price_unit={inv_line.price_unit}, subtotal={inv_line.price_subtotal}")
+                        try:
+                            inv_line.price_unit = sale_price
+                        except Exception as e:
+                            _logger.error(f"ERROR al asignar price_unit en línea {inv_line.name}: {e}")
+                            raise
+                        _logger.info(f"DESPUÉS de asignar: {inv_line.name}, price_unit={inv_line.price_unit}, subtotal={inv_line.price_subtotal}")
                         inv_line._onchange_price_subtotal()
-                        _logger.info('---------------------')
-                        _logger.info('---------------------')
-                        _logger.info('---------------------')
-                        _logger.info('---------------------')
-                        _logger.info('---------------------')
-
                         cambios += 1
+
 
             if cambios:
                 record.invalidate_cache()
