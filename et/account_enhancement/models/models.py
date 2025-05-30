@@ -51,16 +51,14 @@ class AccountMoveInherit(models.Model):
                     sale_price = order_prices[inv_line.product_id.id]
                     if inv_line.price_unit != sale_price:
                         inv_line.price_unit = sale_price
-                        inv_line._onchange_price_unit()
-                        inv_line._onchange_quantity()
+                        inv_line._onchange_price_subtotal()  # <- recalcula el subtotal y total
                         cambios += 1
 
             if cambios:
-                # Este método recalcula todas las líneas dinámicamente (Odoo 13+)
-                if hasattr(record, '_recompute_dynamic_lines'):
-                    record._recompute_dynamic_lines()
+                record._onchange_invoice_line_ids()
                 record._compute_amount()
                 record.write({})
+
 
 
     # invoice_incoterm_id = fields.Many2one('account.incoterms', default=lambda self: self._default_incoterm())
