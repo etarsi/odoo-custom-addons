@@ -104,7 +104,12 @@ class StockPickingInherit(models.Model):
             if proportion_negro > 0:
                 negro_vals = base_vals.copy()
                 negro_vals['quantity'] = qty_negro
-                negro_vals['price_unit'] *= 1.21
+                
+                if tipo == 'TIPO 3':
+                    negro_vals['price_unit'] *= 1
+                else:
+                    negro_vals['price_unit'] *= 1.21
+                
                 negro_vals['tax_ids'] = False
                 invoice_lines_negro.append((0, 0, negro_vals))
 
@@ -116,15 +121,9 @@ class StockPickingInherit(models.Model):
         if invoice_lines_blanco:            
             vals_blanco = self._prepare_invoice_base_vals(company_blanca)
 
-            if self.sale_id.partner_id.l10n_ar_afip_responsibility_type_id.code == 9:
-                res_partner_bank = self.env['res.partner.bank'].search([
-                    ('bank_name', '=', 'Banco Industrial S.A.'),
-                    ('company_id', '=', self.company_id.id)
-                ], limit=1)
-                vals_blanco['partner_bank_id'] = res_partner_bank.id if res_partner_bank else False
-
             vals_blanco['invoice_line_ids'] = invoice_lines_blanco
             vals_blanco['invoice_user_id'] = self.sale_id.user_id
+            vals_blanco['partner_bank_id'] = False
             invoices += self.env['account.move'].create(vals_blanco)
 
         # Crear factura negra
@@ -194,10 +193,14 @@ class StockPickingInherit(models.Model):
             taxes = move.sale_line_id.tax_id.filtered(lambda t: t.company_id.id == company.id)
             if company.id == 1:
                 # Si es Producci\u00f3n B, sin impuestos y con precio con IVA incluido
-                line_vals['tax_ids'] = False
-                line_vals['price_unit'] *= 1.21
+                line_vals['tax_ids'] = False        
             else:
                 line_vals['tax_ids'] = [(6, 0, taxes.ids)] if taxes else False
+
+            if tipo == 'TIPO 3':
+                line_vals['price_unit'] *= 1
+            else:
+                line_vals['price_unit'] *= 1.21
 
             invoice_lines.append((0, 0, line_vals))
             sequence += 1
@@ -220,13 +223,6 @@ class StockPickingInherit(models.Model):
             if not journal:
                 raise UserError(f"No se encontr\u00f3 un diario de ventas para la compa\u00f1\u00eda {company.name}.")
             invoice_vals['journal_id'] = journal.id
-
-        if self.sale_id.partner_id.l10n_ar_afip_responsibility_type_id.code == 9:
-                res_partner_bank = self.env['res.partner.bank'].search([
-                    ('bank_name', '=', 'Banco Industrial S.A.'),
-                    ('company_id', '=', self.company_id.id)
-                ], limit=1)
-                invoice_vals['partner_bank_id'] = res_partner_bank.id if res_partner_bank else False
 
         invoice = self.env['account.move'].with_company(company).create(invoice_vals)
 

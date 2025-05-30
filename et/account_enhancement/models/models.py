@@ -36,6 +36,20 @@ class AccountMoveInherit(models.Model):
                 if record.journal_id.code == '00011':
                     invoice_incoterm_id = self.env['account.incoterms'].search([('code', '=', 'FAS')], limit=1).id
                     record.invoice_incoterm_id = invoice_incoterm_id
+            
+            
+    @api.onchange('l10n_latam_document_type_id')
+    def _onchange_document_type(self):
+            for record in self:
+                if record.l10n_latam_document_type_id.code == 201:
+                    
+                    res_partner_bank = self.env['res.partner.bank'].search([
+                    ('bank_name', '=', 'Banco Industrial S.A.'),
+                    ('company_id', '=', record.company_id.id)
+                    ], limit=1)
+
+                    record.partner_bank_id = res_partner_bank.id if res_partner_bank else False
+
 
     @api.onchange('partner_id')
     def _onchange_journal_gc(self):
