@@ -25,50 +25,40 @@ class AccountMoveInherit(models.Model):
     )
 
     def corregir_precios(self):
-        for record in self:
-            if record.state != 'draft':
-                raise UserError("Solo se pueden corregir precios en facturas en borrador.")
+    for record in self:
+        if record.state != 'draft':
+            raise UserError("Solo se pueden corregir precios en facturas en borrador.")
 
-            sale_order = False
-            if record.invoice_origin:
-                sale_order = self.env['sale.order'].search([('name', '=', record.invoice_origin)], limit=1)
-            if not sale_order:
-                continue
+        sale_order = False
+        if record.invoice_origin:
+            sale_order = self.env['sale.order'].search([('name', '=', record.invoice_origin)], limit=1)
+        if not sale_order:
+            continue
 
-            tipo = sale_order.condicion_m2m
-            tipo_nombre = tipo and tipo.name or ''
-            if tipo_nombre.upper().strip() != 'TIPO 3':
-                continue
+        tipo = sale_order.condicion_m2m
+        tipo_nombre = tipo and tipo.name or ''
+        if tipo_nombre.upper().strip() != 'TIPO 3':
+            continue
 
-            order_prices = {
-                line.product_id.id: line.price_unit
-                for line in sale_order.order_line
-            }
+        order_prices = {
+            line.product_id.id: line.price_unit
+            for line in sale_order.order_line
+        }
 
-            cambios = 0
-            for inv_line in record.invoice_line_ids:
-                if inv_line.product_id and inv_line.product_id.id in order_prices:
-                    sale_price = order_prices[inv_line.product_id.id]
-                    if inv_line.price_unit != sale_price:
-                        _logger.info(f"ANTES de asignar: {inv_line.name}, price_unit={inv_line.price_unit}, subtotal={inv_line.price_subtotal}")
-                        try:
-                            inv_line.price_unit = sale_price
-                        except Exception as e:
-                            _logger.error(f"ERROR al asignar price_unit en línea {inv_line.name}: {e}")
-                            raise
-                        _logger.info(f"DESPUÉS de asignar: {inv_line.name}, price_unit={inv_line.price_unit}, subtotal={inv_line.price_subtotal}")
-                        inv_line._onchange_price_subtotal()
-                        cambios += 1
+        lines_to_update = []
+        for inv_line in record.invoice_line_ids:
+            if inv_line.product_id and inv_line.product_id.id in order_prices:
+                sale_price = order_prices[inv_line.product_id.id]
+                if inv_line.price_unit != sale_price:
+                    lines_to_update.append((1, inv_line.id, {'price_unit': sale_price}))
 
+        if lines_to_update:
+            record.write({'invoice_line_ids': lines_to_update})
+            if hasattr(record, '_recompute_dynamic_lines'):
+                record._recompute_dynamic_lines()
+            record._compute_amount()
+            record.write({})
 
-            if cambios:
-                record.invalidate_cache()
-                if hasattr(record, '_recompute_dynamic_lines'):
-                    record._recompute_dynamic_lines()
-                record._onchange_invoice_line_ids()
-                record._compute_amount()
-                record.write({})
-                record.invalidate_cache()
 
 
 
