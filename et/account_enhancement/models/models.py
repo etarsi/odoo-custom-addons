@@ -80,7 +80,7 @@ class AccountMoveInherit(models.Model):
     @api.onchange('l10n_latam_document_type_id')
     def _onchange_document_type(self):
             for record in self:
-                if record.l10n_latam_document_type_id.code == 201:
+                if record.l10n_latam_document_type_id.code == '201':
 
                     res_partner_bank = self.env['res.partner.bank'].search([
                     ('bank_name', '=', 'Banco Industrial S.A.'),
