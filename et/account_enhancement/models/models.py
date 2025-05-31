@@ -87,7 +87,10 @@ class AccountMoveInherit(models.Model):
                     ('company_id', '=', record.company_id.id)
                     ], limit=1)
 
-                    record.partner_bank_id = res_partner_bank.id if res_partner_bank else False
+                    if res_partner_bank:
+                        record.partner_bank_id = res_partner_bank.id
+                    else:
+                        raise UserError('No se encontró banco destinatario, asignar manualmente')
 
 
     @api.onchange('partner_id')
@@ -114,7 +117,7 @@ class AccountPaymentInherit(models.Model):
     hide_issue_date = fields.Boolean(default=True)
     no_diferido = fields.Boolean('No diferido', default=False)
     no_a_la_orden = fields.Boolean('No a la Orden', default=False)
-
+    # check_state = fields.Char('Estado de Cheque', compute='_compute_check_state()')
 
     @api.onchange('no_diferido')
     def _onchange_no_diferido(self):
