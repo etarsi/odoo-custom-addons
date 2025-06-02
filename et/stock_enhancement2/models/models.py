@@ -268,7 +268,7 @@ class StockPickingInherit(models.Model):
             'payment_reference': self.name,
             'fiscal_position_id': partner.property_account_position_id.id,
             'invoice_payment_term_id': self.sale_id.payment_term_id,
-            'wms_code': self.wms_code,
+            'wms_code': self.codigo_wms,
         }
     
     def set_due_date_plus_x(self, x):
