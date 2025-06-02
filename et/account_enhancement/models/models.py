@@ -147,10 +147,12 @@ class AccountPaymentInherit(models.Model):
     def action_reject_check(self):
         for rec in self:
             rec.rejected = True
+            rec._compute_check_state()
 
     def action_undo_reject_check(self):
         for rec in self:
             rec.rejected = False
+            rec._compute_check_state()
 
     @api.onchange('no_diferido')
     def _onchange_no_diferido(self):
