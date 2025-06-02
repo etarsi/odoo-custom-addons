@@ -8,6 +8,8 @@ class AccountMoveInherit(models.Model):
     _inherit = 'account.move'
 
     wms_code_ids = fields.Many2many("wms.code", string="Códigos WMS")
+
+
     executive_id = fields.Many2one(
         'res.users',
         string="Ejecutivo de Cuenta",
@@ -117,7 +119,36 @@ class AccountPaymentInherit(models.Model):
     hide_issue_date = fields.Boolean(default=True)
     no_diferido = fields.Boolean('No diferido', default=False)
     no_a_la_orden = fields.Boolean('No a la Orden', default=False)
-    # check_state = fields.Char('Estado de Cheque', compute='_compute_check_state()')
+    rejected = fields.Boolean('Cheque Rechazado', default=False)
+    check_state = fields.Char(
+        string="Estado del Cheque",
+        compute='_compute_check_state',
+        store=True,
+        readonly=True
+    )
+
+    @api.depends('l10n_latam_check_current_journal_id')
+    def _compute_check_state(self):
+        for rec in self:
+            if rec.rejected:
+                rec.check_state = 'Rechazado'
+            elif rec.l10n_latam_check_current_journal_id:
+                journal_code = rec.l10n_latam_check_current_journal_id.code
+                journal_type = rec.l10n_latam_check_current_journal_id.type
+                if journal_code in ('CSH3', 'CSH5', 'ECHEQ'):
+                    rec.check_state = 'En Cartera'
+                elif journal_type == 'bank':
+                    rec.check_state = 'Depositado'
+            else:
+                rec.check_state = 'Entregado'
+
+    def action_reject_check(self):
+        for rec in self:
+            rec.rejected = True
+
+    def action_undo_reject_check(self):
+        for rec in self:
+            rec.rejected = False
 
     @api.onchange('no_diferido')
     def _onchange_no_diferido(self):
