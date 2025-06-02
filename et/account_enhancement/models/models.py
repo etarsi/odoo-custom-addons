@@ -126,6 +126,8 @@ class AccountPaymentInherit(models.Model):
         store=True,
         readonly=True
     )
+    journal_code = fields.Char(related='journal_id.code', store=True)
+
 
     @api.depends('l10n_latam_check_current_journal_id')
     def _compute_check_state(self):
