@@ -259,7 +259,7 @@ class StockPickingInherit(models.Model):
         
         return {
             'move_type': 'out_invoice',
-            'partner_id': self.sale_id.partner_id,
+            'partner_id': self.sale_id.partner_invoice_id,
             'invoice_date': fields.Date.context_today(self),
             'invoice_date_due': invoice_date_due,
             'company_id': company.id,
