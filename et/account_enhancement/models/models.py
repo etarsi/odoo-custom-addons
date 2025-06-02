@@ -7,7 +7,7 @@ _logger = logging.getLogger(__name__)
 class AccountMoveInherit(models.Model):
     _inherit = 'account.move'
 
-    wms_code_ids = fields.Many2many("wms.code", string="Códigos WMS")
+    wms_code = fields.Char(string="Código WMS")
 
 
     executive_id = fields.Many2one(
@@ -61,14 +61,6 @@ class AccountMoveInherit(models.Model):
                 record._compute_amount()
                 record.write({})
 
-
-
-
-
-    # invoice_incoterm_id = fields.Many2one('account.incoterms', default=lambda self: self._default_incoterm())
-
-    # def _default_incoterm(self):
-    #     return self.env['account.incoterms'].search([('code', '=', 'FAS')], limit=1).id
     
     @api.onchange('journal_id')
     def _onchange_journal_id(self):
@@ -317,7 +309,6 @@ class SaleOrderInherit(models.Model):
             'transaction_ids': [(6, 0, self.transaction_ids.ids)],
             'invoice_line_ids': [],
             'company_id': self.company_id.id,
-            'wms_code_ids': wms_records,
         }
         return invoice_vals
     
