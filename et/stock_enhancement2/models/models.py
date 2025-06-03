@@ -94,7 +94,7 @@ class StockPickingInherit(models.Model):
             if proportion_blanco > 0:
                 blanco_vals = base_vals.copy()
                 blanco_vals['quantity'] = qty_blanco
-
+                blanco_vals['tax_ids'] = False
                 # taxes = move.sale_line_id.tax_id
                 # blanco_vals['tax_ids'] = [(6, 0, taxes.ids)] if taxes else False
 
