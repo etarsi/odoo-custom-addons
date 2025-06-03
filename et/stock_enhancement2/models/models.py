@@ -78,14 +78,14 @@ class StockPickingInherit(models.Model):
         }.get(tipo, (1.0, 0.0))
 
         company_blanca = self.company_id
-        company_negra = self.env['res.company'].browse(1)  # Producción B (ajustar si cambia)
+        company_negra = self.env['res.company'].browse(1)
 
         invoice_lines_blanco = []
         invoice_lines_negro = []
         sequence = 1
 
         for move in self.move_ids_without_package:
-            base_vals = move.sale_line_id._prepare_invoice_line(sequence=sequence)
+            base_vals = move.sale_line_id.with_company(company_blanca)._prepare_invoice_line(sequence=sequence)
 
             qty_total = move.quantity_done
             qty_blanco = math.floor(qty_total * proportion_blanco)
@@ -189,10 +189,8 @@ class StockPickingInherit(models.Model):
             line_vals['company_id'] = company.id
             line_vals['quantity'] = move.quantity_done
 
-            # Tomar impuestos directamente desde la línea del pedido de venta, no desde el producto
             taxes = move.sale_line_id.tax_id
             if company.id == 1:
-                # Si es Producci\u00f3n B, sin impuestos y con precio con IVA incluido
                 line_vals['tax_ids'] = False        
             else:
                 line_vals['tax_ids'] = [(6, 0, taxes.ids)] if taxes else False
@@ -226,7 +224,6 @@ class StockPickingInherit(models.Model):
 
         invoice = self.env['account.move'].with_company(company).create(invoice_vals)
 
-        # Relacionar con picking
         invoice.write({
             'invoice_origin': self.origin or self.name,
         })
