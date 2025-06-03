@@ -85,7 +85,7 @@ class StockPickingInherit(models.Model):
         sequence = 1
 
         for move in self.move_ids_without_package:
-            base_vals = move.sale_line_id.with_company(company_blanca)._prepare_invoice_line(sequence=sequence)
+            base_vals = move.sale_line_id._prepare_invoice_line(sequence=sequence)
 
             qty_total = move.quantity_done
             qty_blanco = math.floor(qty_total * proportion_blanco)
