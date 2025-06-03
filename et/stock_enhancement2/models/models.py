@@ -124,7 +124,7 @@ class StockPickingInherit(models.Model):
             vals_blanco['invoice_line_ids'] = invoice_lines_blanco
             vals_blanco['invoice_user_id'] = self.sale_id.user_id
             vals_blanco['partner_bank_id'] = False
-            invoices += self.env['account.move'].create(vals_blanco)
+            invoices += self.env['account.move'].with_company(self.company_id).create(vals_blanco)
 
         # Crear factura negra
         if invoice_lines_negro:
@@ -142,7 +142,7 @@ class StockPickingInherit(models.Model):
             vals_negro['journal_id'] = journal.id
             vals_negro['partner_bank_id'] = False
 
-            invoices += self.env['account.move'].create(vals_negro)
+            invoices += self.env['account.move'].with_company(self.company_id).create(vals_negro)
 
         # Relacionar con la transferencia
         invoices.write({
@@ -266,7 +266,7 @@ class StockPickingInherit(models.Model):
             'currency_id': self.sale_id.company_id.currency_id.id,
             'invoice_origin': self.origin or self.name,
             'payment_reference': self.name,
-            'fiscal_position_id': partner.property_account_position_id.id,
+            'fiscal_position_id': self.sale_id.partner_invoice_id.property_account_position_id.id,
             'invoice_payment_term_id': self.sale_id.payment_term_id,
             'wms_code': self.codigo_wms,
         }
@@ -476,11 +476,11 @@ class StockPickingInherit(models.Model):
 
             for move in picking.move_ids_without_package:
                 if move.product_available_percent == 100:
-                    if line_count > 24 or bulto_count >= 15:
+                    if line_count > 29 or bulto_count >= 25:
                         break
                     
                     bulto_qty = bulto_count + move.product_packaging_qty
-                    if bulto_qty <= 20:      
+                    if bulto_qty <= 30:      
                         line_count += 1
                         bulto_count += move.product_packaging_qty
                         selected_moves |= move
