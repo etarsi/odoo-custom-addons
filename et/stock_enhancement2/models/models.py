@@ -95,7 +95,7 @@ class StockPickingInherit(models.Model):
                 blanco_vals = base_vals.copy()
                 blanco_vals['quantity'] = qty_blanco
 
-                taxes = move.sale_line_id.tax_id.filtered(lambda t: t.company_id.id == self.company_id.id)
+                taxes = move.sale_line_id.tax_id
                 blanco_vals['tax_ids'] = [(6, 0, taxes.ids)] if taxes else False
 
 
@@ -184,13 +184,13 @@ class StockPickingInherit(models.Model):
             if not move.sale_line_id:
                 continue
 
-            base_vals = move.sale_line_id.with_company(company)._prepare_invoice_line(sequence=sequence)
+            base_vals = move.sale_line_id._prepare_invoice_line(sequence=sequence)
             line_vals = base_vals.copy()
             line_vals['company_id'] = company.id
             line_vals['quantity'] = move.quantity_done
 
             # Tomar impuestos directamente desde la línea del pedido de venta, no desde el producto
-            taxes = move.sale_line_id.tax_id.filtered(lambda t: t.company_id.id == company.id)
+            taxes = move.sale_line_id.tax_id
             if company.id == 1:
                 # Si es Producci\u00f3n B, sin impuestos y con precio con IVA incluido
                 line_vals['tax_ids'] = False        
@@ -262,8 +262,8 @@ class StockPickingInherit(models.Model):
             'partner_id': self.sale_id.partner_invoice_id,
             'invoice_date': fields.Date.context_today(self),
             'invoice_date_due': invoice_date_due,
-            'company_id': company.id,
-            'currency_id': company.currency_id.id,
+            'company_id': self.sale_id.company_id.id,
+            'currency_id': self.sale_id.company_id.currency_id.id,
             'invoice_origin': self.origin or self.name,
             'payment_reference': self.name,
             'fiscal_position_id': partner.property_account_position_id.id,
