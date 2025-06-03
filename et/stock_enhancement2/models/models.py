@@ -124,7 +124,7 @@ class StockPickingInherit(models.Model):
             vals_blanco['invoice_line_ids'] = invoice_lines_blanco
             vals_blanco['invoice_user_id'] = self.sale_id.user_id
             vals_blanco['partner_bank_id'] = False
-            invoices += self.env['account.move'].with_company(self.company_id).create(vals_blanco)
+            invoices += self.env['account.move'].with_company(company_blanca).create(vals_blanco)
 
         # Crear factura negra
         if invoice_lines_negro:
@@ -142,7 +142,7 @@ class StockPickingInherit(models.Model):
             vals_negro['journal_id'] = journal.id
             vals_negro['partner_bank_id'] = False
 
-            invoices += self.env['account.move'].with_company(self.company_id).create(vals_negro)
+            invoices += self.env['account.move'].with_company(company_negra).create(vals_negro)
 
         # Relacionar con la transferencia
         invoices.write({
