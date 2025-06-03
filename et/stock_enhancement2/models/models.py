@@ -123,14 +123,16 @@ class StockPickingInherit(models.Model):
 
             vals_blanco['invoice_line_ids'] = invoice_lines_blanco
             vals_blanco['invoice_user_id'] = self.sale_id.user_id
-            vals_blanco['partner_bank_id'] = False
+            vals_blanco['partner_bank_id'] = False            
+            vals_blanco['company_id'] = company_blanca
             invoices += self.env['account.move'].with_company(company_blanca).create(vals_blanco)
 
         # Crear factura negra
         if invoice_lines_negro:
             vals_negro = self._prepare_invoice_base_vals(company_negra)
             vals_negro['invoice_line_ids'] = invoice_lines_negro
-            vals_negro['invoice_user_id'] = self.sale_id.user_id
+            vals_negro['invoice_user_id'] = self.sale_id.user_id                        
+            vals_negro['company_id'] = company_negra
 
             # Asignar journal correcto
             journal = self.env['account.journal'].search([
