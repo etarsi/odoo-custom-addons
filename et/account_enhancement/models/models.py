@@ -56,31 +56,32 @@ class AccountMoveInherit(models.Model):
                             invoices_names3.add(record.name)
                         elif sale_order.condicion_m2m.name == 'TIPO 4':
                             invoices_names4.add(record.name)
-        
+
         invoices_t1 = ', '.join(invoices_names1)
         invoices_t2 = ', '.join(invoices_names2)
         invoices_t3 = ', '.join(invoices_names3)
         invoices_t4 = ', '.join(invoices_names4)
-        
-        nc_names1 = set()
+
+        # Asociar NCs con su factura TIPO 1
+        detalle_ncs = []
         if invoices_names1:
-            nc_records = self.env['account.move'].search([
-                ('move_type', '=', 'out_refund'),
-                ('reversed_entry_id.name', 'in', list(invoices_names1))
-            ])
-            nc_names1 = {nc.name for nc in nc_records}
-        ncs_t1 = ', '.join(nc_names1)
-        
+            for factura_name in invoices_names1:
+                ncs = self.env['account.move'].search([
+                    ('move_type', '=', 'out_refund'),
+                    ('reversed_entry_id.name', '=', factura_name)
+                ])
+                for nc in ncs:
+                    detalle_ncs.append(f"{nc.name} - {factura_name}")
+
+        ncs_t1 = '\n'.join(detalle_ncs)  # Un resultado por línea
+
         raise UserError(
-            f'Facturas TIPO 1: {invoices_t1} \n'
-            f'NCs asociadas a TIPO 1: {ncs_t1} \n'
+            f'Facturas TIPO 1: {invoices_t1} \n\n'
+            f'NCs asociadas a TIPO 1:\n{ncs_t1}\n\n'
             f'Facturas TIPO 2: {invoices_t2} \n'
             f'Facturas TIPO 3: {invoices_t3} \n'
             f'Facturas TIPO 4: {invoices_t4}'
         )
-
-
-
 
 
 
