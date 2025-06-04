@@ -209,10 +209,10 @@ class StockPickingInherit(models.Model):
             else:
                 line_vals['tax_ids'] = [(6, 0, taxes.ids)] if taxes else False
 
-            if tipo == 'TIPO 3':
-                line_vals['price_unit'] *= 1.21
-            else:
-                line_vals['price_unit'] *= 1
+            # if tipo == 'TIPO 3':
+            #     line_vals['price_unit'] *= 1.21
+            # else:
+            #     line_vals['price_unit'] *= 1
 
             invoice_lines.append((0, 0, line_vals))
             sequence += 1
