@@ -127,7 +127,17 @@ class StockPickingInherit(models.Model):
             vals_blanco['invoice_user_id'] = self.sale_id.user_id
             vals_blanco['partner_bank_id'] = False            
             vals_blanco['company_id'] = company_blanca.id
-            invoices += self.env['account.move'].create(vals_blanco)
+
+            if not vals_blanco.get('journal_id'):
+                journal = self.env['account.journal'].search([
+                    ('type', '=', 'sale'),
+                    ('company_id', '=', company_blanca.id)
+                ], limit=1)
+                if not journal:
+                    raise UserError(f"No se encontr\u00f3 un diario de ventas para la compa\u00f1\u00eda {company.name}.")
+                vals_blanco['journal_id'] = journal.id
+
+            invoices += self.env['account.move'].with_company(company_blanca).create(vals_blanco)
 
         # Crear factura negra
         if invoice_lines_negro:
