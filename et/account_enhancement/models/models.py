@@ -26,6 +26,34 @@ class AccountMoveInherit(models.Model):
         string='Remitos relacionados'
     )
 
+    def corregir_facturas(self):
+        invoices_names = set()  # Usamos set para evitar duplicados
+
+        for record in self:
+            sale_order = False
+            if record.invoice_origin:
+                sale_order = self.env['sale.order'].search([('name', '=', record.invoice_origin)], limit=1)
+            if not sale_order:
+                continue
+
+            order_prices = {
+                line.product_id.id: line.price_unit
+                for line in sale_order.order_line
+            }
+
+            for line in record.invoice_line_ids:
+                if line.product_id and line.product_id.id in order_prices:
+                    sale_price = order_prices[line.product_id.id]
+                    if line.price_unit != sale_price:
+                        invoices_names.add(record.name)  # Agregamos al set
+
+        if invoices_names:
+            raise UserError(', '.join(invoices_names))  # Mostramos los nombres separados por coma
+
+
+
+
+
     def corregir_precios(self):
         for record in self:
             if record.state != 'draft':
