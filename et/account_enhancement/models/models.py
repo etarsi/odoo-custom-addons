@@ -31,6 +31,7 @@ class AccountMoveInherit(models.Model):
         invoices_names2 = set()
         invoices_names3 = set()
         invoices_names4 = set()
+        detalle_ncs = set()
 
         for record in self:
             sale_order = False
@@ -49,7 +50,14 @@ class AccountMoveInherit(models.Model):
                     sale_price = order_prices[line.product_id.id]
                     if line.price_unit != sale_price:
                         if sale_order.condicion_m2m.name == 'TIPO 1':                            
-                            invoices_names1.add(record.name)
+                            nc = self.env['account.move'].search([
+                                ('move_type', '=', 'out_refund'),
+                                ('reversed_entry_id.name', '=', record.name)
+                            ], limit=1)
+                                                      
+                            if nc:
+                                invoices_names1.add(f"{record.name} - {nc.name}")                            
+
                         elif sale_order.condicion_m2m.name == 'TIPO 2':
                             invoices_names2.add(record.name)
                         elif sale_order.condicion_m2m.name == 'TIPO 3':
@@ -62,18 +70,7 @@ class AccountMoveInherit(models.Model):
         invoices_t3 = ', '.join(invoices_names3)
         invoices_t4 = ', '.join(invoices_names4)
 
-        # Asociar NCs con su factura TIPO 1
-        detalle_ncs = []
-        if invoices_names1:
-            for factura_name in invoices_names1:
-                ncs = self.env['account.move'].search([
-                    ('move_type', '=', 'out_refund'),
-                    ('reversed_entry_id.name', '=', factura_name)
-                ])
-                for nc in ncs:
-                    detalle_ncs.append(f"{nc.name} - {factura_name}")
-
-        ncs_t1 = '\n'.join(detalle_ncs)  # Un resultado por línea
+        ncs_t1 = '\n'.join(invoices_names1)
 
         raise UserError(
             f'Facturas TIPO 1: {invoices_t1} \n\n'

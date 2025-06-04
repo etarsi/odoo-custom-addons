@@ -10,10 +10,4 @@
             action = records.update_available_percent()
         </field>
       </record>
-
-      <record id="admin_group" model="res.groups">
-          <field name="name">Permisos ADMIN</field>
-          <field name="category_id" ref="base.module_category_technical_features"/>
-      </record>
-  </data>
 </odoo>
