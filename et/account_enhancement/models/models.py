@@ -28,6 +28,7 @@ class AccountMoveInherit(models.Model):
 
     def corregir_facturas(self):
         invoices_names1 = set()
+        invoices_names1_nonc = set()
         invoices_names2 = set()
         invoices_names3 = set()
         invoices_names4 = set()
@@ -56,7 +57,9 @@ class AccountMoveInherit(models.Model):
                             ], limit=1)
                                                       
                             if nc:
-                                invoices_names1.add(f"{record.name} - {nc.name}")                            
+                                invoices_names1.add(f"{record.name} - {nc.name}")
+                            else:                                
+                                invoices_names1_nonc.add(f"{record.name}")
 
                         elif sale_order.condicion_m2m.name == 'TIPO 2':
                             invoices_names2.add(record.name)
@@ -65,7 +68,7 @@ class AccountMoveInherit(models.Model):
                         elif sale_order.condicion_m2m.name == 'TIPO 4':
                             invoices_names4.add(record.name)
 
-        invoices_t1 = ', '.join(invoices_names1)
+        invoices_t1 = ', '.join(invoices_names1_nonc)
         invoices_t2 = ', '.join(invoices_names2)
         invoices_t3 = ', '.join(invoices_names3)
         invoices_t4 = ', '.join(invoices_names4)
@@ -73,8 +76,8 @@ class AccountMoveInherit(models.Model):
         ncs_t1 = '\n'.join(invoices_names1)
 
         raise UserError(
-            f'Facturas TIPO 1: {invoices_t1} \n\n'
-            f'NCs asociadas a TIPO 1:\n{ncs_t1}\n\n'
+            f'Facturas TIPO 1 SIN NC: {invoices_t1} \n\n'
+            f'Facturas TIPO 1 CON NC:\n{ncs_t1}\n\n'
             f'Facturas TIPO 2: {invoices_t2} \n'
             f'Facturas TIPO 3: {invoices_t3} \n'
             f'Facturas TIPO 4: {invoices_t4}'
