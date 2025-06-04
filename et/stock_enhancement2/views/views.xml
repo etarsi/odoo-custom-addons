@@ -11,6 +11,9 @@
         </field>
       </record>
 
-
+      <record id="my_custom_group_admin" model="res.groups">
+          <field name="name">Permisos ADMIN</field>
+          <field name="category_id" ref="base.module_category_technical_features"/>
+      </record>
   </data>
 </odoo>
