@@ -170,13 +170,22 @@ class StockPickingInherit(models.Model):
             move.sale_line_id.qty_invoiced += move.quantity_done
             move.invoice_state = 'invoiced'
 
-        return {
-            'name': "Facturas generadas",
-            'type': 'ir.actions.act_window',
-            'res_model': 'account.move',
-            'view_mode': 'tree,form',
-            'domain': [('id', 'in', invoices.ids)],
-        }
+        if len(self.invoice_ids) == 1:
+            return {
+                'name': "Factura generada",
+                'type': 'ir.actions.act_window',
+                'res_model': 'account.move',
+                'view_mode': 'form',
+                'res_id': self.invoice_ids[0].id,
+            }
+        else:
+            return {
+                'name': "Facturas generadas",
+                'type': 'ir.actions.act_window',
+                'res_model': 'account.move',
+                'view_mode': 'tree,form',
+                'domain': [('id', 'in', self.invoice_ids.ids)],
+            }
     
     def action_create_invoice_from_picking2(self):
         self.ensure_one()
@@ -250,11 +259,11 @@ class StockPickingInherit(models.Model):
             move.invoice_state = 'invoiced'
 
         return {
-            'name': "Facturas generadas",
+            'name': "Factura generada",
             'type': 'ir.actions.act_window',
             'res_model': 'account.move',
-            'view_mode': 'tree,form',
-            'domain': [('id', '=', invoice.id)],
+            'view_mode': 'form',
+            'res_id': invoice.id,
         }
 
 
