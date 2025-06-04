@@ -10,4 +10,5 @@
             action = records.update_available_percent()
         </field>
       </record>
+  </data>
 </odoo>
