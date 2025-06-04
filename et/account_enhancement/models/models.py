@@ -68,7 +68,7 @@ class AccountMoveInherit(models.Model):
                         elif sale_order.condicion_m2m.name == 'TIPO 4':
                             invoices_names4.add(record.name)
 
-        invoices_t1 = ', '.join(invoices_names1_nonc)
+        invoices_t1 = '\n'.join(invoices_names1_nonc)
         invoices_t2 = ', '.join(invoices_names2)
         invoices_t3 = ', '.join(invoices_names3)
         invoices_t4 = ', '.join(invoices_names4)
