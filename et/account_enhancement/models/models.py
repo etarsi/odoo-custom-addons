@@ -27,7 +27,10 @@ class AccountMoveInherit(models.Model):
     )
 
     def corregir_facturas(self):
-        invoices_names = set()  # Usamos set para evitar duplicados
+        invoices_names1 = set()
+        invoices_names2 = set()
+        invoices_names3 = set()
+        invoices_names4 = set()
 
         for record in self:
             sale_order = False
@@ -45,10 +48,22 @@ class AccountMoveInherit(models.Model):
                 if line.product_id and line.product_id.id in order_prices:
                     sale_price = order_prices[line.product_id.id]
                     if line.price_unit != sale_price:
-                        invoices_names.add(record.name)  # Agregamos al set
+                        if sale_order.condicion_m2m.name == 'TIPO 1':                            
+                            invoices_names1.add(record.name)
+                        elif sale_order.condicion_m2m.name == 'TIPO 2':
+                            invoices_names2.add(record.name)
+                        elif sale_order.condicion_m2m.name == 'TIPO 3':
+                            invoices_names3.add(record.name)
+                        elif sale_order.condicion_m2m.name == 'TIPO 4':
+                            invoices_names4.add(record.name)
+                        
 
-        if invoices_names:
-            raise UserError(', '.join(invoices_names))  # Mostramos los nombres separados por coma
+        invoices_t1 = ', '.join(invoices_names1)
+        invoices_t2 = ', '.join(invoices_names2)
+        invoices_t3 = ', '.join(invoices_names3)
+        invoices_t4 = ', '.join(invoices_names4)
+
+        raise UserError(f'Facturas TIPO 1: {invoices_t1} \n Facturas TIPO 2: {invoices_t2} \n Facturas TIPO 3: {invoices_t3} \n Facturas TIPO 4: {invoices_t4}')
 
 
 
