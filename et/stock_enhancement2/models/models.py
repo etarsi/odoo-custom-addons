@@ -557,22 +557,24 @@ class StockPickingInherit(models.Model):
                 if type == 'b':
                     qty = math.ceil(qty) # redondeo para arriba
 
-            uxb = move.product_packaging_id.qty if move.product_packaging_id else 1
-            bultos = qty / uxb if uxb else 1
-            lote = move.lot_ids[:1].name if move.lot_ids else ''
-            product_name = f"[{move.product_id.default_code}] {move.product_id.name}"
-            product_name = product_name[:60]
 
-            
-            lines.append({
-                'bultos': bultos,
-                'nombre': product_name,
-                'lote': lote,
-                'unidades': qty,
-            })
+            if qty > 0:
+                uxb = move.product_packaging_id.qty if move.product_packaging_id else 1
+                bultos = qty / uxb if uxb else 1
+                lote = move.lot_ids[:1].name if move.lot_ids else ''
+                product_name = f"[{move.product_id.default_code}] {move.product_id.name}"
+                product_name = product_name[:60]
 
-            total_bultos += bultos
-            total_unidades += qty
+                
+                lines.append({
+                    'bultos': bultos,
+                    'nombre': product_name,
+                    'lote': lote,
+                    'unidades': qty,
+                })
+
+                total_bultos += bultos
+                total_unidades += qty
         
         total_value = picking.declared_value
         if total_value == 0:
