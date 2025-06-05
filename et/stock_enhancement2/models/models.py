@@ -1,4 +1,4 @@
-from odoo import models, fields, api
+from odoo import models, fields, api, _
 from odoo.http import request, content_disposition
 from reportlab.lib.pagesizes import A4
 from reportlab.pdfgen import canvas
@@ -134,7 +134,7 @@ class StockPickingInherit(models.Model):
                     ('company_id', '=', company_blanca.id)
                 ], limit=1)
                 if not journal:
-                    raise UserError(f"No se encontr\u00f3 un diario de ventas para la compa\u00f1\u00eda {company.name}.")
+                    raise UserError(f"No se encontr\u00f3 un diario de ventas para la compa\u00f1\u00eda {self.company_id.name}.")
                 vals_blanco['journal_id'] = journal.id
 
             invoices += self.env['account.move'].with_company(company_blanca).create(vals_blanco)
@@ -782,3 +782,15 @@ class StockMoveInherit(models.Model):
             if record.product_uom_qty > 0:
                 record.product_available_percent = (record.quantity_done * 100) / record.product_uom_qty
             
+
+class MergeDeliveriesInherit(models.TransientModel):
+    _inherit = "merge.deliveries.wizard"
+
+    def prepare_to_merge_deliveries(self):
+        
+        company_ids = self.picking_ids.mapped('company_id.id')
+
+        if len(set(company_ids)) > 1:
+            raise UserError(_('Merge is only allowed between deliveries of the same company'))
+
+        return super().prepare_to_merge_deliveries()
