@@ -296,52 +296,6 @@ class StockPickingInherit(models.Model):
         new_date = today + timedelta(days=x)
         return new_date
 
-    def _validate_invoice_vals_company_consistency(self, invoice_vals, expected_company):
-        """
-        Verifica que todos los objetos relacionados en invoice_vals pertenezcan a la compañía esperada.
-        Lanza UserError si encuentra alguno incorrecto.
-        """
-        def check_record_company(record, record_type, field_name):
-            if record and record.company_id and record.company_id.id != expected_company.id:
-                raise UserError(
-                    f"El {record_type} '{record.display_name}' del campo '{field_name}' pertenece a '{record.company_id.name}', "
-                    f"pero se espera que pertenezca a '{expected_company.name}'."
-                )
-
-        # Verifica campos de nivel factura
-        for field_name in ['journal_id', 'currency_id', 'partner_id']:
-            if field_name in invoice_vals and invoice_vals[field_name]:
-                record = self.env[self.env['account.move']._fields[field_name].comodel_name].browse(invoice_vals[field_name])
-                check_record_company(record, field_name, field_name)
-
-        # Verifica cada línea
-        for line_tuple in invoice_vals.get('invoice_line_ids', []):
-            line_data = line_tuple[2]
-            for field_name, model_name in [
-                ('product_id', 'product.product'),
-                ('account_id', 'account.account'),
-                ('analytic_account_id', 'account.analytic.account'),
-            ]:
-                if line_data.get(field_name):
-                    record = self.env[model_name].browse(line_data[field_name])
-                    check_record_company(record, model_name, field_name)
-
-            # Taxes
-            if 'tax_ids' in line_data:
-                tax_ids = []
-                if isinstance(line_data['tax_ids'], list) and line_data['tax_ids']:
-                    if line_data['tax_ids'][0][0] == 6:  # M2M full replace
-                        tax_ids = line_data['tax_ids'][0][2]
-                for tax_id in tax_ids:
-                    tax = self.env['account.tax'].browse(tax_id)
-                    check_record_company(tax, 'account.tax', 'tax_ids')
-
-            # Línea también debe tener el company_id correcto si lo define
-            if line_data.get('company_id') and line_data['company_id'] != expected_company.id:
-                raise UserError(
-                    f"La línea contiene company_id={line_data['company_id']}, pero se esperaba {expected_company.id} ({expected_company.name})"
-                )
-
 
 
     def _default_delivery_carrier(self):        
@@ -358,9 +312,14 @@ class StockPickingInherit(models.Model):
         stock_data = self._get_stock_en_lotes(all_product_codes, max_por_lote=387)
 
         stock_by_code = {
-            p['codigo']: p['stock']['disponible']
+            p['codigo']: {
+                'disponible': p['stock'].get('disponible', 0),
+                'pedido': p['stock'].get('pedido', 0),
+                'preparacion': p['stock'].get('preparacion', 0),
+            }
             for p in stock_data
         }
+
 
         if not stock_by_code:
             raise UserError('No hay nada disponible para ningún producto')
@@ -368,7 +327,12 @@ class StockPickingInherit(models.Model):
         for record in self:
             for move in record.move_ids_without_package:
                 code = move.product_id.default_code
-                disponible = stock_by_code.get(code, 0)
+                stock_vals = stock_by_code.get(code, {})
+                disponible = (
+                    stock_vals.get('disponible', 0)
+                    - stock_vals.get('pedido', 0)
+                    + stock_vals.get('preparacion', 0)
+                )
 
                 if move.product_uom_qty == 0:
                     available_percent = 0
