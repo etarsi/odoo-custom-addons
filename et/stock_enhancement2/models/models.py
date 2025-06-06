@@ -312,11 +312,7 @@ class StockPickingInherit(models.Model):
         stock_data = self._get_stock_en_lotes(all_product_codes, max_por_lote=387)
 
         stock_by_code = {
-            p['codigo']: {
-                'disponible': p['stock'].get('disponible', 0),
-                'pedido': p['stock'].get('pedido', 0),
-                'preparacion': p['stock'].get('preparacion', 0),
-            }
+            p['codigo']: p['stock']['disponible']
             for p in stock_data
         }
 
@@ -327,12 +323,7 @@ class StockPickingInherit(models.Model):
         for record in self:
             for move in record.move_ids_without_package:
                 code = move.product_id.default_code
-                stock_vals = stock_by_code.get(code, {})
-                disponible = (
-                    stock_vals.get('disponible', 0)
-                    - stock_vals.get('pedido', 0)
-                    + stock_vals.get('preparacion', 0)
-                )
+                disponible = stock_by_code.get(code, 0)
 
                 if move.product_uom_qty == 0:
                     available_percent = 0
@@ -453,25 +444,38 @@ class StockPickingInherit(models.Model):
         return False
     
     def split_auto_multiple(self):
+        all_new_pickings = self.env['stock.picking']
         for picking in self:
-            selected_moves = self.env['stock.move']
-            line_count = 0
-            bulto_count = 0
+            while True:
+                selected_moves = self.env['stock.move']
+                line_count = 0
+                bulto_count = 0
+                moves_to_split = picking.move_ids_without_package.filtered(lambda m: m.product_available_percent == 100)
 
-            for move in picking.move_ids_without_package:
-                if move.product_available_percent == 100:
-                    if line_count > 29 or bulto_count >= 25:
+                for move in moves_to_split:
+                    if line_count >= 30 or bulto_count >= 25:
                         break
-                    
-                    bulto_qty = bulto_count + move.product_packaging_qty
-                    if bulto_qty <= 30:      
-                        line_count += 1
-                        bulto_count += move.product_packaging_qty
-                        selected_moves |= move
+                    if bulto_count + move.product_packaging_qty > 30:
+                        continue
+                    line_count += 1
+                    bulto_count += move.product_packaging_qty
+                    selected_moves |= move
 
-            if selected_moves:
-                return picking._split_off_moves(selected_moves)
+                if not selected_moves:
+                    break
+
+                new_picking = picking._split_off_moves(selected_moves)
+                all_new_pickings |= new_picking
+
+        if all_new_pickings:
+            return {
+                'type': 'ir.actions.act_window',
+                'view_mode': 'tree,form',
+                'res_model': 'stock.picking',
+                'domain': [('id', 'in', all_new_pickings.ids)],
+            }
         return False
+
     
     def action_print_remito(self):
         self.ensure_one()
