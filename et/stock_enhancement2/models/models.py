@@ -466,7 +466,10 @@ class StockPickingInherit(models.Model):
 
                 new_picking = picking._split_off_moves(selected_moves)
                 all_new_pickings |= new_picking
+            picking.update_available_percent()
+        
 
+        all_new_pickings.update_available_percent()
         if all_new_pickings:
             return {
                 'type': 'ir.actions.act_window',
