@@ -463,15 +463,20 @@ class StockPickingInherit(models.Model):
 
                 if not selected_moves:
                     break
+                if len(selected_moves) == len(picking.move_ids_without_package):
+                    break
 
                 new_picking = picking._split_off_moves(selected_moves)
                 all_new_pickings |= new_picking
+
             picking.update_available_percent()
+            all_new_pickings |= picking
         
 
         all_new_pickings.update_available_percent()
         if all_new_pickings:
             return {
+                'name': 'Facturas Divididas',
                 'type': 'ir.actions.act_window',
                 'view_mode': 'tree,form',
                 'res_model': 'stock.picking',
