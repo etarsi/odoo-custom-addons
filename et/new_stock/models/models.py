@@ -51,7 +51,7 @@ class NewStock(models.Model):
         vals_list = []
         for product in current_products:
             vals_list.append({
-                'product_id': product.id,
+                'product_id': product.id if product.id else False,
                 'product_name': product.name,
                 # 'default_code': product.default_code,
                 'uxb': product.uom_po_id.name if product.uom_po_id else False,
