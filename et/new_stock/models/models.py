@@ -82,9 +82,41 @@ class NewStock(models.Model):
             self.env['new.stock'].create(vals_list)
 
 
-    # def update_products_info(self):
+    def update_products_info(self):
+        fisico_unidades = self.get_fisico()
 
-    # def get_fisico(self)
+
+
+    def get_fisico(self):
+        product_codes = set(
+            self.env['new.stock'].search([]).mapped('product_id').default_code
+        )
+        digip_stock = self.get_digip_stock(product_codes)
+        raise UserError(digip_stock)
+
+
+    def get_digip_stock(self, product_codes):
+        headers = {}
+        params = {}
+        
+        url = self.env['ir.config_parameter'].sudo().get_param('digipwms-v2.url')
+        headers["x-api-key"] = self.env['ir.config_parameter'].sudo().get_param('digipwms.key')
+        params = {
+            'ArticuloCodigo': list(product_codes)
+        }
+        response = requests.get(f'{url}/v2/Stock/Tipo', headers=headers, params=params)
+
+        if response.status_code == 200:
+            products = response.json()
+            if products:
+                return products
+
+        elif response.status_code == 400:
+            raise UserError('ERROR: 400 BAD REQUEST. Avise a su administrador de sistema.')
+        elif response.status_code == 404:
+            raise UserError('ERROR: 404 NOT FOUND. Avise a su administrador de sistema.')
+        elif response.status_code == 500:
+            raise UserError('ERROR: 500 INTERNAL SERVER ERROR. Avise a su administrador de sistema. Probablemente alguno de los productos no se encuentra creado en Digip.')        
 
     # def get_comprometido(self)
 
