@@ -20,7 +20,7 @@ class NewStock(models.Model):
 
     product_id = fields.Many2one('product.template', string='Producto')
     product_name = fields.Char(string='Producto')
-    uxb = fields.Integer('UxB')
+    uxb = fields.Char('UxB')
 
     fisico_unidades = fields.Integer('Físico Unidades')
     comprometido_unidades = fields.Integer('Comprometido Unidades')
@@ -49,8 +49,8 @@ class NewStock(models.Model):
             vals_list.append({
                 'product_id': product.id,
                 'product_name': product.name,
-                'default_code': product.default_code,
-                'uom_name': product.uom_po_id.name if product.uom_po_id else False,
+                # 'default_code': product.default_code,
+                'uxb': product.uom_po_id.name if product.uom_po_id else False,
             })
         if vals_list:
             new_stock.create(vals_list)
