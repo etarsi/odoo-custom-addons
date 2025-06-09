@@ -11,6 +11,8 @@ import requests
 from itertools import groupby
 from datetime import timedelta
 
+_logger = logging.getLogger(__name__)
+
 
 class NewStock(models.Model):
     _name = 'new.stock'
@@ -92,7 +94,7 @@ class NewStock(models.Model):
             self.env['new.stock'].search([]).mapped('product_id.default_code')
         )
         digip_stock = self.get_digip_stock(product_codes)
-        raise UserError(digip_stock)
+        _logger.info(str(digip_stock))
 
 
     def get_digip_stock(self, product_codes):
