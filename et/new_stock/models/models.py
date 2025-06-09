@@ -90,9 +90,8 @@ class NewStock(models.Model):
 
 
     def get_fisico(self):
-        product_codes = set(
-            self.env['new.stock'].search([]).mapped('product_id.default_code')
-        )
+        product_ids = self.env['new.stock'].search([('product_id', '!=', False)]).mapped('product_id')
+        product_codes = set(product_ids.mapped('default_code'))
         digip_stock = self.get_digip_stock(product_codes)
         _logger.info(str(digip_stock))
 
