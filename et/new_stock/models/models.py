@@ -41,7 +41,7 @@ class NewStock(models.Model):
 
 
     def create_initial_products(self):
-        current_products = self.env['product.template'].search([('detailed_type', '=', 'product'), ('categ_id.parent_id', 'not in', [1, 756, 763])], fields=['name', 'default_code', 'uom_po_id.name'])
+        current_products = self.env['product.template'].search([('detailed_type', '=', 'product'), ('categ_id.parent_id', 'not in', [1, 756, 763])])
 
         new_stock = self.env['new.stock']
         vals_list = []
