@@ -52,7 +52,7 @@ class NewStock(models.Model):
         for product in current_products:
             vals_list.append({
                 'product_id': product.id if product.id else False,
-                'product_name': product.name,
+                'product_name': product.name if product.name else False,
                 # 'default_code': product.default_code,
                 'uxb': product.uom_po_id.name if product.uom_po_id else False,
             })
