@@ -18,7 +18,7 @@ class NewStock(models.Model):
 
     name = fields.Char()
 
-    product_id = fields.Many2one('product.template', string='Producto')
+    product_id = fields.Many2one('product.template', string='Producto', required=True)
     product_name = fields.Char(string='Producto')
     uxb = fields.Char('UxB')
 
@@ -52,9 +52,9 @@ class NewStock(models.Model):
         for product in current_products:
             vals_list.append({
                 'product_id': product.id if product.id else False,
-                # 'product_name': product.name if product.name else False,
+                'product_name': product.name if product.name else False,
                 # 'default_code': product.default_code,
-                # 'uxb': product.uom_po_id.name if product.uom_po_id else False,
+                'uxb': product.uom_po_id.name if product.uom_po_id else False,
             })
         if vals_list:
             new_stock.create(vals_list)
