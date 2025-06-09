@@ -89,7 +89,7 @@ class NewStock(models.Model):
 
     def get_fisico(self):
         product_codes = set(
-            self.env['new.stock'].search([]).mapped('product_id').default_code
+            self.env['new.stock'].search([]).mapped('product_id.default_code')
         )
         digip_stock = self.get_digip_stock(product_codes)
         raise UserError(digip_stock)
