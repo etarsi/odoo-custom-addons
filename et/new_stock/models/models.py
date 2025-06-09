@@ -93,7 +93,7 @@ class NewStock(models.Model):
         product_ids = self.env['new.stock'].search([('product_id', '!=', False)]).mapped('product_id')
         product_codes = set(product_ids.mapped('default_code'))
         digip_stock = self.get_digip_stock(product_codes)
-        _logger.info(str(digip_stock))
+        _logger.info(str(product_codes))
 
 
     def get_digip_stock(self, product_codes):
