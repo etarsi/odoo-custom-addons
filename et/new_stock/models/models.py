@@ -31,7 +31,7 @@ class NewStock(models.Model):
     fisico_bultos = fields.Float('Físico Bultos')    
     comprometido_bultos = fields.Float('Comprometido Bultos')    
     disponible_bultos = fields.Float('Disponible Bultos')    
-    reservado_bultos = fields.Float('Reservado Bultos')    
+    reservado_bultos = fields.Float('Reservado Bultos')
     entrante_bultos = fields.Float('Entrante Bultos')
 
     entrante_fecha = fields.Date('ETA')
@@ -41,7 +41,11 @@ class NewStock(models.Model):
 
 
     def create_initial_products(self):
-        current_products = self.env['product.template'].search([('detailed_type', '=', 'product'), ('categ_id.parent_id', 'not in', [1, 756, 763])])
+        current_products = self.env['product.template'].search([
+            ('detailed_type', '=', 'product'),
+            ('categ_id.parent_id', 'not in', [1, 756, 763]),
+            ('default_code', 'not like', '9%')
+        ])
 
         new_stock = self.env['new.stock']
         vals_list = []
