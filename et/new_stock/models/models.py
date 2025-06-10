@@ -25,6 +25,8 @@ class NewStock(models.Model):
     uxb = fields.Char('UxB')
 
     fisico_unidades = fields.Integer('Físico Unidades')
+    enelagua_unidades = fields.Integer('En el Agua Unidades')
+    total_unidades = fields.Integer('Total Unidades')
     comprometido_unidades = fields.Integer('Comprometido Unidades')
     disponible_unidades = fields.Integer('Disponible Unidades')
     reservado_unidades = fields.Integer('Reservado Unidades')
@@ -91,6 +93,7 @@ class NewStock(models.Model):
 
 
     def get_fisico(self):
+        new_stock = self.env['new.stock'].search([])
         product_ids = self.env['new.stock'].search([('product_id', '!=', False)]).mapped('product_id')
         product_codes = set(product_ids.mapped('default_code'))
         digip_stock = self._get_digip_stock_en_lotes(product_codes)
@@ -100,11 +103,11 @@ class NewStock(models.Model):
             for p in digip_stock
         }
 
-        for p in product_ids:
-            code = p.default_code
+        for s in new_stock:
+            code = s.product_id.default_code
             disponible = stock_by_code.get(code, 0)
 
-            p.fisico_unidades = disponible
+            s.fisico_unidades = disponible
 
     def _get_digip_stock_en_lotes(self, product_codes, max_por_lote=387):
         product_codes = list(product_codes)
@@ -118,7 +121,7 @@ class NewStock(models.Model):
                 total_stock.extend(lote_stock)
 
         return total_stock
-    
+
     def get_digip_stock(self, lote):
         headers = {}
         params = {}
