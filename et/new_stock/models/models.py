@@ -101,7 +101,7 @@ class NewStock(models.Model):
         }
 
         for p in product_ids:
-            code = p.product_id.default_code
+            code = p.default_code
             disponible = stock_by_code.get(code, 0)
 
             p.fisico_unidades = disponible
