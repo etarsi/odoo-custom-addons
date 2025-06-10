@@ -93,7 +93,7 @@ class NewStock(models.Model):
     def get_fisico(self):
         product_ids = self.env['new.stock'].search([('product_id', '!=', False)]).mapped('product_id')
         product_codes = set(product_ids.mapped('default_code'))
-        digip_stock = self.get_digip_stock(product_codes)
+        digip_stock = self._get_digip_stock_en_lotes(product_codes)
         
         stock_by_code = {
             p['codigo']: p['stock']['disponible']
