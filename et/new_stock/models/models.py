@@ -41,6 +41,7 @@ class NewStock(models.Model):
 
     ultima_actualizacion = fields.Date('Última actualización')
 
+    # teórico
 
     def create_initial_products(self):
         current_products = self.env['product.template'].search([
@@ -93,17 +94,39 @@ class NewStock(models.Model):
         product_ids = self.env['new.stock'].search([('product_id', '!=', False)]).mapped('product_id')
         product_codes = set(product_ids.mapped('default_code'))
         digip_stock = self.get_digip_stock(product_codes)
-        _logger.info(str(product_codes))
+        
+        stock_by_code = {
+            p['codigo']: p['stock']['disponible']
+            for p in digip_stock
+        }
 
+        for p in product_ids:
+            code = p.product_id.default_code
+            disponible = stock_by_code.get(code, 0)
 
-    def get_digip_stock(self, product_codes):
+            p.fisico_unidades = disponible
+
+    def _get_digip_stock_en_lotes(self, product_codes, max_por_lote=387):
+        product_codes = list(product_codes)
+        total_stock = []
+
+        for i in range(0, len(product_codes), max_por_lote):
+            lote = product_codes[i:i + max_por_lote]
+            _logger.info(f"[STOCK] Llamando API para lote {i // max_por_lote + 1} con {len(lote)} códigos")
+            lote_stock = self.get_digip_stock(lote)
+            if lote_stock:
+                total_stock.extend(lote_stock)
+
+        return total_stock
+    
+    def get_digip_stock(self, lote):
         headers = {}
         params = {}
         
         url = self.env['ir.config_parameter'].sudo().get_param('digipwms-v2.url')
         headers["x-api-key"] = self.env['ir.config_parameter'].sudo().get_param('digipwms.key')
         params = {
-            'ArticuloCodigo': list(product_codes)
+            'ArticuloCodigo': lote
         }
         response = requests.get(f'{url}/v2/Stock/Tipo', headers=headers, params=params)
 
