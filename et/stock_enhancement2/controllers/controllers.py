@@ -183,7 +183,7 @@ class StockPickingController(http.Controller):
 
         company_id = picking.company_id
 
-        pdf = picking._build_remito_pd2(picking, proportion, company_id, type)
+        pdf = picking._build_remito_pdf2(picking, proportion, company_id, type)
 
         return request.make_response(
             pdf,
