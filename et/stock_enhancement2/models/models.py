@@ -501,6 +501,15 @@ class StockPickingInherit(models.Model):
             'target': 'new',
         }
     
+    def action_print_remito3(self):
+        self.ensure_one()
+        return {
+            'type': 'ir.actions.act_url',
+            'url': f'/remito/auto2/{self.id}',
+            'target': 'new',
+        }
+   
+    
     def _prepare_remito_data(self, picking, proportion, company_id, type):
         partner = picking.partner_id
 
@@ -589,7 +598,6 @@ class StockPickingInherit(models.Model):
 
         buffer = BytesIO()
         c = canvas.Canvas(buffer, pagesize=A4)
-        width, height = A4
         y = 0
 
         def draw_header():
@@ -665,7 +673,80 @@ class StockPickingInherit(models.Model):
         pdf = buffer.getvalue()
         buffer.close()
         return pdf
+    
+    def _build_remito_pdf2(self, picking, proportion, company_id, type):
+        remito = self._prepare_remito_data(picking, proportion, company_id, type)
+        # --- COORDENADAS BASE (ajustalas a gusto, estas son de ejemplo) ---
+        left = 40
+        right = 555
+        top = 780
+        bottom = 150
+        row_height = 18  # Alto de cada fila
+        col_bultos = left + 5
+        col_producto = left + 60
+        col_lote = left + 330
+        col_unidades = right - 60
 
+        buffer = BytesIO()
+        c = canvas.Canvas(buffer, pagesize=A4)
+
+        # ===== HEADER =====
+        c.setFont("Helvetica-Bold", 13)
+        c.drawString(left, top + 40, "REMITO N°: " + (remito.get('picking_name', "") or ""))
+        c.setFont("Helvetica", 10)
+        c.drawString(left, top + 20, f"Fecha: {remito.get('date', '')}")
+        c.drawString(left + 250, top + 20, f"Cliente: {remito['client']['name']}")
+        c.drawString(left + 250, top + 5, f"Dirección: {remito['client']['address']}")
+
+        # ===== TABLA DE PRODUCTOS =====
+        # Cabecera
+        tabla_top = top
+        tabla_left = left
+        tabla_right = right
+        tabla_bottom = bottom
+
+        # Dibujar recuadro de la tabla
+        c.setLineWidth(1)
+        c.rect(tabla_left, tabla_bottom, tabla_right - tabla_left, tabla_top - tabla_bottom)
+
+        # Dibujar columnas
+        c.line(col_producto-10, tabla_top, col_producto-10, tabla_bottom)  # Línea vertical entre Bultos y Producto
+        c.line(col_lote-10, tabla_top, col_lote-10, tabla_bottom)          # Entre Producto y Lote
+        c.line(col_unidades+30, tabla_top, col_unidades+30, tabla_bottom)  # Entre Lote y Unidades
+
+        # Dibujar encabezados
+        c.setFont("Helvetica-Bold", 9)
+        c.drawString(col_bultos, tabla_top - 15, "Bultos")
+        c.drawString(col_producto, tabla_top - 15, "Producto")
+        c.drawString(col_lote, tabla_top - 15, "Lote")
+        c.drawString(col_unidades, tabla_top - 15, "Unidades")
+
+        # Dibujar filas
+        y = tabla_top - 30
+        for linea in remito['move_lines']:
+            if y < tabla_bottom + row_height:
+                break  # Paginado, ajusta según tu lógica
+            c.setFont("Helvetica", 8)
+            c.drawString(col_bultos, y, f"{linea['bultos']:.2f}")
+            c.drawString(col_producto, y, linea['nombre'])
+            c.drawString(col_lote, y, linea['lote'])
+            c.drawRightString(col_unidades + 45, y, f"{int(linea['unidades'])}")
+            # Dibujar línea horizontal de fila
+            c.setLineWidth(0.5)
+            c.line(tabla_left, y-3, tabla_right, y-3)
+            y -= row_height
+
+        # ===== FOOTER (Resúmenes) =====
+        c.setFont("Helvetica-Bold", 10)
+        c.drawString(left, bottom - 20, f"Cantidad de Bultos: {remito.get('total_bultos', 0):.2f}")
+        c.drawString(left + 200, bottom - 20, f"Cantidad UXB: {remito.get('total_units', 0):.2f}")
+        if remito.get('total_value'):
+            c.drawString(right - 120, bottom - 20, f"Total: $ {remito['total_value']:,.2f}")
+
+        c.save()
+        pdf = buffer.getvalue()
+        buffer.close()
+        return pdf
     
     def _get_remito_template_coords(self, company_id):
 

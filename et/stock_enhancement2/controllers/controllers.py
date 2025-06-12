@@ -129,3 +129,94 @@ class StockPickingController(http.Controller):
             'TIPO 4': (0.25, 0.75),
         }
         return proportions.get(type, (1.0, 0.0))
+    
+
+
+
+    # TEMPORAL
+
+    @http.route('/remito/auto2/<int:picking_id>', type='http', auth='user')
+    def remito_auto2(self, picking_id, **kwargs):
+        picking = request.env['stock.picking'].browse(picking_id)
+        if not picking.exists():
+            return request.not_found()
+
+        tipo = str(picking.x_order_type.name or '').strip().upper()
+        blanco_pct, negro_pct = self._get_type_proportion(tipo)
+
+        html = """
+        <html><head><title>Generando remitos...</title></head>
+        <body>
+        <script>
+            function abrir(url, delay) {
+                setTimeout(function() {
+                    window.open(url, '_blank');
+                }, delay);
+            }
+        """
+        if blanco_pct > 0:
+            html += f"abrir('/remito/aa/{picking.id}', 50);"
+        if negro_pct > 0:
+            html += f"abrir('/remito/bb/{picking.id}', 200);"
+
+        html += """
+        </script>
+        <p>Puede cerrar esta pagina.</p>
+        </body></html>
+        """
+
+        return request.make_response(html, headers=[('Content-Type', 'text/html')])
+    
+
+    @http.route('/remito/aa/<int:picking_id>', type='http', auth='user')
+    def remito_aa(self, picking_id, **kwargs):
+        picking = request.env['stock.picking'].browse(picking_id)
+        if not picking.exists():
+            return request.not_found()
+
+        type = 'a'
+        tipo = picking.x_order_type.name
+        proportion, _ = self._get_type_proportion(tipo)
+
+        if proportion == 0:
+            return request.not_found()
+
+        company_id = picking.company_id
+
+        pdf = picking._build_remito_pd2(picking, proportion, company_id, type)
+
+        return request.make_response(
+            pdf,
+            headers=[
+                ('Content-Type', 'application/pdf'),
+                ('Content-Disposition', f'inline; filename="REM_{picking.name.replace("/", "-")}.pdf"')
+            ]
+        )
+
+    @http.route('/remito/bb/<int:picking_id>', type='http', auth='user')
+    def remito_bb(self, picking_id, **kwargs):
+        picking = request.env['stock.picking'].browse(picking_id)
+        if not picking.exists():
+            return request.not_found()
+
+        type = 'b'
+        tipo = picking.x_order_type.name
+        _, proportion = self._get_type_proportion(tipo)
+
+        if proportion == 0:
+            return request.not_found()
+        
+        if tipo == 'TIPO 3':
+            company_id = request.env['res.company'].browse(1)
+        else:
+            company_id = picking.company_id
+
+        pdf = picking._build_remito_pdf2(picking, proportion, company_id, type)
+        
+        return request.make_response(
+            pdf,
+            headers=[
+                ('Content-Type', 'application/pdf'),
+                ('Content-Disposition', f'inline; filename="REM_{picking.name.replace("/", "-")}.pdf"')
+            ]
+        )
