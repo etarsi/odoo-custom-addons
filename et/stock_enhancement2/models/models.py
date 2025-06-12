@@ -678,10 +678,10 @@ class StockPickingInherit(models.Model):
         remito = self._prepare_remito_data(picking, proportion, company_id, type)
         # --- COORDENADAS BASE (ajustalas a gusto, estas son de ejemplo) ---
         config_param = self.env['ir.config_parameter']
-        left = config_param.sudo().get_param('remito_margen_left')
-        right = config_param.sudo().get_param('remito_margen_right')
-        top = config_param.sudo().get_param('remito_margen_top')
-        bottom = config_param.sudo().get_param('remito_margen_bottom')
+        left = int(config_param.sudo().get_param('remito_margen_left'))
+        right = int(config_param.sudo().get_param('remito_margen_right'))
+        top = int(config_param.sudo().get_param('remito_margen_top'))
+        bottom = int(config_param.sudo().get_param('remito_margen_bottom'))
         row_height = 18  # Alto de cada fila
         col_bultos = left + 5
         col_producto = left + 60
