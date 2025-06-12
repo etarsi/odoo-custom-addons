@@ -691,6 +691,10 @@ class StockPickingInherit(models.Model):
         buffer = BytesIO()
         c = canvas.Canvas(buffer, pagesize=A4)
 
+        # Header container
+        c.setLineWidth(1)
+        c.roundRect(tabla_left, tabla_bottom, tabla_right - tabla_left, tabla_top + 30 - tabla_bottom, radius=10)
+
         # ===== HEADER =====
         c.setFont("Helvetica-Bold", 13)
         c.drawString(left, top + 40, "REMITO N°: " + (remito.get('picking_name', "") or ""))
