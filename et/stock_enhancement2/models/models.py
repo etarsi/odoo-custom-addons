@@ -677,10 +677,11 @@ class StockPickingInherit(models.Model):
     def _build_remito_pdf2(self, picking, proportion, company_id, type):
         remito = self._prepare_remito_data(picking, proportion, company_id, type)
         # --- COORDENADAS BASE (ajustalas a gusto, estas son de ejemplo) ---
-        left = 40
-        right = 555
-        top = 780
-        bottom = 150
+        config_param = self.env['ir.config_parameter']
+        left = config_param.sudo().get_param('remito_margen_left')
+        right = config_param.sudo().get_param('remito_margen_right')
+        top = config_param.sudo().get_param('remito_margen_top')
+        bottom = config_param.sudo().get_param('remito_margen_bottom')
         row_height = 18  # Alto de cada fila
         col_bultos = left + 5
         col_producto = left + 60
@@ -707,7 +708,8 @@ class StockPickingInherit(models.Model):
 
         # Dibujar recuadro de la tabla
         c.setLineWidth(1)
-        c.rect(tabla_left, tabla_bottom, tabla_right - tabla_left, tabla_top - tabla_bottom)
+        c.roundRect(tabla_left, tabla_bottom, tabla_right - tabla_left, tabla_top - tabla_bottom, radius=10)
+
 
         # Dibujar columnas
         c.line(col_producto-10, tabla_top, col_producto-10, tabla_bottom)  # Línea vertical entre Bultos y Producto
@@ -731,9 +733,6 @@ class StockPickingInherit(models.Model):
             c.drawString(col_producto, y, linea['nombre'])
             c.drawString(col_lote, y, linea['lote'])
             c.drawRightString(col_unidades + 45, y, f"{int(linea['unidades'])}")
-            # Dibujar línea horizontal de fila
-            c.setLineWidth(0.5)
-            c.line(tabla_left, y-3, tabla_right, y-3)
             y -= row_height
 
         # ===== FOOTER (Resúmenes) =====
