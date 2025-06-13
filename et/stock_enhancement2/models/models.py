@@ -698,7 +698,7 @@ class StockPickingInherit(models.Model):
         container_y = int(config_param.sudo().get_param('container_y'))
         container_width = right - left
         container_height = int(config_param.sudo().get_param('container_h'))
-        c.roundRect(container_x, container_y, container_width, container_height, radius=30)
+        c.roundRect(container_x, container_y, container_width, container_height, radius=5)
 
         # ===== HEADER =====
         c.setFont("Helvetica-Bold", 13)
