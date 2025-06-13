@@ -707,6 +707,14 @@ class StockPickingInherit(models.Model):
         c.drawString(rcoords['cliente_x'], rcoords['cliente_y'], f"Cliente: {remito['client']['name']}")
         c.drawString(rcoords['direccion_x'], rcoords['direccion_y'], f"Dirección: {remito['client']['address']}")
         c.drawString(rcoords['localidad_x'], rcoords['localidad_y'], f"Localidad: {remito['client']['location']}")
+        c.drawString(rcoords['iva_x'], rcoords['iva_y'], f"IVA: {remito['client']['iva']}")
+        c.drawString(rcoords['cuit_x'], rcoords['cuit_y'], f"CUIT: {remito['client']['cuit']}")
+        # c.drawString(rcoords['tel_x'], rcoords['tel_y'], f"TEL: {remito['client']['location']}")
+        c.drawString(rcoords['transporte_x'], rcoords['transporte_y'], f"Transporte: {remito['destination']['name']}")
+        c.drawString(rcoords['transporte2_x'], rcoords['transporte2_y'], f"{remito['destination']['address']}")
+        c.drawString(rcoords['pedido_x'], rcoords['pedido_y'], f"Pedido: {remito['origin']}")
+        c.drawString(rcoords['transferencia_x'], rcoords['transferencia_y'], f"TR: {remito['picking_name']}")
+        c.drawString(rcoords['wms_x'], rcoords['wms_y'], f"WMS: {remito['codigo_wms']}")
 
         # ===== TABLA DE PRODUCTOS =====
         # Cabecera
@@ -777,7 +785,9 @@ class StockPickingInherit(models.Model):
                 'tel_x': remito_coords.tel_x,
                 'tel_y': remito_coords.tel_y,                
                 'transporte_x': remito_coords.transporte_x,
-                'transporte_y': remito_coords.transporte_y,                
+                'transporte_y': remito_coords.transporte_y,            
+                'transporte2_x': remito_coords.transporte2_x,
+                'transporte2_y': remito_coords.transporte2_y,               
                 'pedido_x': remito_coords.pedido_x,
                 'pedido_y': remito_coords.pedido_y,
                 'transferencia_x': remito_coords.transferencia_x,
@@ -935,6 +945,9 @@ class RemitoCoords(models.Model):
     transporte_x = fields.Integer('Transporte X')
     transporte_y = fields.Integer('Transporte Y')
     
+    transporte2_x = fields.Integer('TransporteAddress X')
+    transporte2_y = fields.Integer('TransporteAddress Y')
+
     pedido_x = fields.Integer('Pedido X')
     pedido_y = fields.Integer('Pedido Y')
 
