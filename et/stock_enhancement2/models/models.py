@@ -676,6 +676,7 @@ class StockPickingInherit(models.Model):
     
     def _build_remito_pdf2(self, picking, proportion, company_id, type):
         remito = self._prepare_remito_data(picking, proportion, company_id, type)
+        rcoords = self.get_new_remito_coords()
         # --- COORDENADAS BASE (ajustalas a gusto, estas son de ejemplo) ---
         config_param = self.env['ir.config_parameter']
         left = int(config_param.sudo().get_param('remito_margen_left'))
@@ -697,15 +698,15 @@ class StockPickingInherit(models.Model):
         container_y = int(config_param.sudo().get_param('container_y'))
         container_width = right - left
         container_height = int(config_param.sudo().get_param('container_h'))
-        c.roundRect(container_x, container_y, container_width, container_height, radius=10)
+        c.roundRect(container_x, container_y, container_width, container_height, radius=30)
 
         # ===== HEADER =====
         c.setFont("Helvetica-Bold", 13)
-        c.drawString(left, top + 40, "REMITO N°: " + (remito.get('picking_name', "") or ""))
+        c.drawString(rcoords['fecha_x'], rcoords['fecha_y'], "FECHA: " + (remito.get('date', "")))
         c.setFont("Helvetica", 10)
-        c.drawString(left, top + 20, f"Fecha: {remito.get('date', '')}")
-        c.drawString(left + 250, top + 20, f"Cliente: {remito['client']['name']}")
-        c.drawString(left + 250, top + 5, f"Dirección: {remito['client']['address']}")
+        c.drawString(rcoords['cliente_x'], rcoords['cliente_y'], f"Cliente: {remito['client']['name']}")
+        c.drawString(rcoords['direccion_x'], rcoords['direccion_y'], f"Dirección: {remito['client']['address']}")
+        c.drawString(rcoords['localidad_x'], rcoords['localidad_y'], f"Localidad: {remito['client']['location']}")
 
         # ===== TABLA DE PRODUCTOS =====
         # Cabecera
@@ -755,6 +756,53 @@ class StockPickingInherit(models.Model):
         buffer.close()
         return pdf
     
+    def get_new_remito_coords(self):
+        remito_coords = self.env['remito.coords'].search([], limit=1)
+
+        if remito_coords:
+
+            return {            
+                'fecha_x': remito_coords.fecha_x,
+                'fecha_y': remito_coords.fecha_y,
+                'cliente_x': remito_coords.cliente_x,
+                'cliente_y': remito_coords.cliente_y,                
+                'direccion_x': remito_coords.direccion_x,
+                'direccion_y': remito_coords.direccion_y,                
+                'localidad_x': remito_coords.localidad_x,
+                'localidad_y': remito_coords.localidad_y,                
+                'iva_x': remito_coords.iva_x,
+                'iva_y': remito_coords.iva_y,                
+                'cuit_x': remito_coords.cuit_x,
+                'cuit_y': remito_coords.cuit_y,                
+                'tel_x': remito_coords.tel_x,
+                'tel_y': remito_coords.tel_y,                
+                'transporte_x': remito_coords.transporte_x,
+                'transporte_y': remito_coords.transporte_y,                
+                'pedido_x': remito_coords.pedido_x,
+                'pedido_y': remito_coords.pedido_y,
+                'transferencia_x': remito_coords.transferencia_x,
+                'transferencia_y': remito_coords.transferencia_y,
+                'wms_x': remito_coords.wms_x,
+                'wms_y': remito_coords.wms_y,
+                'bultos_x': remito_coords.bultos_x,
+                'bultos_y': remito_coords.bultos_y,
+                'cod_x': remito_coords.cod_x,
+                'cod_y': remito_coords.cod_y,
+                'descripcion_x': remito_coords.descripcion_x,
+                'descripcion_y': remito_coords.descripcion_y,
+                'despacho_x': remito_coords.despacho_x,
+                'despacho_y': remito_coords.despacho_y,
+                'unidades_x': remito_coords.unidades_x,
+                'unidades_y': remito_coords.unidades_y,
+                'cantidad_bultos_x': remito_coords.cantidad_bultos_x,
+                'cantidad_bultos_y': remito_coords.cantidad_bultos_y,
+                'cantidad_paquetes_x': remito_coords.cantidad_paquetes_x,
+                'cantidad_paquetes_y': remito_coords.cantidad_paquetes_y,
+                'valor_declarado_x': remito_coords.valor_declarado_x,
+                'valor_declarado_y': remito_coords.valor_declarado_y,
+            }
+
+
     def _get_remito_template_coords(self, company_id):
 
         if company_id.id in (1, 2):
@@ -858,3 +906,64 @@ class MergeDeliveriesInherit(models.TransientModel):
             raise UserError(_('Merge is only allowed between deliveries of the same company'))
 
         return super().prepare_to_merge_deliveries()
+    
+
+class RemitoCoords(models.Model):
+    _name = 'remito.coords'
+
+    fecha_x = fields.Integer('Fecha X')
+    fecha_y = fields.Integer('Fecha Y')
+
+    cliente_x = fields.Integer('Cliente X')
+    cliente_y = fields.Integer('Cliente Y')
+    
+    direccion_x = fields.Integer('Direccion X')
+    direccion_y = fields.Integer('Direccion Y')
+    
+    localidad_x = fields.Integer('Localidad X')
+    localidad_y = fields.Integer('Localidad Y')
+    
+    iva_x = fields.Integer('IVA X')
+    iva_y = fields.Integer('IVA Y')
+    
+    cuit_x = fields.Integer('CUIT X')
+    cuit_y = fields.Integer('CUIT X')
+    
+    tel_x = fields.Integer('Tel X')
+    tel_y = fields.Integer('Tel Y')
+    
+    transporte_x = fields.Integer('Transporte X')
+    transporte_y = fields.Integer('Transporte Y')
+    
+    pedido_x = fields.Integer('Pedido X')
+    pedido_y = fields.Integer('Pedido Y')
+
+    transferencia_x = fields.Integer('Transferencia X')
+    transferencia_y = fields.Integer('Transferencia Y')
+
+    wms_x = fields.Integer('WMS X')
+    wms_y = fields.Integer('WMS Y')
+
+    bultos_x = fields.Integer('Bultos X')
+    bultos_y = fields.Integer('Bultos Y')
+
+    cod_x = fields.Integer('Codigo X')
+    cod_y = fields.Integer('Codigo Y')
+
+    descripcion_x = fields.Integer('Descripcion X')
+    descripcion_y = fields.Integer('Descripcion Y')
+
+    despacho_x = fields.Integer('Despacho X')
+    despacho_y = fields.Integer('Despacho Y')
+
+    unidades_x = fields.Integer('Unidades X')
+    unidades_y = fields.Integer('Unidades Y')
+
+    cantidad_bultos_x = fields.Integer('Cantidad Bultos X')
+    cantidad_bultos_y = fields.Integer('Cantidad Bultos Y')
+
+    cantidad_paquetes_x = fields.Integer('Cantidad Paquetes X')
+    cantidad_paquetes_y = fields.Integer('Cantidad Paquetes Y')
+
+    valor_declarado_x = fields.Integer('Valor Declarado X')
+    valor_declarado_y = fields.Integer('Valor Declarado Y')
