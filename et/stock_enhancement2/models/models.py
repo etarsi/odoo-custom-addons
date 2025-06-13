@@ -693,7 +693,7 @@ class StockPickingInherit(models.Model):
 
         # Header container
         c.setLineWidth(1)
-        c.roundRect(left, top, right - left, top + 30 - bottom, radius=10)
+        c.roundRect(left, top, right - left, top + 10 - bottom, radius=10)
 
         # ===== HEADER =====
         c.setFont("Helvetica-Bold", 13)
