@@ -733,15 +733,15 @@ class StockPickingInherit(models.Model):
         c.line(col_codigo-10, tabla_top, col_codigo-10, tabla_bottom)
         c.line(col_producto-10, tabla_top, col_producto-10, tabla_bottom)
         c.line(col_lote, tabla_top, col_lote, tabla_bottom)        
-        c.line(col_unidades+10, tabla_top, col_unidades+10, tabla_bottom)
+        c.line(col_unidades, tabla_top, col_unidades, tabla_bottom)
 
         # Dibujar encabezados
         c.setFont("Helvetica-Bold", 9)
-        c.drawString(col_bultos -2, tabla_top - 15, "Bultos")
-        c.drawString(col_codigo, tabla_top - 15, "Código")
+        c.drawString(col_bultos -1, tabla_top - 15, "Bultos")
+        c.drawString(col_codigo-1, tabla_top - 15, "Código")
         c.drawString(col_producto, tabla_top - 15, "Descripción")
         c.drawString(col_lote +10, tabla_top - 15, "Despacho")
-        c.drawString(col_unidades, tabla_top - 15, "Unidades")
+        c.drawString(col_unidades+5, tabla_top - 15, "Unidades")
 
         c.line(tabla_left, tabla_top - 20, tabla_right, tabla_top - 20)
 
