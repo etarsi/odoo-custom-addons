@@ -55,7 +55,7 @@ class StockPickingController(http.Controller):
 
         proportion = 1.0
 
-        pdf = picking._build_remito_pdf(picking, proportion, company_id, type)
+        pdf = picking._build_remito_pdf2(picking, proportion, company_id, type)
 
         return request.make_response(
             pdf,
@@ -81,7 +81,7 @@ class StockPickingController(http.Controller):
 
         company_id = picking.company_id
 
-        pdf = picking._build_remito_pdf(picking, proportion, company_id, type)
+        pdf = picking._build_remito_pdf2(picking, proportion, company_id, type)
 
         return request.make_response(
             pdf,
@@ -109,7 +109,7 @@ class StockPickingController(http.Controller):
         else:
             company_id = picking.company_id
 
-        pdf = picking._build_remito_pdf(picking, proportion, company_id, type)
+        pdf = picking._build_remito_pdf2(picking, proportion, company_id, type)
         
         return request.make_response(
             pdf,
