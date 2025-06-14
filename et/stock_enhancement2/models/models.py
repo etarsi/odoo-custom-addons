@@ -582,7 +582,7 @@ class StockPickingInherit(models.Model):
                 'iva': partner.l10n_ar_afip_responsibility_type_id.name if partner.l10n_ar_afip_responsibility_type_id else '',
             },
             'origin': picking.origin or '',
-            'picking_name': picking.name or '',
+            'picking_name': picking.name[:20] or '',
             'codigo_wms': picking.codigo_wms or '',
             'destination': {
                 'name': f"{partner.property_delivery_carrier_id.name or ''}",
