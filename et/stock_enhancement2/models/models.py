@@ -727,7 +727,7 @@ class StockPickingInherit(models.Model):
         col_bultos = left + 10
         col_codigo = left + 55
         col_producto = left + 100
-        col_lote = left + 350
+        col_lote = left + 370
         col_unidades = right - 50
 
         # Dibujar recuadro de la tabla
@@ -751,7 +751,7 @@ class StockPickingInherit(models.Model):
 
         # Dibujar filas
         
-        row_height = 10
+        row_height = 13
         y = tabla_top - 31
         for linea in remito['move_lines']:
             if y < tabla_bottom + row_height:
@@ -761,7 +761,7 @@ class StockPickingInherit(models.Model):
             c.drawString(col_codigo, y, linea['code'])
             c.drawString(col_producto, y, linea['description'])
             c.drawString(col_lote +10, y, linea['lote'])
-            c.drawRightString(col_unidades + 15, y, f"{int(linea['unidades'])}")
+            c.drawRightString(col_unidades + 35, y, f"{int(linea['unidades'])}")
             y -= row_height
 
         # ===== FOOTER (Resúmenes) =====
