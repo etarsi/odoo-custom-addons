@@ -547,12 +547,17 @@ class StockPickingInherit(models.Model):
                 uxb = move.product_packaging_id.qty if move.product_packaging_id else 1
                 bultos = qty / uxb if uxb else 1
                 lote = move.lot_ids[:1].name if move.lot_ids else ''
+                product_code = move.product_id.default_code
+                product_description = f"{move.product_id.name}"
+                product_description = product_description[:60]
                 product_name = f"[{move.product_id.default_code}] {move.product_id.name}"
                 product_name = product_name[:60]
 
                 
                 lines.append({
                     'bultos': bultos,
+                    'code': product_code,
+                    'description': product_description,
                     'nombre': product_name,
                     'lote': lote,
                     'unidades': qty,
@@ -683,7 +688,6 @@ class StockPickingInherit(models.Model):
         right = int(config_param.sudo().get_param('remito_margen_right'))
         top = int(config_param.sudo().get_param('remito_margen_top'))
         bottom = int(config_param.sudo().get_param('remito_margen_bottom'))
-        row_height = 18  # Alto de cada fila
         
 
         buffer = BytesIO()
@@ -724,14 +728,14 @@ class StockPickingInherit(models.Model):
         col_codigo = left + 55
         col_producto = left + 100
         col_lote = left + 350
-        col_unidades = right - 40
+        col_unidades = right - 50
 
         # Dibujar recuadro de la tabla
         c.setLineWidth(1)
         c.roundRect(tabla_left, tabla_bottom, tabla_right - tabla_left, tabla_top - tabla_bottom, radius=10)
         # Dibujar columnas
         c.line(col_codigo-10, tabla_top, col_codigo-10, tabla_bottom)
-        c.line(col_producto-10, tabla_top, col_producto-10, tabla_bottom)
+        c.line(col_producto-9, tabla_top, col_producto-10, tabla_bottom)
         c.line(col_lote, tabla_top, col_lote, tabla_bottom)        
         c.line(col_unidades, tabla_top, col_unidades, tabla_bottom)
 
@@ -746,15 +750,18 @@ class StockPickingInherit(models.Model):
         c.line(tabla_left, tabla_top - 20, tabla_right, tabla_top - 20)
 
         # Dibujar filas
-        y = tabla_top - 30
+        
+        row_height = 10
+        y = tabla_top - 31
         for linea in remito['move_lines']:
             if y < tabla_bottom + row_height:
-                break  # Paginado, ajusta según tu lógica
+                break
             c.setFont("Helvetica", 8)
             c.drawString(col_bultos, y, f"{linea['bultos']:.2f}")
-            c.drawString(col_producto, y, linea['nombre'])
-            c.drawString(col_lote, y, linea['lote'])
-            c.drawRightString(col_unidades + 45, y, f"{int(linea['unidades'])}")
+            c.drawString(col_codigo, y, linea['code'])
+            c.drawString(col_producto, y, linea['description'])
+            c.drawString(col_lote +10, y, linea['lote'])
+            c.drawRightString(col_unidades + 15, y, f"{int(linea['unidades'])}")
             y -= row_height
 
         # ===== FOOTER (Resúmenes) =====
