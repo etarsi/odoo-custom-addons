@@ -549,7 +549,7 @@ class StockPickingInherit(models.Model):
                 lote = move.lot_ids[:1].name if move.lot_ids else ''
                 product_code = move.product_id.default_code
                 product_description = f"{move.product_id.name}"
-                product_description = product_description[:50]
+                product_description = product_description[:55]
                 product_name = f"[{move.product_id.default_code}] {move.product_id.name}"
                 product_name = product_name[:60]
 
