@@ -577,8 +577,8 @@ class StockPickingInherit(models.Model):
             'date': date,
             'client': {
                 'name': partner_name,
-                'address': partner.street or '',
-                'location': client_location or '',
+                'address': partner.street[:54] or '',
+                'location': client_location[:54] or '',
                 'cuit': partner.vat,
                 'iva': partner.l10n_ar_afip_responsibility_type_id.name if partner.l10n_ar_afip_responsibility_type_id else '',
             },
@@ -752,7 +752,7 @@ class StockPickingInherit(models.Model):
 
         # Dibujar filas
         
-        row_height = 15
+        row_height = 13
         y = tabla_top - 35
         for linea in remito['move_lines']:
             if y < tabla_bottom + row_height:
