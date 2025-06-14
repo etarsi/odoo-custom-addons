@@ -752,7 +752,7 @@ class StockPickingInherit(models.Model):
 
         # Dibujar filas
         
-        row_height = 13
+        row_height = 15
         y = tabla_top - 31
         for linea in remito['move_lines']:
             if y < tabla_bottom + row_height:
