@@ -684,10 +684,7 @@ class StockPickingInherit(models.Model):
         top = int(config_param.sudo().get_param('remito_margen_top'))
         bottom = int(config_param.sudo().get_param('remito_margen_bottom'))
         row_height = 18  # Alto de cada fila
-        col_bultos = left + 5
-        col_producto = left + 60
-        col_lote = left + 330
-        col_unidades = right - 60
+        
 
         buffer = BytesIO()
         c = canvas.Canvas(buffer, pagesize=A4)
@@ -723,22 +720,30 @@ class StockPickingInherit(models.Model):
         tabla_right = right
         tabla_bottom = bottom
 
+        col_bultos = left + 10
+        col_codigo = left + 50
+        col_producto = left + 90
+        col_lote = left + 330
+        col_unidades = right - 40
+
         # Dibujar recuadro de la tabla
         c.setLineWidth(1)
         c.roundRect(tabla_left, tabla_bottom, tabla_right - tabla_left, tabla_top - tabla_bottom, radius=10)
-
-
         # Dibujar columnas
-        c.line(col_producto-10, tabla_top, col_producto-10, tabla_bottom)  # Línea vertical entre Bultos y Producto
-        c.line(col_lote-10, tabla_top, col_lote-10, tabla_bottom)          # Entre Producto y Lote
-        c.line(col_unidades+30, tabla_top, col_unidades+30, tabla_bottom)  # Entre Lote y Unidades
+        c.line(col_codigo-10, tabla_top, col_producto-10, tabla_bottom)
+        c.line(col_producto-10, tabla_top, col_producto-10, tabla_bottom)
+        c.line(col_lote-10, tabla_top, col_lote-10, tabla_bottom)        
+        c.line(col_unidades+30, tabla_top, col_unidades+30, tabla_bottom)
 
         # Dibujar encabezados
         c.setFont("Helvetica-Bold", 9)
         c.drawString(col_bultos, tabla_top - 15, "Bultos")
-        c.drawString(col_producto, tabla_top - 15, "Producto")
-        c.drawString(col_lote, tabla_top - 15, "Lote")
+        c.drawString(col_codigo, tabla_top - 15, "Código")
+        c.drawString(col_producto, tabla_top - 15, "Descripción")
+        c.drawString(col_lote, tabla_top - 15, "Despacho")
         c.drawString(col_unidades, tabla_top - 15, "Unidades")
+
+        c.line(tabla_left, tabla_top - 20, tabla_right, tabla_top - 20)
 
         # Dibujar filas
         y = tabla_top - 30
