@@ -753,12 +753,12 @@ class StockPickingInherit(models.Model):
         # Dibujar filas
         
         row_height = 15
-        y = tabla_top - 31
+        y = tabla_top - 35
         for linea in remito['move_lines']:
             if y < tabla_bottom + row_height:
                 break
             c.setFont("Helvetica", 8)
-            c.drawString(col_bultos, y, f"{linea['bultos']:.2f}")
+            c.drawString(col_bultos+1, y, f"{linea['bultos']:.2f}")
             c.drawString(col_codigo, y, linea['code'])
             c.drawString(col_producto, y, linea['description'])
             c.drawString(col_lote +10, y, linea['lote'])
