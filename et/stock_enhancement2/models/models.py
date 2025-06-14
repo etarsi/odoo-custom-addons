@@ -549,7 +549,7 @@ class StockPickingInherit(models.Model):
                 lote = move.lot_ids[:1].name if move.lot_ids else ''
                 product_code = move.product_id.default_code
                 product_description = f"{move.product_id.name}"
-                product_description = product_description[:60]
+                product_description = product_description[:50]
                 product_name = f"[{move.product_id.default_code}] {move.product_id.name}"
                 product_name = product_name[:60]
 
@@ -727,7 +727,7 @@ class StockPickingInherit(models.Model):
         col_bultos = left + 10
         col_codigo = left + 55
         col_producto = left + 100
-        col_lote = left + 370
+        col_lote = left + 380
         col_unidades = right - 50
 
         # Dibujar recuadro de la tabla
