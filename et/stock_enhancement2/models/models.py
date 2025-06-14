@@ -547,6 +547,7 @@ class StockPickingInherit(models.Model):
                 uxb = move.product_packaging_id.qty if move.product_packaging_id else 1
                 bultos = qty / uxb if uxb else 1
                 lote = move.lot_ids[:1].name if move.lot_ids else ''
+                lote = lote[:22]
                 product_code = move.product_id.default_code
                 product_description = f"{move.product_id.name}"
                 product_description = product_description[:55]
