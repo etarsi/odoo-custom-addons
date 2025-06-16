@@ -683,99 +683,109 @@ class StockPickingInherit(models.Model):
     def _build_remito_pdf2(self, picking, proportion, company_id, type):
         remito = self._prepare_remito_data(picking, proportion, company_id, type)
         rcoords = self.get_new_remito_coords()
-        # --- COORDENADAS BASE (ajustalas a gusto, estas son de ejemplo) ---
         config_param = self.env['ir.config_parameter']
         left = int(config_param.sudo().get_param('remito_margen_left'))
         right = int(config_param.sudo().get_param('remito_margen_right'))
         top = int(config_param.sudo().get_param('remito_margen_top'))
         bottom = int(config_param.sudo().get_param('remito_margen_bottom'))
-        
 
         buffer = BytesIO()
         c = canvas.Canvas(buffer, pagesize=A4)
 
-        # Header container
-        c.setLineWidth(1)
-        container_x = int(config_param.sudo().get_param('container_x'))
-        container_y = int(config_param.sudo().get_param('container_y'))
-        container_width = right - left
-        container_height = int(config_param.sudo().get_param('container_h'))
-        c.roundRect(container_x, container_y, container_width, container_height, radius=10)
+        # ----------- FUNCIONES PARA HEADER Y TABLA -----------
+        def draw_header():
+            c.setLineWidth(1)
+            container_x = int(config_param.sudo().get_param('container_x'))
+            container_y = int(config_param.sudo().get_param('container_y'))
+            container_width = right - left
+            container_height = int(config_param.sudo().get_param('container_h'))
+            c.roundRect(container_x, container_y, container_width, container_height, radius=10)
 
-        # ===== HEADER =====
-        c.setFont("Helvetica-Bold", 13)
-        c.drawString(rcoords['fecha_x'], rcoords['fecha_y'], "FECHA: " + (remito.get('date', "")))
-        c.setFont("Helvetica", 10)
-        c.drawString(rcoords['cliente_x'], rcoords['cliente_y'], f"Cliente: {remito['client']['name']}")
-        c.drawString(rcoords['direccion_x'], rcoords['direccion_y'], f"Dirección: {remito['client']['address']}")
-        c.drawString(rcoords['localidad_x'], rcoords['localidad_y'], f"Localidad: {remito['client']['location']}")
-        c.drawString(rcoords['iva_x'], rcoords['iva_y'], f"IVA: {remito['client']['iva']}")
-        c.drawString(rcoords['cuit_x'], rcoords['cuit_y'], f"CUIT: {remito['client']['cuit']}")
-        # c.drawString(rcoords['tel_x'], rcoords['tel_y'], f"TEL: {remito['client']['location']}")
-        c.drawString(rcoords['transporte_x'], rcoords['transporte_y'], f"Transporte: {remito['destination']['name']}")
-        c.drawString(rcoords['transporte2_x'], rcoords['transporte2_y'], f"{remito['destination']['address']}")
-        c.drawString(rcoords['pedido_x'], rcoords['pedido_y'], f"Pedido: {remito['origin']}")
-        c.drawString(rcoords['transferencia_x'], rcoords['transferencia_y'], f"TR: {remito['picking_name']}")
-        c.drawString(rcoords['wms_x'], rcoords['wms_y'], f"WMS: {remito['codigo_wms']}")
+            c.setFont("Helvetica-Bold", 13)
+            c.drawString(rcoords['fecha_x'], rcoords['fecha_y'], "FECHA: " + (remito.get('date', "")))
+            c.setFont("Helvetica", 10)
+            c.drawString(rcoords['cliente_x'], rcoords['cliente_y'], f"Cliente: {remito['client']['name']}")
+            c.drawString(rcoords['direccion_x'], rcoords['direccion_y'], f"Dirección: {remito['client']['address']}")
+            c.drawString(rcoords['localidad_x'], rcoords['localidad_y'], f"Localidad: {remito['client']['location']}")
+            c.drawString(rcoords['iva_x'], rcoords['iva_y'], f"IVA: {remito['client']['iva']}")
+            c.drawString(rcoords['cuit_x'], rcoords['cuit_y'], f"CUIT: {remito['client']['cuit']}")
+            c.drawString(rcoords['transporte_x'], rcoords['transporte_y'], f"Transporte: {remito['destination']['name']}")
+            c.drawString(rcoords['transporte2_x'], rcoords['transporte2_y'], f"{remito['destination']['address']}")
+            c.drawString(rcoords['pedido_x'], rcoords['pedido_y'], f"Pedido: {remito['origin']}")
+            c.drawString(rcoords['transferencia_x'], rcoords['transferencia_y'], f"TR: {remito['picking_name']}")
+            c.drawString(rcoords['wms_x'], rcoords['wms_y'], f"WMS: {remito['codigo_wms']}")
 
-        # ===== TABLA DE PRODUCTOS =====
-        # Cabecera
-        tabla_top = top
-        tabla_left = left
-        tabla_right = right
-        tabla_bottom = bottom
+        def draw_table_headers():
+            tabla_top = top
+            tabla_left = left
+            tabla_right = right
+            tabla_bottom = bottom
+            col_bultos = left + 10
+            col_codigo = left + 55
+            col_producto = left + 100
+            col_lote = left + 380
+            col_unidades = right - 50
 
-        col_bultos = left + 10
-        col_codigo = left + 55
-        col_producto = left + 100
-        col_lote = left + 380
-        col_unidades = right - 50
+            c.setLineWidth(1)
+            c.roundRect(tabla_left, tabla_bottom, tabla_right - tabla_left, tabla_top - tabla_bottom, radius=10)
+            c.line(col_codigo-10, tabla_top, col_codigo-10, tabla_bottom)
+            c.line(col_producto-9, tabla_top, col_producto-10, tabla_bottom)
+            c.line(col_lote, tabla_top, col_lote, tabla_bottom)        
+            c.line(col_unidades, tabla_top, col_unidades, tabla_bottom)
 
-        # Dibujar recuadro de la tabla
-        c.setLineWidth(1)
-        c.roundRect(tabla_left, tabla_bottom, tabla_right - tabla_left, tabla_top - tabla_bottom, radius=10)
-        # Dibujar columnas
-        c.line(col_codigo-10, tabla_top, col_codigo-10, tabla_bottom)
-        c.line(col_producto-9, tabla_top, col_producto-10, tabla_bottom)
-        c.line(col_lote, tabla_top, col_lote, tabla_bottom)        
-        c.line(col_unidades, tabla_top, col_unidades, tabla_bottom)
+            c.setFont("Helvetica-Bold", 9)
+            c.drawString(col_bultos -1, tabla_top - 15, "Bultos")
+            c.drawString(col_codigo-1, tabla_top - 15, "Código")
+            c.drawString(col_producto, tabla_top - 15, "Descripción")
+            c.drawString(col_lote +10, tabla_top - 15, "Despacho")
+            c.drawString(col_unidades+5, tabla_top - 15, "Unidades")
+            c.line(tabla_left, tabla_top - 20, tabla_right, tabla_top - 20)
+            return tabla_top, tabla_left, tabla_right, tabla_bottom, col_bultos, col_codigo, col_producto, col_lote, col_unidades
 
-        # Dibujar encabezados
-        c.setFont("Helvetica-Bold", 9)
-        c.drawString(col_bultos -1, tabla_top - 15, "Bultos")
-        c.drawString(col_codigo-1, tabla_top - 15, "Código")
-        c.drawString(col_producto, tabla_top - 15, "Descripción")
-        c.drawString(col_lote +10, tabla_top - 15, "Despacho")
-        c.drawString(col_unidades+5, tabla_top - 15, "Unidades")
+        def draw_footer():
+            c.setFont("Helvetica-Bold", 10)
+            c.drawString(left, bottom - 20, f"Cantidad de Bultos: {remito.get('total_bultos', 0):.2f}")
+            c.drawString(left + 200, bottom - 20, f"Cantidad UXB: {remito.get('total_units', 0):.2f}")
+            if remito.get('total_value'):
+                c.drawString(right - 120, bottom - 20, f"Total: $ {remito['total_value']:,.2f}")
 
-        c.line(tabla_left, tabla_top - 20, tabla_right, tabla_top - 20)
-
-        # Dibujar filas
-        
+        # ----------- MAIN LOOP: MULTI-PÁGINA -----------
+        max_rows_per_page = 32
         row_height = 13
-        y = tabla_top - 35
-        for linea in remito['move_lines']:
-            if y < tabla_bottom + row_height:
-                break
-            c.setFont("Helvetica", 8)
-            c.drawString(col_bultos+1, y, f"{linea['bultos']:.2f}")
-            c.drawString(col_codigo, y, linea['code'])
-            c.drawString(col_producto, y, linea['description'])
-            c.drawString(col_lote +10, y, linea['lote'])
-            c.drawRightString(col_unidades + 35, y, f"{int(linea['unidades'])}")
-            y -= row_height
 
-        # ===== FOOTER (Resúmenes) =====
-        c.setFont("Helvetica-Bold", 10)
-        c.drawString(left, bottom - 20, f"Cantidad de Bultos: {remito.get('total_bultos', 0):.2f}")
-        c.drawString(left + 200, bottom - 20, f"Cantidad UXB: {remito.get('total_units', 0):.2f}")
-        if remito.get('total_value'):
-            c.drawString(right - 120, bottom - 20, f"Total: $ {remito['total_value']:,.2f}")
+        move_lines = remito['move_lines']
+        num_lines = len(move_lines)
+        line_idx = 0
+
+        while line_idx < num_lines:
+            draw_header()
+            tabla_top, tabla_left, tabla_right, tabla_bottom, col_bultos, col_codigo, col_producto, col_lote, col_unidades = draw_table_headers()
+            y = tabla_top - 35
+
+            # Por cada página, imprimí hasta max_rows_per_page líneas
+            for row in range(max_rows_per_page):
+                if line_idx >= num_lines or y < tabla_bottom + row_height:
+                    break
+                linea = move_lines[line_idx]
+                c.setFont("Helvetica", 8)
+                c.drawString(col_bultos+1, y, f"{linea['bultos']:.2f}")
+                c.drawString(col_codigo, y, linea['code'])
+                c.drawString(col_producto, y, linea['description'])
+                c.drawString(col_lote +10, y, linea['lote'])
+                c.drawRightString(col_unidades + 35, y, f"{int(linea['unidades'])}")
+                y -= row_height
+                line_idx += 1
+
+            # FOOTER (al pie de cada página)
+            draw_footer()
+            if line_idx < num_lines:
+                c.showPage()  # Nueva página (si quedan líneas por imprimir)
 
         c.save()
         pdf = buffer.getvalue()
         buffer.close()
         return pdf
+
     
     def get_new_remito_coords(self):
         remito_coords = self.env['remito.coords'].search([], limit=1)
