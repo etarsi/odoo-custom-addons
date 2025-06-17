@@ -61,6 +61,8 @@ class StockPickingInherit(models.Model):
                             'location_dest_id': move.location_dest_id.id,
                             'product_uom_id': move.product_uom.id,
                         })
+                else:
+                    raise UserError(f"No hay lote para el producto: {move.product_id.default_code}")
 
 
 
