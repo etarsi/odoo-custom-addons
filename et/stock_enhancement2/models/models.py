@@ -640,16 +640,16 @@ class StockPickingInherit(models.Model):
 
         y = draw_header()
         y = coords['tabla_y']
-        
+       
 
         def draw_footer():
-                y = coords['resumen_y']
-                c.setFont("Helvetica-Bold", 10)
-                c.drawString(160, y, f"Cantidad de Bultos: {remito['total_bultos']:.2f}")
-                c.drawString(320, y, f"Cantidad UXB: {remito['total_units']:.2f}")
-                y = coords['valor_y']
-                if remito['total_value']:
-                    c.drawString(450, y, f"$ {remito['total_value']:,.2f}")
+            y = coords['resumen_y']
+            c.setFont("Helvetica-Bold", 10)
+            c.drawString(160, y, f"Cantidad de Bultos: {remito['total_bultos']:.2f}")
+            c.drawString(320, y, f"Cantidad UXB: {remito['total_units']:.2f}")
+            y = coords['valor_y']
+            if remito['total_value']:
+                c.drawString(450, y, f"$ {remito['total_value']:,.2f}")
         
         for linea in remito['move_lines']:
             if company_id.id in (1, 2, 3):
@@ -762,7 +762,6 @@ class StockPickingInherit(models.Model):
             tabla_top, tabla_left, tabla_right, tabla_bottom, col_bultos, col_codigo, col_producto, col_lote, col_unidades = draw_table_headers()
             y = tabla_top - 35
 
-            # Por cada página, imprimí hasta max_rows_per_page líneas
             for row in range(max_rows_per_page):
                 if line_idx >= num_lines or y < tabla_bottom + row_height:
                     break
@@ -779,7 +778,7 @@ class StockPickingInherit(models.Model):
             # FOOTER (al pie de cada página)
             draw_footer()
             if line_idx < num_lines:
-                c.showPage()  # Nueva página (si quedan líneas por imprimir)
+                c.showPage()
 
         c.save()
         pdf = buffer.getvalue()
