@@ -38,6 +38,24 @@ class StockPickingInherit(models.Model):
     old_picking = fields.Boolean(default=False)
     old_picking_txt = fields.Text(default='⚠️ PICKING VIEJO - FACTURAR E IMPRIMIR REMITO DE LA VIEJA FORMA')
 
+
+    def assign_lots(self):
+        for record in self:
+            for move in record.move_ids_without_package:
+                # Buscar el primer lote disponible para ese producto
+                lot = self.env['stock.production.lot'].search([
+                    ('product_id', '=', move.product_id.id),
+                    ('company_id', '=', move.company_id.id)
+                ], limit=1, order='id asc')
+                
+                if lot:
+                    # Asignar lote al move (esto sirve para algunos flujos sencillos)
+                    move.restrict_lot_id = lot.id
+                    # Si usás move lines (con serial o multi-lot):
+                    for ml in move.move_line_ids:
+                        ml.lot_id = lot.id
+
+
     def button_validate(self):
         res = super().button_validate()
 

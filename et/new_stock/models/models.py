@@ -147,12 +147,12 @@ class NewStock(models.Model):
         elif response.status_code == 500:
             raise UserError('ERROR: 500 INTERNAL SERVER ERROR. Avise a su administrador de sistema. Probablemente alguno de los productos no se encuentra creado en Digip.')        
 
-    # def get_enelagua(self):
+    def get_enelagua(self):
         # product_uom
         # product_qty
         # qty_received
 
-        # global_purchases = self.env['purchase.order']
+        global_purchases = self.env['purchase.order'].search([])
 
     
     # def get_comprometido(self)
