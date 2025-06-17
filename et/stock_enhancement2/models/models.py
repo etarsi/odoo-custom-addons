@@ -42,18 +42,26 @@ class StockPickingInherit(models.Model):
     def assign_lots(self):
         for record in self:
             for move in record.move_ids_without_package:
-                # Buscar el primer lote disponible para ese producto
                 lot = self.env['stock.production.lot'].search([
                     ('product_id', '=', move.product_id.id),
                     ('company_id', '=', move.company_id.id)
-                ], limit=1, order='id asc')
-                
+                ], order='id asc', limit=1)
                 if lot:
-                    # Asignar lote al move (esto sirve para algunos flujos sencillos)
-                    move.restrict_lot_id = lot.id
-                    # Si usás move lines (con serial o multi-lot):
+                    # Si hay move lines, asigná el lote
                     for ml in move.move_line_ids:
                         ml.lot_id = lot.id
+                    # Si NO hay move lines, creá una
+                    if not move.move_line_ids:
+                        move.move_line_ids.create({
+                            'move_id': move.id,
+                            'product_id': move.product_id.id,
+                            'lot_id': lot.id,
+                            'qty_done': move.product_uom_qty,
+                            'location_id': move.location_id.id,
+                            'location_dest_id': move.location_dest_id.id,
+                            'product_uom_id': move.product_uom.id,
+                        })
+
 
 
     def button_validate(self):
