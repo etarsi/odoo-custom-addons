@@ -28,8 +28,9 @@ class NewStock(models.Model):
     enelagua_unidades = fields.Integer('En el Agua Unidades')
     total_unidades = fields.Integer('Total Unidades')
     reservado_unidades = fields.Integer('Reservado Unidades')
-    disponible_unidades = fields.Float('Disponible Unidades')
+    disponible_unidades = fields.Float('Disponible Unidades', digits=(99,0))
     entregable_unidades = fields.Integer('Entregable Unidades')
+    comprado_unidades = fields.Integer('Comprado Unidades')
     entrante_unidades = fields.Integer('Entrante Unidades')
 
     fisico_bultos = fields.Float('Físico Bultos')
@@ -38,12 +39,13 @@ class NewStock(models.Model):
     reservado_bultos = fields.Float('Reservado Bultos')
     disponible_bultos = fields.Float('Disponible Bultos')    
     entregable_unidades = fields.Float('Entregable Bultos')
+    comprado_bultos = fields.Float
     entrante_bultos = fields.Float('Entrante Bultos')
 
     entrante_fecha = fields.Date('ETA')
     entrante_licencia = fields.Char('Licencia')
 
-    ultima_actualizacion = fields.Date('Última actualización')
+    ultima_actualizacion = fields.Datetime('Última actualización')
 
     # teórico
 
@@ -110,6 +112,7 @@ class NewStock(models.Model):
             disponible = stock_by_code.get(code, 0)
 
             s.fisico_unidades = disponible
+            s.ultima_actualizacion = fields.Datetime.now()
 
     def _get_digip_stock_en_lotes(self, product_codes, max_por_lote=387):
         product_codes = list(product_codes)
@@ -147,12 +150,15 @@ class NewStock(models.Model):
         elif response.status_code == 500:
             raise UserError('ERROR: 500 INTERNAL SERVER ERROR. Avise a su administrador de sistema. Probablemente alguno de los productos no se encuentra creado en Digip.')        
 
+    def get_comprado(self):
+        global_purchases = self.env['purchase.order'].search([])
+    
     def get_enelagua(self):
         # product_uom
         # product_qty
         # qty_received
-
-        global_purchases = self.env['purchase.order'].search([])
+        
+        containers = self.env['stock.picking'].search([])
 
     
     # def get_comprometido(self)
