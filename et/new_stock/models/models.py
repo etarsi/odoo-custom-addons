@@ -34,11 +34,11 @@ class NewStock(models.Model):
     entrante_unidades = fields.Integer('Entrante Unidades')
 
     fisico_bultos = fields.Float('Físico Bultos')
-    enelagua_unidades = fields.Float('En el Agua Bultos')    
-    total_unidades = fields.Float('Total Bultos')
+    enelagua_bultos = fields.Float('En el Agua Bultos')    
+    total_bultos = fields.Float('Total Bultos')
     reservado_bultos = fields.Float('Reservado Bultos')
     disponible_bultos = fields.Float('Disponible Bultos')    
-    entregable_unidades = fields.Float('Entregable Bultos')
+    entregable_bultos = fields.Float('Entregable Bultos')
     comprado_bultos = fields.Float
     entrante_bultos = fields.Float('Entrante Bultos')
 
