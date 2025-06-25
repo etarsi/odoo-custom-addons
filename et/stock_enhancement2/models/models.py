@@ -64,6 +64,7 @@ class StockPickingInherit(models.Model):
                 else:
                     raise UserError(f"No hay lote para el producto: {move.product_id.default_code}")
 
+    
 
 
     def button_validate(self):
