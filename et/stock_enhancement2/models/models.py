@@ -38,6 +38,7 @@ class StockPickingInherit(models.Model):
     old_picking = fields.Boolean(default=False)
     old_picking_txt = fields.Text(default='⚠️ PICKING VIEJO - FACTURAR E IMPRIMIR REMITO DE LA VIEJA FORMA')
 
+    delivery_state = fields.Selection(selection=[('no', 'No entregado'), ('delivered', 'Entregado'), ('returned', 'Devuelto')], default='no', copy=False, string='Estado Delivery')
 
     def assign_lots(self):
         for record in self:
@@ -64,8 +65,13 @@ class StockPickingInherit(models.Model):
                 else:
                     raise UserError(f"No hay lote para el producto: {move.product_id.default_code}")
 
-    
+    def mark_as_delivered(self):
+        for record in self:
+            record.delivery_state = 'delivered'
 
+    def mark_as_returned(self):
+        for record in self:
+            record.delivery_state = 'returned'
 
     def button_validate(self):
         res = super().button_validate()
