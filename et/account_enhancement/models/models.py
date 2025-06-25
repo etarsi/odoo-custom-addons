@@ -35,7 +35,7 @@ class AccountMoveInherit(models.Model):
 
 
         for i in invoices:
-            result.append(f"{i.name},{i.wms_code},{i.invoice_date},{i.amount_total_signed}")
+            result.append(f"{i.partner_id.name},{i.invoice_date},{i.name},{i.wms_code},{i.origin},{i.amount_total_signed}")
 
         result2 = '\n'.join(result)
 
