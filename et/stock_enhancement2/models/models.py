@@ -962,8 +962,11 @@ class StockPickingInherit(models.Model):
 
 
             for p in pickings:
-                invoices = ', '.join(p.invoice_ids.mapped('name')) if p.invoice_ids else ''
-                result.append(f"{p.creation_date};{p.partner_id.name};{p.name};{p.codigo_wms};{p.origin};{invoices}")
+                if p.invoice_ids:
+                    for i in p.invoice_ids:
+                        result.append(f"{p.creation_date};{p.partner_id.name};{p.name};{p.codigo_wms};{p.origin};{i.name};{i.invoice_date}")
+                else:
+                    result.append(f"{p.creation_date};{p.partner_id.name};{p.name};{p.codigo_wms};{p.origin}")
 
             result2 = '\n'.join(result)
 
