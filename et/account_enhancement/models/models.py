@@ -2,6 +2,7 @@
 from odoo import models, api, fields, _
 from odoo.exceptions import AccessError, UserError, ValidationError
 import logging
+from datetime import date
 _logger = logging.getLogger(__name__)
 
 class AccountMoveInherit(models.Model):
@@ -9,6 +10,11 @@ class AccountMoveInherit(models.Model):
 
     wms_code = fields.Char(string="Código WMS")
 
+    @api.onchange('invoice_date')
+    def _onchange_invoice_date(self):
+        for record in self:
+            if record.record_type in ['out_refund', 'in_refund'] and record.invoice_date and record.invoice_date > date(2025, 6, 30):
+                raise UserError(_("No se puede cambiar la fecha de una Nota de Crédito con fecha posterior al 30/06/2025."))
 
     executive_id = fields.Many2one(
         'res.users',
@@ -413,3 +419,14 @@ class AccountPaymentInherit(models.TransientModel):
             raise UserError(_("Checks must be on a third party checks journal to be transfered by this wizard"))
         res['journal_id'] = checks[0].l10n_latam_check_current_journal_id.id
         return res
+    
+
+class AccountMoveReversalInherit(models.TransientModel):
+    _inherit = 'account.move.reversal'
+
+
+    def reverse_moves(self):
+        if self.date > date(2025, 6, 30):
+            raise UserError(_("No se puede crear una Nota de Crédito con fecha posterior al 30/06/2025."))
+        else:
+            return super().reverse_moves()
