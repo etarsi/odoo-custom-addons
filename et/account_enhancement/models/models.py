@@ -13,7 +13,7 @@ class AccountMoveInherit(models.Model):
     @api.onchange('invoice_date')
     def _onchange_invoice_date(self):
         for record in self:
-            if record.record_type in ['out_refund', 'in_refund'] and record.invoice_date and record.invoice_date > date(2025, 6, 30):
+            if record.move_type in ['out_refund', 'in_refund'] and record.invoice_date and record.invoice_date > date(2025, 6, 30):
                 raise UserError(_("No se puede cambiar la fecha de una Nota de Crédito con fecha posterior al 30/06/2025."))
 
     executive_id = fields.Many2one(
