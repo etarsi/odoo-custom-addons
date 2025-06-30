@@ -151,14 +151,18 @@ class NewStock(models.Model):
             raise UserError('ERROR: 500 INTERNAL SERVER ERROR. Avise a su administrador de sistema. Probablemente alguno de los productos no se encuentra creado en Digip.')        
 
     def get_comprado(self):
-        global_purchases = self.env['purchase.order'].search([])
+        global_purchases = self.env['purchase.order'].search([('china_purchase','=', True)])
+
+        return global_purchases
     
     def get_enelagua(self):
         # product_uom
         # product_qty
         # qty_received
+        purchased = self.get_comprado()
+        containers = self.env['stock.picking'].search([('partner_id','=', 16571), ('picking_type_code','!=','outgoing')])
+
         
-        containers = self.env['stock.picking'].search([])
 
     
     # def get_comprometido(self)
