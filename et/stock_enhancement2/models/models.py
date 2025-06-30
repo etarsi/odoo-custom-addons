@@ -19,6 +19,7 @@ class StockPickingInherit(models.Model):
     wms_date = fields.Date(string="Fecha WMS")
     has_rodado = fields.Boolean(string="Rodados", compute="_compute_has_rodado", store=True)
     has_toys = fields.Boolean(string="Juguetes", compute="_compute_has_toys", store=True)
+    has_balls = fields.Boolean(string="Pelotas", compute="_compute_has_balls", store=True)
     available_pkg_qty = fields.Float(string='Bultos Disponibles' ,compute='sum_bultos', group_operator='sum', store=True)
     partner_delivery_carrier_id = fields.Many2one(
         'delivery.carrier',
@@ -446,6 +447,12 @@ class StockPickingInherit(models.Model):
                 if line.product_id.categ_id.parent_id.id == 218:
                     record.has_toys = True
 
+    @api.depends('move_ids_without_package')
+    def _compute_has_balls(self):
+        for record in self:
+            for line in record.move_ids_without_package:
+                if line.product_id.categ_id.parent_id.id == 778:
+                    record.has_balls = True
 
     # def enviar(self):
     #     res = super().enviar()
