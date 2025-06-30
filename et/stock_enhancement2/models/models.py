@@ -964,9 +964,9 @@ class StockPickingInherit(models.Model):
             for p in pickings:
                 if p.invoice_ids:
                     for i in p.invoice_ids:
-                        result.append(f"{p.creation_date};{p.partner_id.name};{p.name};{p.codigo_wms};{p.origin};{i.name};{i.invoice_date}")
+                        result.append(f"{p.create_date};{p.partner_id.name};{p.name};{p.codigo_wms};{p.origin};{i.name};{i.invoice_date}")
                 else:
-                    result.append(f"{p.creation_date};{p.partner_id.name};{p.name};{p.codigo_wms};{p.origin}")
+                    result.append(f"{p.create_date};{p.partner_id.name};{p.name};{p.codigo_wms};{p.origin}")
 
             result2 = '\n'.join(result)
 
