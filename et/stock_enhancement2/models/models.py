@@ -352,13 +352,13 @@ class StockPickingInherit(models.Model):
                         'uxb': move.product_id.packaging_ids[:1].name if move.product_id.packaging_ids else '',
                         'lot': line.lot_id.name or '',
                         'cmv': '',
-                        'partner_id': record.partner_id.id,
-                        'company_id': record.company_id.name,
-                        'picking_id': record.id,
-                        'wms_code': record.codigo_wms,
-                        'license': record.carrier_tracking_ref,
-                        'container': record.container,
-                        'dispatch': record.dispatch_number,
+                        'partner_id': move.picking_id.partner_id.id,
+                        'company_id': move.company_id.name,
+                        'picking_id': move.id,
+                        'wms_code': move.picking_id.codigo_wms,
+                        'license': move.picking_id.carrier_tracking_ref,
+                        'container': move.picking_id.container,
+                        'dispatch': move.picking_id.dispatch_number,
                     }
                     vals_list.append(vals)
         self.env['product.move'].create(vals_list)
