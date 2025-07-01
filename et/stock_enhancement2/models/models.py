@@ -122,7 +122,7 @@ class StockPickingInherit(models.Model):
                         'dispatch': record.dispatch_number,
                     }
                     vals_list.append(vals)
-                    
+
             self.env['product.move'].create(vals)
 
         return res
@@ -334,7 +334,7 @@ class StockPickingInherit(models.Model):
     def action_create_product_moves(self):
         for record in self:
             
-            stock_moves = self.env['stock.move'].search([('create_date', '>', '2025-03-01'),('state', '=', 'done'),])
+            stock_moves = self.env['stock.move'].search([('date', '>', '2025-03-01'),('state', '=', 'done'),])
             vals_list = []
 
             for move in stock_moves:
@@ -353,7 +353,7 @@ class StockPickingInherit(models.Model):
                         'lot': line.lot_id.name or '',
                         'cmv': '',
                         'partner_id': record.partner_id.id,
-                        'company_id': record.company_id.id,
+                        'company_id': record.company_id.name,
                         'picking_id': record.id,
                         'wms_code': record.codigo_wms,
                         'license': record.carrier_tracking_ref,
