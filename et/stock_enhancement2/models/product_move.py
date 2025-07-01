@@ -19,8 +19,8 @@ class ProductMove(models.Model):
     type = fields.Char(string="Tipo")
 
     product_id = fields.Many2one('product.product', string="Producto")
-    product_code = fields.Char(string="Código", store=True, compute='')
-    product_name = fields.Char(string="Nombre", store=True, compute='')
+    product_code = fields.Char(string="Código")
+    product_name = fields.Char(string="Nombre")
     categ_id = fields.Char(string="Categoría de Producto")
     
     quantity = fields.Integer(string="Cantidad")

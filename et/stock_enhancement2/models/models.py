@@ -96,25 +96,22 @@ class StockPickingInherit(models.Model):
                 
                 record.declared_value = total_declarado * 0.25           
             
+            vals_list = []
+
             for move in record.move_ids_without_package:
-                for line in move:
-                    product_move = self.env['product.move']
-
-                    
-                    if move.picking_type_code == 'ingoing':
-                        move_type = 'RECEPCIÓN'
-                    else:
-                        move_type = 'ENTREGA'
-
+                for line in move:                    
+                    move_type = 'RECEPCIÓN' if record.picking_type_code == 'incoming' else 'ENTREGA'
                     
                     vals = {
                         'date': fields.Datetime.now(),
                         'type': move_type,
                         'product_id': move.product_id.id,
-                        'categ_id': move.product_id.categ_id.name,
-                        'quantity': move.quantity_done,
-                        'uxb': move.product_packaging_id.name,
-                        'lot': line.lot_name,
+                        'product_code': move.product_id.default_code,
+                        'product_name': move.product_id.name,
+                        'categ_id': move.product_id.categ_id.name or '',
+                        'quantity': line.qty_done,
+                        'uxb': move.product_id.packaging_ids[:1].name if move.product_id.packaging_ids else '',
+                        'lot': line.lot_id.name or '',
                         'cmv': '',
                         'partner_id': record.partner_id.id,
                         'company_id': record.company_id.id,
@@ -124,7 +121,9 @@ class StockPickingInherit(models.Model):
                         'container': record.container,
                         'dispatch': record.dispatch_number,
                     }
-                    product_move.create(vals)
+                    vals_list.append(vals)
+                    
+            self.env['product.move'].create(vals)
 
         return res
 
@@ -346,9 +345,11 @@ class StockPickingInherit(models.Model):
                         'date': move.date,
                         'type': move_type,
                         'product_id': move.product_id.id,
+                        'product_code': move.product_id.default_code,
+                        'product_name': move.product_id.name,
                         'categ_id': move.product_id.categ_id.name or '',
                         'quantity': line.qty_done,
-                        'uxb': move.product_packaging_id.name,
+                        'uxb': move.product_id.packaging_ids[:1].name if move.product_id.packaging_ids else '',
                         'lot': line.lot_id.name or '',
                         'cmv': '',
                         'partner_id': record.partner_id.id,
