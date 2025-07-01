@@ -340,7 +340,7 @@ class StockPickingInherit(models.Model):
 
             for move in stock_moves:
                 for line in move.move_line_ids:
-                    move_type = 'RECEPCIÓN' if move.picking_type_code == 'incoming' else 'ENTREGA'
+                    move_type = 'RECEPCIÓN' if move.picking_id.picking_type_code == 'incoming' else 'ENTREGA'
 
                     vals = {
                         'date': move.date,
