@@ -99,7 +99,7 @@ class StockPickingInherit(models.Model):
             vals_list = []
 
             for move in record.move_ids_without_package:
-                for line in move:                    
+                for line in move.move_line_ids:                    
                     move_type = 'RECEPCIÓN' if record.picking_type_code == 'incoming' else 'ENTREGA'
                     
                     vals = {
