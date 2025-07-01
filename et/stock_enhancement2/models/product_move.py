@@ -24,7 +24,7 @@ class ProductMove(models.Model):
     categ_id = fields.Char(string="Categoría de Producto")
     
     quantity = fields.Integer(string="Cantidad")
-    uxb = fields.Integer(string="UxB")
+    uxb = fields.Char(string="UxB")
     lot = fields.Char(string="Lote")
     cmv = fields.Float(string="CMV")
     
