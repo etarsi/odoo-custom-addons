@@ -114,7 +114,7 @@ class StockPickingInherit(models.Model):
                         'lot': line.lot_id.name or '',
                         'cmv': '',
                         'partner_id': record.partner_id.id,
-                        'company_id': record.company_id.id,
+                        'company_id': record.company_id.name,
                         'picking_id': record.id,
                         'wms_code': record.codigo_wms,
                         'license': record.carrier_tracking_ref,
