@@ -164,6 +164,8 @@ class NewStock(models.Model):
 
         
 
+
+
     
     # def get_comprometido(self)
 

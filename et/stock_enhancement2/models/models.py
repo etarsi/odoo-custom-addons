@@ -96,6 +96,35 @@ class StockPickingInherit(models.Model):
                 
                 record.declared_value = total_declarado * 0.25           
             
+            for move in record.move_ids_without_package:
+                for line in move:
+                    product_move = self.env['product.move']
+
+                    
+                    if move.picking_type_code == 'ingoing':
+                        move_type = 'RECEPCIÓN'
+                    else:
+                        move_type = 'ENTREGA'
+
+                    
+                    vals = {
+                        'date': fields.Datetime.now(),
+                        'type': move_type,
+                        'product_id': move.product_id.id,
+                        'categ_id': move.product_id.categ_id.name,
+                        'quantity': move.quantity_done,
+                        'uxb': move.product_packaging_id.name,
+                        'lot': line.lot_name,
+                        'cmv': '',
+                        'partner_id': record.partner_id.id,
+                        'company_id': record.company_id.id,
+                        'picking_id': record.id,
+                        'wms_code': record.codigo_wms,
+                        'license': record.carrier_tracking_ref,
+                        'container': record.container,
+                        'dispatch': record.dispatch_number,
+                    }
+                    product_move.create(vals)
 
         return res
 
@@ -303,7 +332,35 @@ class StockPickingInherit(models.Model):
             'res_id': invoice.id,
         }
 
+    def action_create_product_moves(self):
+        for record in self:
+            
+            stock_moves = self.env['stock.move'].search([('create_date', '>', '2025-03-01'),('state', '=', 'done'),])
+            vals_list = []
 
+            for move in stock_moves:
+                for line in move.move_line_ids:
+                    move_type = 'RECEPCIÓN' if move.picking_type_code == 'incoming' else 'ENTREGA'
+
+                    vals = {
+                        'date': move.date,
+                        'type': move_type,
+                        'product_id': move.product_id.id,
+                        'categ_id': move.product_id.categ_id.name or '',
+                        'quantity': line.qty_done,
+                        'uxb': move.product_packaging_id.name,
+                        'lot': line.lot_id.name or '',
+                        'cmv': '',
+                        'partner_id': record.partner_id.id,
+                        'company_id': record.company_id.id,
+                        'picking_id': record.id,
+                        'wms_code': record.codigo_wms,
+                        'license': record.carrier_tracking_ref,
+                        'container': record.container,
+                        'dispatch': record.dispatch_number,
+                    }
+                    vals_list.append(vals)
+        self.env['product.move'].create(vals_list)
 
     def _prepare_invoice_base_vals(self, company):
         partner = self.partner_id
@@ -333,11 +390,8 @@ class StockPickingInherit(models.Model):
         new_date = today + timedelta(days=x)
         return new_date
 
-
-
     def _default_delivery_carrier(self):        
         return self.partner_id.property_delivery_carrier_id.id
-
     
     def update_available_percent(self):
         all_product_codes = set()
@@ -409,8 +463,7 @@ class StockPickingInherit(models.Model):
             if respuesta:
                 resultados_totales.extend(respuesta)
 
-        return resultados_totales
-                
+        return resultados_totales       
     
     def _get_stock(self, product_codes):
         headers = {}
@@ -526,7 +579,6 @@ class StockPickingInherit(models.Model):
                 'domain': [('id', 'in', all_new_pickings.ids)],
             }
         return False
-
     
     def action_print_remito(self):
         self.ensure_one()
@@ -551,8 +603,7 @@ class StockPickingInherit(models.Model):
             'url': f'/remito/auto2/{self.id}',
             'target': 'new',
         }
-   
-    
+       
     def _prepare_remito_data(self, picking, proportion, company_id, type):
         partner = picking.partner_id
 
@@ -827,7 +878,6 @@ class StockPickingInherit(models.Model):
         pdf = buffer.getvalue()
         buffer.close()
         return pdf
-
     
     def get_new_remito_coords(self):
         remito_coords = self.env['remito.coords'].search([], limit=1)
@@ -876,7 +926,6 @@ class StockPickingInherit(models.Model):
                 'valor_declarado_x': remito_coords.valor_declarado_x,
                 'valor_declarado_y': remito_coords.valor_declarado_y,
             }
-
 
     def _get_remito_template_coords(self, company_id):
 
