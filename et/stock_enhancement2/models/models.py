@@ -354,7 +354,7 @@ class StockPickingInherit(models.Model):
                         'cmv': '',
                         'partner_id': move.picking_id.partner_id.id,
                         'company_id': move.company_id.name,
-                        'picking_id': move.id,
+                        'picking_id': move.picking_id.id,
                         'wms_code': move.picking_id.codigo_wms,
                         'license': move.picking_id.carrier_tracking_ref,
                         'container': move.picking_id.container,
