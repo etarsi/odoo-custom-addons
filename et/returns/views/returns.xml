@@ -1,4 +1,4 @@
-<odoo>
+<!-- <odoo>
     <record id="view_remito_test_form" model="ir.ui.view">
         <field name="name">remito.test.form</field>
         <field name="model">remito.test</field>
@@ -35,4 +35,4 @@
 
     <menuitem id="menu_remito_test_root" name="Remitos Test"/>
     <menuitem id="menu_remito_test" name="Prueba de JS" parent="menu_remito_test_root" action="action_remito_test"/>
-</odoo>
+</odoo> -->
