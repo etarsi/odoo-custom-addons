@@ -16,7 +16,7 @@ class ReturnMove(models.Model):
     info = fields.Text(string="Información adicional")
     date = fields.Date(string="Fecha de Recepción")
     state = fields.Selection(string="Estado", default='draft', selection=[('draft','Borrador'), ('confirmed', 'Confirmado'), ('done', 'Hecho')])
-    move_lines = fields.One2many('return.move.line', string="Líneas de Devolución")
+    move_lines = fields.One2many('return.move.line', 'return_move', string="Líneas de Devolución")
     price_total = fields.Float(string="Total", compute="_compute_price_total")
     company_id = fields.Many2one('res.company', string="Compañía")
 
