@@ -460,5 +460,5 @@ class AccountMoveReversalInherit(models.TransientModel):
 
     def _prepare_default_reversal(self, move):
         vals = super()._prepare_default_reversal(move)
-        vals['auto_post'] = False  # o vals['state'] = 'draft' según la versión
+        vals['state'] = False  # o vals['state'] = 'draft' según la versión
         return vals
