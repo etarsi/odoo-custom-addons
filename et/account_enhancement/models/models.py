@@ -22,6 +22,7 @@ class AccountMoveInherit(models.Model):
             if move.move_type == 'out_refund':
                 for line in move.invoice_line_ids:
                     line.tax_ids = line.tax_ids.filtered(lambda t: not t.name.lower().startswith('perc'))
+            move.update_taxes()
         return reversed_moves
 
     executive_id = fields.Many2one(
