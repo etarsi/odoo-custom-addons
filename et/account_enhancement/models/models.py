@@ -10,11 +10,11 @@ class AccountMoveInherit(models.Model):
 
     wms_code = fields.Char(string="Código WMS")
 
-    # @api.onchange('invoice_date')
-    # def _onchange_invoice_date(self):
-    #     for record in self:
-    #         if record.move_type in ['out_refund', 'in_refund'] and record.invoice_date and record.invoice_date > date(2025, 6, 30):
-    #             raise UserError(_("No se puede cambiar la fecha de una Nota de Crédito con fecha posterior al 30/06/2025."))
+    @api.onchange('invoice_line_ids')
+    def _onchange_invoice_line_ids_remove_perceptions(self):
+        if self.move_type == 'out_refund':
+            for line in self.invoice_line_ids:
+                line.tax_ids = line.tax_ids.filtered(lambda t: not t.name.lower().startswith('perc'))
 
     executive_id = fields.Many2one(
         'res.users',
