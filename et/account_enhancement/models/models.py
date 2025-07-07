@@ -15,6 +15,14 @@ class AccountMoveInherit(models.Model):
         if self.move_type == 'out_refund':
             for line in self.invoice_line_ids:
                 line.tax_ids = line.tax_ids.filtered(lambda t: not t.name.lower().startswith('perc'))
+    
+    def _reverse_moves(self, default_values_list=None, cancel=False):
+        reversed_moves = super()._reverse_moves(default_values_list, cancel=cancel)
+        for move in reversed_moves:
+            if move.move_type == 'out_refund':
+                for line in move.invoice_line_ids:
+                    line.tax_ids = line.tax_ids.filtered(lambda t: not t.name.lower().startswith('perc'))
+        return reversed_moves
 
     executive_id = fields.Many2one(
         'res.users',
