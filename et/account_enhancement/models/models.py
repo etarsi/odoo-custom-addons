@@ -457,3 +457,8 @@ class AccountMoveReversalInherit(models.TransientModel):
     #         raise UserError(_("No se puede crear una Nota de Crédito con fecha posterior al 30/06/2025."))
     #     else:
     #         return super().reverse_moves()
+
+    def _prepare_default_reversal(self, move):
+        vals = super()._prepare_default_reversal(move)
+        vals['auto_post'] = False  # o vals['state'] = 'draft' según la versión
+        return vals
