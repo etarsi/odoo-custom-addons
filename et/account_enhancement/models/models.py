@@ -458,6 +458,22 @@ class AccountMoveReversalInherit(models.TransientModel):
     #     else:
     #         return super().reverse_moves()
 
+    def reverse_moves(self):
+        # Llamá al super y quedate con los moves recién creados, pero aún sin postear.
+        res = super(AccountMoveReversalInherit, self).reverse_moves()
+        # Odoo 15: revisar si ya se posteó o si hay forma de enganchar antes.
+
+        for reversal in self:
+            new_moves = self.env['account.move'].browse(reversal.new_move_ids)
+            for move in new_moves:
+                if move.move_type == 'out_refund':
+                    for line in move.invoice_line_ids:
+                        line.tax_ids = line.tax_ids.filtered(lambda t: not t.name.lower().startswith('perc'))
+            # Si hace falta, poné en borrador:
+            new_moves.write({'state': 'draft'})
+            # O NO posteés si no corresponde...
+        return res
+
     def _prepare_default_reversal(self, move):
         vals = super()._prepare_default_reversal(move)
         vals['state'] = 'draft'  # o vals['state'] = 'draft' según la versión
