@@ -26,7 +26,7 @@ class AccountMoveInherit(models.Model):
         string='Remitos relacionados'
     )
 
-   @api.model
+    @api.model
     def create(self, vals):
         if vals.get('move_type') == 'out_refund' and vals.get('invoice_line_ids'):
             # Buscar una sola vez los taxes de percepción
