@@ -459,20 +459,86 @@ class AccountMoveReversalInherit(models.TransientModel):
     #         return super().reverse_moves()
 
     def reverse_moves(self):
-        # Llamá al super y quedate con los moves recién creados, pero aún sin postear.
-        res = super(AccountMoveReversalInherit, self).reverse_moves()
-        # Odoo 15: revisar si ya se posteó o si hay forma de enganchar antes.
+        self.ensure_one()
+        moves = self.move_ids
 
-        for reversal in self:
-            new_moves = self.env['account.move'].browse(reversal.new_move_ids)
-            for move in new_moves:
-                if move.move_type == 'out_refund':
-                    for line in move.invoice_line_ids:
-                        line.tax_ids = line.tax_ids.filtered(lambda t: not t.name.lower().startswith('perc'))
-            # Si hace falta, poné en borrador:
-            new_moves.write({'state': 'draft'})
-            # O NO posteés si no corresponde...
-        return res
+        partners = moves.company_id.partner_id + moves.commercial_partner_id
+        bank_ids = self.env['res.partner.bank'].search([
+            ('partner_id', 'in', partners.ids),
+            ('company_id', 'in', moves.company_id.ids + [False]),
+        ], order='sequence DESC')
+        partner_to_bank = {bank.partner_id: bank for bank in bank_ids}
+        default_values_list = []
+        for move in moves:
+            if move.is_outbound():
+                partner = move.company_id.partner_id
+            else:
+                partner = move.commercial_partner_id
+            default_vals = {
+                'partner_bank_id': partner_to_bank.get(partner, self.env['res.partner.bank']).id,
+                **self._prepare_default_reversal(move),
+            }
+            default_vals['auto_post'] = False  # SIEMPRE borrador, controlamos después
+            default_values_list.append(default_vals)
+
+        batches = [
+            [self.env['account.move'], [], True],
+            [self.env['account.move'], [], False],
+        ]
+        for move, default_vals in zip(moves, default_values_list):
+            is_auto_post = bool(default_vals.get('auto_post'))
+            is_cancel_needed = not is_auto_post and self.refund_method in ('cancel', 'modify')
+            batch_index = 0 if is_cancel_needed else 1
+            batches[batch_index][0] |= move
+            batches[batch_index][1].append(default_vals)
+
+        moves_to_redirect = self.env['account.move']
+        for moves, default_values_list, is_cancel_needed in batches:
+            new_moves = moves._reverse_moves(default_values_list, cancel=is_cancel_needed)
+
+            if self.refund_method == 'modify':
+                moves_vals_list = []
+                for move in moves.with_context(include_business_fields=True):
+                    moves_vals_list.append(move.copy_data({'date': self.date if self.date_mode == 'custom' else move.date})[0])
+                new_moves = self.env['account.move'].create(moves_vals_list)
+
+            moves_to_redirect |= new_moves
+
+        self.new_move_ids = moves_to_redirect
+
+        # LIMPIAR PERCEPCIONES de las líneas de NC
+        for move in moves_to_redirect:
+            if move.move_type == 'out_refund':
+                for line in move.invoice_line_ids:
+                    line.tax_ids = line.tax_ids.filtered(lambda t: not t.name.lower().startswith('perc'))
+
+        # PUBLICAR si es reembolso total (cancel, un solo move) - el usuario no ve la NC en borrador
+        if self.refund_method == 'cancel' and len(moves_to_redirect) == 1:
+            nc = moves_to_redirect[0]
+            if nc.state == 'draft':
+                nc.action_post()
+
+        # ARMAR ACCIÓN
+        action = {
+            'name': _('Reverse Moves'),
+            'type': 'ir.actions.act_window',
+            'res_model': 'account.move',
+        }
+        if len(moves_to_redirect) == 1:
+            action.update({
+                'view_mode': 'form',
+                'res_id': moves_to_redirect.id,
+                'context': {'default_move_type':  moves_to_redirect.move_type},
+            })
+        else:
+            action.update({
+                'view_mode': 'tree,form',
+                'domain': [('id', 'in', moves_to_redirect.ids)],
+            })
+            if len(set(moves_to_redirect.mapped('move_type'))) == 1:
+                action['context'] = {'default_move_type':  moves_to_redirect.mapped('move_type').pop()}
+        return action
+
 
     def _prepare_default_reversal(self, move):
         vals = super()._prepare_default_reversal(move)
