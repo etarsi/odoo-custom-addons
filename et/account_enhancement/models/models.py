@@ -459,6 +459,7 @@ class AccountMoveReversalInherit(models.TransientModel):
     #         return super().reverse_moves()
 
     def reverse_moves(self):
+        raise UserError('hola')
         self.ensure_one()
         moves = self.move_ids
 
