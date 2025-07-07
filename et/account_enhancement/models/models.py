@@ -460,5 +460,5 @@ class AccountMoveReversalInherit(models.TransientModel):
 
     def _prepare_default_reversal(self, move):
         vals = super()._prepare_default_reversal(move)
-        vals['state'] = False  # o vals['state'] = 'draft' según la versión
+        vals['state'] = 'draft'  # o vals['state'] = 'draft' según la versión
         return vals
