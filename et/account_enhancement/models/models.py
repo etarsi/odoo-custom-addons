@@ -10,21 +10,6 @@ class AccountMoveInherit(models.Model):
 
     wms_code = fields.Char(string="Código WMS")
 
-    @api.onchange('invoice_line_ids')
-    def _onchange_invoice_line_ids_remove_perceptions(self):
-        if self.move_type == 'out_refund':
-            for line in self.invoice_line_ids:
-                line.tax_ids = line.tax_ids.filtered(lambda t: not t.name.lower().startswith('perc'))
-    
-    def _reverse_moves(self, default_values_list=None, cancel=False):
-        reversed_moves = super()._reverse_moves(default_values_list, cancel=cancel)
-        for move in reversed_moves:
-            if move.move_type == 'out_refund':
-                for line in move.invoice_line_ids:
-                    line.tax_ids = line.tax_ids.filtered(lambda t: not t.name.lower().startswith('perc'))
-            move.update_taxes()
-        return reversed_moves
-
     executive_id = fields.Many2one(
         'res.users',
         string="Ejecutivo de Cuenta",
@@ -41,6 +26,38 @@ class AccountMoveInherit(models.Model):
         string='Remitos relacionados'
     )
 
+   @api.model
+    def create(self, vals):
+        if vals.get('move_type') == 'out_refund' and vals.get('invoice_line_ids'):
+            # Buscar una sola vez los taxes de percepción
+            percepcion_tax_ids = self.env['account.tax'].search([('name', 'ilike', 'perc')]).ids
+
+            for line in vals['invoice_line_ids']:
+                if isinstance(line, (list, tuple)) and len(line) > 2:
+                    line_vals = line[2]
+                    tax_ids_cmd = line_vals.get('tax_ids', [])
+                    if tax_ids_cmd and tax_ids_cmd[0][0] == 6:
+                        ids = tax_ids_cmd[0][2]
+                        filtered_ids = [tid for tid in ids if tid not in percepcion_tax_ids]
+                        line_vals['tax_ids'] = [(6, 0, filtered_ids)]
+        return super().create(vals)
+
+
+    @api.onchange('invoice_line_ids')
+    def _onchange_invoice_line_ids_remove_perceptions(self):
+        if self.move_type == 'out_refund':
+            for line in self.invoice_line_ids:
+                line.tax_ids = line.tax_ids.filtered(lambda t: not t.name.lower().startswith('perc'))
+    
+    def _reverse_moves(self, default_values_list=None, cancel=False):
+        reversed_moves = super()._reverse_moves(default_values_list, cancel=cancel)
+        for move in reversed_moves:
+            if move.move_type == 'out_refund':
+                for line in move.invoice_line_ids:
+                    line.tax_ids = line.tax_ids.filtered(lambda t: not t.name.lower().startswith('perc'))
+            move.update_taxes()
+        return reversed_moves
+
     def get_pickings(self):
         wms_codes = ["D12024", "P2160", "P2159", "P2169", "D12000", "D12067", "D12001", "P2152", "P2241", "P2242", "P2243", "P2237", "P2239", "D12075", "P1996", "D11993", "D11994", "P2235", "P329", "P330", "P331", "P332", "P333", "P334", "P335","P336", "D10561", "P732", "P733", "P744", "P2211", "D12056", "D11143", "D11144", "D11142", "D11145", "D11146", "P905", "D11256", "P1222", "P1233", "P1234", "P1371", "P1515", "P1566", "D11483", "D11484", "P1684", "P1685","P1688", "P1689", "P1690", "P1691", "P1692", "P1693", "P1694", "P1657", "P1656", "D11527", "D11529", "D11509", "D11583", "P1699", "P1700", "P1701", "P1702", "P1705", "P1706", "P1709", "P1719", "D11693", "P1813", "P1814","D11876", "D11645", "D11644", "D11646", "P1768", "D11705", "D11704", "D11706", "P1891", "P1902", "P1903", "P1904", "P1905", "P1906", "P1888", "P1889", "P1890", "P1922", "D11751", "D11752", "D11681", "D11680", "P1948","P1949", "D11803", "D11802", "D11857", "D11858", "D11907", "D11908", "P2045", "D11894", "P2018", "P2031", "P2053", "P2054", "P2059", "P2060", "P1978", "P2015", "D11868", "P2005", "P1982", "P2013", "D11875", "D11874","P2052", "D11970", "D11927", "P2075", "P2074", "P2076", "D11951", "P2091", "P2092", "D11926", "D11935", "D11941", "P2119", "P2118", "P2122", "D11911", "D11913", "D11932", "D11933", "D12006", "D12039", "D11984","P2254", "D11991", "D11992", "P2153", "D12021", "D12022", "D12020", "D11980", "D11979", "D11978", "D11997", "P2252", "D11998", "P2158", "P2157", "D12007", "P2164", "D12014", "D12015", "D12027", "D12033", "P2140","P2165", "P2166", "P2167", "P2233", "P2182", "D12041", "P2207", "P2231", "D12062", "P2234", "D12066", "P2216", "P2238", "P2236", "D12057", "P2212", "P2208", "P2291", "D12099", "D12104", "D8892", "D8894", "D8896", "D8898", "D8900", "D8902", "D8893", "D8895", "D8897", "D8899", "D8901", "D8903"]
 
@@ -55,7 +72,6 @@ class AccountMoveInherit(models.Model):
         result2 = '\n'.join(result)
 
         raise UserError(result2)
-
 
     def corregir_facturas(self):
         invoices_names1 = set()
@@ -114,8 +130,6 @@ class AccountMoveInherit(models.Model):
             f'Facturas TIPO 4: {invoices_t4}'
         )
 
-
-
     def corregir_precios(self):
         for record in self:
             if record.state != 'draft':
@@ -150,7 +164,6 @@ class AccountMoveInherit(models.Model):
                     record._recompute_dynamic_lines()
                 record._compute_amount()
                 record.write({})
-
     
     @api.onchange('journal_id')
     def _onchange_journal_id(self):
@@ -159,7 +172,6 @@ class AccountMoveInherit(models.Model):
                 if record.journal_id.code == '00011':
                     invoice_incoterm_id = self.env['account.incoterms'].search([('code', '=', 'FAS')], limit=1).id
                     record.invoice_incoterm_id = invoice_incoterm_id
-            
             
     @api.onchange('l10n_latam_document_type_id')
     def _onchange_document_type(self):
