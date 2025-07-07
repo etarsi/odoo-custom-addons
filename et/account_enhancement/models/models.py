@@ -459,7 +459,6 @@ class AccountMoveReversalInherit(models.TransientModel):
     #         return super().reverse_moves()
 
     def reverse_moves(self):
-        raise UserError('hola')
         self.ensure_one()
         moves = self.move_ids
 
@@ -539,9 +538,3 @@ class AccountMoveReversalInherit(models.TransientModel):
             if len(set(moves_to_redirect.mapped('move_type'))) == 1:
                 action['context'] = {'default_move_type':  moves_to_redirect.mapped('move_type').pop()}
         return action
-
-
-    def _prepare_default_reversal(self, move):
-        vals = super()._prepare_default_reversal(move)
-        vals['state'] = 'draft'  # o vals['state'] = 'draft' según la versión
-        return vals
