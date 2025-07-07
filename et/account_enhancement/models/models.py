@@ -538,3 +538,21 @@ class AccountMoveReversalInherit(models.TransientModel):
             if len(set(moves_to_redirect.mapped('move_type'))) == 1:
                 action['context'] = {'default_move_type':  moves_to_redirect.mapped('move_type').pop()}
         return action
+    
+    def _prepare_default_reversal(self, move):
+        vals = super()._prepare_default_reversal(move)
+
+        if move.is_invoice(include_receipts=True) and move.move_type == 'out_refund':
+            invoice_lines = []
+            for line in move.invoice_line_ids:
+                # Copiá los valores de la línea original, pero filtrando los taxes
+                new_line_vals = line.copy_data()[0]  # Copia segura de vals
+                if 'tax_ids' in new_line_vals:
+                    # Si es formato (6, 0, [...]) o tax_ids es una lista de ids
+                    tax_ids = new_line_vals['tax_ids'][0][2] if new_line_vals['tax_ids'] and isinstance(new_line_vals['tax_ids'][0], (list, tuple)) else new_line_vals['tax_ids']
+                    percep_ids = self.env['account.tax'].search([('name', 'ilike', 'perc')]).ids
+                    new_line_vals['tax_ids'] = [(6, 0, [tid for tid in tax_ids if tid not in percep_ids])]
+                invoice_lines.append((0, 0, new_line_vals))
+            vals['invoice_line_ids'] = invoice_lines
+
+        return vals
