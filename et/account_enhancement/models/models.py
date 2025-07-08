@@ -26,42 +26,42 @@ class AccountMoveInherit(models.Model):
         string='Remitos relacionados'
     )
 
-    @api.model
-    def create(self, vals):
-        if vals.get('move_type') == 'out_refund' and vals.get('invoice_line_ids'):
-            # Buscar una sola vez los taxes de percepción
-            percepcion_tax_ids = self.env['account.tax'].search([('name', 'ilike', 'perc')]).ids
+    # @api.model
+    # def create(self, vals):
+    #     if vals.get('move_type') == 'out_refund' and vals.get('invoice_line_ids'):
+    #         # Buscar una sola vez los taxes de percepción
+    #         percepcion_tax_ids = self.env['account.tax'].search([('name', 'ilike', 'perc')]).ids
 
-            for line in vals['invoice_line_ids']:
-                if isinstance(line, (list, tuple)) and len(line) > 2:
-                    line_vals = line[2]
-                    tax_ids_cmd = line_vals.get('tax_ids', [])
-                    if tax_ids_cmd and tax_ids_cmd[0][0] == 6:
-                        ids = tax_ids_cmd[0][2]
-                        filtered_ids = [tid for tid in ids if tid not in percepcion_tax_ids]
-                        line_vals['tax_ids'] = [(6, 0, filtered_ids)]
-        return super().create(vals)
+    #         for line in vals['invoice_line_ids']:
+    #             if isinstance(line, (list, tuple)) and len(line) > 2:
+    #                 line_vals = line[2]
+    #                 tax_ids_cmd = line_vals.get('tax_ids', [])
+    #                 if tax_ids_cmd and tax_ids_cmd[0][0] == 6:
+    #                     ids = tax_ids_cmd[0][2]
+    #                     filtered_ids = [tid for tid in ids if tid not in percepcion_tax_ids]
+    #                     line_vals['tax_ids'] = [(6, 0, filtered_ids)]
+    #     return super().create(vals)
 
 
-    @api.onchange('invoice_line_ids')
-    def _onchange_invoice_line_ids_remove_perceptions(self):
-        if self.move_type == 'out_refund':
-            for line in self.invoice_line_ids:
-                line.tax_ids = line.tax_ids.filtered(lambda t: not t.name.lower().startswith('perc'))
+    # @api.onchange('invoice_line_ids')
+    # def _onchange_invoice_line_ids_remove_perceptions(self):
+    #     if self.move_type == 'out_refund':
+    #         for line in self.invoice_line_ids:
+    #             line.tax_ids = line.tax_ids.filtered(lambda t: not t.name.lower().startswith('perc'))
     
-    def _reverse_moves(self, default_values_list=None, cancel=False):
-        reversed_moves = super()._reverse_moves(default_values_list, cancel=cancel)
-        # Sacar percepciones de las líneas de la NC antes de postear
-        for move in reversed_moves:
-            if move.move_type == 'out_refund':
-                for line in move.invoice_line_ids:
-                    percep_taxes = line.tax_ids.filtered(lambda t: 'perc' in t.name.lower())
-                    if percep_taxes:
-                        # IMPORTANTE: Solo si NO está posted!
-                        if move.state == 'draft':
-                            line.tax_ids = line.tax_ids - percep_taxes
-            move.update_taxes()
-        return reversed_moves
+    # def _reverse_moves(self, default_values_list=None, cancel=False):
+    #     reversed_moves = super()._reverse_moves(default_values_list, cancel=cancel)
+    #     # Sacar percepciones de las líneas de la NC antes de postear
+    #     for move in reversed_moves:
+    #         if move.move_type == 'out_refund':
+    #             for line in move.invoice_line_ids:
+    #                 percep_taxes = line.tax_ids.filtered(lambda t: 'perc' in t.name.lower())
+    #                 if percep_taxes:
+    #                     # IMPORTANTE: Solo si NO está posted!
+    #                     if move.state == 'draft':
+    #                         line.tax_ids = line.tax_ids - percep_taxes
+    #         move.update_taxes()
+    #     return reversed_moves
 
 
     def get_pickings(self):
