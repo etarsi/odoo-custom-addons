@@ -14,7 +14,7 @@ class ReturnMove(models.Model):
         ('expensive', 'Muy caro'),
         ('bad', 'No lo pudo vender')])
     info = fields.Text(string="Información adicional")
-    date = fields.Date(string="Fecha de Recepción")
+    date = fields.Date(string="Fecha de Recepción", default=fields.Date.today)
     state = fields.Selection(string="Estado", default='draft', selection=[('draft','Borrador'), ('confirmed', 'Confirmado'), ('done', 'Hecho')])
     move_lines = fields.One2many('return.move.line', 'return_move', string="Líneas de Devolución")
     price_total = fields.Float(string="Total", compute="_compute_price_total")
