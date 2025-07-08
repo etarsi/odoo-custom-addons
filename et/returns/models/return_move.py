@@ -3,7 +3,7 @@ from odoo import models, fields
 class ReturnMove(models.Model):
     _name = 'return.move'
 
-    name = fields.Char(string="Nombre", required=True, default="Remito de prueba")
+    name = fields.Char(string="Nombre", required=True, default="/")
     partner_id = fields.Many2one('res.partner', string="Cliente")
     sale_id = fields.Many2one('sale.order', string="Pedido de Venta")
     invoice_id = fields.Many2one('account.move', string="Factura")
