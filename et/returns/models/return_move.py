@@ -23,8 +23,7 @@ class ReturnMove(models.Model):
     
     def _compute_price_total(self):
         for record in self:
-            if record.move_lines:
-                record.price_total = sum(record.move_lines.mapped('price_subtotal'))
+            record.price_total = sum(record.move_lines.mapped('price_subtotal'))
 
 class ReturnMoveLine(models.Model):
     _name = 'return.move.line'
