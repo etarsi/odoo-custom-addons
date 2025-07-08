@@ -21,7 +21,10 @@ class ReturnMove(models.Model):
     company_id = fields.Many2one('res.company', string="Compañía")
 
     
-
+    def _compute_price_total(self):
+        for record in self:
+            if record.move_lines:
+                record.price_total = record.move_lines.mapped('price_subtotal')
 
 class ReturnMoveLine(models.Model):
     _name = 'return.move.line'
@@ -33,3 +36,4 @@ class ReturnMoveLine(models.Model):
     uxb = fields.Integer(string="UxB")
     bultos = fields.Float(string="Bultos")
     price_unit = fields.Float(string="Precio Unitario")
+    price_subtotal = fields.Float(string="Precio Subtotal")
