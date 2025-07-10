@@ -78,15 +78,19 @@ class StockPickingInherit(models.Model):
 
                 if lot:
                     for cid in company_ids:
-                        # Verifica si ya existe el lote en esa compañía
                         lot_exist = self.env['stock.production.lot'].search([
                             ('product_id', '=', move.product_id.id),
                             ('company_id', '=', cid),
+                            ('name', '=', lot.name),  # Asegura que no existan repetidos por nombre
                         ], limit=1)
                         if not lot_exist:
-                            lot.copy({'company_id': cid})
+                            lot.copy({
+                                'company_id': cid,
+                                'name': lot.name
+                            })
                 else:
                     raise UserError(f"No hay lote para el producto: {move.product_id.default_code}")
+
 
 
     def mark_as_delivered(self):
