@@ -49,11 +49,11 @@ class StockPickingInherit(models.Model):
                     ('product_id', '=', move.product_id.id),
                     ('company_id', '=', move.company_id.id)
                 ], order='id asc', limit=1)
+
                 if lot:
-                    # Si hay move lines, asigná el lote
                     for ml in move.move_line_ids:
                         ml.lot_id = lot.id
-                    # Si NO hay move lines, creá una
+                    
                     if not move.move_line_ids:
                         move.move_line_ids.create({
                             'move_id': move.id,
@@ -64,6 +64,24 @@ class StockPickingInherit(models.Model):
                             'location_dest_id': move.location_dest_id.id,
                             'product_uom_id': move.product_uom.id,
                         })
+                else:
+                    raise UserError(f"No hay lote para el producto: {move.product_id.default_code}")
+                
+    def craete_lots(self):
+        for record in self:
+            for move in record.move_ids_without_package:
+                lot = self.env['stock.production.lot'].search([
+                    ('product_id', '=', move.product_id.id),
+                ], order='id asc', limit=1)
+
+                company_ids = [1, 2, 3, 4]
+
+                if lot:
+                    for id in company_ids:
+                        if lot.company_id.id != id:
+                            vals = lot.copy()
+                            vals['company_id'] = id
+                            self.env['stock.production.lot'].create(vals)
                 else:
                     raise UserError(f"No hay lote para el producto: {move.product_id.default_code}")
 
