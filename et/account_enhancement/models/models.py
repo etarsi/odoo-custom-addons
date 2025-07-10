@@ -26,150 +26,43 @@ class AccountMoveInherit(models.Model):
         string='Remitos relacionados'
     )
 
-    @api.model
-    def create(self, vals):
-        if vals.get('move_type') == 'out_refund' and vals.get('invoice_line_ids'):
-            # Buscar una sola vez los taxes de percepción
-            percepcion_tax_ids = self.env['account.tax'].search([('name', 'ilike', 'perc')]).ids
+    # @api.model
+    # def create(self, vals):
+    #     if vals.get('move_type') == 'out_refund' and vals.get('invoice_line_ids'):
+    #         # Buscar una sola vez los taxes de percepción
+    #         percepcion_tax_ids = self.env['account.tax'].search([('name', 'ilike', 'perc')]).ids
 
-            for line in vals['invoice_line_ids']:
-                if isinstance(line, (list, tuple)) and len(line) > 2:
-                    line_vals = line[2]
-                    tax_ids_cmd = line_vals.get('tax_ids', [])
-                    if tax_ids_cmd and tax_ids_cmd[0][0] == 6:
-                        ids = tax_ids_cmd[0][2]
-                        filtered_ids = [tid for tid in ids if tid not in percepcion_tax_ids]
-                        line_vals['tax_ids'] = [(6, 0, filtered_ids)]
-        return super().create(vals)
+    #         for line in vals['invoice_line_ids']:
+    #             if isinstance(line, (list, tuple)) and len(line) > 2:
+    #                 line_vals = line[2]
+    #                 tax_ids_cmd = line_vals.get('tax_ids', [])
+    #                 if tax_ids_cmd and tax_ids_cmd[0][0] == 6:
+    #                     ids = tax_ids_cmd[0][2]
+    #                     filtered_ids = [tid for tid in ids if tid not in percepcion_tax_ids]
+    #                     line_vals['tax_ids'] = [(6, 0, filtered_ids)]
+    #     return super().create(vals)
 
 
-    @api.onchange('invoice_line_ids')
-    def _onchange_invoice_line_ids_remove_perceptions(self):
-        if self.move_type == 'out_refund':
-            for line in self.invoice_line_ids:
-                line.tax_ids = line.tax_ids.filtered(lambda t: not t.name.lower().startswith('perc'))
+    # @api.onchange('invoice_line_ids')
+    # def _onchange_invoice_line_ids_remove_perceptions(self):
+    #     if self.move_type == 'out_refund':
+    #         for line in self.invoice_line_ids:
+    #             line.tax_ids = line.tax_ids.filtered(lambda t: not t.name.lower().startswith('perc'))
     
-    def _reverse_moves(self, default_values_list=None, cancel=False):
-        reversed_moves = super()._reverse_moves(default_values_list, cancel=cancel)
-        # Sacar percepciones de las líneas de la NC antes de postear
-        for move in reversed_moves:
-            if move.move_type == 'out_refund':
-                for line in move.invoice_line_ids:
-                    percep_taxes = line.tax_ids.filtered(lambda t: 'perc' in t.name.lower())
-                    if percep_taxes:
-                        # IMPORTANTE: Solo si NO está posted!
-                        if move.state == 'draft':
-                            line.tax_ids = line.tax_ids - percep_taxes
-            move.update_taxes()
-        return reversed_moves
+    # def _reverse_moves(self, default_values_list=None, cancel=False):
+    #     reversed_moves = super()._reverse_moves(default_values_list, cancel=cancel)
+    #     # Sacar percepciones de las líneas de la NC antes de postear
+    #     for move in reversed_moves:
+    #         if move.move_type == 'out_refund':
+    #             for line in move.invoice_line_ids:
+    #                 percep_taxes = line.tax_ids.filtered(lambda t: 'perc' in t.name.lower())
+    #                 if percep_taxes:
+    #                     # IMPORTANTE: Solo si NO está posted!
+    #                     if move.state == 'draft':
+    #                         line.tax_ids = line.tax_ids - percep_taxes
+    #         move.update_taxes()
+    #     return reversed_moves
 
-
-    def get_pickings(self):
-        wms_codes = ["D12024", "P2160", "P2159", "P2169", "D12000", "D12067", "D12001", "P2152", "P2241", "P2242", "P2243", "P2237", "P2239", "D12075", "P1996", "D11993", "D11994", "P2235", "P329", "P330", "P331", "P332", "P333", "P334", "P335","P336", "D10561", "P732", "P733", "P744", "P2211", "D12056", "D11143", "D11144", "D11142", "D11145", "D11146", "P905", "D11256", "P1222", "P1233", "P1234", "P1371", "P1515", "P1566", "D11483", "D11484", "P1684", "P1685","P1688", "P1689", "P1690", "P1691", "P1692", "P1693", "P1694", "P1657", "P1656", "D11527", "D11529", "D11509", "D11583", "P1699", "P1700", "P1701", "P1702", "P1705", "P1706", "P1709", "P1719", "D11693", "P1813", "P1814","D11876", "D11645", "D11644", "D11646", "P1768", "D11705", "D11704", "D11706", "P1891", "P1902", "P1903", "P1904", "P1905", "P1906", "P1888", "P1889", "P1890", "P1922", "D11751", "D11752", "D11681", "D11680", "P1948","P1949", "D11803", "D11802", "D11857", "D11858", "D11907", "D11908", "P2045", "D11894", "P2018", "P2031", "P2053", "P2054", "P2059", "P2060", "P1978", "P2015", "D11868", "P2005", "P1982", "P2013", "D11875", "D11874","P2052", "D11970", "D11927", "P2075", "P2074", "P2076", "D11951", "P2091", "P2092", "D11926", "D11935", "D11941", "P2119", "P2118", "P2122", "D11911", "D11913", "D11932", "D11933", "D12006", "D12039", "D11984","P2254", "D11991", "D11992", "P2153", "D12021", "D12022", "D12020", "D11980", "D11979", "D11978", "D11997", "P2252", "D11998", "P2158", "P2157", "D12007", "P2164", "D12014", "D12015", "D12027", "D12033", "P2140","P2165", "P2166", "P2167", "P2233", "P2182", "D12041", "P2207", "P2231", "D12062", "P2234", "D12066", "P2216", "P2238", "P2236", "D12057", "P2212", "P2208", "P2291", "D12099", "D12104", "D8892", "D8894", "D8896", "D8898", "D8900", "D8902", "D8893", "D8895", "D8897", "D8899", "D8901", "D8903"]
-
-        invoices = self.env['account.move'].search([('wms_code', 'in', wms_codes)])
-        
-        result = []
-
-
-        for i in invoices:
-            result.append(f"{i.partner_id.name},{i.invoice_date},{i.name},{i.wms_code},{i.invoice_origin},{i.amount_tax_signed},{i.amount_total_signed}")
-
-        result2 = '\n'.join(result)
-
-        raise UserError(result2)
-
-    def corregir_facturas(self):
-        invoices_names1 = set()
-        invoices_names1_nonc = set()
-        invoices_names2 = set()
-        invoices_names3 = set()
-        invoices_names4 = set()
-        detalle_ncs = set()
-
-        for record in self:
-            sale_order = False
-            if record.invoice_origin:
-                sale_order = self.env['sale.order'].search([('name', '=', record.invoice_origin)], limit=1)
-            if not sale_order:
-                continue
-
-            order_prices = {
-                line.product_id.id: line.price_unit
-                for line in sale_order.order_line
-            }
-
-            for line in record.invoice_line_ids:
-                if line.product_id and line.product_id.id in order_prices:
-                    sale_price = order_prices[line.product_id.id]
-                    if line.price_unit != sale_price:
-                        if sale_order.condicion_m2m.name == 'TIPO 1':                            
-                            nc = self.env['account.move'].search([
-                                ('move_type', '=', 'out_refund'),
-                                ('reversed_entry_id.name', '=', record.name)
-                            ], limit=1)
-                                                      
-                            if nc:
-                                invoices_names1.add(f"{record.name} - {nc.name}")
-                            else:                                
-                                invoices_names1_nonc.add(f"{record.name}")
-
-                        elif sale_order.condicion_m2m.name == 'TIPO 2':
-                            invoices_names2.add(record.name)
-                        elif sale_order.condicion_m2m.name == 'TIPO 3':
-                            invoices_names3.add(record.name)
-                        elif sale_order.condicion_m2m.name == 'TIPO 4':
-                            invoices_names4.add(record.name)
-
-        invoices_t1 = '\n'.join(invoices_names1_nonc)
-        invoices_t2 = ', '.join(invoices_names2)
-        invoices_t3 = ', '.join(invoices_names3)
-        invoices_t4 = ', '.join(invoices_names4)
-
-        ncs_t1 = '\n'.join(invoices_names1)
-
-        raise UserError(
-            f'Facturas TIPO 1 SIN NC: {invoices_t1} \n\n'
-            f'Facturas TIPO 1 CON NC:\n{ncs_t1}\n\n'
-            f'Facturas TIPO 2: {invoices_t2} \n'
-            f'Facturas TIPO 3: {invoices_t3} \n'
-            f'Facturas TIPO 4: {invoices_t4}'
-        )
-
-    def corregir_precios(self):
-        for record in self:
-            if record.state != 'draft':
-                raise UserError("Solo se pueden corregir precios en facturas en borrador.")
-
-            sale_order = False
-            if record.invoice_origin:
-                sale_order = self.env['sale.order'].search([('name', '=', record.invoice_origin)], limit=1)
-            if not sale_order:
-                continue
-
-            tipo = sale_order.condicion_m2m
-            tipo_nombre = tipo and tipo.name or ''
-            if tipo_nombre.upper().strip() != 'TIPO 3':
-                continue
-
-            order_prices = {
-                line.product_id.id: line.price_unit
-                for line in sale_order.order_line
-            }
-
-            lines_to_update = []
-            for inv_line in record.invoice_line_ids:
-                if inv_line.product_id and inv_line.product_id.id in order_prices:
-                    sale_price = order_prices[inv_line.product_id.id]
-                    if inv_line.price_unit != sale_price:
-                        lines_to_update.append((1, inv_line.id, {'price_unit': sale_price}))
-
-            if lines_to_update:
-                record.write({'invoice_line_ids': lines_to_update})
-                if hasattr(record, '_recompute_dynamic_lines'):
-                    record._recompute_dynamic_lines()
-                record._compute_amount()
-                record.write({})
     
     @api.onchange('journal_id')
     def _onchange_journal_id(self):
@@ -452,34 +345,34 @@ class AccountMoveReversalInherit(models.TransientModel):
     _inherit = 'account.move.reversal'
 
 
-    def _prepare_default_reversal(self, move):
-        vals = super()._prepare_default_reversal(move)
-        # Forzamos borrador sí o sí
-        vals['auto_post'] = False
-        vals['state'] = 'draft'
-        # Opcional: filtrar percepciones aquí también, como antes
-        invoice_lines = []
-        if move.is_invoice(include_receipts=True) and move.move_type == 'out_refund':
-            for line in move.invoice_line_ids:
-                new_line_vals = line.copy_data()[0]
-                tax_ids = new_line_vals.get('tax_ids', [])
-                if tax_ids:
-                    percep_ids = self.env['account.tax'].search([('name', 'ilike', 'perc')]).ids
-                    if tax_ids and isinstance(tax_ids[0], (list, tuple)):
-                        tid_list = tax_ids[0][2]
-                    else:
-                        tid_list = tax_ids
-                    new_line_vals['tax_ids'] = [(6, 0, [tid for tid in tid_list if tid not in percep_ids])]
-                invoice_lines.append((0, 0, new_line_vals))
-            vals['invoice_line_ids'] = invoice_lines
-        return vals
+    # def _prepare_default_reversal(self, move):
+    #     vals = super()._prepare_default_reversal(move)
+    #     # Forzamos borrador sí o sí
+    #     vals['auto_post'] = False
+    #     vals['state'] = 'draft'
+    #     # Opcional: filtrar percepciones aquí también, como antes
+    #     invoice_lines = []
+    #     if move.is_invoice(include_receipts=True) and move.move_type == 'out_refund':
+    #         for line in move.invoice_line_ids:
+    #             new_line_vals = line.copy_data()[0]
+    #             tax_ids = new_line_vals.get('tax_ids', [])
+    #             if tax_ids:
+    #                 percep_ids = self.env['account.tax'].search([('name', 'ilike', 'perc')]).ids
+    #                 if tax_ids and isinstance(tax_ids[0], (list, tuple)):
+    #                     tid_list = tax_ids[0][2]
+    #                 else:
+    #                     tid_list = tax_ids
+    #                 new_line_vals['tax_ids'] = [(6, 0, [tid for tid in tid_list if tid not in percep_ids])]
+    #             invoice_lines.append((0, 0, new_line_vals))
+    #         vals['invoice_line_ids'] = invoice_lines
+    #     return vals
 
-    def reverse_moves(self):
-        res = super().reverse_moves()
-        for move in self.new_move_ids:
-            # Limpiá percepciones si quedara alguna
-            for line in move.invoice_line_ids:
-                line.tax_ids = line.tax_ids.filtered(lambda t: not t.name.lower().startswith('perc'))
-            # Ahora publicá (posteá) la NC, así se va a AFIP
-            move.action_post()
-        return res
+    # def reverse_moves(self):
+    #     res = super().reverse_moves()
+    #     for move in self.new_move_ids:
+    #         # Limpiá percepciones si quedara alguna
+    #         for line in move.invoice_line_ids:
+    #             line.tax_ids = line.tax_ids.filtered(lambda t: not t.name.lower().startswith('perc'))
+    #         # Ahora publicá (posteá) la NC, así se va a AFIP
+    #         move.action_post()
+    #     return res
