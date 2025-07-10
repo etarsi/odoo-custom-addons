@@ -67,7 +67,7 @@ class StockPickingInherit(models.Model):
                 else:
                     raise UserError(f"No hay lote para el producto: {move.product_id.default_code}")
                 
-    def craete_lots(self):
+    def create_lots(self):
         for record in self:
             for move in record.move_ids_without_package:
                 lot = self.env['stock.production.lot'].search([
@@ -77,13 +77,17 @@ class StockPickingInherit(models.Model):
                 company_ids = [1, 2, 3, 4]
 
                 if lot:
-                    for id in company_ids:
-                        if lot.company_id.id != id:
-                            vals = lot.copy()
-                            vals['company_id'] = id
-                            self.env['stock.production.lot'].create(vals)
+                    for cid in company_ids:
+                        # Verifica si ya existe el lote en esa compañía
+                        lot_exist = self.env['stock.production.lot'].search([
+                            ('product_id', '=', move.product_id.id),
+                            ('company_id', '=', cid),
+                        ], limit=1)
+                        if not lot_exist:
+                            lot.copy({'company_id': cid})
                 else:
                     raise UserError(f"No hay lote para el producto: {move.product_id.default_code}")
+
 
     def mark_as_delivered(self):
         for record in self:
