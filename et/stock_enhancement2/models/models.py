@@ -104,6 +104,9 @@ class StockPickingInherit(models.Model):
     def create_lots(self, move, lot_name):
         company_ids = [1, 2, 3, 4]
         new_lots = []
+        product_id = move.product_id
+        self.check_product_lot(product_id)
+
         for cid in company_ids:
             lot_exist = self.env['stock.production.lot'].search([
                 ('product_id', '=', move.product_id.id),
@@ -126,6 +129,9 @@ class StockPickingInherit(models.Model):
             if lot.company_id.id == move.company_id.id:
                 return lot
 
+    def check_product_lot(self, product_id):
+        if product_id.tracking != 'lot':
+            product_id.tracking = 'lot'
 
 
     def mark_as_delivered(self):
