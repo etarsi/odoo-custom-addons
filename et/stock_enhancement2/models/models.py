@@ -67,19 +67,24 @@ class StockPickingInherit(models.Model):
                 else:
                     lot_name = record.get_lot_name(move)
                     lot = record.create_lots(move, lot_name)
-                    for ml in move.move_line_ids:
-                        ml.lot_id = lot.id
-                    
-                    if not move.move_line_ids:
-                        move.move_line_ids.create({
-                            'move_id': move.id,
-                            'product_id': move.product_id.id,
-                            'lot_id': lot.id,
-                            'qty_done': move.quantity_done,
-                            'location_id': move.location_id.id,
-                            'location_dest_id': move.location_dest_id.id,
-                            'product_uom_id': move.product_uom.id,
-                        })
+
+                    if lot:
+                        for ml in move.move_line_ids:
+                            ml.lot_id = lot.id
+                        
+                        if not move.move_line_ids:
+                            move.move_line_ids.create({
+                                'move_id': move.id,
+                                'product_id': move.product_id.id,
+                                'lot_id': lot.id,
+                                'qty_done': move.quantity_done,
+                                'location_id': move.location_id.id,
+                                'location_dest_id': move.location_dest_id.id,
+                                'product_uom_id': move.product_uom.id,
+                            })
+                    else:
+                        raise UserError(f'No hay lotes para el código: {move.product_id.default_code}')
+            move.state = 'assigned'
                     
 
     def get_lot_name(self, move):
@@ -132,7 +137,6 @@ class StockPickingInherit(models.Model):
     def check_product_lot(self, product_id):
         if product_id.tracking != 'lot':
             product_id.tracking = 'lot'
-
 
     def mark_as_delivered(self):
         for record in self:
