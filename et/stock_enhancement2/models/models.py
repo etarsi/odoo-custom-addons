@@ -59,37 +59,72 @@ class StockPickingInherit(models.Model):
                             'move_id': move.id,
                             'product_id': move.product_id.id,
                             'lot_id': lot.id,
-                            'qty_done': move.product_uom_qty,
+                            'qty_done': move.quantity_done,
                             'location_id': move.location_id.id,
                             'location_dest_id': move.location_dest_id.id,
                             'product_uom_id': move.product_uom.id,
                         })
                 else:
-                    raise UserError(f"No hay lote para el producto: {move.product_id.default_code}")
+                    lot_name = record.get_lot_name(move)
+                    lot = record.create_lots(move, lot_name)
+                    for ml in move.move_line_ids:
+                        ml.lot_id = lot.id
+                    
+                    if not move.move_line_ids:
+                        move.move_line_ids.create({
+                            'move_id': move.id,
+                            'product_id': move.product_id.id,
+                            'lot_id': lot.id,
+                            'qty_done': move.quantity_done,
+                            'location_id': move.location_id.id,
+                            'location_dest_id': move.location_dest_id.id,
+                            'product_uom_id': move.product_uom.id,
+                        })
+                    
+
+    def get_lot_name(self, move):
+        incoming_types = self.env['stock.picking.type'].search([('code', '=', 'incoming')])
+        incoming_type_ids = incoming_types.ids
+        last_incoming_move = self.env['stock.move'].search([
+            ('product_id', '=', move.product_id.id),
+            ('picking_id.picking_type_id', 'in', incoming_type_ids),
+        ], order='date desc', limit=1)
+
+        if last_incoming_move:
+            dispatch_number = last_incoming_move.picking_id.dispatch_number or ''
+            lot_name = dispatch_number.split()[0] if dispatch_number else ''
+            if lot_name != '':
+                return lot_name
+            else:
+                raise UserError(f'No hay lotes para el código: {move.product_id.default_code}')
+        else:
+            raise UserError(f'No hay lotes para el código: {move.product_id.default_code}')
+                    
                 
-    def create_lots(self):
-        for record in self:
-            for move in record.move_ids_without_package:
-                lot = self.env['stock.production.lot'].search([
-                    ('product_id', '=', move.product_id.id),
-                ], order='id asc', limit=1)
+    def create_lots(self, move, lot_name):
+        company_ids = [1, 2, 3, 4]
+        new_lots = []
+        for cid in company_ids:
+            lot_exist = self.env['stock.production.lot'].search([
+                ('product_id', '=', move.product_id.id),
+                ('company_id', '=', cid),
+                ('name', '=', lot_name),
+            ], limit=1)
 
-                company_ids = [1, 2, 3, 4]
+            if not lot_exist:
+                vals = {
+                    'name': lot_name,
+                    'product_id': move.product_id.id,
+                    'ref': move.product_id.default_code,
+                    'dispatch_number': lot_name,
+                    'company_id': cid,
+                }
+                new_lot = self.env['stock.production.lot'].create(vals)
+                new_lots.append(new_lot)
 
-                if lot:
-                    for cid in company_ids:
-                        lot_exist = self.env['stock.production.lot'].search([
-                            ('product_id', '=', move.product_id.id),
-                            ('company_id', '=', cid),
-                            ('name', '=', lot.name),  # Asegura que no existan repetidos por nombre
-                        ], limit=1)
-                        if not lot_exist:
-                            lot.copy({
-                                'company_id': cid,
-                                'name': lot.name
-                            })
-                else:
-                    raise UserError(f"No hay lote para el producto: {move.product_id.default_code}")
+        for lot in new_lots:
+            if lot.company_id.id == move.company_id.id:
+                return lot
 
 
 
