@@ -138,8 +138,8 @@ class AccountVatLedger(models.Model):
                     # ('number', '!=', False),
                     # ('internal_number', '!=', False),
                     ("journal_id", "in", rec.journal_ids.ids),
-                    ("date", ">=", rec.date_from),
-                    ("date", "<=", rec.date_to),
+                    ("invoice_date", ">=", rec.date_from),
+                    ("invoice_date", "<=", rec.date_to),
                 ]
             )
 

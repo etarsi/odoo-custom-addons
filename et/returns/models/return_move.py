@@ -15,8 +15,9 @@ class ReturnMove(models.Model):
         ('bad', 'No lo pudo vender')])
     info = fields.Text(string="Información adicional")
     date = fields.Date(string="Fecha de Recepción", default=fields.Date.today)
-    state = fields.Selection(string="Estado", default='draft', selection=[('draft','Borrador'), ('confirmed', 'Confirmado'), ('done', 'Hecho')])
-    move_lines = fields.One2many('return.move.line', 'return_move', string="Líneas de Devolución")
+    state = fields.Selection(string="Estado", default='draft', selection=[('draft','Borrador'), ('inprogress', 'En Proceso'), ('confirmed', 'Confirmado'), ('done', 'Hecho')])
+    move_lines = fields.One2many('return.move.line', 'return_move', string="Devoluciones Sanas")
+    return_move_lines = fields.One2many('return.move.line', 'return_move', string="Devoluciones rotas")
     price_total = fields.Float(string="Total", compute="_compute_price_total")
     company_id = fields.Many2one('res.company', string="Compañía")
 
@@ -36,3 +37,5 @@ class ReturnMoveLine(models.Model):
     bultos = fields.Float(string="Bultos")
     price_unit = fields.Float(string="Precio Unitario")
     price_subtotal = fields.Float(string="Precio Subtotal")
+    is_broken = fields.Boolean("¿Roto?")
+    wib = fields.Char(string="¿Qué está roto?")
