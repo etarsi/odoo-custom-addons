@@ -18,7 +18,13 @@
     # for the full list
     'category': 'Uncategorized',
     'version': '0.1',
-
+    
+    # assets are loaded in the backend
+    'assets': {
+        'web.assets_backend': [
+            'account_enhancement/static/src/js/account_move.js',
+        ],
+    },
     # any module necessary for this one to work correctly
     'depends': ['account_check_printing', 'account_payment_group', 'l10n_latam_check', 'l10n_ar', 'account'],
 
