@@ -31,7 +31,10 @@
     # always loaded
     'data': [
         # 'security/ir.model.access.csv',
+        #permissions
+        'permisos/res_group.xml',
         'views/views.xml',
+        'views/account_move_views.xml',
         'views/templates.xml',
     ],
     # only loaded in demonstration mode
