@@ -212,11 +212,11 @@ class SaleOrderInherit(models.Model):
         return
     
     #COMPUTES
-    @api.depends('order_line.product_id.categ_id', 'order_line.product_id')
+    @api.depends('order_line.product_id')
     def _compute_items_ids(self):
         for record in self:
             if record.order_line:
-                items = record.order_line.mapped('product_id.categ_id')
+                items = record.order_line.mapped('product_id.categ_id.parent_id')
                 record.items_ids = [(6, 0, items.ids)]
             else:
                 record.items_ids = [(5, 0, 0)]
