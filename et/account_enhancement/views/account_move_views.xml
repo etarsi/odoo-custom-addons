@@ -5,7 +5,7 @@
         <field name="model">account.move</field>
         <field name="inherit_id" ref="account.view_move_form"/>
         <field name="arch" type="xml">
-            <xpath expr="//button[@name='action_post' and @string='Confirm']" position="attributes">
+            <xpath expr="//button[@name='action_post' and @type='object'][2]]" position="attributes">
                 <attribute name="groups">account_enhancement.group_confirm_button_facture</attribute>
             </xpath>
         </field>
