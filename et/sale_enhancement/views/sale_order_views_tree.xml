@@ -7,7 +7,7 @@
             <field name="inherit_id" ref="sale.view_order_tree"/>
             <field name="arch" type="xml">
                 <xpath expr="//tree/field[@name='state']" position="after">
-                    <field name="items_ids" hidden="1"/>
+                    <field name="items_ids" hidden="1" widget="many2many_tags"/>
                 </xpath>
             </field>
         </record>

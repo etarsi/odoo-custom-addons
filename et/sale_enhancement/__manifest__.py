@@ -20,7 +20,8 @@
     'version': '0.1',
 
     # any module necessary for this one to work correctly
-    'depends': ['sale', 'delivery', 'sebigus-split-orders'],
+    #'depends': ['sale', 'delivery', 'sebigus-split-orders'],
+    'depends': ['sale', 'delivery'],
 
     # always loaded
     'data': [
