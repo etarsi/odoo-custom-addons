@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <data noupdate="1">
+    <data>
         <record id="view_order_tree_inherit" model="ir.ui.view">
             <field name="name">sale.order.tree.inherit</field>
             <field name="model">sale.order</field>
