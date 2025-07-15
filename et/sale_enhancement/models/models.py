@@ -216,8 +216,11 @@ class SaleOrderInherit(models.Model):
     def _compute_items_ids(self):
         for record in self:
             if record.order_line:
+                # Obtener todas las categorías padre únicas de los productos en las líneas de pedido
                 items = record.order_line.mapped('product_id.categ_id.parent_id')
-                record.items_ids = [(6, 0, items.ids)]
+                # Filtrar categorías nulas y obtener solo los ids únicos
+                items = items.filtered(lambda c: c and c.id).ids
+                record.items_ids = [(6, 0, items)]
             else:
                 record.items_ids = [(5, 0, 0)]
 
