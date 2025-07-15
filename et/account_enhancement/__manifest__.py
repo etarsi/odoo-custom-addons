@@ -34,7 +34,6 @@
         #permissions
         'permissions/res_group.xml',
         'views/views.xml',
-        'views/account_move_views.xml',
         'views/templates.xml',
     ],
     # only loaded in demonstration mode
