@@ -13,6 +13,7 @@ odoo.define('account_enhancement.TaxGroupComponent', function (require) {
         _onChangeTaxValue() {
             this.setState('disable'); // Disable the input
             let newValue = this.inputTax.el.value.replace(',', '.'); // Get the new value
+            console.log('newValue', newValue);
             let currency = session.get_currency(this.props.record.data.currency_id.data.id); // The records using this widget must have a currency_id field.
             try {
                 newValue = fieldUtils.parse.float(newValue); // Need a float for format the value
