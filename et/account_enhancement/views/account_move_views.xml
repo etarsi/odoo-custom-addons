@@ -5,8 +5,10 @@
         <field name="model">account.move</field>
         <field name="inherit_id" ref="account.view_move_form"/>
         <field name="arch" type="xml">
-            <xpath expr="//button[@name='action_post'][2]" position="attributes">
-                <attribute name="groups">account_enhancement.group_confirm_button_facture</attribute>
+            <xpath expr="//button[@name='action_post'][2]" position="replace">
+                <button name="Confirmar" string="Confirm" class="oe_highlight" type="object" 
+                        groups="account_enhancement.group_confirm_button_facture" data-hotkey="v" 
+                        attrs="{'invisible': ['|', '|', '|', ('state', '!=', 'draft'), ('auto_post', '=', True), ('move_type', '=', 'entry'), ('display_inactive_currency_warning','=',True)]}"/>
             </xpath>
         </field>
     </record>
