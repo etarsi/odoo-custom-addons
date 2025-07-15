@@ -20,14 +20,13 @@
     'version': '0.1',
 
     # any module necessary for this one to work correctly
-    #'depends': ['sale', 'delivery', 'sebigus-split-orders'],
-    'depends': ['sale', 'delivery'],
+    'depends': ['sale', 'delivery', 'sebigus-split-orders'],
 
     # always loaded
     'data': [
         # 'security/ir.model.access.csv',
         'views/templates.xml',
-        'views/sale_order_views_tree.xml',
+        #'views/sale_order_views_tree.xml',
     ],
     # only loaded in demonstration mode
     'demo': [
