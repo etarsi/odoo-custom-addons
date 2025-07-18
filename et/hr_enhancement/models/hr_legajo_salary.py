@@ -5,7 +5,7 @@ class HrLegajoSalary(models.Model):
     _name = 'hr.legajo.salary'
     _description = 'Salario del Legajo'
 
-    legajo_id = fields.Many2one('hr.legajo', string='Legajo', required=True)
+    employee_id = fields.Many2one('hr.employee', string='Empleado', required=True)
     salary_date = fields.Date(string='Fecha de Salario', required=True)
     amount = fields.Float(string='Monto', required=True)
     currency_id = fields.Many2one('res.currency', string='Moneda', required=True)
