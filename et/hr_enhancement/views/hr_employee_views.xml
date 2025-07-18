@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_employee_form_inherit" model="ir.ui.view">
+        <field name="name">hr.employee.form.inherit</field>
+        <field name="model">hr.employee</field>
+        <field name="inherit_id" ref="hr.view_employee_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//page[@name='personal_information']" position="after">
+                <page name="information_private" string="Información Privada 2">
+                    <group string="Legajo Personal">
+                        <group string="Contacto Privado">
+                            <field name="private_email" string="Email"/>
+                            <field name="phone" class="o_force_ltr" groups="hr.group_hr_user" string="Teléfono" readonly="True"/>
+                            <field name="celular" string="Celular"/>
+                            <field name="location_id" string="Dirección" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                            <label for="km_home_work"/>
+                            <div class="o_row" name="div_km_home_work">
+                                <field name="km_home_work" groups="hr.group_hr_user"/>
+                                <span>Km</span>
+                            </div>
+                        </group>
+                        <group string="Ciudadanía">
+                            <field name="country_id" options="{&quot;no_open&quot;: True, &quot;no_create&quot;: True}" attrs="{'readonly': [('state', '!=', 'draft')], 'required': True}"/>
+                            <field name="dni" groups="hr.group_hr_user" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                            <field name="cuil" groups="hr.group_hr_user" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                            <field name="gender" attrs="{'readonly': [('state', '!=', 'draft')], 'required': True}"/>
+                            <field name="birthday" attrs="{'readonly': [('state', '!=', 'draft')], 'required': True}"/>
+                            <field name="place_of_birth" groups="hr.group_hr_user" attrs="{'readonly': [('state', '!=', 'draft')], 'required': True}"/>
+                            <field name="country_of_birth" groups="hr.group_hr_user" attrs="{'readonly': [('state', '!=', 'draft')], 'required': True}"/>
+                            <field name="identification_id" groups="hr.group_hr_user" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                            <field name="passport_id" groups="hr.group_hr_user" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                        </group>
+                        <group string="Estado Civil">
+                            <field name="marital" attrs="{'readonly': [('state', '!=', 'draft')], 'required': True}"/>
+                            <field name="spouse_complete_name" attrs="{'invisible': [('marital', 'not in', ['married', 'cohabitant'])]}"/>
+                            <field name="spouse_dni" attrs="{'invisible': [('marital', 'not in', ['married', 'cohabitant'])], 'required': ['married', 'cohabitant']}"/>
+                        </group>
+                        <group string="Dependientes">
+                            <field name="is_children"/>
+                            <field name="children_ids" widget="one2many_list" context="{'default_legajo_id': active_id}" attrs="{'invisible': [('is_children', '=', False)], 'required': ['is_children', '=', True]}"/>
+                        </group>
+                        <group string="Emergencia">
+                            <field name="emergency_contact"/>
+                            <field name="emergency_phone" class="o_force_ltr"/>
+                        </group>
+                        <group string="Datos Bancarios" name="bank_details">
+                            <field name="bank"/>
+                            <field name="nro_account"/>
+                            <field name="cbu"/>
+                            <field name="alias"/>
+                        </group>
+                        <group string="Educación">
+                            <field name="certificate"/>
+                            <field name="study_field"/>
+                            <field name="study_school"/>
+                        </group>
+                    </group>
+                </page>
+            </xpath>
+        </field>
+    </record>
+</odoo>

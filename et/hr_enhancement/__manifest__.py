@@ -10,7 +10,7 @@
         Este modulo integra en empleados el modulo de recursos humanos.
     """,
 
-    'author': "My Company",
+    'author': "Sebigus",
     'website': "http://www.yourcompany.com",
 
     # Categories can be used to filter modules in modules listing
@@ -25,7 +25,8 @@
     # always loaded
     'data': [
         # 'security/ir.model.access.csv',
-        'views/views.xml',
+        'views/hr_location_views.xml',
+        'views/hr_employee_views.xml',
         'views/templates.xml',
     ],
     # only loaded in demonstration mode

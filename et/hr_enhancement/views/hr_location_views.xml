@@ -5,6 +5,17 @@
         <field name="model">hr.location</field>
         <field name="arch" type="xml">
             <form string="Ubicación del Empleado">
+                <header>
+                    <field name="state" widget="statusbar"/>
+                    <button name="%(hr.employee_form_view)d"
+                            type="action"
+                            string="Ver Empleado"
+                            icon="fa-user"
+                            attrs="{'invisible': [('employee_id','=',False)]}"
+                            context="{'form_view_ref':'hr.view_employee_form'}"
+                            groups="base.group_user"
+                            />
+                </header>
                 <sheet>
                     <group name="group_location_info" string="Información de Ubicación">
                         <field name="street"/>
@@ -13,7 +24,6 @@
                         <field name="floor"/>
                         <field name="cp_code"/>
                         <field name="country_id"/>
-                        <field name="state"/>
                         <field name="employee_id"/>
                     </group>
                     <group name="group_location_details" string="Detalles de Ubicación">
