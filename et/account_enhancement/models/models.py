@@ -120,6 +120,13 @@ class AccountPaymentInherit(models.Model):
         readonly=True
     )
     journal_code = fields.Char(related='journal_id.code', store=True)
+    #hereadado
+    l10n_ar_amount_company_currency_signed = fields.Monetary(
+        compute='_compute_l10n_ar_amount_company_currency_signed',
+        currency_field='company_currency_id',
+        store=True,  # <<-- esto lo hace almacenado, ahora es ordenable y filtrable
+        string='Importe en moneda compañía',  # Cambia el nombre aquí si quieres
+    )
 
 
     @api.depends('l10n_latam_check_current_journal_id')
