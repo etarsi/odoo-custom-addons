@@ -16,7 +16,7 @@ class HrEmployee(models.Model):
     spouse_dni = fields.Char(string='DNI del Cónyuge')
     is_children = fields.Boolean(string='Tiene Hijos', default=False)
     #relación de uno a muchos para los hijos
-    children_ids = fields.One2many('hr.legajo.children', 'legajo_id', string='Hijos')
+    children_ids = fields.One2many('hr.legajo.children', 'employee_id', string='Hijos')
     #familiar a cargo
     dependent_name = fields.Char(string='Nombre del Familiar a Cargo')
     dependent_dni = fields.Char(string='DNI del Familiar a Cargo')
