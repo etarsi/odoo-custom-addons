@@ -38,7 +38,7 @@ class AccountPayment(models.Model):
         digits=(16, 4),
     )
     l10n_ar_amount_company_currency_signed = fields.Monetary(
-        currency_field='company_currency_id', compute='_compute_l10n_ar_amount_company_currency_signed')
+        currency_field='company_currency_id', compute='_compute_l10n_ar_amount_company_currency_signed', store=True)
     # campo a ser extendido y mostrar un nombre detemrinado en las lineas de
     # pago de un payment group o donde se desee (por ej. con cheque, retención,
     # etc)
