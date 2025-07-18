@@ -1,12 +1,20 @@
 from odoo import models, fields, api
 
-class EmployeeLicense(models.Model):
-    _name = 'employee.license'
+class hrLicense(models.Model):
+    _name = 'hr.license'
 
     employee_id = fields.Many2one('hr.employee', required=True)
     requested_date = fields.Datetime('Fecha solicitada', required=True)
     license_date = fields.Date('Fecha de licencia', required=True)
     days_qty = fields.Integer('Cantidad de días', default=0, required=True)
+    license_data_fin = fields.Date('Fecha de fin de licencia')
+    license_type = fields.Selection([
+        ('vacation', 'Vacaciones'),
+        ('sick', 'Enfermedad'),
+        ('maternity', 'Maternidad'),
+        ('paternity', 'Paternidad'),
+        ('other', 'Otro'),
+    ], string='Tipo de Licencia', required=True, default='other')
     reason = fields.Char('Motivo', required=True)
     state = fields.Selection(selection=[
         ('draft', 'Borrador'),

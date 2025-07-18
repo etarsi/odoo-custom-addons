@@ -7,7 +7,7 @@
         subtitle on modules listing or apps.openerp.com""",
 
     'description': """
-        Long description of module's purpose
+        Este modulo integra en empleados el modulo de recursos humanos.
     """,
 
     'author': "My Company",
@@ -20,7 +20,7 @@
     'version': '0.1',
 
     # any module necessary for this one to work correctly
-    'depends': ['hr', 'base'],
+    'depends': ['hr', 'base', 'hr_holidays'],
 
     # always loaded
     'data': [
