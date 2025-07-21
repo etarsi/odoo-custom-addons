@@ -281,17 +281,6 @@ class SaleOrderLineInherit(models.Model):
 
     @api.onchange('product_packaging_id', 'product_uom', 'product_uom_qty')
     def _onchange_update_product_packaging_qty(self):
-        if self.env.context.get('onchange_packaging_qty'):
-            return
-        self.with_context(onchange_product_uom_qty=True)._calculate_packaging_qty()
-
-    @api.onchange('product_packaging_qty')
-    def _onchange_product_packaging_qty(self):
-        if self.env.context.get('onchange_product_uom_qty'):
-            return
-        self.with_context(onchange_packaging_qty=True)._calculate_uom_qty()
-
-    def _calculate_packaging_qty(self):
         for line in self:
             so_config = line.env['sale.order.settings'].browse(1)
             if not line.product_packaging_id or not line.product_packaging_id.qty:
@@ -307,16 +296,12 @@ class SaleOrderLineInherit(models.Model):
                         precision_rounding=packaging_uom.rounding
                     )
 
-    def _calculate_uom_qty(self):
-        for line in self:
-            if line.product_packaging_id and line.product_packaging_id.qty:
-                packaging_uom = line.product_packaging_id.product_uom_id
-                qty_per_packaging = line.product_packaging_id.qty
-                product_uom_qty = packaging_uom._compute_quantity(
-                    line.product_packaging_qty * qty_per_packaging, line.product_uom
-                )
-                if float_compare(product_uom_qty, line.product_uom_qty, precision_rounding=line.product_uom.rounding) != 0:
-                    line.product_uom_qty = product_uom_qty
+    @api.onchange('product_packaging_qty')
+    def _onchange_product_packaging_qty(self):
+        return
+
+    def _calculate_packaging_qty(self):
+
     # @api.onchange('product_uom_qty')
     # def _onchange_product_uom_qty2(self):
     #     for record in self:
