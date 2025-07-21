@@ -239,11 +239,9 @@ class SaleOrderLineInherit(models.Model):
     def create(self, vals):
         res = super().create(vals)
         if not res.product_packaging_id:
-            sos_config = self.env['sale.order.settings'].browse(1)
-            if sos_config.carga_unidades and sos_config.activo and res.product_id.packaging_ids:
+            if res.product_id.packaging_ids:
                 res.product_packaging_id = res.product_id.packaging_ids[0]
-                if res.product_packaging_id:
-                    res.product_packaging_qty = res.product_uom_qty / res.product_packaging_id.qty
+                res.product_packaging_qty = res.product_uom_qty / res.product_packaging_id.qty
         return res
 
     def _update_line_quantity(self, values):
