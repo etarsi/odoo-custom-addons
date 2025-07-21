@@ -112,6 +112,7 @@ class NewStock(models.Model):
             disponible = stock_by_code.get(code, 0)
 
             s.fisico_unidades = disponible
+            s.get_fisico_bultos()
             s.ultima_actualizacion = fields.Datetime.now()
 
     def _get_digip_stock_en_lotes(self, product_codes, max_por_lote=387):
@@ -164,6 +165,11 @@ class NewStock(models.Model):
 
         
 
+
+    def get_fisico_bultos(self):
+        for record in self:
+            if record.fisico_unidades > 0:
+                record.fisico_bultos = record.fisico_unidades / float(record.uxb)
 
 
     
