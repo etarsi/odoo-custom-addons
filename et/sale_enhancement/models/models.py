@@ -235,6 +235,16 @@ class SaleOrderLineInherit(models.Model):
     qty_invoiced = fields.Float(
         compute='_compute_qty_invoiced', string='Invoiced Quantity', store=True,
         digits='Product Unit of Measure', readonly=False)
+    
+    def create(self, vals):
+        res = super().create(vals)
+        if not res.product_packaging_id:
+            sos_config = self.env['sale.order.settings'].browse(1)
+            if sos_config.carga_unidades and sos_config.activo and res.product_id.packaging_ids:
+                res.product_packaging_id = res.product_id.packaging_ids[0]
+                if res.product_packaging_id:
+                    res.product_packaging_qty = res.product_uom_qty / res.product_packaging_id.qty
+        return res
 
     def _update_line_quantity(self, values):
         orders = self.mapped('order_id')
