@@ -300,8 +300,6 @@ class SaleOrderLineInherit(models.Model):
     def _onchange_product_packaging_qty(self):
         return
 
-    def _calculate_packaging_qty(self):
-
     # @api.onchange('product_uom_qty')
     # def _onchange_product_uom_qty2(self):
     #     for record in self:
