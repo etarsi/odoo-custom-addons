@@ -34,6 +34,7 @@
         #permissions
         'permissions/res_group.xml',
         'views/views.xml',
+        'views/report_account_payment_group.xml',
         'views/templates.xml',
     ],
     # only loaded in demonstration mode
