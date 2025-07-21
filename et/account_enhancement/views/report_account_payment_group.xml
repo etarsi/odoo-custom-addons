@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="action_report_payment_group" model="ir.actions.report">
+        <field name="print_report_name">
+            "'%s - %s - %s' % (object.partner_type == 'supplier' and 'OP' or 'Recibo', object.partner_id.name or '', object.name or 'Borrador')"
+        </field>
+    </record>
+</odoo>
+
