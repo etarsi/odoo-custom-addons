@@ -1,16 +1,16 @@
 from odoo import models, fields, api, _
 from odoo.exceptions import UserError, ValidationError
 
-class HrLegajoSalary(models.Model):
-    _name = 'hr.legajo.salary'
-    _description = 'Salario del Legajo'
+class HrEmployeeSalary(models.Model):
+    _name = 'hr.employee.salary'
+    _description = 'Salario del Empleado'
 
     employee_id = fields.Many2one('hr.employee', string='Empleado', required=True)
     salary_date = fields.Date(string='Fecha de Salario', required=True)
     amount = fields.Float(string='Monto', required=True)
     currency_id = fields.Many2one('res.currency', string='Moneda', required=True)
     description = fields.Text(string='Descripción')
-    #estado del legajo salary
+    #estado del empleado salary
     state = fields.Selection([
         ('draft', 'Borrador'),
         ('in_progress', 'En Proceso'),

@@ -8,13 +8,7 @@ class hrLicense(models.Model):
     license_date = fields.Date('Fecha de licencia', required=True)
     days_qty = fields.Integer('Cantidad de días', default=0, required=True)
     license_data_fin = fields.Date('Fecha de fin de licencia')
-    license_type = fields.Selection([
-        ('vacation', 'Vacaciones'),
-        ('sick', 'Enfermedad'),
-        ('maternity', 'Maternidad'),
-        ('paternity', 'Paternidad'),
-        ('other', 'Otro'),
-    ], string='Tipo de Licencia', required=True, default='other')
+    license_type_id = fields.Many2one('hr.license.type', string='Tipo de Licencia', required=True)
     reason = fields.Char('Motivo', required=True)
     state = fields.Selection(selection=[
         ('draft', 'Borrador'),
@@ -22,8 +16,9 @@ class hrLicense(models.Model):
         ('approved', 'Aprobado'),
         ('rejected', 'Rechazado'),
     ], string='Estado', required=True)
-
-    approver = fields.Many2one('res.users', string="Aprobador")
+    approver_id = fields.Many2one('res.users', string="Aprobador")
+    approver_date = fields.Datetime('Fecha de Aprobación')
+    
 
     @api.model
     def create(self, vals):
