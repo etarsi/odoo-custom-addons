@@ -7,7 +7,6 @@
             <form string="Hijos del Empleado">
                 <header>
                     <field name="state" widget="statusbar"/>
-                    <field name="employee_id" invisible="1"/>
                 </header>
                 <sheet>
                     <group name="group_children_info" string="Información de Hijos">

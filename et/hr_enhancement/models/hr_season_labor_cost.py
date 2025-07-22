@@ -15,6 +15,7 @@ class HrSeasonLaborCost(models.Model):
     hour_cost_holiday = fields.Float('Costo Hora Feriado')
 
     currency_id = fields.Many2one('res.currency', string="Moneda", required=True, default=lambda self: self.env.company.currency_id.id)
+    user_id = fields.Many2one('res.users', string='Usuario Creador', default=lambda self: self.env.user, readonly=True)
     active = fields.Boolean('Activo', default=True)
 
     @api.model
