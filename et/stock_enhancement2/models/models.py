@@ -25,6 +25,7 @@ class StockPickingInherit(models.Model):
     has_rodado_infantiles = fields.Boolean(string="Rodados Infantiles", compute="_compute_has_rodado_infantiles", store=True)
     has_toys = fields.Boolean(string="Juguetes", compute="_compute_has_toys", store=True)
     has_balls = fields.Boolean(string="Pelotas", compute="_compute_has_balls", store=True)
+    has_pop = fields.Boolean(string="POP", compute="_compute_has_pop", store=True)
     available_pkg_qty = fields.Float(string='Bultos Disponibles' ,compute='sum_bultos', group_operator='sum', store=True)
     partner_delivery_carrier_id = fields.Many2one(
         'delivery.carrier',
@@ -621,6 +622,13 @@ class StockPickingInherit(models.Model):
             for line in record.move_ids_without_package:
                 if line.product_id.categ_id.parent_id.id == 780:
                     record.has_rodado_infantiles = True
+
+    @api.depends('move_ids_without_package')
+    def _compute_has_pop(self):
+        for record in self:
+            for line in record.move_ids_without_package:
+                if line.product_id.categ_id.parent_id.id == 763:
+                    record.has_pop = True
     # def enviar(self):
     #     res = super().enviar()
     #     for record in self:
