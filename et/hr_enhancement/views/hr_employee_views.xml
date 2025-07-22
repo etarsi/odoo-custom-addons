@@ -32,8 +32,10 @@
                         </group>
                         <group string="Estado Civil">
                             <field name="marital" attrs="{'readonly': [('state', '!=', 'draft')], 'required': True}"/>
-                            <field name="spouse_complete_name" attrs="{'invisible': [('marital', 'not in', ['married', 'cohabitant'])]}"/>
-                            <field name="spouse_dni" attrs="{'invisible': [('marital', 'not in', ['married', 'cohabitant'])], 'required': ['married', 'cohabitant']}"/>
+                            <field name="spouse_complete_name" attrs="{'invisible': [('marital', 'not in', ['married', 'cohabitant'])],
+                                                                        'required': ['marital', 'in', ['married', 'cohabitant']]}"/>
+                            <field name="spouse_dni" attrs="{'invisible': [('marital', 'not in', ['married', 'cohabitant'])],
+                                                                 'required': ['marital', 'in', ['married', 'cohabitant']]}"/>
                         </group>
                         <group string="Dependientes">
                             <field name="is_children"/>
