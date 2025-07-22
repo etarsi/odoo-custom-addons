@@ -32,19 +32,16 @@ class HrEmployee(models.Model):
     salary_ids = fields.One2many('hr.employee.salary', 'employee_id', string='Sueldos')
     alta_afip = fields.Date('Fecha de Alta AFIP')
     
-    #hr location
-    location_id = fields.Many2one('hr.location', string='Dirección', ondelete='set null', index=True, copy=False)
-    
     #firma del empleado digital
     digital_signature = fields.Binary('Firma Digital (PNG)')
     digital_signature_name = fields.Char('Nombre de la Firma Digital')
     
     #licencias asignadas
-    license_ids = fields.One2many('hr.employee.license', 'employee_id', string='Licencias Asignadas')
+    license_ids = fields.One2many('hr.license', 'employee_id', string='Licencias Asignadas')
     #contador de licencias asignadas
     license_count = fields.Integer(string='Cantidad de Licencias Asignadas', compute='_compute_license_count', store=True)
     #direccion asignada
-    hr_location_ids = fields.One2many('hr.location', 'employee_id', string='Ubicaciones Asignadas')
+    location_ids = fields.One2many('hr.location', 'employee_id', string='Ubicaciones Asignadas')
     
     
     _sql_constraints = [
