@@ -7,14 +7,6 @@
             <form string="Ubicación del Empleado">
                 <header>
                     <field name="state" widget="statusbar"/>
-                    <button name="%(hr.employee_form_view)d"
-                            type="action"
-                            string="Ver Empleado"
-                            icon="fa-user"
-                            attrs="{'invisible': [('employee_id','=',False)]}"
-                            context="{'form_view_ref':'hr.view_employee_form'}"
-                            groups="base.group_user"
-                            />
                 </header>
                 <sheet>
                     <group name="group_location_info" string="Información de Ubicación">

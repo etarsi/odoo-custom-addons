@@ -8,14 +8,6 @@
                 <header>
                     <field name="state" widget="statusbar"/>
                     <field name="employee_id" invisible="1"/>
-                    <button name="%(hr.employee_form_view)d"
-                            type="action"
-                            string="Ver Padre/Madre"
-                            icon="fa-user"
-                            attrs="{'invisible': [('employee_id','=',False)]}"
-                            context="{'form_view_ref':'hr.view_employee_form'}"
-                            groups="base.group_user"
-                            />
                 </header>
                 <sheet>
                     <group name="group_children_info" string="Información de Hijos">
