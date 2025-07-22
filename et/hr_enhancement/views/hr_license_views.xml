@@ -33,11 +33,7 @@
                                                                                                 'invisible': [('state', '=', 'draft')]}"/>
                             <field name="document" filename="document_name" string="Documento" required="True" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
                         </group>
-                        <group name="group_additional_info" string="Información Adicional">
-                            <field name="comments" string="Comentarios" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
-                        </group>
                     </group>
-
                 </sheet>
             </form>
         </field>
