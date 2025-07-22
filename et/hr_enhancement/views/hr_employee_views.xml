@@ -39,7 +39,7 @@
                         </group>
                         <group string="Dependientes">
                             <field name="is_children"/>
-                            <field name="children_ids" widget="one2many_list" context="{'default_legajo_id': active_id}" attrs="{'invisible': [('is_children', '=', False)], 'required': ['is_children', '=', True]}"/>
+                            <field name="children_ids" widget="one2many_list" attrs="{'invisible': [('is_children', '=', False)], 'required': [('is_children', '=', True)]}"/>
                         </group>
                         <group string="Emergencia">
                             <field name="emergency_contact"/>
