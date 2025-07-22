@@ -17,7 +17,12 @@ class StockPickingInherit(models.Model):
     _inherit = 'stock.picking'
 
     wms_date = fields.Date(string="Fecha WMS")
+    has_peluches = fields.Boolean(string="Peluches", compute="_compute_has_peluches")
+    has_makeup = fields.Boolean(string="Maquillaje", compute="_compute_has_makeup", store=True)
+    has_pistolas_agua = fields.Boolean(string="Pistolas de Agua", compute="_compute_has_pistolas_agua", store=True)
+    has_vehiculos = fields.Boolean(string="Vehiculos", compute="_compute_has_vehiculos", store=True)
     has_rodado = fields.Boolean(string="Rodados", compute="_compute_has_rodado", store=True)
+    has_rodado_infantiles = fields.Boolean(string="Rodados Infantiles", compute="_compute_has_rodado_infantiles", store=True)
     has_toys = fields.Boolean(string="Juguetes", compute="_compute_has_toys", store=True)
     has_balls = fields.Boolean(string="Pelotas", compute="_compute_has_balls", store=True)
     available_pkg_qty = fields.Float(string='Bultos Disponibles' ,compute='sum_bultos', group_operator='sum', store=True)
@@ -580,6 +585,42 @@ class StockPickingInherit(models.Model):
                 if line.product_id.categ_id.parent_id.id == 778:
                     record.has_balls = True
 
+    @api.depends('move_ids_without_package')
+    def _compute_has_peluches(self):
+        for record in self:
+            for line in record.move_ids_without_package:
+                if line.product_id.categ_id.parent_id.id == 243:
+                    record.has_peluches = True
+
+    @api.depends('move_ids_without_package')
+    def _compute_has_makeup(self):
+        for record in self:
+            for line in record.move_ids_without_package:
+                if line.product_id.categ_id.parent_id.id == 244:
+                    record.has_makeup = True
+
+
+    @api.depends('move_ids_without_package')
+    def _compute_has_pistolas_agua(self):
+        for record in self:
+            for line in record.move_ids_without_package:
+                if line.product_id.categ_id.parent_id.id == 324:
+                    record.has_pistolas_agua = True
+
+
+    @api.depends('move_ids_without_package')
+    def _compute_has_vehiculos(self):
+        for record in self:
+            for line in record.move_ids_without_package:
+                if line.product_id.categ_id.parent_id.id == 740:
+                    record.has_vehiculos = True
+
+    @api.depends('move_ids_without_package')
+    def _compute_has_rodado_infantiles(self):
+        for record in self:
+            for line in record.move_ids_without_package:
+                if line.product_id.categ_id.parent_id.id == 780:
+                    record.has_rodado_infantiles = True
     # def enviar(self):
     #     res = super().enviar()
     #     for record in self:

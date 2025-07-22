@@ -1,5 +1,7 @@
 from odoo import models, fields, api, _
 from odoo.exceptions import UserError
+from odoo.tools import float_round, float_compare  # Importa float_round si lo necesitas
+# from odoo.tools import float_compare  # Elimina esta línea si no usas float_compare
 import logging
 _logger = logging.getLogger(__name__)
 
@@ -233,6 +235,16 @@ class SaleOrderLineInherit(models.Model):
     qty_invoiced = fields.Float(
         compute='_compute_qty_invoiced', string='Invoiced Quantity', store=True,
         digits='Product Unit of Measure', readonly=False)
+    
+    def create(self, vals):
+        res = super().create(vals)
+        for rec in res:
+            # Si no hay un producto_packaging_id definido, asigna el primero del producto
+            if not rec.product_packaging_id:
+                if rec.product_id.packaging_ids:
+                    rec.product_packaging_id = rec.product_id.packaging_ids[0]
+                    rec.product_packaging_qty = rec.product_uom_qty / rec.product_packaging_id.qty
+        return res
 
     def _update_line_quantity(self, values):
         orders = self.mapped('order_id')
@@ -270,22 +282,33 @@ class SaleOrderLineInherit(models.Model):
                 record.write(
                             {
                                 'product_packaging_id': packaging_ids[0],
-                            })            
-            
+                            })
                         
     ## DESHABILITAR ADVERTENCIA DE UNIDAD X BULTO                    
     @api.onchange('product_packaging_id')
     def _onchange_product_packaging_id(self):
         return    
 
-    @api.onchange('product_uom_qty')
-    def _onchange_product_uom_qty(self):
-        for record in self:
-            so_config = self.env['sale.order.settings'].browse(1)
-            if so_config:
-                if so_config.carga_unidades and so_config.activo:
-                    if record.product_packaging_id:
-                        record.product_packaging_qty = record.product_uom_qty / record.product_packaging_id.qty
+    @api.onchange('product_packaging_id', 'product_uom', 'product_uom_qty')
+    def _onchange_update_product_packaging_qty(self):
+        for line in self:
+            so_config = line.env['sale.order.settings'].browse(1)
+            if not line.product_packaging_id or not line.product_packaging_id.qty:
+                line.product_packaging_qty = False
+            else:
+                packaging_uom = line.product_packaging_id.product_uom_id
+                packaging_uom_qty = line.product_uom._compute_quantity(line.product_uom_qty, packaging_uom)
+                if so_config and so_config.carga_unidades and so_config.activo:
+                    line.product_packaging_qty = line.product_uom_qty / line.product_packaging_id.qty
+                else:
+                    line.product_packaging_qty = float_round(
+                        packaging_uom_qty / line.product_packaging_id.qty,
+                        precision_rounding=packaging_uom.rounding
+                    )
+
+    @api.onchange('product_packaging_qty')
+    def _onchange_product_packaging_qty(self):
+        return
 
     # @api.onchange('product_uom_qty')
     # def _onchange_product_uom_qty2(self):
