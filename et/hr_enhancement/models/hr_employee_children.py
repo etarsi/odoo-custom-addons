@@ -14,3 +14,6 @@ class HrEmployeeChildren(models.Model):
         ('female', 'Femenino'),
         ('other', 'Otro')
     ], string='Género', required=True)
+    state = fields.Selection([
+        ('draft', 'Borrador'),
+        ('approved', 'Aprobado')], string='Estado', default='draft', required=True)
