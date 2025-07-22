@@ -17,7 +17,7 @@ class StockPickingInherit(models.Model):
     _inherit = 'stock.picking'
 
     wms_date = fields.Date(string="Fecha WMS")
-    has_peluches = fields.Boolean(string="Peluches", compute="_compute_has_peluches")
+    # has_peluches = fields.Boolean(string="Peluches", compute="_compute_has_peluches")
     has_makeup = fields.Boolean(string="Maquillaje", compute="_compute_has_makeup", store=True)
     has_pistolas_agua = fields.Boolean(string="Pistolas de Agua", compute="_compute_has_pistolas_agua", store=True)
     has_vehiculos = fields.Boolean(string="Vehiculos", compute="_compute_has_vehiculos", store=True)
@@ -586,12 +586,12 @@ class StockPickingInherit(models.Model):
                 if line.product_id.categ_id.parent_id.id == 778:
                     record.has_balls = True
 
-    @api.depends('move_ids_without_package')
-    def _compute_has_peluches(self):
-        for record in self:
-            for line in record.move_ids_without_package:
-                if line.product_id.categ_id.parent_id.id == 243:
-                    record.has_peluches = True
+    # @api.depends('move_ids_without_package')
+    # def _compute_has_peluches(self):
+    #     for record in self:
+    #         for line in record.move_ids_without_package:
+    #             if line.product_id.categ_id.parent_id.id == 243:
+    #                 record.has_peluches = True
 
     @api.depends('move_ids_without_package')
     def _compute_has_makeup(self):
