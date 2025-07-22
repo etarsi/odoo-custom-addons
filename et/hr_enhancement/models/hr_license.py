@@ -4,7 +4,7 @@ from odoo.exceptions import ValidationError, UserError
 class hrLicense(models.Model):
     _name = 'hr.license'
 
-    employee_id = fields.Many2one('hr.employee', required=True)
+    employee_id = fields.Many2one('hr.employee', string="Empleado", required=True)
     requested_date = fields.Datetime('Fecha solicitada', required=True)
     license_date = fields.Date('Fecha de licencia', required=True)
     days_qty = fields.Integer('Cantidad de días', default=0, required=True)

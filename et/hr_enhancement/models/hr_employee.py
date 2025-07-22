@@ -43,6 +43,8 @@ class HrEmployee(models.Model):
     license_ids = fields.One2many('hr.employee.license', 'employee_id', string='Licencias Asignadas')
     #contador de licencias asignadas
     license_count = fields.Integer(string='Cantidad de Licencias Asignadas', compute='_compute_license_count', store=True)
+    #direccion asignada
+    hr_location_ids = fields.One2many('hr.location', 'employee_id', string='Ubicaciones Asignadas')
     
     
     _sql_constraints = [
