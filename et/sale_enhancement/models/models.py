@@ -95,14 +95,14 @@ class SaleOrderInherit(models.Model):
 
 
     ### INHERITED
-    
+    @api.model
     def create(self, vals):        
-        res = super().create(vals)
-
-        res.check_order()
-
-        return res
-
+        records = super().create(vals)
+        for record in records:
+            record.check_order()
+            if not record.message_ids:
+                record.message_post(body=_("Orden de venta creada."))
+        return records
 
     def action_confirm(self):
         res = super().action_confirm()
