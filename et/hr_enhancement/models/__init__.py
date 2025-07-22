@@ -8,4 +8,5 @@ from . import hr_employee_salary
 from . import hr_license
 from . import hr_employee_children
 from . import hr_license_type
+from . import hr_season_labor_cost
 

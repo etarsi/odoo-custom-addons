@@ -12,5 +12,5 @@ class HrEmployeeChildren(models.Model):
     gender = fields.Selection([
         ('male', 'Masculino'),
         ('female', 'Femenino'),
-        ('non_binary', 'No binario')
+        ('other', 'Otro')
     ], string='Género', required=True)

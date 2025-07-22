@@ -1,3 +1,21 @@
 <odoo>
+    <!-- Nuevo menú dentro de Recursos Humanos > Configuración -->
+    <menuitem 
+        id="hr_enhancement.menu_hr_season_labor_cost_config"
+        name="Recursos Humanos"
+        parent="hr.menu_human_resources_configuration"
+        sequence="25"/>
         
+    <record id="action_hr_season_labor_cost" model="ir.actions.act_window">
+        <field name="name">Costos Laborales por Temporada</field>
+        <field name="res_model">hr.season.labor.cost</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
+    <menuitem
+        id="hr_enhancement.menu_hr_season_labor_cost_config_action"
+        name="Costos Laborales por Temporada"
+        parent="hr_enhancement.menu_hr_season_labor_cost_config"
+        action="action_hr_season_labor_cost"
+        sequence="1"/>
 </odoo>

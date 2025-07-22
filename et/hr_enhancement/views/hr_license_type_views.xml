@@ -1,28 +1,30 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <record id="hr_license_form_view" model="ir.ui.view">
-        <field name="name">hr.license.form</field>
-        <field name="model">hr.license</field>
+    <record id="view_hr_license_type_tree" model="ir.ui.view">
+        <field name="name">hr.license.type.tree</field>
+        <field name="model">hr.license.type</field>
         <field name="arch" type="xml">
-            <form string="Licencia del Empleado">
-                <header>
-                    <field name="state" widget="statusbar"/>
-                    <button name="%(hr.employee_form_view)d"
-                            type="action"
-                            string="Ver Empleado"
-                            icon="fa-user"
-                            attrs="{'invisible': [('employee_id','=',False)]}"
-                            context="{'form_view_ref':'hr.view_employee_form'}"
-                            groups="base.group_user"
-                            />
-                </header>
+            <tree>
+                <field name="name"/>
+                <field name="code"/>
+                <field name="description"/>
+                <field name="active"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_hr_license_type_form" model="ir.ui.view">
+        <field name="name">hr.license.type.form</field>
+        <field name="model">hr.license.type</field>
+        <field name="arch" type="xml">
+            <form>
                 <sheet>
-                    <group name="group_location_info" string="Información de Licencia">
-                        <field name="license_type_id" string="Tipo de Licencia" required="True"/>
-                        <field name="start_date" string="Fecha de Inicio" required="True"/>
-                        <field name="end_date" string="Fecha de Fin" required="True"/>
-                        <field name="document" filename="document_name" string="Documento" required="True"/>
+                    <group>
+                        <field name="name"/>
+                        <field name="code"/>
+                        <field name="description"/>
                     </group>
+                    <field name="active"/>
                 </sheet>
             </form>
         </field>

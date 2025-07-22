@@ -30,7 +30,6 @@ class HrEmployee(models.Model):
 
     #que monto de sueldo sea una relación de uno a muchos
     salary_ids = fields.One2many('hr.employee.salary', 'employee_id', string='Sueldos')
-    salary_count = fields.Integer(string='Cantidad de Sueldos', compute='_compute_salary_count')
     alta_afip = fields.Date('Fecha de Alta AFIP')
     
     #hr location
@@ -39,6 +38,11 @@ class HrEmployee(models.Model):
     #firma del empleado digital
     digital_signature = fields.Binary('Firma Digital (PNG)')
     digital_signature_name = fields.Char('Nombre de la Firma Digital')
+    
+    #licencias asignadas
+    license_ids = fields.One2many('hr.employee.license', 'employee_id', string='Licencias Asignadas')
+    #contador de licencias asignadas
+    license_count = fields.Integer(string='Cantidad de Licencias Asignadas', compute='_compute_license_count', store=True)
     
     
     _sql_constraints = [
@@ -50,10 +54,10 @@ class HrEmployee(models.Model):
         ('unique_account', 'UNIQUE(nro_account)', 'El Número de Cuenta debe ser único por empleado.'),
     ]
     
-    @api.depends('salary_ids')
-    def _compute_salary_count(self):
-        for record in self:
-            record.salary_count = len(record.salary_ids)
+    @api.depends('license_ids')
+    def _compute_license_count(self):
+        for employee in self:
+            employee.license_count = len(employee.license_ids)
 
     @api.model
     def action_open_my_profile(self):
