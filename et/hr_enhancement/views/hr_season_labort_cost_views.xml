@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_hr_season_labor_cost_tree" model="ir.ui.view">
+        <field name="name">hr.season.labor.cost.tree</field>
+        <field name="model">hr.season.labor.cost</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="name"/>
+                <field name="date_start"/>
+                <field name="date_end"/>
+                <field name="hour_cost_normal"/>
+                <field name="hour_cost_night"/>
+                <field name="hour_cost_extra"/>
+                <field name="hour_cost_holiday"/>
+                <field name="currency_id"/>
+                <field name="active"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_hr_season_labor_cost_form" model="ir.ui.view">
+        <field name="name">hr.season.labor.cost.form</field>
+        <field name="model">hr.season.labor.cost</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group>
+                        <field name="name"/>
+                        <field name="date_start"/>
+                        <field name="date_end"/>
+                        <field name="currency_id"/>
+                    </group>
+                    <group>
+                        <field name="hour_cost_normal"/>
+                        <field name="hour_cost_night"/>
+                        <field name="hour_cost_extra"/>
+                        <field name="hour_cost_holiday"/>
+                    </group>
+                    <field name="active"/>
+                </sheet>
+            </form>
+        </field>
+    </record>
+</odoo>

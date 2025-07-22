@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="hr_license_form_view" model="ir.ui.view">
+        <field name="name">hr.license.form</field>
+        <field name="model">hr.license</field>
+        <field name="arch" type="xml">
+            <form string="Licencia del Empleado">
+                <header>
+                    <field name="state" widget="statusbar"/>
+                    <button name="%(hr.employee_form_view)d"
+                            type="action"
+                            string="Ver Empleado"
+                            icon="fa-user"
+                            attrs="{'invisible': [('employee_id','=',False)]}"
+                            context="{'form_view_ref':'hr.view_employee_form'}"
+                            groups="base.group_user"
+                            />
+                    <button name="action_confirm"
+                            type="object"
+                            string="Confirmar"
+                            icon="fa-check"
+                            attrs="{'invisible': [('state', '!=', 'draft')]}"/>
+                    <button name="action_approve"
+                            type="object"
+                            string="Aprobar"
+                            icon="fa-check-circle"
+                            attrs="{'invisible': [('state', '!=', 'confirmed')]}"/>
+                    <button name="action_reject"
+                            type="object"
+                            string="Rechazar"
+                            icon="fa-times"
+                            attrs="{'invisible': [('state', '!=', 'approved')]}"/>
+                </header>
+                <sheet>
+                    <group>
+                        <group name="group_location_info" string="Información de Licencia">
+                            <field name="employee_id" string="Empleado" required="True" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                            <field name="license_type_id" string="Tipo de Licencia" required="True" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                            <field name="start_date" string="Fecha de Inicio" required="True" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                            <field name="end_date" string="Fecha de Fin" required="True" attrs="{'readonly': [('state', '!=', 'draft')],
+                                                                                                'invisible': [('state', '=', 'draft')]}"/>
+                            <field name="document" filename="document_name" string="Documento" required="True" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                        </group>
+                        <group name="group_additional_info" string="Información Adicional">
+                            <field name="comments" string="Comentarios" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                        </group>
+                    </group>
+
+                </sheet>
+            </form>
+        </field>
+    </record>
+</odoo>

@@ -1,4 +1,5 @@
 from odoo import models, fields, api
+from odoo.exceptions import ValidationError, UserError
 
 class HrEmployee(models.Model):
     _inherit = 'hr.employee'
@@ -16,7 +17,7 @@ class HrEmployee(models.Model):
     spouse_dni = fields.Char(string='DNI del Cónyuge')
     is_children = fields.Boolean(string='Tiene Hijos', default=False)
     #relación de uno a muchos para los hijos
-    children_ids = fields.One2many('hr.legajo.children', 'legajo_id', string='Hijos')
+    children_ids = fields.One2many('hr.employee.children', 'parent_id', string='Hijos')
     #familiar a cargo
     dependent_name = fields.Char(string='Nombre del Familiar a Cargo')
     dependent_dni = fields.Char(string='DNI del Familiar a Cargo')
@@ -28,12 +29,17 @@ class HrEmployee(models.Model):
     alias = fields.Char(string='Alias', required=True)
 
     #que monto de sueldo sea una relación de uno a muchos
-    salary_ids = fields.One2many('hr.legajo.salary', 'employee_id', string='Sueldos')
+    salary_ids = fields.One2many('hr.employee.salary', 'employee_id', string='Sueldos')
     salary_count = fields.Integer(string='Cantidad de Sueldos', compute='_compute_salary_count')
     alta_afip = fields.Date('Fecha de Alta AFIP')
     
     #hr location
     location_id = fields.Many2one('hr.location', string='Dirección', ondelete='set null', index=True, copy=False)
+    
+    #firma del empleado digital
+    digital_signature = fields.Binary('Firma Digital (PNG)')
+    digital_signature_name = fields.Char('Nombre de la Firma Digital')
+    
     
     _sql_constraints = [
         ('unique_dni', 'UNIQUE(dni)', 'El DNI debe ser único por empleado.'),
@@ -65,3 +71,9 @@ class HrEmployee(models.Model):
             return {'type': 'ir.actions.act_window_close'}
 
 
+    @api.constrains('digital_signature', 'digital_signature_filename')
+    def _check_signature_is_png(self):
+        for rec in self:
+            if rec.digital_signature and rec.digital_signature_name:
+                if not rec.digital_signature_name.lower().endswith('.png'):
+                    raise ValidationError("La firma digital debe ser un archivo PNG (.png).")

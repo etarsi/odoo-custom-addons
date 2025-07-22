@@ -7,4 +7,3 @@ class hrLicenseType(models.Model):
     name = fields.Char('Nombre', required=True)
     description = fields.Text('Descripción')
     active = fields.Boolean('Activo', default=True)
-    code = fields.Char('Código', required=True, help='Código único para identificar el tipo de licencia')

@@ -4,5 +4,8 @@
 from . import employee_children
 from . import hr_employee
 from . import hr_location
-from . import hr_legajo_salary
+from . import hr_employee_salary
+from . import hr_license
+from . import hr_employee_children
+from . import hr_license_type
 
