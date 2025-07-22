@@ -5,9 +5,6 @@
         <field name="model">hr.employee.children</field>
         <field name="arch" type="xml">
             <form string="Hijos del Empleado">
-                <header>
-                    <field name="state" widget="statusbar"/>
-                </header>
                 <sheet>
                     <group name="group_children_info" string="Información de Hijos">
                         <field name="employee_id" string="Padre/Madre" required="True" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
