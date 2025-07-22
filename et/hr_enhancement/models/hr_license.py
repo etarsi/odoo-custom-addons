@@ -22,14 +22,6 @@ class hrLicense(models.Model):
     reject_id = fields.Many2one('res.users', string="Rechazador")
     reject_date = fields.Datetime('Fecha de Rechazo')
     
-
-    @api.model
-    def create(self, vals):
-        employee = self.env['hr.employee'].browse(vals.get('employee'))
-        if employee.parent_id and employee.parent_id.user_id:
-            vals['approver'] = employee.parent_id.user_id.id
-        return super().create(vals)
-    
     def action_confirm(self):
         for record in self:
             if record.state != 'draft':

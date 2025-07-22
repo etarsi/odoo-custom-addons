@@ -11,12 +11,13 @@
                 </header>
                 <sheet>
                     <group name="group_children_info" string="Información de Hijos">
-                        <field name="name" string="Nombre Completo" required="True"/>
-                        <field name="dni" string="DNI" required="True"/>
-                        <field name="birth_date" string="Fecha de Nacimiento" required="True"/>
-                        <field name="age" string="Edad" required="True"/>
-                        <field name="gender" string="Género" required="True"/>
-                        <field name="photo_dni" string="Foto DNI" required="True" widget="image"/>
+                        <field name="employee_id" string="Padre/Madre" required="True" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                        <field name="name" string="Nombre Completo" required="True" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                        <field name="dni" string="DNI" required="True" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                        <field name="birth_date" string="Fecha de Nacimiento" required="True" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                        <field name="age" string="Edad" required="True" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                        <field name="gender" string="Género" required="True" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                        <field name="photo_dni" string="Foto DNI" required="True" widget="image" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
                     </group>
                 </sheet>
             </form>
