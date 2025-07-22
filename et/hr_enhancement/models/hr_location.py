@@ -11,7 +11,7 @@ class HrLocation(models.Model):
     floor = fields.Char(string='Piso')
     cp_code = fields.Char(string='Código Postal', required=True)
     country_id = fields.Many2one('res.country', string='País', required=True)
-    employee_id = fields.Many2one('hr.employee', string='Empleado', required=True)
+    employee_id = fields.Many2one('hr.employee', string='Empleado', required=True, ondelete='cascade')
     latitude = fields.Float(string='Latitud')
     longitude = fields.Float(string='Longitud')
     state = fields.Selection(selection=[
@@ -22,6 +22,10 @@ class HrLocation(models.Model):
     document_name = fields.Char(string='Nombre del Documento')
     approver_id = fields.Many2one('res.users', string="Aprobador")
     approver_date = fields.Datetime('Fecha de Aprobación')
+    
+    _sql_constraints = [
+        ('employee_unique', 'UNIQUE(employee_id)', 'Cada empleado solo puede tener una ubicación registrada.')
+    ]
 
     @api.constrains('document', 'document_name')
     def _check_document(self):
