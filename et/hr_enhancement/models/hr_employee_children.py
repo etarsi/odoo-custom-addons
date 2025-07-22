@@ -3,7 +3,7 @@ from odoo import models, fields, api
 class HrEmployeeChildren(models.Model):
     _name = 'hr.employee.children'
 
-    parent_id = fields.Many2one('hr.employee', required=True, string='Padre/Madre')
+    employee_id = fields.Many2one('hr.employee', required=True, string='Padre/Madre')
     name = fields.Char('Nombre y Apellido', required=True)
     age = fields.Integer('Edad', required=True)
     dni = fields.Char('DNI', required=True)

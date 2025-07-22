@@ -7,9 +7,10 @@
             <form string="Hijos del Empleado">
                 <header>
                     <field name="state" widget="statusbar"/>
+                    <field name="employee_id" invisible="1"/>
                     <button name="%(hr.employee_form_view)d"
                             type="action"
-                            string="Ver Empleado"
+                            string="Ver Padre/Madre"
                             icon="fa-user"
                             attrs="{'invisible': [('employee_id','=',False)]}"
                             context="{'form_view_ref':'hr.view_employee_form'}"
@@ -18,7 +19,6 @@
                 </header>
                 <sheet>
                     <group name="group_children_info" string="Información de Hijos">
-                        <field name="employee_id" string="Empleado" required="True", invisible="1"/>
                         <field name="name" string="Nombre Completo" required="True"/>
                         <field name="dni" string="DNI" required="True"/>
                         <field name="birth_date" string="Fecha de Nacimiento" required="True"/>
