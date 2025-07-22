@@ -238,10 +238,12 @@ class SaleOrderLineInherit(models.Model):
     
     def create(self, vals):
         res = super().create(vals)
-        if not res.product_packaging_id:
-            if res.product_id.packaging_ids:
-                res.product_packaging_id = res.product_id.packaging_ids[0]
-                res.product_packaging_qty = res.product_uom_qty / res.product_packaging_id.qty
+        for rec in res:
+            # Si no hay un producto_packaging_id definido, asigna el primero del producto
+            if not rec.product_packaging_id:
+                if rec.product_id.packaging_ids:
+                    rec.product_packaging_id = rec.product_id.packaging_ids[0]
+                    rec.product_packaging_qty = rec.product_uom_qty / rec.product_packaging_id.qty
         return res
 
     def _update_line_quantity(self, values):
