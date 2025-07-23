@@ -11,9 +11,9 @@
                         <group string="Contacto Privado">
                             <field name="state" invisible="1"/>
                             <field name="private_email" string="Email"/>
-                            <field name="phone" class="o_force_ltr" groups="hr.group_hr_user" string="Teléfono" readonly="True"/>
+                            <field name="phone" class="o_force_ltr" groups="hr.group_hr_user" string="Teléfono"/>
                             <field name="celular" string="Celular"/>
-                            <field name="location_id" string="Dirección" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                            <field name="location_id" string="Dirección"/>
                             <label for="km_home_work"/>
                             <div class="o_row" name="div_km_home_work">
                                 <field name="km_home_work" groups="hr.group_hr_user"/>
@@ -21,18 +21,18 @@
                             </div>
                         </group>
                         <group string="Ciudadanía">
-                            <field name="country_id" options="{&quot;no_open&quot;: True, &quot;no_create&quot;: True}" attrs="{'readonly': [('state', '!=', 'draft')], 'required': True}"/>
-                            <field name="dni" groups="hr.group_hr_user" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
-                            <field name="cuil" groups="hr.group_hr_user" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
-                            <field name="gender" attrs="{'readonly': [('state', '!=', 'draft')], 'required': True}"/>
-                            <field name="birthday" attrs="{'readonly': [('state', '!=', 'draft')], 'required': True}"/>
-                            <field name="place_of_birth" groups="hr.group_hr_user" attrs="{'readonly': [('state', '!=', 'draft')], 'required': True}"/>
-                            <field name="country_of_birth" groups="hr.group_hr_user" attrs="{'readonly': [('state', '!=', 'draft')], 'required': True}"/>
-                            <field name="identification_id" groups="hr.group_hr_user" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
-                            <field name="passport_id" groups="hr.group_hr_user" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                            <field name="country_id" options="{&quot;no_open&quot;: True, &quot;no_create&quot;: True}" attrs="{'required': True}"/>
+                            <field name="dni" groups="hr.group_hr_user"/>
+                            <field name="cuil" groups="hr.group_hr_user"/>
+                            <field name="gender" attrs="{'required': True}"/>
+                            <field name="birthday" attrs="{'required': True}"/>
+                            <field name="place_of_birth" groups="hr.group_hr_user" attrs="{'required': True}"/>
+                            <field name="country_of_birth" groups="hr.group_hr_user" attrs="{'required': True}"/>
+                            <field name="identification_id" groups="hr.group_hr_user"/>
+                            <field name="passport_id" groups="hr.group_hr_user"/>
                         </group>
                         <group string="Estado Civil">
-                            <field name="marital" attrs="{'readonly': [('state', '!=', 'draft')], 'required': True}"/>
+                            <field name="marital" attrs="{'required': True}"/>
                             <field name="spouse_complete_name" attrs="{'invisible': [('marital', 'not in', ['married', 'cohabitant'])],
                                                                         'required': [('marital', 'in', ['married', 'cohabitant'])]}"/>
                             <field name="spouse_dni" attrs="{'invisible': [('marital', 'not in', ['married', 'cohabitant'])],
