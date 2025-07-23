@@ -9,6 +9,7 @@
                 <page name="information_private" string="Información Privada 2">
                     <group string="Legajo Personal">
                         <group string="Contacto Privado">
+                            <field name="state" invisible="1"/>
                             <field name="private_email" string="Email"/>
                             <field name="phone" class="o_force_ltr" groups="hr.group_hr_user" string="Teléfono" readonly="True"/>
                             <field name="celular" string="Celular"/>
