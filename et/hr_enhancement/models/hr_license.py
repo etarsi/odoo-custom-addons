@@ -24,6 +24,8 @@ class hrLicense(models.Model):
     approver_date = fields.Datetime('Fecha de Aprobación')
     reject_id = fields.Many2one('res.users', string="Rechazador")
     reject_date = fields.Datetime('Fecha de Rechazo')
+    document = fields.Binary('Documento de Licencia', required=True)
+    document_name = fields.Char('Nombre del Documento', required=True)
     
     def action_confirm(self):
         for record in self:
