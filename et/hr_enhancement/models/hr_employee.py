@@ -39,7 +39,7 @@ class HrEmployee(models.Model):
     #licencias asignadas
     license_ids = fields.One2many('hr.license', 'employee_id', string='Licencias Asignadas')
     #contador de licencias asignadas
-    license_count = fields.Integer(string='Cantidad de Licencias Asignadas', compute='_compute_license_count', store=True)
+    licencia_count = fields.Integer(string='Cantidad de Licencias Asignadas', compute='_compute_licencia_count', store=True)
     #direccion asignada
     location_id = fields.Many2one('hr.location', string='Ubicación Actual', ondelete='set null')
     
@@ -54,9 +54,9 @@ class HrEmployee(models.Model):
     ]
     
     @api.depends('license_ids')
-    def _compute_license_count(self):
+    def _compute_licencia_count(self):
         for employee in self:
-            employee.license_count = len(employee.license_ids)
+            employee.licencia_count = len(employee.license_ids)
 
     @api.model
     def action_open_my_profile(self):
