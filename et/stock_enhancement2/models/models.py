@@ -613,7 +613,7 @@ class StockPickingInherit(models.Model):
     def _compute_has_vehiculos(self):
         for record in self:
             for line in record.move_ids_without_package:
-                if line.product_id.categ_id.parent_id.id == 740:
+                if line.product_id.categ_id.parent_id.id == 774:
                     record.has_vehiculos = True
 
     @api.depends('move_ids_without_package')
