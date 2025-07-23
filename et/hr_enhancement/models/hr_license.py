@@ -1,14 +1,17 @@
 from odoo import models, fields, api
 from odoo.exceptions import ValidationError, UserError
+from datetime import timedelta
 
 class hrLicense(models.Model):
     _name = 'hr.license'
-
+    _description = 'Licencia del Empleado'
+    
+    description = fields.Text('Descripción')
     employee_id = fields.Many2one('hr.employee', string="Empleado", required=True)
-    requested_date = fields.Datetime('Fecha solicitada', required=True)
-    license_date = fields.Date('Fecha de licencia', required=True)
+    requested_date = fields.Datetime('Fecha solicitada', defaulta=lambda self: fields.Datetime.now())
+    start_date = fields.Date('Fecha Inicio', required=True)
+    end_date = fields.Date('Fecha Fin', compute='_compute_end_date', store=True, readonly=False)
     days_qty = fields.Integer('Cantidad de días', default=0, required=True)
-    license_data_fin = fields.Date('Fecha de fin de licencia')
     license_type_id = fields.Many2one('hr.license.type', string='Tipo de Licencia', domain="[('active', '=', True)]", required=True)
     reason = fields.Char('Motivo', required=True)
     state = fields.Selection(selection=[
@@ -43,3 +46,11 @@ class hrLicense(models.Model):
             record.state = 'rejected'
             record.reject_id = self.env.user.id
             record.reject_date = fields.Datetime.now()
+            
+    @api.depends('start_date', 'days_qty')
+    def _compute_end_date(self):
+        for record in self:
+            if record.start_date and record.days_qty:
+                record.end_date = record.start_date + timedelta(days=record.days_qty)
+            else:
+                record.end_date = False

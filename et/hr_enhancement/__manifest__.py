@@ -24,14 +24,13 @@
 
     # always loaded
     'data': [
-        # 'security/ir.model.access.csv',
+        'security/ir.model.access.csv',
         'views/hr_location_views.xml',
-        #'views/hr_employee_views.xml',
+        'views/hr_employee_views.xml',
         'views/hr_employee_children_views.xml',
         'views/hr_season_labor_cost_views.xml',
         'views/hr_license_views.xml',
         'views/hr_license_type_views.xml',
-        'views/templates.xml',
         'views/menu.xml',
         'views/views.xml',
     ],

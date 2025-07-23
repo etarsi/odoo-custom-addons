@@ -29,9 +29,10 @@
                             <field name="employee_id" string="Empleado" required="True" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
                             <field name="license_type_id" string="Tipo de Licencia" required="True" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
                             <field name="start_date" string="Fecha de Inicio" required="True" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
-                            <field name="end_date" string="Fecha de Fin" required="True" attrs="{'readonly': [('state', '!=', 'draft')],
-                                                                                                'invisible': [('state', '=', 'draft')]}"/>
+                            <field name="days_qty" string="Cantidad de Días" required="True" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                            <field name="end_date" string="Fecha de Fin" required="True" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
                             <field name="document" filename="document_name" string="Documento" required="True" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                            <field name="description" string="Descripción" required="True" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
                         </group>
                     </group>
                 </sheet>
