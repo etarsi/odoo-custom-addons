@@ -5,11 +5,17 @@
         <field name="model">hr.employee</field>
         <field name="inherit_id" ref="hr.view_employee_form"/>
         <field name="arch" type="xml">
+            <xpath expr="//page[@name='personal_information']" position="attributes">
+                <attribute name="invisible" value="1"/>
+            </xpath>
+            <xpath expr="//page[@name='hr_settings']" position="attributes">
+                <attribute name="invisible" value="1"/>
+            </xpath>
             <xpath expr="//page[@name='personal_information']" position="after">
-                <page name="information_private" string="Información Privada 2">
+                <page name="information_private" string="Información Privada">
                     <group string="Legajo Personal">
                         <group string="Contacto Privado">
-                            <field name="email_personal" string="Email"/>
+                            <field name="email_personal" string="Email" widget="email"/>
                             <field name="phone" class="o_force_ltr" groups="hr.group_hr_user" string="Teléfono"/>
                             <field name="celular" string="Celular"/>
                             <field name="location_id" string="Dirección"/>
