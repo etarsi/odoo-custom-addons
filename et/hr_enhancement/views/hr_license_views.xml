@@ -45,4 +45,17 @@
             </form>
         </field>
     </record>
+    <record id="view_hr_license_tree" model="ir.ui.view">
+        <field name="name">hr.license.tree</field>
+        <field name="model">hr.license</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="employee_id"/>
+                <field name="license_type_id"/>
+                <field name="start_date"/>
+                <field name="end_date"/>
+                <field name="days_qty"/>
+                <field name="state"/>
+            </tree>
+        </field>
 </odoo>
