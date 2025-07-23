@@ -9,15 +9,10 @@
                 <page name="information_private" string="Información Privada 2">
                     <group string="Legajo Personal">
                         <group string="Contacto Privado">
-                            <field name="private_email" string="Email"/>
+                            <field name="email_personal" string="Email"/>
                             <field name="phone" class="o_force_ltr" groups="hr.group_hr_user" string="Teléfono"/>
                             <field name="celular" string="Celular"/>
                             <field name="location_id" string="Dirección"/>
-                            <label for="km_home_work"/>
-                            <div class="o_row" name="div_km_home_work">
-                                <field name="km_home_work" groups="hr.group_hr_user"/>
-                                <span>Km</span>
-                            </div>
                         </group>
                         <group string="Ciudadanía">
                             <field name="country_id" options="{&quot;no_open&quot;: True, &quot;no_create&quot;: True}" attrs="{'required': True}"/>

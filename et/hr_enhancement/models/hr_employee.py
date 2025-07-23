@@ -12,6 +12,8 @@ class HrEmployee(models.Model):
     dni_foto_back = fields.Binary('Foto DNI 2')
     cuil = fields.Char(string='CUIL', required=True)
     celular = fields.Char(string='Celular', required=True)
+    email_personal = fields.Char(string='Email', required=True, 
+                         help='Email personal del empleado, no se usa para notificaciones.')
     
     #datos familiares
     spouse_dni = fields.Char(string='DNI del Cónyuge')

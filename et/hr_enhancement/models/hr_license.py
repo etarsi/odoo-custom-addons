@@ -4,29 +4,30 @@ from datetime import timedelta
 
 class hrLicense(models.Model):
     _name = 'hr.license'
+    _inherit = ['mail.thread', 'mail.activity.mixin'] 
     _description = 'Licencia del Empleado'
     
-    description = fields.Text('Descripción')
-    employee_id = fields.Many2one('hr.employee', string="Empleado", required=True)
+    description = fields.Text('Descripción', tracking=True)
+    employee_id = fields.Many2one('hr.employee', string="Empleado", required=True, tracking=True)
     requested_date = fields.Datetime('Fecha solicitada', defaulta=lambda self: fields.Datetime.now())
-    start_date = fields.Date('Fecha Inicio', required=True)
-    end_date = fields.Date('Fecha Fin', compute='_compute_end_date', store=True, readonly=False)
-    days_qty = fields.Integer('Cantidad de días', default=0, required=True)
-    license_type_id = fields.Many2one('hr.license.type', string='Tipo de Licencia', domain="[('active', '=', True)]", required=True)
-    reason = fields.Char('Motivo', required=True)
+    start_date = fields.Date('Fecha Inicio', required=True, tracking=True)
+    end_date = fields.Date('Fecha Fin', compute='_compute_end_date', store=True, readonly=False, tracking=True)
+    days_qty = fields.Integer('Cantidad de días', default=0, required=True, tracking=True)
+    license_type_id = fields.Many2one('hr.license.type', string='Tipo de Licencia', domain="[('active', '=', True)]", required=True, tracking=True)
+    reason = fields.Char('Motivo', required=True, tracking=True)
     state = fields.Selection(selection=[
         ('draft', 'Borrador'),
         ('pending', 'Pendiente de Aprobación'),
         ('approved', 'Aprobado'),
         ('rejected', 'Rechazado'),
-    ], string='Estado', required=True, default='draft')
+    ], string='Estado', required=True, default='draft', tracking=True)
     approver_id = fields.Many2one('res.users', string="Aprobador")
     approver_date = fields.Datetime('Fecha de Aprobación')
     reject_id = fields.Many2one('res.users', string="Rechazador")
     reject_date = fields.Datetime('Fecha de Rechazo')
-    document = fields.Binary('Documento de Licencia', required=True)
-    document_name = fields.Char('Nombre del Documento', required=True)
-    
+    document = fields.Binary('Documento de Licencia', required=True, tracking=True)
+    document_name = fields.Char('Nombre del Documento', required=True, tracking=True)
+
     def action_confirm(self):
         for record in self:
             if record.state != 'draft':

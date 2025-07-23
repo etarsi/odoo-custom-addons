@@ -1,4 +1,16 @@
 <odoo>
+    <!-- Nuevo menú dentro de Recursos Humanos el panel de licencias -->
+    <record id="action_hr_license" model="ir.actions.act_window">
+        <field name="name">Licencias</field>
+        <field name="res_model">hr.license</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+    <menuitem 
+        id="hr_enhancement.menu_hr_license"
+        name="Licencias"
+        parent="hr.menu_hr_root"
+        action="action_hr_license"
+        sequence="10"/>
     <!-- Nuevo menú dentro de Recursos Humanos > Configuración -->
     <menuitem 
         id="hr_enhancement.menu_hr_season_labor_cost_config"
