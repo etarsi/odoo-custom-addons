@@ -113,6 +113,6 @@ class HrEmployee(models.Model):
             # Opcional: Notificar por email
             # self.env['mail.mail'].create({...})
 
-    def action_confirm(self):
+    def action_confirm(self, *args, **kwargs):
         for record in self:
             record.state = 'confirmed'
