@@ -96,11 +96,11 @@ class HrEmployee(models.Model):
                     raise ValidationError("La firma digital debe ser un archivo PNG (.png).")
                 
                 
-    def action_request_edit(self, reason):
+    def action_request_edit(self):
         for rec in self:
             self.env['hr.employee.edit.request'].create({
                 'employee_id': rec.id,
-                'reason': reason,
+                'reason': 'Editar Información del empleado',
             })
         return True
             # Notificar por Odoo/mail al encargado de RRHH
