@@ -95,7 +95,7 @@ class HrEmployee(models.Model):
                 if not rec.digital_signature_name.lower().endswith('.png'):
                     raise ValidationError("La firma digital debe ser un archivo PNG (.png).")
                 
-                
+    @api.model
     def action_request_edit(self):
         for rec in self:
             self.env['hr.employee.edit.request'].create({
@@ -114,6 +114,7 @@ class HrEmployee(models.Model):
             # Opcional: Notificar por email
             # self.env['mail.mail'].create({...})
 
+    @api.model
     def action_confirm(self):
         for record in self:
             if record.state != 'draft':
