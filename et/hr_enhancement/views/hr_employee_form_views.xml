@@ -28,15 +28,14 @@
                     <field name="edit_request_ids">
                         <tree>
                             <field name="create_date"/>
-                            <field name="request_user_id"/>
                             <field name="reason"/>
+                            <field name="approved_user_id"/>
                             <field name="state"/>
                         </tree>
                         <form>
                             <field name="reason"/>
                             <field name="notes"/>
                             <field name="state"/>
-                            <field name="request_user_id"/>
                         </form>
                     </field>
                 </page>
