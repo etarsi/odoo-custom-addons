@@ -5,6 +5,46 @@
         <field name="model">hr.employee</field>
         <field name="inherit_id" ref="hr.view_employee_form"/>
         <field name="arch" type="xml">
+            <!-- 1. Insertar statusbar debajo del título -->
+            <xpath expr="//div[@class='oe_title']" position="after">
+                <field name="state" widget="statusbar" statusbar_visible="draft,confirmed"/>
+            </xpath>
+            <!-- 2. Botón para solicitar edición (visible solo en estado 'confirmed') -->
+            <xpath expr="//header" position="inside">
+                <button name="action_request_edit"
+                        string="Solicitar Edición"
+                        type="object"
+                        attrs="{'invisible': [('state', '!=', 'confirmed')]}"
+                        class="btn-primary"/>
+                <button name="action_confirm"
+                        string="Confirmar"
+                        type="object"
+                        attrs="{'invisible': [('state', '!=', 'draft')]}"
+                        class="btn-success"/>
+            </xpath>
+            <!-- 3. Nueva pestaña de solicitudes de edición -->
+            <xpath expr="//notebook" position="inside">
+                <page string="Solicitudes de Edición">
+                <field name="edit_request_ids">
+                    <tree>
+                        <field name="create_date"/>
+                        <field name="request_user_id"/>
+                        <field name="reason"/>
+                        <field name="state"/>
+                    </tree>
+                    <form>
+                        <field name="reason"/>
+                        <field name="notes"/>
+                        <field name="state"/>
+                        <field name="request_user_id"/>
+                    </form>
+                </field>
+                </page>
+            </xpath>
+            <!-- Hacer todo el contenido de <sheet> readonly si está confirmado -->
+            <xpath expr="//sheet" position="attributes">
+                <attribute name="attrs">{'readonly': [('state','=','confirmado')]}</attribute>
+            </xpath>
             <xpath expr="//page[@name='hr_settings']" position="attributes">
                 <attribute name="attrs">{'invisible': [('id', '!=', 0)]}</attribute>
             </xpath>

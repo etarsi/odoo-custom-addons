@@ -45,7 +45,13 @@ class HrEmployee(models.Model):
     #direccion asignada
     location_id = fields.Many2one('hr.location', string='Ubicación Actual', ondelete='set null')
     
-    
+    #estado del emple
+    state = fields.Selection([
+        ('draft', 'Borrador'),
+        ('confirmed', 'Confirmado'),
+        ('edit_requested', 'Edición Solicitada'),
+    ], string='Estado', default='draft')
+
     _sql_constraints = [
         ('unique_dni', 'UNIQUE(dni)', 'El DNI debe ser único por empleado.'),
         ('unique_cuil', 'UNIQUE(cuil)', 'El CUIL debe ser único por empleado.'),
@@ -82,3 +88,22 @@ class HrEmployee(models.Model):
             if rec.digital_signature and rec.digital_signature_name:
                 if not rec.digital_signature_name.lower().endswith('.png'):
                     raise ValidationError("La firma digital debe ser un archivo PNG (.png).")
+                
+                
+    def request_edit(self, reason):
+        for rec in self:
+            self.env['hr.employee.edit.request'].create({
+                'employee_id': rec.id,
+                'reason': reason,
+            })
+            # Notificar por Odoo/mail al encargado de RRHH
+"""             group_hr_manager = self.env.ref('hr.group_hr_manager')
+            users = group_hr_manager.users
+            rec.message_post(
+                subject="Solicitud de edición de datos",
+                body=f"El empleado {rec.name} solicitó editar su información.<br>Motivo: {reason}",
+                partner_ids=[(4, user.partner_id.id) for user in users]
+            ) """
+            # Opcional: Notificar por email
+            # self.env['mail.mail'].create({...})
+
