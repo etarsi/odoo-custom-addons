@@ -44,6 +44,12 @@ class HrEmployee(models.Model):
     licencia_count = fields.Integer(string='Cantidad de Licencias Asignadas', compute='_compute_licencia_count', store=True)
     #direccion asignada
     location_id = fields.Many2one('hr.location', string='Ubicación Actual', ondelete='set null')
+    #listado de solicitudes de edicion
+    edit_request_ids = fields.One2many(
+        'hr.employee.edit.request',
+        'employee_id',
+        string="Solicitudes de Edición"
+    )
     
     #estado del emple
     state = fields.Selection([
@@ -90,7 +96,7 @@ class HrEmployee(models.Model):
                     raise ValidationError("La firma digital debe ser un archivo PNG (.png).")
                 
                 
-    def request_edit(self, reason):
+    def action_request_edit(self, reason):
         for rec in self:
             self.env['hr.employee.edit.request'].create({
                 'employee_id': rec.id,
