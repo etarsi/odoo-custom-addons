@@ -34,7 +34,6 @@
                         </tree>
                         <form>
                             <field name="reason"/>
-                            <field name="notes"/>
                             <field name="state"/>
                         </form>
                     </field>
