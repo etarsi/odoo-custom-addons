@@ -102,14 +102,20 @@ class HrEmployee(models.Model):
                 'employee_id': rec.id,
                 'reason': reason,
             })
+        return True
             # Notificar por Odoo/mail al encargado de RRHH
-"""             group_hr_manager = self.env.ref('hr.group_hr_manager')
-            users = group_hr_manager.users
-            rec.message_post(
-                subject="Solicitud de edición de datos",
-                body=f"El empleado {rec.name} solicitó editar su información.<br>Motivo: {reason}",
-                partner_ids=[(4, user.partner_id.id) for user in users]
-            ) """
+            #"""             group_hr_manager = self.env.ref('hr.group_hr_manager')
+            #users = group_hr_manager.users
+            #rec.message_post(
+            #    subject="Solicitud de edición de datos",
+            #    body=f"El empleado {rec.name} solicitó editar su información.<br>Motivo: {reason}",
+            #    partner_ids=[(4, user.partner_id.id) for user in users]
+            #) """
             # Opcional: Notificar por email
             # self.env['mail.mail'].create({...})
 
+    def action_confirm(self):
+        for record in self:
+            if record.state != 'draft':
+                raise ValidationError('Solo se puede confirmar una licencia en estado Borrador.')
+            record.state = 'pending'
