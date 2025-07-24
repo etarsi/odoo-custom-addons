@@ -55,7 +55,6 @@ class HrEmployee(models.Model):
     state = fields.Selection([
         ('draft', 'Borrador'),
         ('confirmed', 'Confirmado'),
-        ('edit_requested', 'Edición Solicitada'),
     ], string='Estado', default='draft')
 
     _sql_constraints = [
@@ -117,6 +116,4 @@ class HrEmployee(models.Model):
     @api.model
     def action_confirm(self):
         for record in self:
-            if record.state != 'draft':
-                raise ValidationError('Solo se puede confirmar una licencia en estado Borrador.')
-            record.state = 'pending'
+            record.state = 'confirmed'
