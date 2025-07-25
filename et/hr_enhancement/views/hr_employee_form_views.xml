@@ -42,51 +42,109 @@
             <xpath expr="//page[@name='hr_settings']" position="attributes">
                 <attribute name="attrs">{'invisible': [('id', '!=', 0)]}</attribute>
             </xpath>
+            <xpath expr="//field[@name='name']" position="attributes">
+                <attribute name="attrs">{'readonly': [('state', '!=', 'draft')]}</attribute>
+            </xpath>
+            <xpath expr="//field[@name='job_title']" position="attributes">
+                <attribute name="attrs">{'readonly': [('state', '!=', 'draft')]}</attribute>
+            </xpath>
+            <xpath expr="//field[@name='category_ids']" position="attributes">
+                <attribute name="attrs">{'readonly': [('state', '!=', 'draft')]}</attribute>
+            </xpath>
+            <xpath expr="//field[@name='mobile_phone']" position="attributes">
+                <attribute name="attrs">{'readonly': [('state', '!=', 'draft')]}</attribute>
+            </xpath>
+            <xpath expr="//field[@name='work_phone']" position="attributes">
+                <attribute name="attrs">{'readonly': [('state', '!=', 'draft')]}</attribute>
+            </xpath>
+            <xpath expr="//field[@name='work_email']" position="attributes">
+                <attribute name="attrs">{'readonly': [('state', '!=', 'draft')]}</attribute>
+            </xpath>
+            <xpath expr="//field[@name='company_id']" position="attributes">
+                <attribute name="attrs">{'readonly': [('state', '!=', 'draft')]}</attribute>
+            </xpath>
+            <xpath expr="//field[@name='department_id']" position="attributes">
+                <attribute name="attrs">{'readonly': [('state', '!=', 'draft')]}</attribute>
+            </xpath>
+            <xpath expr="//field[@name='parent_id']" position="attributes">
+                <attribute name="attrs">{'readonly': [('state', '!=', 'draft')]}</attribute>
+            </xpath>
+            <xpath expr="//field[@name='coach_id']" position="attributes">
+                <attribute name="attrs">{'readonly': [('state', '!=', 'draft')]}</attribute>
+            </xpath>
+            <xpath expr="//field[@name='address_id']" position="attributes">
+                <attribute name="attrs">{'readonly': [('state', '!=', 'draft')]}</attribute>
+            </xpath>
+            <xpath expr="//field[@name='work_location_id']" position="attributes">
+                <attribute name="attrs">{'readonly': [('state', '!=', 'draft')]}</attribute>
+            </xpath>
+            <xpath expr="//field[@name='departure_reason_id']" position="attributes">
+                <attribute name="attrs">{'readonly': [('state', '!=', 'draft')]}</attribute>
+            </xpath>
+            <xpath expr="//field[@name='departure_description']" position="attributes">
+                <attribute name="attrs">{'readonly': [('state', '!=', 'draft')]}</attribute>
+            </xpath>
+            <xpath expr="//field[@name='departure_date']" position="attributes">
+                <attribute name="attrs">{'readonly': [('state', '!=', 'draft')]}</attribute>
+            </xpath>
+            <xpath expr="//field[@name='resource_calendar_id']" position="attributes">
+                <attribute name="attrs">{'readonly': [('state', '!=', 'draft')]}</attribute>
+            </xpath>
+            <xpath expr="//field[@name='tz']" position="attributes">
+                <attribute name="attrs">{'required': [('id', '!=', False)], 'readonly': [('state', '!=', 'draft')]}</attribute>
+            </xpath>
+            <xpath expr="//field[@name='departure_reason_id']" position="attributes">
+                <attribute name="attrs">{'readonly': [('state', '!=', 'draft')]}</attribute>
+            </xpath>
             <xpath expr="//page[@name='personal_information']" position="replace">
                 <page name="information_private" string="Información Privada">
                     <group string="Legajo Personal">
                         <group string="Contacto Privado">
-                            <field name="email_personal" string="Email" widget="email" attrs="'readonly:'"/>
-                            <field name="phone" class="o_force_ltr" groups="hr.group_hr_user" string="Teléfono"/>
-                            <field name="celular" string="Celular"/>
-                            <field name="location_id" string="Dirección"/>
+                            <field name="email_personal" string="Email" widget="email" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                            <field name="phone" class="o_force_ltr" groups="hr.group_hr_user" string="Teléfono" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                            <field name="celular" string="Celular" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                            <field name="location_id" string="Dirección" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
                         </group>
                         <group string="Ciudadanía">
                             <field name="country_id" options="{&quot;no_open&quot;: True, &quot;no_create&quot;: True}" attrs="{'required': True}"/>
-                            <field name="dni" groups="hr.group_hr_user"/>
-                            <field name="cuil" groups="hr.group_hr_user"/>
-                            <field name="gender" attrs="{'required': True}"/>
-                            <field name="birthday" attrs="{'required': True}"/>
-                            <field name="place_of_birth" groups="hr.group_hr_user" attrs="{'required': True}"/>
-                            <field name="country_of_birth" groups="hr.group_hr_user" attrs="{'required': True}"/>
-                            <field name="identification_id" groups="hr.group_hr_user"/>
-                            <field name="passport_id" groups="hr.group_hr_user"/>
+                            <field name="dni" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                            <field name="cuil" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                            <field name="gender" attrs="{'required': True, 'readonly': [('state', '!=', 'draft')]}"/>
+                            <field name="birthday" attrs="{'required': True, 'readonly': [('state', '!=', 'draft')] }"/>
+                            <field name="place_of_birth" attrs="{'required': True, 'readonly': [('state', '!=', 'draft')]}"/>
+                            <field name="country_of_birth" attrs="{'required': True, 'readonly': [('state', '!=', 'draft')]}"/>
+                            <field name="identification_id" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                            <field name="passport_id" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
                         </group>
                         <group string="Estado Civil">
-                            <field name="marital" attrs="{'required': True}"/>
+                            <field name="marital" attrs="{'required': True, 'readonly': [('state', '!=', 'draft')]}"/>
                             <field name="spouse_complete_name" attrs="{'invisible': [('marital', 'not in', ['married', 'cohabitant'])],
-                                                                        'required': [('marital', 'in', ['married', 'cohabitant'])]}"/>
+                                                                        'required': [('marital', 'in', ['married', 'cohabitant'])],
+                                                                        'readonly': [('state', '!=', 'draft')]}"/>
                             <field name="spouse_dni" attrs="{'invisible': [('marital', 'not in', ['married', 'cohabitant'])],
-                                                                 'required': [('marital', 'in', ['married', 'cohabitant'])]}"/>
+                                                                'required': [('marital', 'in', ['married', 'cohabitant'])],
+                                                                'readonly': [('state', '!=', 'draft')]}"/>
                         </group>
                         <group string="Dependientes">
-                            <field name="is_children"/>
-                            <field name="children_ids" widget="one2many_list" attrs="{'invisible': [('is_children', '=', False)], 'required': [('is_children', '=', True)]}"/>
+                            <field name="is_children" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                            <field name="children_ids" widget="one2many_list" 
+                                attrs="{'invisible': [('is_children', '=', False)], 
+                                            'required': [('is_children', '=', True)], 'readonly': [('state', '!=', 'draft')]}"/>
                         </group>
                         <group string="Emergencia">
-                            <field name="emergency_contact"/>
-                            <field name="emergency_phone" class="o_force_ltr"/>
+                            <field name="emergency_contact" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                            <field name="emergency_phone" class="o_force_ltr" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
                         </group>
                         <group string="Datos Bancarios" name="bank_details">
-                            <field name="bank"/>
-                            <field name="nro_account"/>
-                            <field name="cbu"/>
-                            <field name="alias"/>
+                            <field name="bank" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                            <field name="nro_account" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                            <field name="cbu" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                            <field name="alias" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
                         </group>
                         <group string="Educación">
-                            <field name="certificate"/>
-                            <field name="study_field"/>
-                            <field name="study_school"/>
+                            <field name="certificate" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                            <field name="study_field" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                            <field name="study_school" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
                         </group>
                     </group>
                 </page>
