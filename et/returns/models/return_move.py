@@ -1,4 +1,4 @@
-from odoo import models, fields
+from odoo import models, fields, api
 
 class ReturnMove(models.Model):
     _name = 'return.move'
@@ -15,16 +15,30 @@ class ReturnMove(models.Model):
         ('bad', 'No lo pudo vender')])
     info = fields.Text(string="Información adicional")
     date = fields.Date(string="Fecha de Recepción", default=fields.Date.today)
-    state = fields.Selection(string="Estado", default='draft', selection=[('draft','Borrador'), ('inprogress', 'En Proceso'), ('confirmed', 'Confirmado'), ('done', 'Hecho')])
+    state = fields.Selection(string="Estado", default='draft', selection=[('draft','Borrador'), ('pending', 'Pendiente'), ('inprogress', 'En Proceso'), ('confirmed', 'Confirmado'), ('done', 'Hecho')])
     move_lines = fields.One2many('return.move.line', 'return_move', string="Devoluciones Sanas")
     return_move_lines = fields.One2many('return.move.line', 'return_move', string="Devoluciones rotas")
     price_total = fields.Float(string="Total", compute="_compute_price_total")
     company_id = fields.Many2one('res.company', string="Compañía")
+    wms_code = fields.Char("Código WMS")
 
     
     def _compute_price_total(self):
         for record in self:
             record.price_total = sum(record.move_lines.mapped('price_subtotal'))
+
+    @api.onchange('partner_id')
+    def _onchange_partner_id(self):
+        for record in self:
+            if record.partner_id:
+                last_invoice = self.env['account.move'].search([
+                    ('partner_id', '=', record.partner_id.id),
+                    ('move_type', '=', 'out_invoice'),
+                    ('state', '=', 'posted')
+                ], order='date desc', limit=1)
+
+                if last_invoice:
+                    record.invoice_id = last_invoice
 
 class ReturnMoveLine(models.Model):
     _name = 'return.move.line'
