@@ -1,0 +1,67 @@
+<odoo>
+    <record id="license_vacaciones" model="hr.license.type">
+        <field name="name">Licencia de Vacaciones</field>
+        <field name="description">Licencia anual ordinaria por vacaciones.</field>
+        <field name="active">True</field>
+    </record>
+    <record id="license_maternidad" model="hr.license.type">
+        <field name="name">Licencia de Maternidad</field>
+        <field name="description">Licencia por maternidad según Ley 20.744 (Art. 177 y ss.).</field>
+        <field name="active">True</field>
+    </record>
+    <record id="license_paternidad" model="hr.license.type">
+        <field name="name">Licencia de Paternidad</field>
+        <field name="description">Licencia por nacimiento de hijo (2 días corridos).</field>
+        <field name="active">True</field>
+    </record>
+    <record id="license_enfermedad" model="hr.license.type">
+        <field name="name">Licencia de Enfermedad</field>
+        <field name="description">Licencia por enfermedad inculpable, justificada por certificado médico.</field>
+        <field name="active">True</field>
+    </record>
+    <record id="license_accidente_trabajo" model="hr.license.type">
+        <field name="name">Licencia de Accidente de Trabajo</field>
+        <field name="description">Licencia por accidente de trabajo.</field>
+        <field name="active">True</field>
+    </record>
+    <record id="license_examen_medico" model="hr.license.type">
+        <field name="name">Licencia de Examen Médico</field>
+        <field name="description">Licencia para la realización de exámenes médicos.</field>
+        <field name="active">True</field>
+    </record>
+    <record id="license_matrimonio" model="hr.license.type">
+        <field name="name">Licencia de Matrimonio</field>
+        <field name="description">Licencia por matrimonio (10 días corridos).</field>
+        <field name="active">True</field>
+    </record>
+    <record id="license_fallecimiento_familiar" model="hr.license.type">
+        <field name="name">Licencia de Fallecimiento de Familiar</field>
+        <field name="description">Licencia por fallecimiento de familiar directo.</field>
+        <field name="active">True</field>
+    </record>
+    <record id="license_donacion_sangre" model="hr.license.type">
+        <field name="name">Licencia de Donación de Sangre</field>
+        <field name="description">Licencia por donación de sangre, según Ley 22.990.</field>
+        <field name="active">True</field>
+    </record>
+    <record id="license_estudio" model="hr.license.type">
+        <field name="name">Licencia de Estudio</field>
+        <field name="description">Licencia para rendir exámenes, según la legislación vigente.</field>
+        <field name="active">True</field>
+    </record>
+    <record id="license_sin_goce" model="hr.license.type">
+        <field name="name">Licencia sin Goce de Sueldo</field>
+        <field name="description">Licencia sin percepción de haberes.</field>
+        <field name="active">True</field>
+    </record>
+    <record id="license_violencia_genero" model="hr.license.type">
+        <field name="name">Licencia de Violencia de Género</field>
+        <field name="description">Licencia especial por violencia de género según legislación vigente.</field>
+        <field name="active">True</field>
+    </record>
+    <record id="license_art" model="hr.license.type">
+        <field name="name">Licencia ART</field>
+        <field name="description">Licencia otorgada cuando un empleado sufre un accidente en ocasión del trabajo. Cubre el salario a través de la ART según Ley 24.557.</field>
+        <field name="active">True</field>
+    </record>
+</odoo>

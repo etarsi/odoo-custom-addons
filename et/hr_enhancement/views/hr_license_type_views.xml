@@ -21,8 +21,8 @@
                     <group>
                         <field name="name"/>
                         <field name="description"/>
+                        <field name="active"/>
                     </group>
-                    <field name="active"/>
                 </sheet>
             </form>
         </field>

@@ -12,7 +12,8 @@
                             type="object"
                             string="Confirmar"
                             icon="fa-check"
-                            attrs="{'invisible': [('state', '!=', 'draft')]}"/>
+                            attrs="{'invisible': [('state', '!=', 'draft')]}"
+                            class="btn-success"/>
                     <button name="action_approve"
                             type="object"
                             string="Aprobar"
@@ -28,7 +29,7 @@
                     <group>
                         <group name="group_location_info" string="Información de Licencia">
                             <field name="employee_id" string="Empleado" required="True" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
-                            <field name="license_type_id" string="Tipo de Licencia" required="True" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                            <field name="license_type_id" string="Tipo de Licencia" required="True" options="{'no_create': True}" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
                             <field name="start_date" string="Fecha de Inicio" required="True" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
                             <field name="days_qty" string="Cantidad de Días" required="True" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
                             <field name="end_date" string="Fecha de Fin" required="True" attrs="{'readonly': [('state', '!=', 'draft')]}"/>

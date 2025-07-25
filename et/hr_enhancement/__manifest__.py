@@ -25,6 +25,9 @@
     # always loaded
     'data': [
         'security/ir.model.access.csv',
+        #Ingreso de datos por defecto
+        'data/hr_license_type_data.xml',
+        #Vista
         'views/hr_location_views.xml',
         'views/hr_employee_form_views.xml',
         'views/hr_employee_children_views.xml',

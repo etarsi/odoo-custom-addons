@@ -6,7 +6,7 @@
         <field name="inherit_id" ref="hr.view_employee_form"/>
         <field name="arch" type="xml">
             <!-- 1. Insertar statusbar debajo del título -->
-            <xpath expr="//div[@class='oe_title']" position="after">
+            <xpath expr="//div[@class='button_box']" position="after">
                 <field name="state" widget="statusbar" statusbar_visible="draft,confirmed"/>
             </xpath>
             <!-- 2. Botón para solicitar edición (visible solo en estado 'confirmed') -->
@@ -39,10 +39,6 @@
                     </field>
                 </page>
             </xpath>
-            <!-- Hacer todo el contenido de <sheet> readonly si está confirmado -->
-            <xpath expr="//sheet" position="attributes">
-                <attribute name="attrs">{'readonly': [('state','=','confirmado')]}</attribute>
-            </xpath>
             <xpath expr="//page[@name='hr_settings']" position="attributes">
                 <attribute name="attrs">{'invisible': [('id', '!=', 0)]}</attribute>
             </xpath>
@@ -50,7 +46,7 @@
                 <page name="information_private" string="Información Privada">
                     <group string="Legajo Personal">
                         <group string="Contacto Privado">
-                            <field name="email_personal" string="Email" widget="email"/>
+                            <field name="email_personal" string="Email" widget="email" attrs="'readonly:'"/>
                             <field name="phone" class="o_force_ltr" groups="hr.group_hr_user" string="Teléfono"/>
                             <field name="celular" string="Celular"/>
                             <field name="location_id" string="Dirección"/>
