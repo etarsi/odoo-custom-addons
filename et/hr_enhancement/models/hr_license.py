@@ -14,7 +14,7 @@ class hrLicense(models.Model):
     end_date = fields.Date('Fecha Fin', compute='_compute_end_date', store=True, readonly=False, tracking=True)
     days_qty = fields.Integer('Cantidad de días', default=0, required=True, tracking=True)
     license_type_id = fields.Many2one('hr.license.type', string='Tipo de Licencia', domain="[('active', '=', True)]", required=True, tracking=True)
-    reason = fields.Char('Motivo', required=True, tracking=True)
+    reason = fields.Char('Motivo', tracking=True)
     state = fields.Selection(selection=[
         ('draft', 'Borrador'),
         ('pending', 'Pendiente de Aprobación'),

@@ -1,16 +1,25 @@
 <odoo>
-    <!-- Nuevo menú dentro de Recursos Humanos el panel de licencias -->
-    <record id="hr_enhancement.action_hr_license" model="ir.actions.act_window">
-        <field name="name">Licencias</field>
-        <field name="res_model">hr.license</field>
-        <field name="view_mode">tree,form</field>
-    </record>
+    <!-- Nuevo menú Licencias en recursos humanos -->
+    <!-- Menú principal "Licencias" -->
     <menuitem 
         id="hr_enhancement.menu_hr_license"
         name="Licencias"
         parent="hr.menu_hr_root"
-        action="hr_enhancement.action_hr_license"
         sequence="10"/>
+    <menuitem 
+        id="hr_enhancement.menu_my_licenses"
+        name="Mis Licencias"
+        parent="hr_enhancement.menu_hr_license"
+        action="hr_enhancement.action_my_licenses"
+        sequence="1"/>
+    <!-- Submenú "Aprobar Licencias" -->
+    <menuitem 
+        id="hr_enhancement.menu_approve_licenses"
+        name="Aprobar Licencias"
+        parent="hr_enhancement.menu_hr_license"
+        action="hr_enhancement.action_approve_licenses"
+        sequence="2"/>
+
     <!-- Nuevo menú dentro de Recursos Humanos > Configuración -->
     <menuitem 
         id="hr_enhancement.menu_hr_season_labor_cost_config"

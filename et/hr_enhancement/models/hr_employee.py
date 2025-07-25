@@ -115,3 +115,15 @@ class HrEmployee(models.Model):
     def action_confirm(self, *args, **kwargs):
         for record in self:
             record.state = 'confirmed'
+            
+    def action_view_my_licenses(self):
+        # Obtén las licencias asociadas a este empleado
+        action = self.env.ref('hr_enhancement.action_hr_license')  # Ajusta el ID de la acción si es necesario
+        result = action.read()[0]
+        
+        # Filtrar para que solo se vean las licencias del empleado actual
+        result['domain'] = [('employee_id', '=', self.id)]
+        
+        # Asegurar que la vista por defecto sea la vista tree
+        result['view_mode'] = 'tree'
+        return result
