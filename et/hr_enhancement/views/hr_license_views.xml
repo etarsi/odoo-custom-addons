@@ -48,8 +48,6 @@
         </field>
     </record>
     <!-- esta vista es para el que mirara las aprobaciones a realizar -->
-    <!-- Vista Tree para Licencias -->
-    <!-- Vista de búsqueda -->
     <record id="view_hr_license_approval_search" model="ir.ui.view">
         <field name="name">hr.license.approval.search</field>
         <field name="model">hr.license</field>
@@ -58,14 +56,12 @@
                 <!-- Filtro por estado 'pending' -->
                 <filter name="filter_pending" string="Pendiente" domain="[('state', '=', 'pending')]"
                         help="Filtrar las licencias que están pendientes." />
-                
                 <!-- Filtro por empleado -->
                 <filter name="filter_by_employee" string="Filtrar por Empleado"
                         context="{'group_by': 'employee_id'}" />
             </search>
         </field>
     </record>
-
     <!-- Vista Tree -->
     <record id="view_hr_license_approval_tree" model="ir.ui.view">
         <field name="name">hr.license.approval.tree</field>
@@ -81,6 +77,14 @@
                 <field name="state" />
             </tree>
         </field>
+    </record>
+    <!-- Accuiion de licencia para aprobar -->
+    <record id="action_approve_licenses" model="ir.actions.act_window">
+        <field name="name">Licencias</field>
+        <field name="res_model">hr.license</field>
+        <field name="view_mode">tree,form</field>
+        <field name="view_id" ref="view_hr_license_approval_tree"/>
+        <field name="search_view_id" ref="view_hr_license_approval_search"/>
     </record>
 
     <!-- Vista Tree de Licencias, filtrando por empleado -->
@@ -105,15 +109,6 @@
         <field name="res_model">hr.license</field>
         <field name="view_mode">tree,form</field>
         <field name="domain">[('employee_id', '=', uid)]</field> <!-- Solo licencias del empleado actual -->
-        <field name="view_id" ref="view_hr_license_tree_employee"/>
+        <field name="view_id" ref="view_hr_license_tree"/>
     </record>
-
-    <record id="action_approve_licenses" model="ir.actions.act_window">
-        <field name="name">Licencias</field>
-        <field name="res_model">hr.license</field>
-        <field name="view_mode">tree,form</field>
-        <field name="view_id" ref="view_hr_license_approval_tree"/>
-        <field name="search_view_id" ref="view_hr_license_approval_search"/>
-    </record>
-
 </odoo>
