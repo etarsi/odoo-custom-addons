@@ -1,14 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
+    <record id="view_hr_holidays_employee_form_inherit" model="ir.ui.view">
+        <field name="name">hr.holidays.employee.form.inherit</field>
+        <field name="model">hr.employee</field>
+        <field name="inherit_id" ref="hr_holidays.view_employee_form_leave_inherit"/>
+        <field name="arch" type="xml">
+            <!-- Insertar el statusbar dentro del div de los botones -->
+            <xpath expr="//div[@name='button_box']" position="inside">
+                <field name="state" widget="statusbar" statusbar_visible="draft,confirmed" class="o_statusbar"/>
+            </xpath>
+        </field>
+    </record>
     <record id="view_hr_employee_form_inherit" model="ir.ui.view">
         <field name="name">hr.employee.form.inherit</field>
         <field name="model">hr.employee</field>
         <field name="inherit_id" ref="hr.view_employee_form"/>
         <field name="arch" type="xml">
-            <!-- 1. Insertar statusbar debajo del título -->
-            <xpath expr="//div[@class='button_box']" position="after">
-                <field name="state" widget="statusbar" statusbar_visible="draft,confirmed"/>
-            </xpath>
             <!-- 2. Botón para solicitar edición (visible solo en estado 'confirmed') -->
             <xpath expr="//header" position="inside">
                 <button name="action_request_edit"
@@ -100,6 +107,7 @@
                 <page name="information_private" string="Información Privada">
                     <group string="Legajo Personal">
                         <group string="Contacto Privado">
+                            <field name="state" invisible="1"/>
                             <field name="email_personal" string="Email" widget="email" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
                             <field name="phone" class="o_force_ltr" groups="hr.group_hr_user" string="Teléfono" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
                             <field name="celular" string="Celular" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
