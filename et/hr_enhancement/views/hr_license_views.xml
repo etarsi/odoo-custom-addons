@@ -79,8 +79,6 @@
                 <field name="end_date" />
                 <field name="days_qty" />
                 <field name="state" />
-                <!-- Opción de agrupar por 'employee_id' -->
-                <group by="employee_id"/>
             </tree>
         </field>
     </record>
