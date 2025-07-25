@@ -164,8 +164,6 @@ class NewStock(models.Model):
         containers = self.env['stock.picking'].search([('partner_id','=', 16571), ('picking_type_code','!=','outgoing')])
 
         
-
-
     def get_fisico_bultos(self):
         for record in self:
             if record.fisico_unidades > 0:
