@@ -3,8 +3,8 @@
     <menuitem 
         id="wms_logo" 
         name="WMS"
-        sequence="10"
-        web_icon="wms_enhancement,static/description/wms_logo.png"
+        sequence="5"
+        web_icon="wms_enhancement,static/description/icon.png"
     />
   </data>
 </odoo>
