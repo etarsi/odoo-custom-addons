@@ -13,7 +13,6 @@
                     class="oe_stat_button"
                     icon="fa-certificate">
                     <div class="o_stat_info">
-                        <span class="fa fa-certificate" style="font-size: 18px; color: #007bff; margin-right: 4px;"/>
                         <span class="o_stat_text">Licencias</span>
                         <span class="o_stat_value">
                             <field name="license_count"/>
@@ -100,16 +99,16 @@
                 <attribute name="attrs">{'readonly': [('state', '!=', 'draft')], 'required': [('state', '=', 'draft')]}</attribute>
             </xpath>
             <xpath expr="//field[@name='departure_description']" position="attributes">
-                <attribute name="attrs">{'readonly': [('state', '!=', 'draft')], 'required': [('state', '=', 'draft')]}</attribute>
+                <attribute name="attrs">{'readonly': [('state', '!=', 'draft')]}</attribute>
             </xpath>
             <xpath expr="//field[@name='departure_date']" position="attributes">
-                <attribute name="attrs">{'readonly': [('state', '!=', 'draft')], 'required': [('state', '=', 'draft')]}</attribute>
+                <attribute name="attrs">{'readonly': [('state', '!=', 'draft')]}</attribute>
             </xpath>
             <xpath expr="//field[@name='resource_calendar_id']" position="attributes">
-                <attribute name="attrs">{'readonly': [('state', '!=', 'draft')], 'required': [('state', '=', 'draft')]}</attribute>
+                <attribute name="attrs">{'readonly': [('state', '!=', 'draft')]}</attribute>
             </xpath>
             <xpath expr="//field[@name='tz']" position="attributes">
-                <attribute name="attrs">{'required': [('id', '!=', False)], 'readonly': [('state', '!=', 'draft')]}</attribute>
+                <attribute name="attrs">{'readonly': [('state', '!=', 'draft')]}</attribute>
             </xpath>
             <xpath expr="//field[@name='departure_reason_id']" position="attributes">
                 <attribute name="attrs">{'readonly': [('state', '!=', 'draft')]}</attribute>
