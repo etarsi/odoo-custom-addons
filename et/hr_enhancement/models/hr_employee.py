@@ -41,7 +41,7 @@ class HrEmployee(models.Model):
     #licencias asignadas
     license_ids = fields.One2many('hr.license', 'employee_id', string='Licencias Asignadas')
     #contador de licencias asignadas
-    licencia_count = fields.Integer(string='Cantidad de Licencias Asignadas', compute='_compute_licencia_count', store=True)
+    license_count = fields.Integer(string='Cantidad de Licencias Asignadas', compute='_compute_license_count', store=True)
     #direccion asignada
     location_id = fields.Many2one('hr.location', string='Ubicación Actual', ondelete='set null')
     #listado de solicitudes de edicion
@@ -67,9 +67,9 @@ class HrEmployee(models.Model):
     ]
     
     @api.depends('license_ids')
-    def _compute_licencia_count(self):
+    def _compute_license_count(self):
         for employee in self:
-            employee.licencia_count = len(employee.license_ids)
+            employee.license_count = len(employee.license_ids)
 
     @api.model
     def action_open_my_profile(self):
@@ -118,7 +118,7 @@ class HrEmployee(models.Model):
             
     def action_view_my_licenses(self):
         # Obtén las licencias asociadas a este empleado
-        action = self.env.ref('hr_enhancement.action_hr_license')  # Ajusta el ID de la acción si es necesario
+        action = self.env.ref('hr_enhancement.action_my_licenses')  # Ajusta el ID de la acción si es necesario
         result = action.read()[0]
         
         # Filtrar para que solo se vean las licencias del empleado actual
