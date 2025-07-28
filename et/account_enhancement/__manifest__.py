@@ -31,11 +31,14 @@
     # always loaded
     'data': [
         # 'security/ir.model.access.csv',
+        #Reportes
+        'wizard/generar_factura_wizard_views.xml',
         #permissions
         'permissions/res_group.xml',
         'views/views.xml',
         'views/report_account_payment_group.xml',
         'views/templates.xml',
+        'views/menu.xml'
     ],
     # only loaded in demonstration mode
     'demo': [

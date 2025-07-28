@@ -1,0 +1,14 @@
+<odoo>
+    <!-- MENU DE REPORTE ACCOUNT FACTURAS-->
+    <menuitem 
+        id="account_enhancement.menu_account_report_factura_general"
+        name="Reportes Generales"
+        parent="account.menu_finance_reports"
+        sequence="30"/>
+    <menuitem
+        id="hr_enhancement.menu_account_report_factura_action"
+        name="Reporte de Facturas"
+        parent="account_enhancement.menu_account_report_factura_general"
+        action="action_reporte_factura_wizard"
+        sequence="1"/>
+</odoo>
