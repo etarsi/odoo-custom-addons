@@ -3,6 +3,7 @@ from odoo.exceptions import UserError, ValidationError
 from datetime import date
 import base64
 import io
+import xlsxwriter
 from . import excel
 
 class ReporteFacturaWizard(models.TransientModel):
