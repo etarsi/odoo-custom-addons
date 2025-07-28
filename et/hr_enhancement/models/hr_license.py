@@ -6,13 +6,14 @@ class hrLicense(models.Model):
     _name = 'hr.license'
     _inherit = ['mail.thread', 'mail.activity.mixin'] 
     _description = 'Licencia del Empleado'
-    
+    _rec_name = 'license_type_id.name'
+
     description = fields.Text('Descripción', tracking=True)
     employee_id = fields.Many2one('hr.employee', string="Empleado", required=True, tracking=True)
     requested_date = fields.Datetime('Fecha solicitada', defaulta=lambda self: fields.Datetime.now())
     start_date = fields.Date('Fecha Inicio', required=True, tracking=True)
-    end_date = fields.Date('Fecha Fin', compute='_compute_end_date', store=True, readonly=False, tracking=True)
-    days_qty = fields.Integer('Cantidad de días', default=0, required=True, tracking=True)
+    end_date = fields.Date('Fecha Fin', store=True, readonly=False, tracking=True)
+    days_qty = fields.Integer('Cantidad de días', default=0, compute='_compute_end_date', required=True, tracking=True, store=True)
     license_type_id = fields.Many2one('hr.license.type', string='Tipo de Licencia', domain="[('active', '=', True)]", required=True, tracking=True)
     reason = fields.Char('Motivo', tracking=True)
     state = fields.Selection(selection=[
@@ -50,7 +51,7 @@ class hrLicense(models.Model):
             record.reject_id = self.env.user.id
             record.reject_date = fields.Datetime.now()
             
-    @api.depends('start_date', 'days_qty')
+    @api.onchange('start_date', 'end_date')
     def _compute_end_date(self):
         for record in self:
             if record.start_date and record.days_qty:

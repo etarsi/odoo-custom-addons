@@ -122,8 +122,8 @@ class HrEmployee(models.Model):
         result = action.read()[0]
         
         # Filtrar para que solo se vean las licencias del empleado actual
-        result['domain'] = [('employee_id', '=', self.id)]
-        
+        result['domain'] = [('employee_id.user_id', '=', self.env.user.id)]
+
         # Asegurar que la vista por defecto sea la vista tree
         result['view_mode'] = 'tree'
         return result

@@ -4,6 +4,7 @@ from odoo.exceptions import ValidationError, UserError
 class HrSeasonLaborCost(models.Model):
     _name = 'hr.season.labor.cost'
     _description = 'Costo Laboral por Temporada'
+    _rec_name = 'name'
 
     name = fields.Char('Temporada', required=True)
     date_start = fields.Date('Inicio Temporada', required=True)

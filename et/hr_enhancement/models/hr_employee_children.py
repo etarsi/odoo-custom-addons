@@ -2,6 +2,7 @@ from odoo import models, fields, api
 
 class HrEmployeeChildren(models.Model):
     _name = 'hr.employee.children'
+    _rec_name = 'name'
 
     employee_id = fields.Many2one('hr.employee', required=True, string='Padre/Madre')
     name = fields.Char('Nombre y Apellido', required=True)

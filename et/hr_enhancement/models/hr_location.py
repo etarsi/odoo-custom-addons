@@ -4,6 +4,7 @@ from odoo.exceptions import UserError, ValidationError
 class HrLocation(models.Model):
     _name = 'hr.location'
     _description = 'Ubicación del Empleado'
+    _rec_name = 'street'
 
     street = fields.Char(string='Calle', required=True)
     street2 = fields.Char(string='Calle 2')

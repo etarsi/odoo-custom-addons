@@ -18,12 +18,12 @@
                             type="object"
                             string="Aprobar"
                             icon="fa-check-circle"
-                            attrs="{'invisible': [('state', '!=', 'confirmed')]}"/>
+                            attrs="{'invisible': [('state', '!=', 'pending')]}"/>
                     <button name="action_reject"
                             type="object"
                             string="Rechazar"
                             icon="fa-times"
-                            attrs="{'invisible': [('state', '!=', 'approved')]}"/>
+                            attrs="{'invisible': [('state', '!=', 'pending')]}"/>
                 </header>
                 <sheet>
                     <group>
@@ -31,8 +31,8 @@
                             <field name="employee_id" string="Empleado" required="True" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
                             <field name="license_type_id" string="Tipo de Licencia" required="True" options="{'no_create': True}" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
                             <field name="start_date" string="Fecha de Inicio" required="True" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
-                            <field name="days_qty" string="Cantidad de Días" required="True" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
                             <field name="end_date" string="Fecha de Fin" required="True" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                            <field name="days_qty" string="Cantidad de Días" required="True" attrs="{'readonly': True}"/>
                             <field name="document" filename="document_name" string="Documento de Licencia" required="True" widget="binary" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
                             <field name="description" string="Descripción" required="True" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
                         </group>
@@ -108,7 +108,7 @@
         <field name="name">Mis Licencias</field>
         <field name="res_model">hr.license</field>
         <field name="view_mode">tree,form</field>
-        <field name="domain">[('employee_id', '=', uid)]</field> <!-- Solo licencias del empleado actual -->
+        <field name="domain">[('employee_id.user_id', '=', uid)]</field> <!-- Solo licencias del empleado actual -->
         <field name="view_id" ref="view_hr_license_tree"/>
     </record>
 </odoo>
