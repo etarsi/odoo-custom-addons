@@ -323,7 +323,12 @@ class SaleOrderLineInherit(models.Model):
 
     @api.onchange('product_packaging_id', 'product_uom', 'product_uom_qty')
     def _onchange_update_product_packaging_qty(self):
-        for line in self:
+        # Solo recalcula bultos si NO venimos del onchange de bultos
+        if self._context.get('from_packaging_qty'):
+            return
+        # Procesamos cada línea con el contexto ajustado para evitar bucle
+        lines_with_context = self.with_context(from_uom_qty=True)
+        for line in lines_with_context:
             so_config = line.env['sale.order.settings'].browse(1)
             if not line.product_packaging_id or not line.product_packaging_id.qty:
                 line.product_packaging_qty = False
@@ -337,15 +342,20 @@ class SaleOrderLineInherit(models.Model):
                         packaging_uom_qty / line.product_packaging_id.qty,
                         precision_rounding=packaging_uom.rounding
                     )
-
     @api.onchange('product_packaging_qty')
     def _onchange_product_packaging_qty(self):
-        return
-
-    # @api.onchange('product_uom_qty')
-    # def _onchange_product_uom_qty2(self):
-    #     for record in self:
-    #         if record.product_uom_qty == 0:
+        # Solo recalcula unidades si NO venimos del onchange de unidades
+        if self._context.get('from_uom_qty'):
+            return
+        # Procesamos cada línea con el contexto ajustado para evitar bucle
+        lines_with_context = self.with_context(from_packaging_qty=True)
+        for line in lines_with_context:
+            if line.product_packaging_id and line.product_uom:
+                packaging_uom = line.product_packaging_id.product_uom_id
+                qty_per_packaging = line.product_packaging_id.qty
+                product_uom_qty = packaging_uom._compute_quantity(self.product_packaging_qty * qty_per_packaging, self.product_uom)
+                if float_compare(product_uom_qty, self.product_uom_qty, precision_rounding=self.product_uom.rounding) != 0:
+                    self.product_uom_qty = product_uom_qty
 
     
 class ResPartnerInherit(models.Model):
