@@ -1,10 +1,26 @@
 from odoo import models, fields, api
-from odoo.exceptions import UserError, ValidationError
+from odoo.exceptions import ValidationError
+from odoo.tools import float_round
 from datetime import date
 import base64
 import io
 import xlsxwriter
 from . import excel
+
+MESES_ES = {
+    '01': 'Enero',
+    '02': 'Febrero',
+    '03': 'Marzo',
+    '04': 'Abril',
+    '05': 'Mayo',
+    '06': 'Junio',
+    '07': 'Julio',
+    '08': 'Agosto',
+    '09': 'Septiembre',
+    '10': 'Octubre',
+    '11': 'Noviembre',
+    '12': 'Diciembre',
+}
 
 class ReporteFacturaWizard(models.TransientModel):
     _name = 'reporte.factura.wizard'
@@ -44,6 +60,23 @@ class ReporteFacturaWizard(models.TransientModel):
         # Crear el archivo Excel
         workbook = xlsxwriter.Workbook(output, {'in_memory': True})
         worksheet = workbook.add_worksheet('Facturas')
+        # Agrupados por rangos consecutivos con mismo ancho
+        worksheet.set_column(0, 0, 20)   # DOCUMENTO
+        worksheet.set_column(1, 2, 15)   # FECHA y MES (ambas 15)
+        worksheet.set_column(3, 3, 10)   # AÑO
+        worksheet.set_column(4, 4, 25)   # CLIENTE
+        worksheet.set_column(5, 6, 15)   # ETIQUETA CLIENTE y COMERCIAL (ambas 15)
+        worksheet.set_column(7, 7, 10)   # CÓDIGO
+        worksheet.set_column(8, 8, 45)   # DESCRIPCIÓN (ancha para textos largos)
+        worksheet.set_column(9, 10, 15)  # PRECIO UNITARIO y UNIDADES (ambas 15)
+        worksheet.set_column(11, 12, 10) # UxB y BULTOS (ambas 10)
+        worksheet.set_column(13, 13, 15) # DESCUENTO
+        worksheet.set_column(14, 14, 20) # SUBTOTAL
+        worksheet.set_column(15, 15, 15) # EMPRESA
+        worksheet.set_column(16, 16, 40) # RUBRO
+        worksheet.set_column(17, 18, 25) # CATEGORIA y MARCA (ambas 25)
+        worksheet.set_column(19, 22, 20) # CONTRATO DISNEY hasta PROPIEDAD DISNEY (todas 20)
+        
         #formato de celdas
         formato_encabezado = excel.formato_encabezado(workbook)
         formato_celdas_izquierda = excel.formato_celda_izquierda(workbook)
@@ -97,17 +130,22 @@ class ReporteFacturaWizard(models.TransientModel):
             facturas_lines = self.env['account.move.line'].search([('move_id', '=', factura.id)])
             # Fechas formateadas
             date_facture = factura.invoice_date.strftime('%d/%m/%Y') if factura.invoice_date else ''
-            month = factura.invoice_date.strftime('%m') if factura.invoice_date else ''
+            month_num = factura.invoice_date.strftime('%m') if factura.invoice_date else ''
+            month = MESES_ES.get(month_num, '') if month_num else ''
             year = factura.invoice_date.strftime('%Y') if factura.invoice_date else ''
             categorias = '-'.join(factura.partner_id.category_id.mapped('name')) if factura.partner_id.category_id else ''
             if facturas_lines:
                 for line in facturas_lines:
                     if line.quantity==0 and line.price_unit==0:
                         pass;
+                    if not line.product_id:
+                        pass;
                     uxb_id = line.product_id.packaging_ids[0] if line.product_id.packaging_ids else False
                     bultos = 0
                     if uxb_id:
                         bultos = line.quantity/uxb_id.qty
+                    quantity_negativa = float_round(line.quantity * -1, precision_rounding=2)
+                    subtotal_negativa = float_round(line.price_subtotal * -1, precision_rounding=2)
                     worksheet.write(row, 0, factura.name, formato_celdas_izquierda)
                     worksheet.write(row, 1, date_facture, formato_celdas_derecha)
                     worksheet.write(row, 2, month, formato_celdas_derecha)
@@ -118,14 +156,14 @@ class ReporteFacturaWizard(models.TransientModel):
                     worksheet.write(row, 7, line.product_id.default_code, formato_celdas_izquierda)
                     worksheet.write(row, 8, line.product_id.name, formato_celdas_izquierda)
                     worksheet.write(row, 9, line.price_unit, formato_celdas_decimal)
-                    worksheet.write(row, 10, line.quantity, formato_celdas_decimal)
+                    worksheet.write(row, 10, quantity_negativa, formato_celdas_decimal)
                     worksheet.write(row, 11, uxb_id.name if uxb_id else '', formato_celdas_izquierda)
                     worksheet.write(row, 12, bultos, formato_celdas_decimal)
                     worksheet.write(row, 13, line.discount, formato_celdas_decimal)
-                    worksheet.write(row, 14, line.price_subtotal, formato_celdas_decimal)
+                    worksheet.write(row, 14, subtotal_negativa, formato_celdas_decimal)
                     worksheet.write(row, 15, factura.company_id.name, formato_celdas_izquierda)
-                    worksheet.write(row, 16, line.product_id.categ_id.name, formato_celdas_izquierda)
                     worksheet.write(row, 17, line.product_id.categ_id.parent_id.name, formato_celdas_izquierda)
+                    worksheet.write(row, 16, line.product_id.categ_id.name, formato_celdas_izquierda)
                     worksheet.write(row, 18, line.product_id.product_brand_id.name, formato_celdas_izquierda)
                     worksheet.write(row, 19, line.product_id.x_contract_id.x_name if line.product_id.x_contract_id else ' ', formato_celdas_izquierda)
                     worksheet.write(row, 20, line.product_id.x_subcontract_id.x_name if line.product_id.x_subcontract_id else ' ', formato_celdas_izquierda)
