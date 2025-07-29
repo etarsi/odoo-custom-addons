@@ -127,10 +127,10 @@ class ReporteFacturaWizard(models.TransientModel):
                     worksheet.write(row, 16, line.product_id.categ_id.name, formato_celdas_izquierda)
                     worksheet.write(row, 17, line.product_id.categ_id.parent_id.name, formato_celdas_izquierda)
                     worksheet.write(row, 18, line.product_id.product_brand_id.name, formato_celdas_izquierda)
-                    worksheet.write(row, 19, line.product_id.x_contract_id.name if line.product_id.x_contract_id else ' ', formato_celdas_izquierda)
-                    worksheet.write(row, 20, line.product_id.x_subcontract_id.name if line.product_id.x_subcontract_id else ' ', formato_celdas_izquierda)
-                    worksheet.write(row, 21, line.product_id.x_character_id.name if line.product_id.x_character_id else ' ', formato_celdas_izquierda)
-                    worksheet.write(row, 22, line.product_id.x_property_id.name if line.product_id.x_property_id else ' ', formato_celdas_izquierda)
+                    worksheet.write(row, 19, line.product_id.x_contract_id.x_name if line.product_id.x_contract_id else ' ', formato_celdas_izquierda)
+                    worksheet.write(row, 20, line.product_id.x_subcontract_id.x_name if line.product_id.x_subcontract_id else ' ', formato_celdas_izquierda)
+                    worksheet.write(row, 21, line.product_id.x_character_id.x_name if line.product_id.x_character_id else ' ', formato_celdas_izquierda)
+                    worksheet.write(row, 22, line.product_id.x_property_id.x_name if line.product_id.x_property_id else ' ', formato_celdas_izquierda)
                     row += 1
 
         workbook.close()
