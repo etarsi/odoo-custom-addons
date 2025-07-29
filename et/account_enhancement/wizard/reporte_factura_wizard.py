@@ -32,27 +32,15 @@ class ReporteFacturaWizard(models.TransientModel):
         'res.partner',
         string='Clientes/Proveedores',
     )
-    move_types = fields.Selection(
-        selection=[
-            ('out_invoice', 'Factura de Cliente'),
-            ('out_refund', 'Nota de Crédito de Cliente'),
-            ('in_invoice', 'Factura de Proveedor'),
-            ('in_refund', 'Nota de Crédito de Proveedor'),
-        ],
-        string='Tipo de Factura',
-        default='out_invoice',
-        required=True,
-        help="Seleccione el tipo de documento contable según sus necesidades"
-    )
-    state_types = fields.Selection(
-            selection=[
-                ('draft', 'Borrador'),
-                ('posted', 'Publicado'),
-                ('cancel', 'Cancelado'),
-            ],
-            string='Estado de Factura',
-            default='posted'
-        )
+    
+    is_out_invoice = fields.Boolean(string='Factura de Cliente', default=True)
+    is_out_refund = fields.Boolean(string='Nota de Crédito de Cliente')
+    is_in_invoice = fields.Boolean(string='Factura de Proveedor')
+    is_in_refund = fields.Boolean(string='Nota de Crédito de Proveedor')
+    
+    is_draft = fields.Boolean(string='Borrador')
+    is_posted = fields.Boolean(string='Publicado', default=True)
+    is_cancel = fields.Boolean(string='Cancelados')
     
     def action_generar_excel(self):
         # Crear un buffer en memoria
@@ -116,13 +104,33 @@ class ReporteFacturaWizard(models.TransientModel):
             raise ValidationError("La Fecha de Inicio y Final es Requerido")
         if self.date_end < self.date_start:
             raise ValidationError("La Fecha Final del reporte de facturas, no puede ser menor a la Fecha de Inicio")
+        
+        # Recolectar los tipos seleccionados en una lista
+        selected_types = []
+        if self.is_out_invoice:
+            selected_types.append('out_invoice')
+        if self.is_out_refund:
+            selected_types.append('out_refund')
+        if self.is_in_invoice:
+            selected_types.append('in_invoice')
+        if self.is_in_refund:
+            selected_types.append('in_refund')
+            
+        # Recolectar los estados seleccionados en una lista
+        selected_states = []
+        if self.is_draft:
+            selected_states.append('draft')
+        if self.is_posted:
+            selected_states.append('posted')
+        if self.is_cancel:
+            selected_states.append('cancel')
+        
         if self.partner_ids:
             domain.append(('partner_id', 'in', self.partner_ids.ids))
-        if self.state_types:
-            domain.append(('state', '=', self.state_types))
-        if self.move_types:
-            domain.append(('move_type', '=', self.move_types))
-        print(domain)
+        if selected_states:
+            domain.append(('state', 'in', selected_states))
+        if selected_types:
+            domain.append(('move_type', 'in', selected_types))
         facturas = self.env['account.move'].search(domain)
         # Escribir datos
         row = 1
