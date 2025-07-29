@@ -81,7 +81,7 @@ class ReporteFacturaWizard(models.TransientModel):
         ]
         if not self.date_start or not self.date_end:
             raise ValidationError("La Fecha de Inicio y Final es Requerido")
-        if self.fecha_fin < self.fecha_inicio:
+        if self.date_end < self.date_start:
             raise ValidationError("La Fecha Final del reporte de facturas, no puede ser menor a la Fecha de Inicio")
         if self.partner_ids:
             domain.append(('partner_id', 'in', self.partner_ids.ids))
