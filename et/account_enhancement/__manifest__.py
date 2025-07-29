@@ -30,7 +30,7 @@
 
     # always loaded
     'data': [
-        # 'security/ir.model.access.csv',
+        'security/ir.model.access.csv',
         #Reportes
         'wizard/generar_factura_wizard_views.xml',
         #permissions
