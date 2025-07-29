@@ -12,7 +12,6 @@
                 <field name="hour_cost_night"/>
                 <field name="hour_cost_extra"/>
                 <field name="hour_cost_holiday"/>
-                <field name="currency_id"/>
                 <field name="active"/>
             </tree>
         </field>
@@ -38,6 +37,12 @@
                     </group>
                     <field name="active"/>
                 </sheet>
+                <!--DETALLE QUIEN  -->
+                <div class="oe_chatter">
+                    <field name="message_follower_ids" widget="mail_followers"/>
+                    <field name="activity_ids" widget="mail_activity"/>
+                    <field name="message_ids" widget="mail_thread"/>
+                </div>
             </form>
         </field>
     </record>

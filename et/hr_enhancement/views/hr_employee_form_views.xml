@@ -33,12 +33,6 @@
                         type="object"
                         attrs="{'invisible': [('state', '!=', 'draft')]}"
                         class="btn-success"/>
-                <button name="action_view_my_licenses"
-                        string="Ver mis Licencias"
-                        type="object"
-                        class="btn-primary"
-                        attrs="{'invisible': [('state', '!=', 'confirmed')]}"
-                />
             </xpath>
             <!-- 3. Nueva pestaña de solicitudes de edición -->
             <xpath expr="//notebook" position="inside">

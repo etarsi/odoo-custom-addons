@@ -4,20 +4,21 @@ from odoo.exceptions import ValidationError, UserError
 class HrSeasonLaborCost(models.Model):
     _name = 'hr.season.labor.cost'
     _description = 'Costo Laboral por Temporada'
+    _inherit = ['mail.thread', 'mail.activity.mixin'] 
     _rec_name = 'name'
 
-    name = fields.Char('Temporada', required=True)
-    date_start = fields.Date('Inicio Temporada', required=True)
-    date_end = fields.Date('Fin Temporada', required=True)
+    name = fields.Char('Temporada', required=True, tracking=True)
+    date_start = fields.Date('Inicio Temporada', required=True, tracking=True)
+    date_end = fields.Date('Fin Temporada', required=True, tracking=True)
 
-    hour_cost_normal = fields.Float('Costo Hora Normal', required=True)
-    hour_cost_night = fields.Float('Costo Hora Nocturna')
-    hour_cost_extra = fields.Float('Costo Hora Extra')
-    hour_cost_holiday = fields.Float('Costo Hora Feriado')
+    hour_cost_normal = fields.Float('Costo Hora Normal', required=True, tracking=True)
+    hour_cost_night = fields.Float('Costo Hora Nocturna', required=True, tracking=True)
+    hour_cost_extra = fields.Float('Costo Hora Extra', required=True, tracking=True)
+    hour_cost_holiday = fields.Float('Costo Hora Feriado', required=True, tracking=True)
 
     currency_id = fields.Many2one('res.currency', string="Moneda", required=True, default=lambda self: self.env.company.currency_id.id)
-    user_id = fields.Many2one('res.users', string='Usuario Creador', default=lambda self: self.env.user, readonly=True)
-    active = fields.Boolean('Activo', default=True)
+    user_id = fields.Many2one('res.users', string='Usuario Creador', default=lambda self: self.env.user, readonly=True, tracking=True)
+    active = fields.Boolean('Activo', default=True, tracking=True)
 
     @api.model
     def create(self, vals):
@@ -28,6 +29,9 @@ class HrSeasonLaborCost(models.Model):
 
     def write(self, vals):
         # Si se está activando este registro, desactiva los demás
+        for field in ['hour_cost_normal', 'hour_cost_night', 'hour_cost_extra', 'hour_cost_holiday']:
+            if field in vals and vals[field] <= 0:
+                raise ValidationError("Los montos de Costo de Hora deben ser mayores a 0")
         if 'active' in vals and vals['active']:
             self.search([('active', '=', True), ('id', '!=', self.id)]).write({'active': False})
         return super(HrSeasonLaborCost, self).write(vals)

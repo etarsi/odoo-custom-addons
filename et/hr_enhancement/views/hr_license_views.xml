@@ -28,7 +28,7 @@
                 <sheet>
                     <group>
                         <group name="group_location_info" string="Información de Licencia">
-                            <field name="employee_id" string="Empleado" required="True" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                            <field name="employee_id" string="Empleado" required="True" attrs="{'readonly': ['|', ('state', '!=', 'draft'), ('employee_id', '!=', False)]}"/>
                             <field name="license_type_id" string="Tipo de Licencia" required="True" options="{'no_create': True}" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
                             <field name="start_date" string="Fecha de Inicio" required="True" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
                             <field name="end_date" string="Fecha de Fin" required="True" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
@@ -54,11 +54,20 @@
         <field name="arch" type="xml">
             <search string="Licencias">
                 <!-- Filtro por estado 'pending' -->
-                <filter name="filter_pending" string="Pendiente" domain="[('state', '=', 'pending')]"
+                <filter name="filter_pending" string="Pendientes" domain="[('state', '=', 'pending')]"
                         help="Filtrar las licencias que están pendientes." />
-                <!-- Filtro por empleado -->
-                <filter name="filter_by_employee" string="Filtrar por Empleado"
+                <!-- Filtro por estado 'approved' -->
+                <filter name="filter_approved" string="Aprobados" domain="[('state', '=', 'approved')]"
+                        help="Filtrar las licencias que están Aprobadas." />
+                <!-- Filtro por estado 'rejected' -->
+                <filter name="filter_rejected" string="Rechazados" domain="[('state', '=', 'rejected')]"
+                        help="Filtrar las licencias que están Rechazados." />
+                <!-- Filtro por empleado  agrupado-->
+                <filter name="filter_by_employee" string="Agrupar por Empleado"
                         context="{'group_by': 'employee_id'}" />
+                <!-- Filtro por estado  agrupado-->
+                <filter name="filter_by_state" string="Agrupar por Estado"
+                        context="{'group_by': 'state'}" />
             </search>
         </field>
     </record>
@@ -92,7 +101,7 @@
         <field name="name">hr.license.tree</field>
         <field name="model">hr.license</field>
         <field name="arch" type="xml">
-            <tree>
+            <tree delete="false">
                 <field name="employee_id"/>
                 <field name="license_type_id"/>
                 <field name="start_date"/>
@@ -110,5 +119,6 @@
         <field name="view_mode">tree,form</field>
         <field name="domain">[('employee_id.user_id', '=', uid)]</field> <!-- Solo licencias del empleado actual -->
         <field name="view_id" ref="view_hr_license_tree"/>
+        <field name="context">{'default_employee_id': employee_id}</field>
     </record>
 </odoo>

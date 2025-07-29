@@ -12,7 +12,7 @@ class hrLicense(models.Model):
     requested_date = fields.Datetime('Fecha solicitada', defaulta=lambda self: fields.Datetime.now())
     start_date = fields.Date('Fecha Inicio', required=True, tracking=True)
     end_date = fields.Date('Fecha Fin', store=True, readonly=False, tracking=True)
-    days_qty = fields.Integer('Cantidad de días', default=0, compute='_compute_end_date', required=True, tracking=True, store=True)
+    days_qty = fields.Integer('Cantidad de días', default=0, compute='_compute_days_qty', required=True, tracking=True, store=True)
     license_type_id = fields.Many2one('hr.license.type', string='Tipo de Licencia', domain="[('active', '=', True)]", required=True, tracking=True)
     reason = fields.Char('Motivo', tracking=True)
     state = fields.Selection(selection=[
@@ -27,6 +27,15 @@ class hrLicense(models.Model):
     reject_date = fields.Datetime('Fecha de Rechazo')
     document = fields.Binary('Documento de Licencia', required=True, tracking=True)
     document_name = fields.Char('Nombre del Documento', required=True, tracking=True)
+    
+    @api.model
+    def default_get(self, fields):
+        res = super().default_get(fields)
+        # Buscar el empleado del usuario actual
+        employee = self.env['hr.employee'].search([('user_id', '=', self.env.uid)], limit=1)
+        if employee:
+            res['employee_id'] = employee.id
+        return res
 
     def action_confirm(self):
         for record in self:
@@ -51,9 +60,14 @@ class hrLicense(models.Model):
             record.reject_date = fields.Datetime.now()
             
     @api.onchange('start_date', 'end_date')
-    def _compute_end_date(self):
+    def _compute_days_qty(self):
         for record in self:
-            if record.start_date and record.days_qty:
-                record.end_date = record.start_date + timedelta(days=record.days_qty)
+            if record.start_date and record.end_date:
+                if record.state_date >= record.end_date:
+                    raise ValidationError("La Fecha de Inicio no debe ser mayo a la Fecha Final del reporte de Facturas ")
+                # Si quieres ambos días INCLUSIVOS (ej: 2024-06-01 a 2024-06-03 = 3 días)
+                delta = (record.end_date - record.start_date).days + 1
+                record.days_qty = delta if delta > 0 else 0
             else:
-                record.end_date = False
+                record.days_qty = 0
+                
