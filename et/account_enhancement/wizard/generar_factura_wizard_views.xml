@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_reporte_factura_wizard_form" model="ir.ui.view">
+        <field name="name">reporte.factura.wizard.form</field>
+        <field name="model">reporte.factura.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Reporte de Facturas" create="false" edit="false">
+                <group name="reporte_factura" string="Reporte de Facturas">
+                    <group>
+                        <field name="date_start"/>
+                        <field name="date_end"/>
+                    </group>
+                    <group>
+                        <field name="partner_ids" widget="many2many_tags"/>
+                        <field name="state_types" widget="many2many_tags"/>
+                        <field name="move_types" widget="many2many_tags"/>
+                    </group>                    
+                </group>
+                <footer>
+                    <button name="action_generar_excel" type="object" string="Generar Excel" class="btn-primary"/>
+                    <button string="Cancelar" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_reporte_factura_wizard" model="ir.actions.act_window">
+        <field name="name">Reporte de Facturas</field>
+        <field name="res_model">reporte.factura.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="view_id" ref="view_reporte_factura_wizard_form"/>
+        <field name="target">new</field>
+    </record>
+    
+
+</odoo>
