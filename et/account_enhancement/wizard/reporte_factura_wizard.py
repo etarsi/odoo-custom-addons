@@ -137,14 +137,16 @@ class ReporteFacturaWizard(models.TransientModel):
         output.seek(0)
         # Codificar el archivo en base64
         archivo_excel = base64.b64encode(output.read())
+        attachment = self.env['ir.attachment'].create({
+            'name': f'reporte_factura.xlsx',  # Nombre del archivo con fecha
+            'type': 'binary',  # Tipo binario para archivos
+            'datas': archivo_excel,  # Datos codificados en base64
+            'store_fname': f'reporte_factura.xlsx',  # Nombre para almacenamiento
+            'mimetype': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'  # Tipo MIME correcto
+        })
+        # Retornar acción para descargar el archivo
         return {
-            'type': 'ir.actions.act_window',
-            'res_model': 'reporte.factura.wizard',
-            'view_mode': 'form',
-            'res_id': self.id,
-            'target': 'new',
-            'context': {
-                'default_archivo_excel': archivo_excel,
-                'default_name': 'Reporte-de-Factura.xlsx',
-            }
+            'type': 'ir.actions.act_url',
+            'url': f'/web/content/{attachment.id}?download=true',  # URL para descarga
+            'target': 'self'  # Abrir en la misma ventana
         }
