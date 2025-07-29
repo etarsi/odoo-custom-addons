@@ -86,9 +86,9 @@ class ReporteFacturaWizard(models.TransientModel):
         if self.partner_ids:
             domain.append(('partner_id', 'in', self.partner_ids.ids))
         if self.state_types:
-            domain.append(('state', 'in', self.state_types))
+            domain.append(('state', '=', self.state_types))
         if self.move_types:
-            domain.append(('move_type', 'in', self.move_types))
+            domain.append(('move_type', '=', self.move_types))
         print(domain)
         facturas = self.env['account.move'].search(domain)
         # Escribir datos
