@@ -6,7 +6,6 @@ class hrLicense(models.Model):
     _name = 'hr.license'
     _inherit = ['mail.thread', 'mail.activity.mixin'] 
     _description = 'Licencia del Empleado'
-    _rec_name = 'license_type_id.name'
 
     description = fields.Text('Descripción', tracking=True)
     employee_id = fields.Many2one('hr.employee', string="Empleado", required=True, tracking=True)

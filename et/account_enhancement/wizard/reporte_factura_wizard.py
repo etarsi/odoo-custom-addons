@@ -16,26 +16,27 @@ class ReporteFacturaWizard(models.TransientModel):
         'res.partner',
         string='Clientes/Proveedores',
     )
-    move_types = fields.Many2many(
-        'ir.model.fields.selection',
-        string='Tipos de comprobante',
-        domain="[('field_id.model', '=', 'account.move'), ('field_id.name', '=', 'move_type')]",
-        default=lambda self: self.env['ir.model.fields.selection'].search([
-            ('field_id.model', '=', 'account.move'),
-            ('field_id.name', '=', 'move_type'),
-            ('value', '=', 'out_invoice')
-        ]).ids
+    move_types = fields.Selection(
+        selection=[
+            ('out_invoice', 'Factura de Cliente'),
+            ('out_refund', 'Nota de Crédito de Cliente'),
+            ('in_invoice', 'Factura de Proveedor'),
+            ('in_refund', 'Nota de Crédito de Proveedor'),
+        ],
+        string='Tipo de Factura',
+        default='out_invoice',
+        required=True,
+        help="Seleccione el tipo de documento contable según sus necesidades"
     )
-    state_types = fields.Many2many(
-        'ir.model.fields.selection',
-        string='Estado de Factura',
-        domain="[('field_id.model', '=', 'account.move'), ('field_id.name', '=', 'state')]",
-        default=lambda self: self.env['ir.model.fields.selection'].search([
-            ('field_id.model', '=', 'account.move'),
-            ('field_id.name', '=', 'state'),
-            ('value', '=', 'posted')
-        ]).ids
-    )
+    state_types = fields.Selection(
+            selection=[
+                ('draft', 'Borrador'),
+                ('posted', 'Publicado'),
+                ('cancel', 'Cancelado'),
+            ],
+            string='Estado de Factura',
+            default='posted'
+        )
     
     def action_generar_excel(self):
         # Crear un buffer en memoria
@@ -85,9 +86,9 @@ class ReporteFacturaWizard(models.TransientModel):
         if self.partner_ids:
             domain.append(('partner_id', 'in', self.partner_ids.ids))
         if self.state_types:
-            domain.append(('state', 'in', [st.value for st in self.state_types]))
+            domain.append(('state', 'in', self.state_types))
         if self.move_types:
-            domain.append(('move_type', 'in', [mt.value for mt in self.move_types]))
+            domain.append(('move_type', 'in', self.move_types))
         print(domain)
         facturas = self.env['account.move'].search(domain)
         # Escribir datos
