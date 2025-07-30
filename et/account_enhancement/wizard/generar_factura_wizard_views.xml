@@ -9,12 +9,27 @@
                     <group>
                         <field name="date_start"/>
                         <field name="date_end"/>
+                        <field name="partner_ids" widget="many2many_tags"/>
                     </group>
                     <group>
-                        <field name="partner_ids" widget="many2many_tags"/>
-                        <field name="state_types"/>
-                        <field name="move_types"/>
-                    </group>                    
+                        <!-- Grupo para los tipos de factura como checkboxes -->
+                        <label for="is_out_invoice" string="Tipos de Factura"/>
+                        <div>
+                            <field name="is_out_invoice"/> Factura de Cliente
+                            <field name="is_out_refund"/> Nota de Crédito de Cliente
+                            <field name="is_in_invoice"/> Factura de Proveedor
+                            <field name="is_in_refund"/> Nota de Crédito de Proveedor
+                        </div>
+                    </group>         
+                    <group>
+                        <!-- Grupo para los tipos de factura como checkboxes -->
+                        <label for="is_draft" string="Estado de Factura"/>
+                        <div>
+                            <field name="is_draft"/> Borrador
+                            <field name="is_posted"/> Publicado
+                            <field name="is_cancel"/> Cancelado
+                        </div>
+                    </group>                 
                 </group>
                 <footer>
                     <button name="action_generar_excel" type="object" string="Generar Excel" class="btn-primary"/>

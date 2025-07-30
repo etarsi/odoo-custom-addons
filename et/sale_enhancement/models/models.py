@@ -1,5 +1,5 @@
 from odoo import models, fields, api, _
-from odoo.exceptions import UserError
+from odoo.exceptions import UserError, ValidationError
 from odoo.tools import float_round, float_compare  # Importa float_round si lo necesitas
 # from odoo.tools import float_compare  # Elimina esta línea si no usas float_compare
 import logging
@@ -7,6 +7,17 @@ _logger = logging.getLogger(__name__)
 
 class SaleOrderInherit(models.Model):
     _inherit = 'sale.order'
+
+    RUBRO_COMPANY_MAPPING = {
+        'JUGUETES': 3,
+        'CARPAS': 3,
+        'RODADOS INFANTILES': 3,
+        'RODADOS': 2,
+        'MAQUILLAJE': 2,
+        'PELOTAS': 4,
+        'CABALLITOS SALTARINES': 4,
+        'VEHICULOS A BATERIA': 4,
+    }
 
     # inherited
     note = fields.Html('Terms and conditions')
@@ -92,16 +103,37 @@ class SaleOrderInherit(models.Model):
 
             record.order_subtotal = record.amount_untaxed * 1.21 if taxes_found else record.amount_untaxed
 
-
-
-    ### INHERITED
     @api.model
-    def create(self, vals):        
+    def create(self, vals):
         records = super().create(vals)
         for record in records:
+            company_produccionb_id = 1
+            if record.company_id.id != company_produccionb_id and record.condicion_m2m.name == 'TIPO 3':
+                record.write({'company_id': company_produccionb_id})
+                for line in record.order_line:
+                    if line.company_id.id != company_produccionb_id:
+                        line.write({'company_id': company_produccionb_id})
+                record.message_post(body=_("Compañía cambiada a %s en el pedido y todas sus líneas durante la creación.") % record.company_id.name)
+            #POR RUBRO CORRECCION DE COMPANIA
+            if record.order_line and record.condicion_m2m.name != 'TIPO 3':
+                for line in record.order_line:
+                   if line.product_id and line.product_id.categ_id.parent_id:
+                        rubro = line.product_id.categ_id.parent_id.name
+                        if rubro in self.RUBRO_COMPANY_MAPPING:
+                            expected_company_id = self.RUBRO_COMPANY_MAPPING[rubro]
+                            if expected_company_id != record.company_id.id:
+                                raise ValidationError(
+                                    _("El rubro '%s' pertenece a la compañía ID %s, "
+                                      "pero el pedido está en compañía ID %s (%s). "
+                                      "No se puede mezclar.") % (
+                                        rubro, expected_company_id, record.company_id.id, record.company_id.name
+                                    )
+                                )
+            # Paso 4: Tu lógica original (solo si pasa la verificación)
             record.check_order()
             if not record.message_ids:
                 record.message_post(body=_("Orden de venta creada."))
+        
         return records
 
     def action_confirm(self):
@@ -291,7 +323,12 @@ class SaleOrderLineInherit(models.Model):
 
     @api.onchange('product_packaging_id', 'product_uom', 'product_uom_qty')
     def _onchange_update_product_packaging_qty(self):
-        for line in self:
+        # Solo recalcula bultos si NO venimos del onchange de bultos
+        if self._context.get('from_packaging_qty'):
+            return
+        # Procesamos cada línea con el contexto ajustado para evitar bucle
+        lines_with_context = self.with_context(from_uom_qty=True)
+        for line in lines_with_context:
             so_config = line.env['sale.order.settings'].browse(1)
             if not line.product_packaging_id or not line.product_packaging_id.qty:
                 line.product_packaging_qty = False
@@ -305,15 +342,20 @@ class SaleOrderLineInherit(models.Model):
                         packaging_uom_qty / line.product_packaging_id.qty,
                         precision_rounding=packaging_uom.rounding
                     )
-
     @api.onchange('product_packaging_qty')
     def _onchange_product_packaging_qty(self):
-        return
-
-    # @api.onchange('product_uom_qty')
-    # def _onchange_product_uom_qty2(self):
-    #     for record in self:
-    #         if record.product_uom_qty == 0:
+        # Solo recalcula unidades si NO venimos del onchange de unidades
+        if self._context.get('from_uom_qty'):
+            return
+        # Procesamos cada línea con el contexto ajustado para evitar bucle
+        lines_with_context = self.with_context(from_packaging_qty=True)
+        for line in lines_with_context:
+            if line.product_packaging_id and line.product_uom:
+                packaging_uom = line.product_packaging_id.product_uom_id
+                qty_per_packaging = line.product_packaging_id.qty
+                product_uom_qty = packaging_uom._compute_quantity(self.product_packaging_qty * qty_per_packaging, self.product_uom)
+                if float_compare(product_uom_qty, self.product_uom_qty, precision_rounding=self.product_uom.rounding) != 0:
+                    self.product_uom_qty = product_uom_qty
 
     
 class ResPartnerInherit(models.Model):
