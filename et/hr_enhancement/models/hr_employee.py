@@ -14,6 +14,11 @@ class HrEmployee(models.Model):
     celular = fields.Char(string='Celular', required=True)
     email_personal = fields.Char(string='Email', required=True, 
                          help='Email personal del empleado, no se usa para notificaciones.')
+    employee_type = fields.Selection(
+        selection_add=[('eventual', 'Eventuales')],
+        ondelete={'eventual': 'set default'},  # Opcional
+        default='employee'
+    )
     
     #datos familiares
     spouse_dni = fields.Char(string='DNI del Cónyuge')
