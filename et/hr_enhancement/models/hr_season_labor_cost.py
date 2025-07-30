@@ -43,6 +43,7 @@ class HrSeasonLaborCost(models.Model):
         if vals.get('active', False):
             self.search([('active', '=', True)]).write({'active': False})
         return super(HrSeasonLaborCost, self).create(vals)
+
     def write(self, vals):
         # Validar solapamiento antes de escribir
         self._check_no_overlap(vals, exclude_id=self.id)

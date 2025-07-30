@@ -9,7 +9,8 @@ class HrEmployeeChildren(models.Model):
     age = fields.Integer('Edad', required=True)
     dni = fields.Char('DNI', required=True)
     birth_date = fields.Date('Fecha de Nacimiento', required=True)
-    photo_dni = fields.Binary('Foto DNI', required=True)
+    dni_photo_front = fields.Binary('Foto DNI', required=True)
+    dni_photo_back = fields.Binary('Foto DNI', required=True)
     gender = fields.Selection([
         ('male', 'Masculino'),
         ('female', 'Femenino'),

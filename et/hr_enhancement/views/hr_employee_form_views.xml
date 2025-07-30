@@ -19,10 +19,39 @@
                         </span>
                     </div>
                 </button>
+                <!-- Botón para mostrar el estado del empleado -->
+                <button
+                    type="button"
+                    class="oe_stat_button"
+                    style="background-color: #f0f0f0; border: none; cursor: default;">
+                    <div class="o_stat_info">
+                        <i class="fa fa-user" style="margin-right: 5px;"></i>
+                        <span class="o_stat_text">Estado del Empleado:</span>
+                        <span class="o_stat_value">
+                            <field name="state" />
+                        </span>
+                    </div>
+                </button>
+                <!-- Botón para mostrar el tipo de empleado -->
+                <button
+                    type="button"
+                    class="oe_stat_button"
+                    style="background-color: #f0f0f0; border: none; cursor: default;">
+                    <div class="o_stat_info">
+                        <i class="fa fa-user" style="margin-right: 5px; color: red;" 
+                        t-if="employee_type == 'eventual'"></i>
+                        <i class="fa fa-user" style="margin-right: 5px;" 
+                        t-if="employee_type == 'employee'"></i>
+                        <span class="o_stat_text">Tipo de Empleado:</span>
+                        <span class="o_stat_value" 
+                            style="color: red;" 
+                            t-if="employee_type == 'eventual'">Eventual</span>
+                        <span class="o_stat_value" 
+                            t-if="employee_type == 'employee'">Fijo</span>
+                    </div>
+                </button>
             </xpath>
             <xpath expr="//header" position="inside">
-                <field name="state" widget="statusbar" statusbar_visible="draft,confirmed"
-                                    class="o_statusbar" readonly="1"/>
                 <button name="action_request_edit"
                         string="Solicitar Edición"
                         type="object"
@@ -136,12 +165,7 @@
                             <field name="spouse_dni" attrs="{'invisible': [('marital', 'not in', ['married', 'cohabitant'])],
                                                                 'required': [('marital', 'in', ['married', 'cohabitant'])],
                                                                 'readonly': [('state', '!=', 'draft')]}"/>
-                        </group>
-                        <group string="Dependientes">
                             <field name="is_children" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
-                            <field name="children_ids" widget="one2many_list" 
-                                attrs="{'invisible': [('is_children', '=', False)], 
-                                            'required': [('is_children', '=', True)], 'readonly': [('state', '!=', 'draft')]}"/>
                         </group>
                         <group string="Emergencia">
                             <field name="emergency_contact" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
@@ -158,6 +182,31 @@
                             <field name="study_field" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
                             <field name="study_school" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
                         </group>
+                        <group string="Documentación">
+                            <field name="dni_photo_front" 
+                                attrs="{'readonly': [('state', '!=', 'draft'), ('state_1', '!=', 'draft')]}"
+                                widget="image" 
+                                options="{'preview_image': 'dni_front', 'size': [300, 200]}"/>
+                                
+                            <field name="dni_photo_back" 
+                                attrs="{'readonly': [('state', '!=', 'draft'), ('state_1', '!=', 'draft')]}"
+                                widget="image" 
+                                options="{'preview_image': 'dni_back', 'size': [300, 200]}"/>
+                        </group>
+                    </group>
+                </page>
+                <page name="information_internal" string="Informacion Interna">
+                    <group>
+                        <field name="employee_type" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                        <field name="wage" string="Sueldo Actual" readonly="1"/>
+                        <field name="total_percentage_increase" string="Porcentaje Total de Incremento" readonly="1"/>
+                    </group>
+                </page>
+                <page name="dependiente" string="Dependientes" attrs="{'invisible': [('is_children', '=', False)]}">
+                    <group>
+                            <field name="children_ids" widget="one2many_list" 
+                                attrs="{'required': [('is_children', '=', True)],
+                                        'readonly': [('state', '!=', 'draft')]}"/>
                     </group>
                 </page>
             </xpath>

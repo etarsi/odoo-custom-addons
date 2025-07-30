@@ -63,7 +63,7 @@ class hrLicense(models.Model):
     def _compute_days_qty(self):
         for record in self:
             if record.start_date and record.end_date:
-                if record.state_date >= record.end_date:
+                if record.state_date > record.end_date:
                     raise ValidationError("La Fecha de Inicio no debe ser mayo a la Fecha Final del reporte de Facturas ")
                 # Si quieres ambos días INCLUSIVOS (ej: 2024-06-01 a 2024-06-03 = 3 días)
                 delta = (record.end_date - record.start_date).days + 1
