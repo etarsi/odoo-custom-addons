@@ -19,6 +19,12 @@
                             <field name="is_in_invoice"/> Factura de Proveedor<br/>
                             <field name="is_in_refund"/> Nota de Crédito de Proveedor
                         </div>
+                        <div>
+                            <field name="marca_ids" widget="many2many_tags"/>
+                        </div>
+                        <div>
+                            <field name="user_ids" widget="many2many_tags"/>
+                        </div>
                     </group>    
                     <group>
                         <!-- Grupo para los tipos de factura como checkboxes -->

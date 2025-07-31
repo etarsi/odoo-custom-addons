@@ -41,6 +41,16 @@ class ReporteFacturaWizard(models.TransientModel):
     is_draft = fields.Boolean(string='Borrador')
     is_posted = fields.Boolean(string='Publicado', default=True)
     is_cancel = fields.Boolean(string='Cancelados')
+    marca_ids = fields.Many2many(
+        'product.brand',
+        string='Marca',
+        help='Filtrar por Marca de Producto'
+    )
+    user_ids = fields.Many2many(
+        'res.users',
+        string='Comercial',
+        help='Filtrar por Comercial'
+    )
     
     def action_generar_excel(self):
         # Crear un buffer en memoria
@@ -131,6 +141,10 @@ class ReporteFacturaWizard(models.TransientModel):
             domain.append(('state', 'in', selected_states))
         if selected_types:
             domain.append(('move_type', 'in', selected_types))
+        if self.marca_ids:
+            domain.append(('invoice_line_ids.product_id.product_brand_id', 'in', self.marca_ids.ids))
+        if self.user_ids:
+            domain.append(('invoice_user_id', 'in', self.user_ids.ids))
         facturas = self.env['account.move'].search(domain)
         # Escribir datos
         row = 1
@@ -144,9 +158,7 @@ class ReporteFacturaWizard(models.TransientModel):
             categorias = '-'.join(factura.partner_id.category_id.mapped('name')) if factura.partner_id.category_id else ''
             if facturas_lines:
                 for line in facturas_lines:
-                    if line.quantity==0 and line.price_unit==0:
-                        continue;
-                    if not line.product_id:
+                    if line.quantity==0 or line.price_unit==0 or line.price_subtotal==0:
                         continue;
                     uxb_id = line.product_id.packaging_ids[0] if line.product_id.packaging_ids else False
                     bultos = 0
