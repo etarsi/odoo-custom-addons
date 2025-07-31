@@ -79,7 +79,7 @@ class HrEmployee(models.Model):
         ('unique_account', 'UNIQUE(nro_account)', 'El Número de Cuenta debe ser único por empleado.'),
     ]
 
-    @api.depends('salary_history_ids.percentage_increase')
+    @api.depends('salary_ids.percentage_increase')
     def _compute_total_percentage_increase(self):
         for rec in self:
             rec.total_percentage_increase = sum(rec.salary_ids.mapped('percentage_increase'))
