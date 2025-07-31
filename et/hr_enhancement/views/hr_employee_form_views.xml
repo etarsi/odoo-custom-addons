@@ -80,6 +80,9 @@
                     </field>
                 </page>
             </xpath>
+            <xpath expr="//field[@name='image_1920']" position="attributes">
+                <attribute name="attrs">{'readonly': [('state', '!=', 'draft')], 'required': [('state', '=', 'draft')]}</attribute>
+            </xpath>
             <xpath expr="//page[@name='hr_settings']" position="attributes">
                 <attribute name="attrs">{'invisible': [('id', '!=', 0)]}</attribute>
             </xpath>
@@ -204,9 +207,9 @@
                 </page>
                 <page name="dependiente" string="Dependientes" attrs="{'invisible': [('is_children', '=', False)]}">
                     <group>
-                            <field name="children_ids" widget="one2many_list" 
-                                attrs="{'required': [('is_children', '=', True)],
-                                        'readonly': [('state', '!=', 'draft')]}"/>
+                        <field name="children_ids" widget="one2many_list" 
+                            attrs="{'required': [('is_children', '=', True)],
+                                    'readonly': [('state', '!=', 'draft')]}"/>
                     </group>
                 </page>
             </xpath>

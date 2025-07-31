@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_hr_employee_edit_request_tree" model="ir.ui.view">
+        <field name="name">hr.employee.edit.request.tree</field>
+        <field name="model">hr.employee.edit.request</field>
+        <field name="arch" type="xml">
+            <tree create="0" delete="0">
+                <field name="employee_id"/>
+                <field name="request_date"/>
+                <field name="state"/>
+            </tree>
+        </field>
+    </record>
+</odoo>

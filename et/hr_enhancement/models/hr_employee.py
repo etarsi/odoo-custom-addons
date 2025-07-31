@@ -1,4 +1,5 @@
 from odoo import models, fields, api
+from datetime import datetime
 from odoo.exceptions import ValidationError, UserError
 
 class HrEmployee(models.Model):
@@ -113,21 +114,13 @@ class HrEmployee(models.Model):
                 
     def action_request_edit(self, *args, **kwargs):
         for rec in self:
-            self.env['hr.employee.edit.request'].create({
+            rec.env['hr.employee.edit.request'].create({
                 'employee_id': rec.id,
+                'user_id': rec.user_id.id,
+                'request_date': datetime.now(),
                 'reason': 'Editar Información del empleado',
             })
-        return True
-            # Notificar por Odoo/mail al encargado de RRHH
-            #"""             group_hr_manager = self.env.ref('hr.group_hr_manager')
-            #users = group_hr_manager.users
-            #rec.message_post(
-            #    subject="Solicitud de edición de datos",
-            #    body=f"El empleado {rec.name} solicitó editar su información.<br>Motivo: {reason}",
-            #    partner_ids=[(4, user.partner_id.id) for user in users]
-            #) """
-            # Opcional: Notificar por email
-            # self.env['mail.mail'].create({...})
+            rec.env.user.notify_info("¡Solicitud de Modificar Empleado enviada con éxito!")
 
     def action_confirm(self, *args, **kwargs):
         for record in self:

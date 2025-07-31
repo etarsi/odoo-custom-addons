@@ -16,7 +16,8 @@
                         <field name="birth_date" string="Fecha de Nacimiento" required="True" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
                         <field name="age" string="Edad" required="True" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
                         <field name="gender" string="Género" required="True" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
-                        <field name="photo_dni" string="Foto DNI" required="True" widget="image" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                        <field name="dni_photo_front" string="Foto DNI Anverso" widget="image" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                        <field name="dni_photo_back" string="Foto DNI Reverso" widget="image" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
                     </group>
                 </sheet>
             </form>
