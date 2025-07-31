@@ -21,12 +21,12 @@
                 </button>
                 <!-- Botón para mostrar el estado del empleado -->
                 <button
-                    type="button"
+                    type="object"
                     name="show_employee_state"
                     class="oe_stat_button"
-                    style="background-color: #f0f0f0; border: none; cursor: default;">
+                    icon="fa fa-info-circle">
                     <div class="o_stat_info">
-                        <span class="o_stat_text">Estado del Empleado:</span>
+                        <span class="o_stat_text">Estado:</span>
                         <span class="o_stat_value">
                             <field name="state" />
                         </span>
@@ -37,10 +37,8 @@
                     type="object"
                     name="show_employee_type"
                     class="oe_stat_button"
-                    style="background-color: #f0f0f0; border: none; cursor: default;">
+                    icon="fa fa-user">
                     <div class="o_stat_info">
-                        <i class="fa fa-user" style="margin-right: 5px;"/>
-                        <span class="o_stat_text">Tipo de Empleado:</span>
                         <span class="o_stat_value">
                             <field name="employee_type" widget="selection" readonly="1"/>
                         </span>

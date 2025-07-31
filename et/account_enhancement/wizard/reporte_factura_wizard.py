@@ -133,16 +133,13 @@ class ReporteFacturaWizard(models.TransientModel):
         if self.is_posted:
             selected_states.append('posted')
         if self.is_cancel:
-            selected_states.append('cancel')
-        
+            selected_states.append('cancel') 
         if self.partner_ids:
             domain.append(('partner_id', 'in', self.partner_ids.ids))
         if selected_states:
             domain.append(('state', 'in', selected_states))
         if selected_types:
             domain.append(('move_type', 'in', selected_types))
-        if self.marca_ids:
-            domain.append(('invoice_line_ids.product_id.product_brand_id', 'in', self.marca_ids.ids))
         if self.user_ids:
             domain.append(('invoice_user_id', 'in', self.user_ids.ids))
         facturas = self.env['account.move'].search(domain)
@@ -161,8 +158,9 @@ class ReporteFacturaWizard(models.TransientModel):
                     if line.quantity==0 or line.price_unit==0 or line.price_subtotal==0:
                         continue;
                     # solo imprimir las lineas que tengan esa marca
-                    if (self.marca_ids and line.product_id.product_brand_id) and (line.product_id.product_brand_id not in self.marca_ids.ids):
-                        continue;
+                    if self.marca_ids and line.product_id.product_brand_id:
+                        if line.product_id.product_brand_id.id not in self.marca_ids.ids:
+                            continue
                     uxb_id = line.product_id.packaging_ids[0] if line.product_id.packaging_ids else False
                     bultos = 0
                     if uxb_id:

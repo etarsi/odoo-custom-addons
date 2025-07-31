@@ -175,19 +175,31 @@ class HrEmployee(models.Model):
         return super(HrEmployee, self).unlink()
     
     def show_employee_type(self):
-        """
-            Muestra el tipo de empleado en un mensaje de notificación
-        """
-        employee_type = self.employee_type or 'No definido'
+        self.ensure_one()
+        employee_type = dict(self._fields['employee_type'].selection).get(self.employee_type, 'No definido')
         message = f"El tipo de empleado es: {employee_type}"
-        self.env.user.notify_info(message)
-        return True
+        return {
+            'type': 'ir.actions.client',
+            'tag': 'display_notification',
+            'params': {
+                'title': 'Tipo de Empleado',
+                'message': message,
+                'type': 'info',  # info, warning, danger, success
+                'sticky': False,
+            }
+        }
     
     def show_employee_state(self):
-        """
-            Muestra el estado del empleado en un mensaje de notificación
-        """
+        self.ensure_one()
         state = self.state or 'No definido'
         message = f"El estado del empleado es: {state}"
-        self.env.user.notify_info(message)
-        return True
+        return {
+            'type': 'ir.actions.client',
+            'tag': 'display_notification',
+            'params': {
+                'title': 'Estado del Empleado',
+                'message': message,
+                'type': 'info',  # info, warning, danger, success
+                'sticky': False,
+            }
+        }
