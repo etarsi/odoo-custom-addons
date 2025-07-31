@@ -183,12 +183,12 @@
                         </group>
                         <group string="Documentación">
                             <field name="dni_photo_front" 
-                                attrs="{'readonly': [('state', '!=', 'draft'), ('state_1', '!=', 'draft')]}"
+                                attrs="{'readonly': [('state', '!=', 'draft')]}"
                                 widget="image" 
                                 options="{'preview_image': 'dni_front', 'size': [300, 200]}"/>
                                 
                             <field name="dni_photo_back" 
-                                attrs="{'readonly': [('state', '!=', 'draft'), ('state_1', '!=', 'draft')]}"
+                                attrs="{'readonly': [('state', '!=', 'draft')]}"
                                 widget="image" 
                                 options="{'preview_image': 'dni_back', 'size': [300, 200]}"/>
                         </group>

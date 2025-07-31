@@ -160,6 +160,9 @@ class ReporteFacturaWizard(models.TransientModel):
                 for line in facturas_lines:
                     if line.quantity==0 or line.price_unit==0 or line.price_subtotal==0:
                         continue;
+                    # solo imprimir las lineas que tengan esa marca
+                    if (self.marca_ids and line.product_id.product_brand_id) and (line.product_id.product_brand_id not in self.marca_ids.ids):
+                        continue;
                     uxb_id = line.product_id.packaging_ids[0] if line.product_id.packaging_ids else False
                     bultos = 0
                     if uxb_id:
@@ -168,7 +171,10 @@ class ReporteFacturaWizard(models.TransientModel):
                     subtotal = line.price_subtotal
                     if factura.move_type in ('out_refund', 'in_refund'):
                         quantity = float_round(line.quantity * -1, precision_rounding=2)
-                        subtotal = float_round(line.price_subtotal * -1, precision_rounding=2)
+                        if line.price_subtotal > 0:
+                            subtotal = float_round(line.price_subtotal * -1, precision_rounding=2)
+                        else:
+                            subtotal = line.price_subtotal
                     worksheet.write(row, 0, factura.name, formato_celdas_izquierda)
                     worksheet.write(row, 1, date_facture, formato_celdas_derecha)
                     worksheet.write(row, 2, month, formato_celdas_derecha)
