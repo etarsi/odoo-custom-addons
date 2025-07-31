@@ -115,25 +115,24 @@ class SaleOrderInherit(models.Model):
                         line.write({'company_id': company_produccionb_id})
                 record.message_post(body=_("Compañía cambiada a %s en el pedido y todas sus líneas durante la creación.") % record.company_id.name)
             #POR RUBRO CORRECCION DE COMPANIA
-            if record.order_line and record.condicion_m2m.name != 'TIPO 3':
-                for line in record.order_line:
-                   if line.product_id and line.product_id.categ_id.parent_id:
-                        rubro = line.product_id.categ_id.parent_id.name
-                        if rubro in self.RUBRO_COMPANY_MAPPING:
-                            expected_company_id = self.RUBRO_COMPANY_MAPPING[rubro]
-                            if expected_company_id != record.company_id.id:
-                                raise ValidationError(
-                                    _("El rubro '%s' pertenece a la compañía ID %s, "
-                                      "pero el pedido está en compañía ID %s (%s). "
-                                      "No se puede mezclar.") % (
-                                        rubro, expected_company_id, record.company_id.id, record.company_id.name
-                                    )
-                                )
+            #if record.order_line and record.condicion_m2m.name != 'TIPO 3':
+            #    for line in record.order_line:
+            #       if line.product_id and line.product_id.categ_id.parent_id:
+            #            rubro = line.product_id.categ_id.parent_id.name
+            #            if rubro in self.RUBRO_COMPANY_MAPPING:
+            #                expected_company_id = self.RUBRO_COMPANY_MAPPING[rubro]
+            #                if expected_company_id != record.company_id.id:
+            #                    raise ValidationError(
+            #                        _("El rubro '%s' pertenece a la compañía ID %s, "
+            #                          "pero el pedido está en compañía ID %s (%s). "
+            #                          "No se puede mezclar.") % (
+            #                            rubro, expected_company_id, record.company_id.id, record.company_id.name
+            #                        )
+            #                    )
             # Paso 4: Tu lógica original (solo si pasa la verificación)
             record.check_order()
             if not record.message_ids:
                 record.message_post(body=_("Orden de venta creada."))
-        
         return records
 
     def action_confirm(self):
@@ -355,6 +354,9 @@ class SaleOrderLineInherit(models.Model):
                 qty_per_packaging = line.product_packaging_id.qty
                 product_uom_qty = packaging_uom._compute_quantity(self.product_packaging_qty * qty_per_packaging, self.product_uom)
                 if float_compare(product_uom_qty, self.product_uom_qty, precision_rounding=self.product_uom.rounding) != 0:
+                    # Validar si product_uom_qty tiene decimales
+                    if product_uom_qty != int(product_uom_qty):
+                        raise ValidationError("La cantidad de unidades no puede tener decimales. Por favor, ajuste las unidades.")
                     self.product_uom_qty = product_uom_qty
 
     
