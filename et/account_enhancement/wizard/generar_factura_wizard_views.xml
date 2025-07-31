@@ -10,6 +10,8 @@
                         <field name="date_start"/>
                         <field name="date_end"/>
                         <field name="partner_ids" widget="many2many_tags"/>
+                        <field name="marca_ids" widget="many2many_tags"/>
+                        <field name="user_ids" widget="many2many_tags"/>
                     </group>
                     <group>
                         <label for="is_out_invoice" string="Tipos de Factura"/>
@@ -18,12 +20,6 @@
                             <field name="is_out_refund"/> Nota de Crédito de Cliente<br/>
                             <field name="is_in_invoice"/> Factura de Proveedor<br/>
                             <field name="is_in_refund"/> Nota de Crédito de Proveedor
-                        </div>
-                        <div>
-                            <field name="marca_ids" widget="many2many_tags"/>
-                        </div>
-                        <div>
-                            <field name="user_ids" widget="many2many_tags"/>
                         </div>
                     </group>    
                     <group>
