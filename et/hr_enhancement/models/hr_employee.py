@@ -34,17 +34,18 @@ class HrEmployee(models.Model):
 
     #que monto de sueldo sea una relación de uno a muchos
     salary_ids = fields.One2many('hr.employee.salary', 'employee_id', string='Sueldos')
-    wage = fields.Float(string="Sueldo Actual", tracking=True)
+    wage = fields.Float(string="Sueldo Actual", compute="_compute_wage", store=True, tracking=True)
     total_percentage_increase = fields.Float(
         string="Porcentaje Total de Incremento",
-        compute='_compute_total_percentage_increase'
+        compute='_compute_total_percentage_increase',
+        store=True, tracking=True
     )
     alta_afip = fields.Date('Fecha de Alta AFIP', tracking=True)
     
     #firma del empleado digital
     digital_signature = fields.Binary('Firma Digital (PNG)', tracking=True)
     digital_signature_name = fields.Char('Nombre de la Firma Digital')
-    
+
     #licencias asignadas
     license_ids = fields.One2many('hr.license', 'employee_id', string='Licencias Asignadas')
     #contador de licencias asignadas
@@ -78,11 +79,24 @@ class HrEmployee(models.Model):
         ('unique_alias', 'UNIQUE(alias)', 'El Alias debe ser único por empleado.'),
         ('unique_account', 'UNIQUE(nro_account)', 'El Número de Cuenta debe ser único por empleado.'),
     ]
+    
+    @api.depends('salary_ids.amount', 'salary_ids.date')
+    def _compute_wage(self):
+        for rec in self:
+            # último salario por fecha
+            if rec.salary_ids:
+                rec.wage = max(rec.salary_ids, key=lambda s: s.date).amount
+            else:
+                rec.wage = 0.0
 
-    @api.depends('salary_ids.percentage_increase')
+    @api.depends('salary_ids.amount', 'salary_ids.date')
     def _compute_total_percentage_increase(self):
         for rec in self:
-            rec.total_percentage_increase = sum(rec.salary_ids.mapped('percentage_increase'))
+            salaries = rec.salary_ids.sorted(key=lambda s: s.date)
+            if len(salaries) >= 2 and salaries[0].amount:
+                rec.total_percentage_increase = ((salaries[-1].amount - salaries[0].amount) / salaries[0].amount) * 100
+            else:
+                rec.total_percentage_increase = 0.0
 
     @api.depends('license_ids')
     def _compute_license_count(self):
@@ -159,3 +173,21 @@ class HrEmployee(models.Model):
         """
         self._check_employee_records()
         return super(HrEmployee, self).unlink()
+    
+    def show_employee_type(self):
+        """
+            Muestra el tipo de empleado en un mensaje de notificación
+        """
+        employee_type = self.employee_type or 'No definido'
+        message = f"El tipo de empleado es: {employee_type}"
+        self.env.user.notify_info(message)
+        return True
+    
+    def show_employee_state(self):
+        """
+            Muestra el estado del empleado en un mensaje de notificación
+        """
+        state = self.state or 'No definido'
+        message = f"El estado del empleado es: {state}"
+        self.env.user.notify_info(message)
+        return True

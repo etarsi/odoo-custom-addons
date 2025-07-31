@@ -22,10 +22,10 @@
                 <!-- Botón para mostrar el estado del empleado -->
                 <button
                     type="button"
+                    name="show_employee_state"
                     class="oe_stat_button"
                     style="background-color: #f0f0f0; border: none; cursor: default;">
                     <div class="o_stat_info">
-                        <i class="fa fa-user" style="margin-right: 5px;"></i>
                         <span class="o_stat_text">Estado del Empleado:</span>
                         <span class="o_stat_value">
                             <field name="state" />
@@ -34,20 +34,16 @@
                 </button>
                 <!-- Botón para mostrar el tipo de empleado -->
                 <button
-                    type="button"
+                    type="object"
+                    name="show_employee_type"
                     class="oe_stat_button"
                     style="background-color: #f0f0f0; border: none; cursor: default;">
                     <div class="o_stat_info">
-                        <i class="fa fa-user" style="margin-right: 5px; color: red;" 
-                        t-if="employee_type == 'eventual'"></i>
-                        <i class="fa fa-user" style="margin-right: 5px;" 
-                        t-if="employee_type == 'employee'"></i>
+                        <i class="fa fa-user" style="margin-right: 5px;"/>
                         <span class="o_stat_text">Tipo de Empleado:</span>
-                        <span class="o_stat_value" 
-                            style="color: red;" 
-                            t-if="employee_type == 'eventual'">Eventual</span>
-                        <span class="o_stat_value" 
-                            t-if="employee_type == 'employee'">Fijo</span>
+                        <span class="o_stat_value">
+                            <field name="employee_type" widget="selection" readonly="1"/>
+                        </span>
                     </div>
                 </button>
             </xpath>
@@ -198,11 +194,29 @@
                         </group>
                     </group>
                 </page>
+                <page string="Historial Salarial">
+                    <field name="salary_ids">
+                        <tree editable="bottom">
+                            <field name="date"/>
+                            <field name="amount"/>
+                            <field name="percentage_increase" readonly="1"/>
+                            <field name="tipo_ajuste"/>
+                            <field name="notes"/>
+                        </tree>
+                        <form>
+                            <group>
+                                <field name="date"/>
+                                <field name="amount"/>
+                                <field name="tipo_ajuste"/>
+                                <field name="percentage_increase" readonly="1"/>
+                                <field name="notes"/>
+                            </group>
+                        </form>
+                    </field>
+                </page>
                 <page name="information_internal" string="Informacion Interna">
                     <group>
-                        <field name="employee_type" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
-                        <field name="wage" string="Sueldo Actual" readonly="1"/>
-                        <field name="total_percentage_increase" string="Porcentaje Total de Incremento" readonly="1"/>
+                        <field name="employee_type" widget="selection" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
                     </group>
                 </page>
                 <page name="dependiente" string="Dependientes" attrs="{'invisible': [('is_children', '=', False)]}">
