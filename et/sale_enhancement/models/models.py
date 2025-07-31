@@ -2,6 +2,7 @@ from odoo import models, fields, api, _
 from odoo.exceptions import UserError, ValidationError
 from odoo.tools import float_round, float_compare  # Importa float_round si lo necesitas
 # from odoo.tools import float_compare  # Elimina esta línea si no usas float_compare
+import math 
 import logging
 _logger = logging.getLogger(__name__)
 
@@ -332,15 +333,8 @@ class SaleOrderLineInherit(models.Model):
             if not line.product_packaging_id or not line.product_packaging_id.qty:
                 line.product_packaging_qty = False
             else:
-                packaging_uom = line.product_packaging_id.product_uom_id
-                packaging_uom_qty = line.product_uom._compute_quantity(line.product_uom_qty, packaging_uom)
-                if so_config and so_config.carga_unidades and so_config.activo:
-                    line.product_packaging_qty = line.product_uom_qty / line.product_packaging_id.qty
-                else:
-                    line.product_packaging_qty = float_round(
-                        packaging_uom_qty / line.product_packaging_id.qty,
-                        precision_rounding=packaging_uom.rounding
-                    )
+                line.product_packaging_qty = line.product_uom_qty / line.product_packaging_id.qty
+
     @api.onchange('product_packaging_qty')
     def _onchange_product_packaging_qty(self):
         # Solo recalcula unidades si NO venimos del onchange de unidades
@@ -356,7 +350,14 @@ class SaleOrderLineInherit(models.Model):
                 if float_compare(product_uom_qty, self.product_uom_qty, precision_rounding=self.product_uom.rounding) != 0:
                     # Validar si product_uom_qty tiene decimales
                     if product_uom_qty != int(product_uom_qty):
-                        raise ValidationError("La cantidad de unidades no puede tener decimales. Por favor, ajuste las unidades.")
+                        # Calcular sugerencias: entero inferior y superior
+                        floor_qty = math.floor(product_uom_qty)
+                        ceil_qty = math.ceil(product_uom_qty)
+                        # Mensaje personalizado
+                        raise ValidationError(
+                            f"La cantidad de unidades se transformó a {product_uom_qty:.2f}, que tiene decimales. "
+                            f"Por favor, ajuste las unidades. Podría colocar {floor_qty} o {ceil_qty}."
+                        )
                     self.product_uom_qty = product_uom_qty
 
     
