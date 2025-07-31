@@ -145,9 +145,9 @@ class ReporteFacturaWizard(models.TransientModel):
             if facturas_lines:
                 for line in facturas_lines:
                     if line.quantity==0 and line.price_unit==0:
-                        pass;
+                        continue;
                     if not line.product_id:
-                        pass;
+                        continue;
                     uxb_id = line.product_id.packaging_ids[0] if line.product_id.packaging_ids else False
                     bultos = 0
                     if uxb_id:
