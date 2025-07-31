@@ -83,11 +83,12 @@
                 <field name="start_date" />
                 <field name="end_date" />
                 <field name="days_qty" />
-                <field name="state" />
+                <field name="state" widget="statusbar" statusbar_visible="draft,confirmed,approved,rejected"
+                       statusbar_colors='{"draft":"blue", "confirmed":"orange", "approved":"green", "rejected":"red"}'/>
             </tree>
         </field>
     </record>
-    <!-- Accuiion de licencia para aprobar -->
+    <!-- Acción de licencia para aprobar -->
     <record id="action_approve_licenses" model="ir.actions.act_window">
         <field name="name">Licencias</field>
         <field name="res_model">hr.license</field>
@@ -107,7 +108,8 @@
                 <field name="start_date"/>
                 <field name="end_date"/>
                 <field name="days_qty"/>
-                <field name="state"/>
+                <field name="state" widget="statusbar" statusbar_visible="draft,confirmed,approved,rejected"
+                       statusbar_colors='{"draft":"blue", "confirmed":"orange", "approved":"green", "rejected":"red"}'/>
             </tree>
         </field>
     </record>
@@ -119,6 +121,5 @@
         <field name="view_mode">tree,form</field>
         <field name="domain">[('employee_id.user_id', '=', uid)]</field> <!-- Solo licencias del empleado actual -->
         <field name="view_id" ref="view_hr_license_tree"/>
-        <field name="context">{'default_employee_id': employee_id}</field>
     </record>
 </odoo>

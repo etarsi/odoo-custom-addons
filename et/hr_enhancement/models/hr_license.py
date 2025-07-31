@@ -28,6 +28,19 @@ class hrLicense(models.Model):
     document = fields.Binary('Documento de Licencia', required=True, tracking=True)
     document_name = fields.Char('Nombre del Documento', required=True, tracking=True)
     
+    #CAMPOS PARA UNA LICENCIA DE TIPO LICENCIA POR ART
+    art_case_number = fields.Char('N° Siniestro ART')
+    art_type = fields.Selection([
+        ('work', 'Accidente de trabajo'),
+        ('initinere', 'Accidente in itinere'),
+        ('prof_disease', 'Enfermedad profesional'),
+    ], string='Tipo de Siniestro')
+    art_date = fields.Date('Fecha del Siniestro')
+    art_diagnosis = fields.Char('Diagnóstico Médico')
+    alta_afip = fields.Date('Fecha de Alta Médica/AFIP')
+    art_company = fields.Char('Nombre de la ART')
+
+    
     @api.model
     def default_get(self, fields):
         res = super().default_get(fields)
@@ -63,8 +76,8 @@ class hrLicense(models.Model):
     def _compute_days_qty(self):
         for record in self:
             if record.start_date and record.end_date:
-                if record.state_date > record.end_date:
-                    raise ValidationError("La Fecha de Inicio no debe ser mayo a la Fecha Final del reporte de Facturas ")
+                if record.start_date > record.end_date:
+                    raise ValidationError("La Fecha de Inicio no debe ser mayor a la Fecha Final de la Licencia.")
                 # Si quieres ambos días INCLUSIVOS (ej: 2024-06-01 a 2024-06-03 = 3 días)
                 delta = (record.end_date - record.start_date).days + 1
                 record.days_qty = delta if delta > 0 else 0
