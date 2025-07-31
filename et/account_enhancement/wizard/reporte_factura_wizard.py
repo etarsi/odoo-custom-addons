@@ -152,8 +152,11 @@ class ReporteFacturaWizard(models.TransientModel):
                     bultos = 0
                     if uxb_id:
                         bultos = line.quantity/uxb_id.qty
-                    quantity_negativa = float_round(line.quantity * -1, precision_rounding=2)
-                    subtotal_negativa = float_round(line.price_subtotal * -1, precision_rounding=2)
+                    quantity = line.quantity
+                    subtotal = line.price_subtotal
+                    if factura.move_type in ('out_refund', 'in_refund'):
+                        quantity = float_round(line.quantity * -1, precision_rounding=2)
+                        subtotal = float_round(line.price_subtotal * -1, precision_rounding=2)
                     worksheet.write(row, 0, factura.name, formato_celdas_izquierda)
                     worksheet.write(row, 1, date_facture, formato_celdas_derecha)
                     worksheet.write(row, 2, month, formato_celdas_derecha)
@@ -161,18 +164,18 @@ class ReporteFacturaWizard(models.TransientModel):
                     worksheet.write(row, 4, factura.partner_id.name, formato_celdas_izquierda)
                     worksheet.write(row, 5, categorias, formato_celdas_izquierda)
                     worksheet.write(row, 6, factura.invoice_user_id.name, formato_celdas_izquierda)
-                    worksheet.write(row, 7, line.product_id.default_code, formato_celdas_izquierda)
+                    worksheet.write(row, 7, line.product_id.default_code if line.product_id.default_code else '', formato_celdas_izquierda)
                     worksheet.write(row, 8, line.product_id.name, formato_celdas_izquierda)
                     worksheet.write(row, 9, line.price_unit, formato_celdas_decimal)
-                    worksheet.write(row, 10, quantity_negativa, formato_celdas_decimal)
+                    worksheet.write(row, 10, quantity, formato_celdas_decimal)
                     worksheet.write(row, 11, uxb_id.name if uxb_id else '', formato_celdas_izquierda)
                     worksheet.write(row, 12, bultos, formato_celdas_decimal)
                     worksheet.write(row, 13, line.discount, formato_celdas_decimal)
-                    worksheet.write(row, 14, subtotal_negativa, formato_celdas_decimal)
+                    worksheet.write(row, 14, subtotal, formato_celdas_decimal)
                     worksheet.write(row, 15, factura.company_id.name, formato_celdas_izquierda)
-                    worksheet.write(row, 17, line.product_id.categ_id.parent_id.name, formato_celdas_izquierda)
-                    worksheet.write(row, 16, line.product_id.categ_id.name, formato_celdas_izquierda)
-                    worksheet.write(row, 18, line.product_id.product_brand_id.name, formato_celdas_izquierda)
+                    worksheet.write(row, 17, line.product_id.categ_id.parent_id.name if line.product_id.categ_id.parent_id else '', formato_celdas_izquierda)
+                    worksheet.write(row, 16, line.product_id.categ_id.name if line.product_id.categ_id else '', formato_celdas_izquierda)
+                    worksheet.write(row, 18, line.product_id.product_brand_id.name if line.product_id.product_brand_id else '', formato_celdas_izquierda)
                     worksheet.write(row, 19, line.product_id.x_contract_id.x_name if line.product_id.x_contract_id else ' ', formato_celdas_izquierda)
                     worksheet.write(row, 20, line.product_id.x_subcontract_id.x_name if line.product_id.x_subcontract_id else ' ', formato_celdas_izquierda)
                     worksheet.write(row, 21, line.product_id.x_character_id.x_name if line.product_id.x_character_id else ' ', formato_celdas_izquierda)
