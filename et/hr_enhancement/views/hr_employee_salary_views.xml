@@ -62,7 +62,7 @@
                         decoration-warning="state == 'pending'"
                         decoration-success="state == 'approved'" 
                         decoration-danger="state == 'cancelled'"
-                        decoration-secondary="state == 'expired'"/>
+                        decoration-danger="state == 'expired'"/>
             </tree>
         </field>
     </record>
