@@ -7,8 +7,7 @@
         <field name="arch" type="xml">
             <form string="Ajuste Salarial del Empleado">
                 <header>
-                    <field name="state" widget="statusbar" statusbar_visible="draft,pending,approved"
-                                               statusbar_colors='{"approved":"success"}'/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,pending,approved"/>
                     <button name="action_confirm"
                             type="object"
                             string="Confirmar"
@@ -59,7 +58,7 @@
                 <field name="tipo_ajuste"/>
                 <field name="notes"/>
                 <field name="state" widget="badge" decoration-info="state == 'draft'" 
-                        decoration-warning="state == 'pending'"
+                        decoration-warning="state == 'confirmed'"
                         decoration-success="state == 'approved'" 
                         decoration-danger="state == 'cancelled'"
                         decoration-danger="state == 'expired'"/>
