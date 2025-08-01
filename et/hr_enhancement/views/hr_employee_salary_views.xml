@@ -24,11 +24,16 @@
                             string="Cancelar"
                             icon="fa-times"
                             attrs="{'invisible': [('state', 'not in', ['approved', 'pending'])]}"/>
+                    <button name="action_draft"
+                            type="object"
+                            string="Restablecer a Borrador"
+                            icon="fa-eraser"
+                            attrs="{'invisible': [('state', '!=', 'draft')]}"/>
                 </header>
                 <sheet>
                     <group>
                         <group name="group_location_info" string="Información del Ajuste Salarial">
-                            <field name="employee_id" required="True" attrs="{'readonly': True}" options="{'no_create': True}"/>
+                            <field name="employee_id" required="True" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
                             <field name="amount" string="Sueldo Bruto" required="True" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
                             <field name="date" string="Fecha" required="True" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
                             <field name="percentage_increase" string="Porcentaje de Incremento" compute="_compute_percentage_increase" store="True" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
@@ -58,8 +63,8 @@
                 <field name="tipo_ajuste"/>
                 <field name="notes"/>
                 <field name="state" widget="badge" decoration-info="state == 'draft'" 
-                        decoration-warning="state == 'confirmed'"
-                        decoration-success="state == 'approved'" 
+                        decoration-warning="state == 'expired'"
+                        decoration-success="state == 'confirmed'" 
                         decoration-danger="state == 'cancelled'"/>
             </tree>
         </field>

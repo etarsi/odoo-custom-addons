@@ -205,13 +205,11 @@ class HrEmployee(models.Model):
         }
         
     def action_view_my_salary_adjustments(self):
-        # Obtén los ajustes salariales asociados a este empleado
-        action = self.env.ref('hr_enhancement.action_my_salary_adjustments')
-        result = action.read()[0]
-
-        # Filtrar para que solo se vean los ajustes salariales del empleado actual
-        result['domain'] = [('employee_id.user_id', '=', self.env.user.id)]
-
-        # Asegurar que la vista por defecto sea la vista tree
-        result['view_mode'] = 'tree'
-        return result
+        return {
+            'name': 'Ajustes Salariales',
+            'type': 'ir.actions.act_window',
+            'res_model': 'hr.employee.salary',
+            'view_mode': 'tree,form',
+            'domain': [('employee_id', '=', self.id)],
+            'context': {'default_employee_id': self.id},
+        }
