@@ -16,7 +16,6 @@
                         <span class="o_stat_text">Salario Actual</span>
                         <span class="o_stat_value">
                             <field name="wage"/>
-                            <field name="total_percentage_increase" widget="percent" options="{'digits': [16, 2]}"/>
                         </span>
                     </div>
                 </button>
@@ -206,30 +205,25 @@
                     </group>
                 </page>
                 <page string="Historial Salarial">
-                    <group>
-                        <field name="salary_ids">
-                            <tree editable="bottom">
-                                <field name="date"/>
-                                <field name="amount"/>
-                                <field name="percentage_increase" readonly="1"/>
-                                <field name="tipo_ajuste"/>
-                                <field name="notes"/>
-                            </tree>
-                            <form>
-                                <group>
-                                    <field name="date"/>
-                                    <field name="amount"/>
-                                    <field name="tipo_ajuste"/>
-                                    <field name="percentage_increase" readonly="1"/>
-                                    <field name="notes"/>
-                                </group>
-                            </form>
-                        </field>
-                    </group>
+                    <field name="salary_ids">
+                        <tree create="false" delete="false" edit="false">
+                            <field name="date"/>
+                            <field name="amount"/>
+                            <field name="percentage_increase"/>
+                            <field name="tipo_ajuste"/>
+                            <field name="notes"/>
+                            <field name="state" widget="badge" decoration-info="state == 'draft'" 
+                                decoration-warning="state == 'expired'"
+                                decoration-success="state == 'confirmed'" 
+                                decoration-danger="state == 'cancelled'"/>
+                        </tree>
+                    </field>
                 </page>
                 <page name="information_internal" string="Informacion Interna">
                     <group>
                         <field name="employee_type" widget="selection" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                        <field name="wage" readonly="1"/>
+                        <field name="total_percentage_increase" readonly="1"/>
                     </group>
                 </page>
                 <page name="dependiente" string="Dependientes" attrs="{'invisible': [('is_children', '=', False)]}">
