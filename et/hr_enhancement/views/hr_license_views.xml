@@ -57,7 +57,7 @@
     </record>
 
     <!-- Vista Tree de Licencias, filtrando por empleado -->
-    <record id="view_hr_license_tree" model="ir.ui.view">
+    <record id="hr_enhancement.view_hr_license_tree" model="ir.ui.view">
         <field name="name">hr.license.tree</field>
         <field name="model">hr.license</field>
         <field name="arch" type="xml">
