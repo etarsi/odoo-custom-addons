@@ -60,8 +60,7 @@
                 <field name="state" widget="badge" decoration-info="state == 'draft'" 
                         decoration-warning="state == 'confirmed'"
                         decoration-success="state == 'approved'" 
-                        decoration-danger="state == 'cancelled'"
-                        decoration-secondary="state == 'expired'"/>
+                        decoration-danger="state == 'cancelled'"/>
             </tree>
         </field>
     </record>
