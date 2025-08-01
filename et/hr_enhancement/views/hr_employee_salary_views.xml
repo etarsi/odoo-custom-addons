@@ -58,8 +58,9 @@
                 <field name="percentage_increase"/>
                 <field name="tipo_ajuste"/>
                 <field name="notes"/>
-                <field name="state" widget="statusbar" statusbar_visible="draft,confirmed,approved,expired,cancelled"
-                       statusbar_colors='{"draft":"blue", "confirmed":"orange", "approved":"green", "expired":"grey", "cancelled":"red"}'/>
+                <field name="state" widget="badge" decoration-success="state == 'approved'" 
+                        decoration-danger="state == 'cancelled'" decoration-warning="state == 'pending'"
+                        decoration-info="state == 'draft'" decoration-dark="state == 'expired'"/>
             </tree>
         </field>
     </record>

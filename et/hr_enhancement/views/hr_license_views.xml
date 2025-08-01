@@ -6,9 +6,8 @@
         <field name="arch" type="xml">
             <form string="Licencia del Empleado">
                 <header>
-                    <field name="state" widget="statusbar" 
-                                        statusbar_visible="draft,pending,approved,rejected"
-                                        statusbar_colors='{"draft":"blue", "pending":"orange", "approved":"success", "rejected":"red"}'/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,pending,approved,rejected"
+                                                                   statusbar_colors='{"draft":"blue", "pending":"orange", "approved":"success", "rejected":"red"}'/>
                     <button name="action_confirm"
                             type="object"
                             string="Confirmar"
@@ -29,20 +28,13 @@
                 <sheet>
                     <group>
                         <group name="group_location_info" string="Información de Licencia">
-                            <field name="employee_id" string="Empleado" required="True" 
-                                    attrs="{'readonly': ['|', ('state', '!=', 'draft'), ('employee_id', '!=', False)]}"/>
-                            <field name="license_type_id" string="Tipo de Licencia" required="True" 
-                                    options="{'no_create': True}" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
-                            <field name="start_date" string="Fecha de Inicio" required="True" 
-                                    attrs="{'readonly': [('state', '!=', 'draft')]}"/>
-                            <field name="end_date" string="Fecha de Fin" required="True" 
-                                    attrs="{'readonly': [('state', '!=', 'draft')]}"/>
-                            <field name="days_qty" string="Cantidad de Días" required="True" 
-                                    attrs="{'readonly': [('state', '!=', 'draft')]}"/>
-                            <field name="document" filename="document_name" string="Documento de Licencia" required="True" 
-                                    widget="binary" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
-                            <field name="description" string="Descripción" required="True" 
-                                    attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                            <field name="employee_id" string="Empleado" required="True" attrs="{'readonly': ['|', ('state', '!=', 'draft'), ('employee_id', '!=', False)]}"/>
+                            <field name="license_type_id" string="Tipo de Licencia" required="True" options="{'no_create': True}" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                            <field name="start_date" string="Fecha de Inicio" required="True" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                            <field name="end_date" string="Fecha de Fin" required="True" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                            <field name="days_qty" string="Cantidad de Días" required="True" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                            <field name="document" filename="document_name" string="Documento de Licencia" required="True" widget="binary" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                            <field name="description" string="Descripción" required="True" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
                         </group>
                     </group>
                 </sheet>
@@ -55,10 +47,34 @@
             </form>
         </field>
     </record>
+    <!-- esta vista es para el que mirara las aprobaciones a realizar -->
+    <record id="view_hr_license_approval_search" model="ir.ui.view">
+        <field name="name">hr.license.approval.search</field>
+        <field name="model">hr.license</field>
+        <field name="arch" type="xml">
+            <search string="Licencias">
+                <!-- Filtro por estado 'pending' -->
+                <filter name="filter_pending" string="Pendientes" domain="[('state', '=', 'pending')]"
+                        help="Filtrar las licencias que están pendientes." />
+                <!-- Filtro por estado 'approved' -->
+                <filter name="filter_approved" string="Aprobados" domain="[('state', '=', 'approved')]"
+                        help="Filtrar las licencias que están Aprobadas." />
+                <!-- Filtro por estado 'rejected' -->
+                <filter name="filter_rejected" string="Rechazados" domain="[('state', '=', 'rejected')]"
+                        help="Filtrar las licencias que están Rechazados." />
+                <!-- Filtro por empleado  agrupado-->
+                <filter name="filter_by_employee" string="Agrupar por Empleado"
+                        context="{'group_by': 'employee_id'}" />
+                <!-- Filtro por estado  agrupado-->
+                <filter name="filter_by_state" string="Agrupar por Estado"
+                        context="{'group_by': 'state'}" />
+            </search>
+        </field>
+    </record>
 
     <!-- Vista Tree de Licencias, filtrando por empleado -->
-    <record id="hr_enhancement.view_hr_license_tree" model="ir.ui.view">
-        <field name="name">view.hr.license.tree</field>
+    <record id="view_hr_license_tree" model="ir.ui.view">
+        <field name="name">hr.license.tree</field>
         <field name="model">hr.license</field>
         <field name="arch" type="xml">
             <tree delete="false" string="Licencias del Empleado">
@@ -67,7 +83,9 @@
                 <field name="start_date"/>
                 <field name="end_date"/>
                 <field name="days_qty"/>
-                <field name="state"/>
+                <field name="approver_id"/>
+                <field name="state" widget="badge" decoration-success="state == 'approved'" decoration-danger="state == 'rejected'"
+                                    decoration-info="state == 'draft'" decoration-warning="state == 'pending'"/>
             </tree>
         </field>
     </record>
