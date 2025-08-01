@@ -79,3 +79,11 @@ class HrEmployeeSalary(models.Model):
             if record.state not in ['draft', 'cancelled']:
                 raise ValidationError('No se puede eliminar un ajuste salarial que no esté en estado Borrador o Cancelado.')
         return super(HrEmployeeSalary, self).unlink()
+    
+    @api.model
+    def create(self, vals):
+        if 'employee_id' not in vals:
+            employee = self.env['hr.employee'].search([('user_id', '=', self.env.uid)], limit=1)
+            if employee:
+                vals['employee_id'] = employee.id
+        return super().create(vals)

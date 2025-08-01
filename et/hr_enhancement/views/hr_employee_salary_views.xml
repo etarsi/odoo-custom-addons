@@ -28,7 +28,7 @@
                 <sheet>
                     <group>
                         <group name="group_location_info" string="Información del Ajuste Salarial">
-                            <field name="employee_id" string="Empleado" required="True" attrs="{'readonly': ['|', ('state', '!=', 'draft'), ('employee_id', '!=', False)]}"/>
+                            <field name="employee_id" required="True" attrs="{'readonly': True}" options="{'no_create': True}"/>
                             <field name="amount" string="Sueldo Bruto" required="True" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
                             <field name="date" string="Fecha" required="True" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
                             <field name="percentage_increase" string="Porcentaje de Incremento" compute="_compute_percentage_increase" store="True" attrs="{'readonly': [('state', '!=', 'draft')]}"/>

@@ -40,7 +40,7 @@
                     <div class="o_stat_info">
                         <span class="o_stat_text">Estado:</span>
                         <span class="o_stat_value">
-                            <field name="state" />
+                            <field name="state" readonly="1"/>
                         </span>
                     </div>
                 </button>
