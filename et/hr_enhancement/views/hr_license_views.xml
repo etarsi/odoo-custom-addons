@@ -6,8 +6,8 @@
         <field name="arch" type="xml">
             <form string="Licencia del Empleado">
                 <header>
-                    <field name="state" widget="statusbar" statusbar_visible="draft,pending,approved"
-                                               statusbar_colors='{"approved":"success"}'/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,pending,approved,rejected"
+                                                                   statusbar_colors='{"draft":"blue", "pending":"orange", "approved":"success", "rejected":"red"}'/>
                     <button name="action_confirm"
                             type="object"
                             string="Confirmar"
@@ -32,7 +32,7 @@
                             <field name="license_type_id" string="Tipo de Licencia" required="True" options="{'no_create': True}" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
                             <field name="start_date" string="Fecha de Inicio" required="True" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
                             <field name="end_date" string="Fecha de Fin" required="True" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
-                            <field name="days_qty" string="Cantidad de Días" required="True" attrs="{'readonly': True}"/>
+                            <field name="days_qty" string="Cantidad de Días" required="True" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
                             <field name="document" filename="document_name" string="Documento de Licencia" required="True" widget="binary" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
                             <field name="description" string="Descripción" required="True" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
                         </group>
@@ -71,31 +71,6 @@
             </search>
         </field>
     </record>
-    <!-- Vista Tree -->
-    <record id="view_hr_license_approval_tree" model="ir.ui.view">
-        <field name="name">hr.license.approval.tree</field>
-        <field name="model">hr.license</field>
-        <field name="arch" type="xml">
-            <tree>
-                <!-- Campos visibles en la vista Tree -->
-                <field name="employee_id" />
-                <field name="license_type_id" />
-                <field name="start_date" />
-                <field name="end_date" />
-                <field name="days_qty" />
-                <field name="state" widget="statusbar" statusbar_visible="draft,confirmed,approved,rejected"
-                       statusbar_colors='{"draft":"blue", "confirmed":"orange", "approved":"green", "rejected":"red"}'/>
-            </tree>
-        </field>
-    </record>
-    <!-- Acción de licencia para aprobar -->
-    <record id="action_approve_licenses" model="ir.actions.act_window">
-        <field name="name">Licencias</field>
-        <field name="res_model">hr.license</field>
-        <field name="view_mode">tree,form</field>
-        <field name="view_id" ref="view_hr_license_approval_tree"/>
-        <field name="search_view_id" ref="view_hr_license_approval_search"/>
-    </record>
 
     <!-- Vista Tree de Licencias, filtrando por empleado -->
     <record id="view_hr_license_tree" model="ir.ui.view">
@@ -108,8 +83,9 @@
                 <field name="start_date"/>
                 <field name="end_date"/>
                 <field name="days_qty"/>
-                <field name="state" widget="statusbar" statusbar_visible="draft,confirmed,approved,rejected"
-                       statusbar_colors='{"draft":"blue", "confirmed":"orange", "approved":"green", "rejected":"red"}'/>
+                <field name="approver_id"/>
+                <field name="state" widget="statusbar" 
+                        statusbar_colors='{"draft":"blue", "confirmed":"orange", "approved":"green", "rejected":"red"}'/>
             </tree>
         </field>
     </record>
@@ -121,5 +97,14 @@
         <field name="view_mode">tree,form</field>
         <field name="domain">[('employee_id.user_id', '=', uid)]</field> <!-- Solo licencias del empleado actual -->
         <field name="view_id" ref="view_hr_license_tree"/>
+    </record>
+
+    <!-- Acción de licencia para aprobar -->
+    <record id="action_approve_licenses" model="ir.actions.act_window">
+        <field name="name">Licencias</field>
+        <field name="res_model">hr.license</field>
+        <field name="view_mode">tree,form</field>
+        <field name="view_id" ref="view_hr_license_tree"/>
+        <field name="search_view_id" ref="view_hr_license_approval_search"/>
     </record>
 </odoo>

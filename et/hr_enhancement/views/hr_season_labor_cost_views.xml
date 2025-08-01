@@ -22,6 +22,9 @@
         <field name="model">hr.season.labor.cost</field>
         <field name="arch" type="xml">
             <form>
+                <header>
+                    <field name="active"/>
+                </header>
                 <sheet>
                     <group>
                         <field name="name"/>
@@ -35,7 +38,6 @@
                         <field name="hour_cost_extra"/>
                         <field name="hour_cost_holiday"/>
                     </group>
-                    <field name="active"/>
                 </sheet>
                 <!--DETALLE QUIEN  -->
                 <div class="oe_chatter">
