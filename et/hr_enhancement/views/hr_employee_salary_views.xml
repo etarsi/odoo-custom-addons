@@ -27,7 +27,7 @@
                 </header>
                 <sheet>
                     <group>
-                        <group name="group_location_info" string="Información de Licencia">
+                        <group name="group_location_info" string="Información del Ajuste Salarial">
                             <field name="employee_id" string="Empleado" required="True" attrs="{'readonly': ['|', ('state', '!=', 'draft'), ('employee_id', '!=', False)]}"/>
                             <field name="amount" string="Sueldo Bruto" required="True" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
                             <field name="date" string="Fecha" required="True" attrs="{'readonly': [('state', '!=', 'draft')]}"/>

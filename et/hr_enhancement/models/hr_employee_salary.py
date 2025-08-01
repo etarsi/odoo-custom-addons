@@ -27,6 +27,15 @@ class HrEmployeeSalary(models.Model):
         ('otro', 'Otro')
     ], string="Tipo de Ajuste")
     is_current = fields.Boolean(string="Es el Sueldo Vigente", default=False)
+    
+    @api.model
+    def default_get(self, fields):
+        res = super().default_get(fields)
+        # Buscar el empleado del usuario actual
+        employee = self.env['hr.employee'].search([('user_id', '=', self.env.uid)], limit=1)
+        if employee:
+            res['employee_id'] = employee.id
+        return res
 
     @api.depends('employee_id', 'amount', 'date')
     def _compute_percentage_increase(self):
