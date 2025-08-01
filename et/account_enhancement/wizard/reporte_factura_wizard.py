@@ -142,6 +142,8 @@ class ReporteFacturaWizard(models.TransientModel):
             domain.append(('move_type', 'in', selected_types))
         if self.user_ids:
             domain.append(('invoice_user_id', 'in', self.user_ids.ids))
+        if self.marca_ids:
+            domain.append(('invoice_line_ids.product_id.product_brand_id', 'in', self.marca_ids.ids))
         facturas = self.env['account.move'].search(domain)
         # Escribir datos
         row = 1
