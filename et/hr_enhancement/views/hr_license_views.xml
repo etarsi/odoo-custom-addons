@@ -95,7 +95,7 @@
         <field name="res_model">hr.license</field>
         <field name="view_mode">tree,form</field>
         <field name="domain">[('employee_id.user_id', '=', uid)]</field> <!-- Solo licencias del empleado actual -->
-        <field name="view_id" ref="view_hr_license_tree"/>
+        <field name="view_id" ref="hr_enhancement.view_hr_license_tree"/>
     </record>
 
     <!-- Acción de licencia para aprobar -->
@@ -103,7 +103,7 @@
         <field name="name">Licencias</field>
         <field name="res_model">hr.license</field>
         <field name="view_mode">tree,form</field>
-        <field name="view_id" ref="view_hr_license_tree"/>
-        <field name="search_view_id" ref="view_hr_license_approval_search"/>
+        <field name="view_id" ref="hr_enhancement.view_hr_license_tree"/>
+        <field name="search_view_id" ref="hr_enhancement.view_hr_license_approval_search"/>
     </record>
 </odoo>
