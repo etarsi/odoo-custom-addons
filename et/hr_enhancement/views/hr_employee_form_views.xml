@@ -13,9 +13,10 @@
                     class="oe_stat_button"
                     icon="fa-money">
                     <div class="o_stat_info">
-                        <span class="o_stat_text">Ajustes Salariales</span>
+                        <span class="o_stat_text">Salario Actual</span>
                         <span class="o_stat_value">
                             <field name="wage"/>
+                            <field name="total_percentage_increase" widget="percent" options="{'digits': [16, 2]}"/>
                         </span>
                     </div>
                 </button>
@@ -73,11 +74,11 @@
             <xpath expr="//notebook" position="inside">
                 <page string="Solicitudes de Edición">
                     <field name="edit_request_ids">
-                        <tree>
+                        <tree create="false" delete="false" edit="false">
                             <field name="create_date"/>
                             <field name="reason"/>
                             <field name="approved_user_id"/>
-                            <field name="state"/>
+                            <field name="state" widget="badge"/>
                         </tree>
                         <form>
                             <field name="reason"/>

@@ -46,9 +46,10 @@ class HrEmployeeSalary(models.Model):
             if record.state != 'draft':
                 raise ValidationError('Solo se puede confirmar un ajuste salarial en estado Borrador.')
             record.state = 'confirmed'
-            #cuando esta confirmado, se marca los demas registros como expirados
+            #cuando esta confirmado, se marca los demas registros como expirados y que no modifiquen el sueldo actual
             self.env['hr.employee.salary'].search([
                 ('employee_id', '=', record.employee_id.id),
+                ('id', '!=', record.id),
                 ('state', '=', 'confirmed'),
             ]).write({'state': 'expired'})
 
