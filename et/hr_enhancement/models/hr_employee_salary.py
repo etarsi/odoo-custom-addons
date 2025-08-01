@@ -7,7 +7,7 @@ class HrEmployeeSalary(models.Model):
     _inherit = ['mail.thread', 'mail.activity.mixin']
     _description = 'Historial de Sueldos de Empleado'
 
-    employee_id = fields.Many2one('hr.employee', string="Empleado", required=True, ondelete='cascade')
+    employee_id = fields.Many2one('hr.employee', string="Empleado", required=True)
     date = fields.Date(string="Fecha", required=True, default=fields.Date.today)
     amount = fields.Float(string="Sueldo Bruto", required=True)
     percentage_increase = fields.Float(string="Porcentaje de Incremento", compute="_compute_percentage_increase", store=True)
@@ -37,7 +37,7 @@ class HrEmployeeSalary(models.Model):
             res['employee_id'] = employee.id
         return res
 
-    @api.depends('employee_id', 'amount', 'date')
+    @api.depends('amount', 'date')
     def _compute_percentage_increase(self):
         for rec in self:
             # Buscar el salario anterior (menor fecha)
@@ -79,11 +79,3 @@ class HrEmployeeSalary(models.Model):
             if record.state not in ['draft', 'cancelled']:
                 raise ValidationError('No se puede eliminar un ajuste salarial que no esté en estado Borrador o Cancelado.')
         return super(HrEmployeeSalary, self).unlink()
-    
-    @api.model
-    def create(self, vals):
-        if 'employee_id' not in vals:
-            employee = self.env['hr.employee'].search([('user_id', '=', self.env.uid)], limit=1)
-            if employee:
-                vals['employee_id'] = employee.id
-        return super().create(vals)
