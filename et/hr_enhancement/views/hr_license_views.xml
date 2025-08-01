@@ -67,8 +67,7 @@
                 <field name="start_date"/>
                 <field name="end_date"/>
                 <field name="days_qty"/>
-                <field name="state" widget="statusbar" 
-                        statusbar_colors='{"draft":"blue", "pending":"orange", "approved":"green", "rejected":"red"}'/>
+                <field name="state"/>
             </tree>
         </field>
     </record>
