@@ -58,9 +58,11 @@
                 <field name="percentage_increase"/>
                 <field name="tipo_ajuste"/>
                 <field name="notes"/>
-                <field name="state" widget="badge" decoration-success="state == 'approved'" 
-                        decoration-danger="state == 'cancelled'" decoration-warning="state == 'pending'"
-                        decoration-info="state == 'draft'" decoration-dark="state == 'expired'"/>
+                <field name="state" widget="badge" decoration-info="state == 'draft'" 
+                        decoration-warning="state == 'pending'"
+                        decoration-success="state == 'approved'" 
+                        decoration-danger="state == 'cancelled'"
+                        decoration-secondary="state == 'expired'"/>
             </tree>
         </field>
     </record>
