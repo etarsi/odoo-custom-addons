@@ -77,15 +77,14 @@
         <field name="name">hr.license.tree</field>
         <field name="model">hr.license</field>
         <field name="arch" type="xml">
-            <tree delete="false">
+            <tree delete="false" string="Licencias del Empleado">
                 <field name="employee_id"/>
                 <field name="license_type_id"/>
                 <field name="start_date"/>
                 <field name="end_date"/>
                 <field name="days_qty"/>
                 <field name="approver_id"/>
-                <field name="state" widget="statusbar" 
-                        statusbar_colors='{"draft":"blue", "confirmed":"orange", "approved":"green", "rejected":"red"}'/>
+                <field name="state" widget="statusbar" statusbar_colors='{"draft":"blue", "confirmed":"orange", "approved":"green", "rejected":"red"}'/>
             </tree>
         </field>
     </record>
