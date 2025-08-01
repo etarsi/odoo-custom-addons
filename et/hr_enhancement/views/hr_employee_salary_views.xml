@@ -14,11 +14,6 @@
                             icon="fa-check"
                             attrs="{'invisible': [('state', '!=', 'draft')]}"
                             class="btn-success"/>
-                    <button name="action_approve"
-                            type="object"
-                            string="Aprobar"
-                            icon="fa-check-circle"
-                            attrs="{'invisible': [('state', '!=', 'pending')]}"/>
                     <button name="action_cancelled"
                             type="object"
                             string="Cancelar"
