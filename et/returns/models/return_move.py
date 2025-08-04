@@ -31,11 +31,21 @@ class ReturnMove(models.Model):
     def _onchange_partner_id(self):
         for record in self:
             if record.partner_id:
-                last_invoice = self.env['account.move'].search([
+                journals = self.env['account.journal'].search([
+                    ('code', '=', '00010'),
+                    ('company_id', '=', record.company_id.id)
+                ])
+                domain = [
                     ('partner_id', '=', record.partner_id.id),
                     ('move_type', '=', 'out_invoice'),
                     ('state', '=', 'posted')
-                ], order='date desc', limit=1)
+                ]
+                if journals:
+                    domain.append(('journal_id', 'in', journals.ids))
+                else:
+                    domain.append(('journal_id', '=', 0))
+                    
+                last_invoice = self.env['account.move'].search(domain, order='date desc', limit=1)
 
                 if last_invoice:
                     record.invoice_id = last_invoice
