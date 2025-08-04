@@ -11,11 +11,12 @@ class HrPayrollSalary(models.Model):
     date_start = fields.Date(string="Fecha Inicio", required=True, default=fields.Date.today, tracking=True)
     date_end = fields.Date(string="Fecha Fin", required=True, default=fields.Date.today, tracking=True)
     #colocar el tipo de pago
-    tipo_pago = fields.Selection([
+    type_paid = fields.Selection([
         ('semanal', 'Semanal'),
         ('quincenal', 'Quincenal'),
         ('mensual', 'Mensual'),
-        ('dia', 'Día')
+        ('dia', 'Día'),
+        ('otro', 'Otro')
     ], string="Tipo de Pago", required=True, tracking=True)
     pay_month = fields.Selection([
         ('1', 'Enero'), ('2', 'Febrero'), ('3', 'Marzo'), ('4', 'Abril'), ('5', 'Mayo'), ('6', 'Junio'),
@@ -51,6 +52,35 @@ class HrPayrollSalary(models.Model):
     def _compute_total_amount(self):
         for rec in self:
             rec.total_amount = sum(rec.line_ids.mapped('net_amount'))
+            
+    def action_confirm(self):
+        for record in self:
+            if record.state != 'draft':
+                raise ValidationError('Solo se puede confirmar una planilla en estado Borrador.')
+            record.state = 'confirmed'
+            # Aquí podrías agregar lógica adicional para procesar la planilla, como enviar notificaciones o generar informes.
+            
+    def action_cancelled(self):
+        for record in self:
+            if record.state not in ['draft', 'confirmed']:
+                raise ValidationError('Solo se puede cancelar una planilla en estado Borrador o Confirmado.')
+            record.state = 'cancelled'
+            # Aquí podrías agregar lógica adicional para manejar la cancelación, como revertir pagos o notificar a los empleados.
+
+    def action_paid(self):
+        for record in self:
+            if record.state != 'confirmed':
+                raise ValidationError('Solo se puede marcar una planilla como Pagada en estado Confirmado.')
+            record.state = 'paid'
+            # Aquí podrías agregar lógica adicional para procesar el pago, como registrar transacciones contables o enviar notificaciones a los empleados.
+
+    def action_draft(self):
+        for record in self:
+            if record.state not in ['confirmed']:
+                raise ValidationError('Solo se puede restablecer a Borrador una planilla en estado Confirmado.')
+            record.state = 'draft'
+            # Aquí podrías agregar lógica adicional para manejar el restablecimiento, como permitir modificaciones en los detalles de la planilla.
+
     
 class HrPayrollSalaryLine(models.Model):
     _name = 'hr.payroll.salary.line'

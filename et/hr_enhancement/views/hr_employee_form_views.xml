@@ -223,7 +223,7 @@
                     <group>
                         <field name="employee_type" widget="selection" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
                         <field name="wage" readonly="1"/>
-                        <field name="total_percentage_increase" readonly="1"/>
+                        <field name="total_percentage_increase" readonly="1" widget="percentage"/>
                     </group>
                 </page>
                 <page name="dependiente" string="Dependientes" attrs="{'invisible': [('is_children', '=', False)]}">

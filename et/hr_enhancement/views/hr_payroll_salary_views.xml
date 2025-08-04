@@ -14,36 +14,40 @@
                             icon="fa-check"
                             attrs="{'invisible': [('state', '!=', 'draft')]}"
                             class="btn-success"/>
-                    <button name="action_approve"
+                    <button name="action_cancelled"
                             type="object"
-                            string="Aprobar"
-                            icon="fa-check-circle"
-                            attrs="{'invisible': [('state', '!=', 'pending')]}"/>
-                    <button name="action_reject"
+                            string="Cancelar"
+                            icon="fa-ban"
+                            attrs="{'invisible': [('state', '!=', 'confirmed')]}"/>
+                    <button name="action_paid"
                             type="object"
-                            string="Rechazar"
-                            icon="fa-times"
-                            attrs="{'invisible': [('state', '!=', 'pending')]}"/>
+                            string="Marcar como Pagada"
+                            icon="fa-check"
+                            attrs="{'invisible': [('state', '!=', 'confirmed')]}"/>
+                    <button name="action_draft"
+                            type="object"
+                            string="Restablecer a Borrador"
+                            icon="fa-undo"
+                            attrs="{'invisible': [('state', '!=', 'confirmed')]}"/>
                 </header>
                 <sheet>
-                    <group>
-                        <group name="group_location_info" string="Información de Licencia">
-                            <field name="employee_id" string="Empleado" required="True" attrs="{'readonly': ['|', ('state', '!=', 'draft'), ('employee_id', '!=', False)]}"/>
-                            <field name="license_type_id" string="Tipo de Licencia" required="True" options="{'no_create': True}" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
-                            <field name="start_date" string="Fecha de Inicio" required="True" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
-                            <field name="end_date" string="Fecha de Fin" required="True" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
-                            <field name="days_qty" string="Cantidad de Días" required="True" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
-                            <field name="document" filename="document_name" string="Documento de Licencia" required="True" widget="binary" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
-                            <field name="description" string="Descripción" required="True" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                    <div class="oe_title">
+                        <!-- Number -->
+                        <h1 class="mt0" attrs="{'invisible':[('name', '=', '/')]}">
+                            <field name="name" attrs="{'readonly': [('state', '!=', 'draft')]}" placeholder="PLANILLA-AGOSTO/2025"/>
+                        </h1>
+                    </div>
+                    <group name="group_info" string="Información de la Planilla">
+                        <group>
+                            <field name="employee_type" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                            <field name="type_paid" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                            <field name="date_start" attrs="{'readonly': [('state', '!=', 'draft')], 'invisible': [('type_paid', '=', 'mensual')]}"/>
+                            <field name="date_end" attrs="{'readonly': [('state', '!=', 'draft')], 'invisible': [('type_paid', '=', 'mensual')]}"/>
+                            <field name="pay_month" attrs="{'readonly': [('state', '!=', 'draft')], 'invisible': [('type_paid', '!=', 'mensual')]}"/>
+                            <field name="pay_year" attrs="{'readonly': [('state', '!=', 'draft')], 'invisible': [('type_paid', '!=', 'mensual')]}"/>
                         </group>
-                        <group name="group_location_info" string="Información de Licencia">
-                            <field name="employee_id" string="Empleado" required="True" attrs="{'readonly': ['|', ('state', '!=', 'draft'), ('employee_id', '!=', False)]}"/>
-                            <field name="license_type_id" string="Tipo de Licencia" required="True" options="{'no_create': True}" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
-                            <field name="start_date" string="Fecha de Inicio" required="True" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
-                            <field name="end_date" string="Fecha de Fin" required="True" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
-                            <field name="days_qty" string="Cantidad de Días" required="True" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
-                            <field name="document" filename="document_name" string="Documento de Licencia" required="True" widget="binary" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
-                            <field name="description" string="Descripción" required="True" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                        <group>
+                            <field name="total_amount"/>
                         </group>
                     </group>
                 </sheet>

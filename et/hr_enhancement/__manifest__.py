@@ -35,6 +35,7 @@
         'views/hr_season_labor_cost_views.xml',
         'views/hr_license_type_views.xml',
         'views/hr_employee_salary_views.xml',
+        'views/hr_payroll_salary_views.xml',
         'views/menu.xml',
         'views/views.xml',
     ],
