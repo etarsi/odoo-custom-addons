@@ -173,9 +173,9 @@ class ReporteFacturaWizard(models.TransientModel):
                     quantity = line.quantity
                     subtotal = line.price_subtotal
                     if factura.move_type in ('out_refund', 'in_refund'):
-                        quantity = float_round(line.quantity * -1, precision_rounding=2)
+                        quantity = -abs(line.quantity)
                         if line.price_subtotal > 0:
-                            subtotal = float_round(line.price_subtotal * -1, precision_rounding=2)
+                            subtotal = -abs(line.price_subtotal)
                         else:
                             subtotal = line.price_subtotal
                     worksheet.write(row, 0, factura.name, formato_celdas_izquierda)

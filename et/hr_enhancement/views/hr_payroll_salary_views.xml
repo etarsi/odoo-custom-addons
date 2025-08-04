@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_hr_payroll_salary_tree" model="ir.ui.view">
+        <field name="name">hr.payroll.salary.tree</field>
+        <field name="model">hr.payroll.salary</field>
+        <field name="arch" type="xml">
+            <form string="Planilla de Sueldo del Empleado">
+                <header>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,pending,approved,rejected"
+                                                                   statusbar_colors='{"draft":"blue", "pending":"orange", "approved":"success", "rejected":"red"}'/>
+                    <button name="action_confirm"
+                            type="object"
+                            string="Confirmar"
+                            icon="fa-check"
+                            attrs="{'invisible': [('state', '!=', 'draft')]}"
+                            class="btn-success"/>
+                    <button name="action_approve"
+                            type="object"
+                            string="Aprobar"
+                            icon="fa-check-circle"
+                            attrs="{'invisible': [('state', '!=', 'pending')]}"/>
+                    <button name="action_reject"
+                            type="object"
+                            string="Rechazar"
+                            icon="fa-times"
+                            attrs="{'invisible': [('state', '!=', 'pending')]}"/>
+                </header>
+                <sheet>
+                    <group>
+                        <group name="group_location_info" string="Información de Licencia">
+                            <field name="employee_id" string="Empleado" required="True" attrs="{'readonly': ['|', ('state', '!=', 'draft'), ('employee_id', '!=', False)]}"/>
+                            <field name="license_type_id" string="Tipo de Licencia" required="True" options="{'no_create': True}" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                            <field name="start_date" string="Fecha de Inicio" required="True" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                            <field name="end_date" string="Fecha de Fin" required="True" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                            <field name="days_qty" string="Cantidad de Días" required="True" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                            <field name="document" filename="document_name" string="Documento de Licencia" required="True" widget="binary" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                            <field name="description" string="Descripción" required="True" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                        </group>
+                        <group name="group_location_info" string="Información de Licencia">
+                            <field name="employee_id" string="Empleado" required="True" attrs="{'readonly': ['|', ('state', '!=', 'draft'), ('employee_id', '!=', False)]}"/>
+                            <field name="license_type_id" string="Tipo de Licencia" required="True" options="{'no_create': True}" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                            <field name="start_date" string="Fecha de Inicio" required="True" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                            <field name="end_date" string="Fecha de Fin" required="True" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                            <field name="days_qty" string="Cantidad de Días" required="True" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                            <field name="document" filename="document_name" string="Documento de Licencia" required="True" widget="binary" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                            <field name="description" string="Descripción" required="True" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                        </group>
+                    </group>
+                </sheet>
+                <notebook>
+                    <page name="employees_lines" string="Líneas de Empleados">
+                        <field name="line_ids" widget="one2many_list">
+                            <tree editable="bottom">
+                                <field name="employee_id" />
+                                <field name="worked_days" />
+                                <field name="worked_hours" />
+                                <field name="bonus" />
+                                <field name="dias_licencia" />
+                                <field name="discount" />
+                                <field name="gross_amount" />
+                                <field name="net_amount" />
+                            </tree>
+                        </field>
+                    </page>
+                </notebook>
+                <!--DETALLE QUIEN  -->
+                <div class="oe_chatter">
+                    <field name="message_follower_ids" widget="mail_followers"/>
+                    <field name="activity_ids" widget="mail_activity"/>
+                    <field name="message_ids" widget="mail_thread"/>
+                </div>
+            </form>
+        </field>
+    </record>
+
+    
+
+</odoo>
