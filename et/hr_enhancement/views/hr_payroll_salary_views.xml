@@ -54,6 +54,7 @@
                     <page name="employees_lines" string="Líneas de Empleados">
                         <field name="line_ids" widget="one2many_list">
                             <tree editable="bottom">
+                                <field name="payroll_id" invisible="1"/>
                                 <field name="employee_id" domain="[('employee_type', '=', payroll_id.employee_type)]"/>
                                 <field name="worked_days" />
                                 <field name="worked_hours" />
