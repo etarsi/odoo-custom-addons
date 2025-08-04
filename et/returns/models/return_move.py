@@ -32,8 +32,7 @@ class ReturnMove(models.Model):
         for record in self:
             if record.partner_id:
                 journals = self.env['account.journal'].search([
-                    ('code', '=', '00010'),
-                    ('company_id', '=', record.company_id.id)
+                    ('code', '=', '00010')
                 ])
                 domain = [
                     ('partner_id', '=', record.partner_id.id),
