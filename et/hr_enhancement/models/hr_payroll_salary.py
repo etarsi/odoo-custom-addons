@@ -38,7 +38,7 @@ class HrPayrollSalary(models.Model):
     employee_type = fields.Selection([
         ('employee', 'Fijo'),
         ('eventual', 'Eventual'),
-    ], string="Tipo de Empleado a Pagar", required=True, tracking=True)
+    ], string="Tipo de Empleado a Pagar", default='eventual', required=True, tracking=True)
     #totales de la planilla
     total_amount = fields.Monetary(
         string="Total a Pagar",
@@ -88,7 +88,7 @@ class HrPayrollSalaryLine(models.Model):
     _inherit = ['mail.thread', 'mail.activity.mixin']
 
     payroll_id = fields.Many2one('hr.payroll.salary', string="Planilla", required=True, ondelete='cascade')
-    employee_id = fields.Many2one('hr.employee', string="Empleado", domain="[('employee_type', '=', payroll_id.employee_type)]", required=True)
+    employee_id = fields.Many2one('hr.employee', string="Empleado", required=True)
     job_id = fields.Many2one(related='employee_id.job_id', string="Puesto", store=True)
     contract_id = fields.Many2one('hr.contract', string="Contrato")  # Opcional, si tenés contratos
     worked_days = fields.Float('Días Trabajados', compute='_compute_attendance', store=True)
