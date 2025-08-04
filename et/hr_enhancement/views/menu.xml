@@ -20,6 +20,25 @@
         action="hr_enhancement.action_approve_licenses"
         sequence="2"/>
 
+    <!-- Menú principal "Planilla de Sueldos" -->
+    <menuitem 
+        id="hr_enhancement.menu_hr_payroll_salary"
+        name="Planilla de Sueldos"
+        parent="hr.menu_hr_root"
+        sequence="10"/>
+    <menuitem 
+        id="hr_enhancement.menu_payroll_eventuales"
+        name="Planilla de Eventuales"
+        parent="hr_enhancement.menu_hr_payroll_salary"
+        action="hr_enhancement.action_hr_payroll_eventuales"
+        sequence="1"/>
+    <menuitem 
+        id="hr_enhancement.menu_payroll_employees"
+        name="Planilla de Empleados"
+        parent="hr_enhancement.menu_hr_payroll_salary"
+        action="hr_enhancement.action_hr_payroll_employees"
+        sequence="2"/>
+
     <!-- Nuevo menú dentro de Recursos Humanos > Configuración -->
     <menuitem 
         id="hr_enhancement.menu_hr_season_labor_cost_config"
