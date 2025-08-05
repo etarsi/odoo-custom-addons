@@ -149,6 +149,34 @@ class StockPickingInherit(models.Model):
         for record in self:
             record.delivery_state = 'delivered'
 
+            vals_list = []
+            for move in record.move_ids_without_package:
+                for line in move.move_line_ids:                    
+                    move_type = 'RECEPCIÓN' if record.picking_type_code == 'incoming' else 'ENTREGA'
+                                                        
+                    vals = {
+                        'date': fields.Datetime.now(),
+                        'type': move_type,
+                        'product_id': move.product_id.id,
+                        'product_code': move.product_id.default_code,
+                        'product_name': move.product_id.name,
+                        'categ_id': move.product_id.categ_id.name or '',
+                        'quantity': line.qty_done,
+                        'uxb': move.product_id.packaging_ids[:1].name if move.product_id.packaging_ids else '',
+                        'lot': line.lot_id.name or '',
+                        'cmv': '',
+                        'partner_id': record.partner_id.id,
+                        'company_id': record.company_id.name,
+                        'picking_id': record.id,
+                        'wms_code': record.codigo_wms,
+                        'license': record.carrier_tracking_ref,
+                        'container': record.container,
+                        'dispatch': record.dispatch_number,
+                    }
+                    vals_list.append(vals)
+
+            self.env['product.move'].create(vals)
+
     def mark_as_returned(self):
         for record in self:
             record.delivery_state = 'returned'
@@ -172,36 +200,9 @@ class StockPickingInherit(models.Model):
 
                     total_declarado += line_value
                 
-                record.declared_value = total_declarado * 0.25           
+                record.declared_value = total_declarado * 0.25
+
             
-            vals_list = []
-
-            for move in record.move_ids_without_package:
-                for line in move.move_line_ids:                    
-                    move_type = 'RECEPCIÓN' if record.picking_type_code == 'incoming' else 'ENTREGA'
-                    
-                    vals = {
-                        'date': fields.Datetime.now(),
-                        'type': move_type,
-                        'product_id': move.product_id.id,
-                        'product_code': move.product_id.default_code,
-                        'product_name': move.product_id.name,
-                        'categ_id': move.product_id.categ_id.name or '',
-                        'quantity': line.qty_done,
-                        'uxb': move.product_id.packaging_ids[:1].name if move.product_id.packaging_ids else '',
-                        'lot': line.lot_id.name or '',
-                        'cmv': '',
-                        'partner_id': record.partner_id.id,
-                        'company_id': record.company_id.name,
-                        'picking_id': record.id,
-                        'wms_code': record.codigo_wms,
-                        'license': record.carrier_tracking_ref,
-                        'container': record.container,
-                        'dispatch': record.dispatch_number,
-                    }
-                    vals_list.append(vals)
-
-            self.env['product.move'].create(vals)
 
         return res
 
