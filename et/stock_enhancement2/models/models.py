@@ -151,7 +151,7 @@ class StockPickingInherit(models.Model):
 
             if record.picking_type_code == 'outgoing':
                 move_type = 'ENTREGA'
-                record.action_create_product_moves(record, move_type)
+                record.action_create_product_moves(move_type)
 
             
 
@@ -182,39 +182,39 @@ class StockPickingInherit(models.Model):
 
             if record.picking_type_code == 'incoming':
                 move_type = 'RECEPCIÓN'
-                record.action_create_product_moves(record, move_type)
+                record.action_create_product_moves(move_type)
 
         return res
     
-    def action_create_product_moves(self, picking, move_type):
-        
+    def action_create_product_moves(self, move_type):
         vals_list = []
 
-        for move in picking.move_ids_without_package:
-                    for line in move.move_line_ids:     
-                                                                                        
-                        vals = {
-                            'date': fields.Datetime.now(),
-                            'type': move_type,
-                            'product_id': move.product_id.id,
-                            'product_code': move.product_id.default_code,
-                            'product_name': move.product_id.name,
-                            'categ_id': move.product_id.categ_id.name or '',
-                            'quantity': line.qty_done,
-                            'uxb': move.product_id.packaging_ids[:1].name if move.product_id.packaging_ids else '',
-                            'lot': line.lot_id.name or '',
-                            'cmv': '',
-                            'partner_id': picking.partner_id.id,
-                            'company_id': picking.company_id.name,
-                            'picking_id': picking.id,
-                            'wms_code': picking.codigo_wms,
-                            'license': picking.carrier_tracking_ref,
-                            'container': picking.container,
-                            'dispatch': picking.dispatch_number,
-                        }
-                        vals_list.append(vals)
+        for picking in self:
+            for move in picking.move_ids_without_package:
+                for line in move.move_line_ids:
+                    vals = {
+                        'date': fields.Datetime.now(),
+                        'type': move_type,
+                        'product_id': move.product_id.id,
+                        'product_code': move.product_id.default_code,
+                        'product_name': move.product_id.name,
+                        'categ_id': move.product_id.categ_id.name or '',
+                        'quantity': line.qty_done,
+                        'uxb': move.product_id.packaging_ids[:1].name if move.product_id.packaging_ids else '',
+                        'lot': line.lot_id.name or '',
+                        'cmv': '',
+                        'partner_id': picking.partner_id.id,
+                        'company_id': picking.company_id.name,
+                        'picking_id': picking.id,
+                        'wms_code': picking.codigo_wms,
+                        'license': picking.carrier_tracking_ref,
+                        'container': picking.container,
+                        'dispatch': picking.dispatch_number,
+                    }
+                    vals_list.append(vals)
 
-        self.env['product.move'].create(vals)
+        self.env['product.move'].create(vals_list)
+
 
 
     def action_create_invoice_from_picking(self):
