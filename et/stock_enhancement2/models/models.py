@@ -145,6 +145,7 @@ class StockPickingInherit(models.Model):
         if product_id.tracking != 'lot':
             product_id.tracking = 'lot'
 
+    @api.multi
     def mark_as_delivered(self):
         for record in self:
             record.delivery_state = 'delivered'
