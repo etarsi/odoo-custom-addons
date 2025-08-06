@@ -187,8 +187,11 @@ class StockPickingInherit(models.Model):
 
         return res
     
-    def action_create_product_moves(self, move_type):
+    def action_create_product_moves(self, move_type=None):
         vals_list = []
+
+        if not move_type:
+            move_type = 'ENTREGA'
 
         for picking in self:
             for move in picking.move_ids_without_package:
