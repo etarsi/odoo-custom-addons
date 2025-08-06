@@ -187,11 +187,8 @@ class StockPickingInherit(models.Model):
 
         return res
     
-    def action_create_product_moves(self, move_type=None):
+    def action_create_product_moves(self, move_type):
         vals_list = []
-
-        if not move_type:
-            move_type = 'ENTREGA'
 
         for picking in self:
             for move in picking.move_ids_without_package:
@@ -425,38 +422,7 @@ class StockPickingInherit(models.Model):
             'res_id': invoice.id,
         }
 
-    def action_create_product_moves(self):
-        for record in self:
-            
-            stock_moves = self.env['stock.move'].search([('date', '>', '2025-03-01'),('state', '=', 'done'),])
-            vals_list = []
-
-            for move in stock_moves:
-                for line in move.move_line_ids:
-                    move_type = 'RECEPCIÓN' if move.picking_id.picking_type_code == 'incoming' else 'ENTREGA'
-
-                    vals = {
-                        'date': move.date,
-                        'type': move_type,
-                        'product_id': move.product_id.id,
-                        'product_code': move.product_id.default_code,
-                        'product_name': move.product_id.name,
-                        'categ_id': move.product_id.categ_id.name or '',
-                        'quantity': line.qty_done,
-                        'uxb': move.product_id.packaging_ids[:1].name if move.product_id.packaging_ids else '',
-                        'lot': line.lot_id.name or '',
-                        'cmv': '',
-                        'partner_id': move.picking_id.partner_id.id,
-                        'company_id': move.company_id.name,
-                        'picking_id': move.picking_id.id,
-                        'wms_code': move.picking_id.codigo_wms,
-                        'license': move.picking_id.carrier_tracking_ref,
-                        'container': move.picking_id.container,
-                        'dispatch': move.picking_id.dispatch_number,
-                    }
-                    vals_list.append(vals)
-        self.env['product.move'].create(vals_list)
-
+    
     def _prepare_invoice_base_vals(self, company):
         partner = self.partner_id
         invoice_date_due = fields.Date.context_today(self)
