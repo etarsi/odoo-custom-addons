@@ -11,4 +11,4 @@ from . import hr_season_labor_cost
 from . import hr_employee_edit_request
 from . import hr_payroll_salary
 from . import hr_work_schedule
-from . import res_config
+#from . import res_config
