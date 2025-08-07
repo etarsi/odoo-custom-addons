@@ -81,6 +81,7 @@ class ReturnMove(models.Model):
 
         if response.status_code == 200:
             self.state == 'inprogress'
+            self.wms_code = 'R1'
 
 
 
