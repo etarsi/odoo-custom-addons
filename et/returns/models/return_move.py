@@ -64,7 +64,7 @@ class ReturnMove(models.Model):
     def action_send_return(self):        
         
         headers = {}
-        params = {
+        json = {
             "Numero": "R1",
             "Factura": "",
             "Fecha": "2025-08-07T15:55:007Z",
@@ -77,7 +77,7 @@ class ReturnMove(models.Model):
             }
         
         headers["x-api-key"] = self.env['ir.config_parameter'].sudo().get_param('digipwms.key')
-        response = requests.post('http://api.patagoniawms.com/v1/DocumentoRecepcion', headers=headers, params=params)
+        response = requests.post('http://api.patagoniawms.com/v1/DocumentoRecepcion', headers=headers, json=json)
 
         if response.status_code == 200:
             self.state == 'inprogress'
