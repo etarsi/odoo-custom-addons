@@ -68,7 +68,7 @@ class ReturnMove(models.Model):
             "Numero": "R1",
             "Factura": "",
             "Fecha": "2025-08-07 16:12:00",
-            "CodigoProveedor": "EL MUNDO DEL JUGUETE SA",
+            "CodigoProveedor": "17493",
             "Observacion": "Prueba de Odoo",
             "DocumentoRecepcionTipo": "remito",
             "RecepcionTipo": "devolucion",
