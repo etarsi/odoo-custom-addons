@@ -14,7 +14,7 @@ class HrAttendanceController(http.Controller):
             check = data.get('check')
             # TODO: podés validar o procesar el dato acá
             # Por ejemplo, crear el registro de asistencia:
-            employee = request.env['hr.employee'].sudo().search([('dni', '=', employee_dni)], limit=1)
+            employee = request.env['hr.employee'].sudo().search([('dni', '=', employee_dni), ('name', '=', employee_name)], limit=1)
             if not employee:
                 employee = request.env['hr.employee'].sudo().create({
                     'dni': employee_dni,

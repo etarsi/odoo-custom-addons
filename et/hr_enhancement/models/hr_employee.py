@@ -15,17 +15,14 @@ class HrEmployee(models.Model):
     celular = fields.Char(string='Celular', required=True, tracking=True)
     email_personal = fields.Char(string='Email', required=True, 
                          help='Email personal del empleado, no se usa para notificaciones.', tracking=True)
-
     #datos familiares
     spouse_dni = fields.Char(string='DNI del Cónyuge', tracking=True)
     is_children = fields.Boolean(string='Tiene Hijos', default=False, tracking=True)
-
     #relación de uno a muchos para los hijos
     children_ids = fields.One2many('hr.employee.children', 'employee_id', string='Hijos', tracking=True)
     #familiar a cargo
     dependent_name = fields.Char(string='Nombre del Familiar a Cargo', tracking=True)
     dependent_dni = fields.Char(string='DNI del Familiar a Cargo', tracking=True)
-
     #datos de cuenta bancaria
     bank = fields.Char(string='Banco', required=True, tracking=True)
     nro_account = fields.Char(string='Número de Cuenta', required=True, tracking=True)
@@ -41,11 +38,9 @@ class HrEmployee(models.Model):
         store=True, tracking=True
     )
     alta_afip = fields.Date('Fecha de Alta AFIP', tracking=True)
-    
     #firma del empleado digital
     digital_signature = fields.Binary('Firma Digital (PNG)', tracking=True)
     digital_signature_name = fields.Char('Nombre de la Firma Digital')
-
     #licencias asignadas
     license_ids = fields.One2many('hr.license', 'employee_id', string='Licencias Asignadas')
     #contador de licencias asignadas
@@ -58,7 +53,6 @@ class HrEmployee(models.Model):
         'employee_id',
         string="Solicitudes de Edición"
     )
-    
     #estado del emple
     state = fields.Selection([
         ('draft', 'Borrador'),
@@ -66,12 +60,15 @@ class HrEmployee(models.Model):
         ('active', 'Activo'),
         ('inactive', 'Baja')
     ], string='Estado', default='draft', tracking=True)
-    
     employee_type = fields.Selection(
         selection_add=[('eventual', 'Eventuales')],
         ondelete={'eventual': 'set default'},
         default='employee', tracking=True
     )
+    type_shift = fields.Selection([
+        ('day', 'Turno Diurno'),
+        ('night', 'Turno Nocturno'),
+    ], string='Tipo de Turno', default='day', tracking=True)
 
     _sql_constraints = [
         ('unique_dni', 'UNIQUE(dni)', 'El DNI debe ser único por empleado.'),

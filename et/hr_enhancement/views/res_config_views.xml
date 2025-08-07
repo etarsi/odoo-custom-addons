@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_res_config_settings" model="ir.ui.view">
+        <field name="name">Configuración de Horario Laboral</field>
+        <field name="model">res.config.settings</field>
+        <field name="inherit_id" ref="hr_attendance.res_config_settings_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//div[@name='overtime_settings']" position="after">
+                <h2>Configuración de Limites de Marcado Laboral</h2>
+                <div class="row mt16 o_settings_container" name="config_limits_work_schedule">
+                    <div class="col-12 col-lg-6 o_setting_box">
+                        <div class="o_setting_left_pane"/>
+                        <div class="o_setting_right_pane">
+                            <span class="o_form_label"> Hora de Inicio (Marcado) Diurno</span>
+                            <div class="text-muted">
+                                Aca se define la hora de inicio del marcado laboral diurno.
+                            </div>
+                            <div class="text-muted">
+                                <field name="hour_start_day_check" widget="time"/>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-12 col-lg-6 o_setting_box">
+                        <div class="o_setting_left_pane"/>
+                        <div class="o_setting_right_pane">
+                            <span class="o_form_label"> Hora de Fin (Marcado) Diurno</span>
+                            <div class="text-muted">
+                                Aca se define la hora de fin del marcado laboral diurno.
+                            </div>
+                            <div class="text-muted">
+                                <field name="hour_end_day_check" widget="time"/>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-12 col-lg-6 o_setting_box">
+                        <div class="o_setting_left_pane"/>
+                        <div class="o_setting_right_pane">
+                            <span class="o_form_label"> Hora de Inicio (Marcado) Nocturno</span>
+                            <div class="text-muted">
+                                Aca se define la hora de inicio del marcado laboral nocturno.
+                            </div>
+                            <div class="text-muted">
+                                <field name="hour_start_night_check" widget="time"/>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-12 col-lg-6 o_setting_box">
+                        <div class="o_setting_left_pane"/>
+                        <div class="o_setting_right_pane">
+                            <span class="o_form_label"> Hora de Fin (Marcado) Nocturno</span>
+                            <div class="text-muted">
+                                Aca se define la hora de fin del marcado laboral nocturno.
+                            </div>
+                            <div class="text-muted">
+                                <field name="hour_end_night_check" widget="time"/>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </xpath>
+        </field>
+    </record>
+    
+
+</odoo>

@@ -217,6 +217,9 @@
                         <field name="employee_type" widget="selection" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
                         <field name="wage" readonly="1"/>
                         <field name="total_percentage_increase" readonly="1" widget="percentage"/>
+                        <fields name="type_shift" widget="radio" 
+                            options="{'horizontal': true}" 
+                            attrs="{'readonly': [('state', '!=', 'draft')]}"/>
                     </group>
                 </page>
                 <page name="dependiente" string="Dependientes" attrs="{'invisible': [('is_children', '=', False)]}">
