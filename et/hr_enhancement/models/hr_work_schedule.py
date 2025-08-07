@@ -26,9 +26,8 @@ class HrWorkSchedule(models.Model):
     @api.constrains('hour_start', 'hour_end', 'hour_start_night', 'hour_end_night')
     def _check_hours(self):
         for rec in self:
-            if rec.hour_start < 0 or rec.hour_end < 0 or rec.hour_start_night < 0 or rec.hour_end_night < 0:
-                raise ValidationError("Las horas no pueden ser negativas.")
-            if rec.hour_start >= rec.hour_end:
-                raise ValidationError("La hora de inicio debe ser menor que la hora de fin.")
-            if rec.hour_start_night and rec.hour_end_night and rec.hour_start_night >= rec.hour_end_night:
-                raise ValidationError("La hora de inicio (noche) debe ser menor que la hora de fin (noche).")
+            for field_name in ['hour_start', 'hour_end', 'hour_start_night', 'hour_end_night']:
+                value = getattr(rec, field_name)
+                if value is not False:  # None or 0 is valid
+                    if value < 0 or value >= 24:
+                        raise ValidationError("La hora en '%s' debe estar entre 00:00 y 23:59." % dict(self._fields[field_name].string))
