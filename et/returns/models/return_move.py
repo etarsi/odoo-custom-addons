@@ -82,6 +82,8 @@ class ReturnMove(models.Model):
         if response.status_code == 200:
             self.state == 'inprogress'
             self.wms_code = 'R1'
+        else:
+            raise UserError(f'Error code: {response.status_code} - Error Msg: {response.text}')
 
 
 
