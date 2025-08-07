@@ -1,4 +1,15 @@
-from odoo import models, fields, api
+from odoo import models, fields, api, _
+from odoo.http import request, content_disposition
+from reportlab.lib.pagesizes import A4
+from reportlab.pdfgen import canvas
+from io import BytesIO
+from datetime import datetime
+from odoo.exceptions import UserError, AccessError
+import logging
+import math
+import requests
+from itertools import groupby
+from datetime import timedelta
 
 class ReturnMove(models.Model):
     _name = 'return.move'
@@ -48,6 +59,30 @@ class ReturnMove(models.Model):
 
                 if last_invoice:
                     record.invoice_id = last_invoice
+
+
+    def action_send_return(self):        
+        
+        headers = {}
+        params = {
+            "Numero": "R1",
+            "Factura": "",
+            "Fecha": "2025-08-07T15:55:007Z",
+            "CodigoProveedor": "EL MUNDO DEL JUGUETE SA",
+            "Observacion": "Prueba de Odoo",
+            "DocumentoRecepcionTipo": "remito",
+            "RecepcionTipo": "devolucion",
+            "DocumentoRecepcionDetalleRequest": [
+            ]
+            }
+        
+        headers["x-api-key"] = self.env['ir.config_parameter'].sudo().get_param('digipwms.key')
+        response = requests.post('http://api.patagoniawms.com/v1/DocumentoRecepcion', headers=headers, params=params)
+
+        if response.status_code == 200:
+            self.state == 'inprogress'
+
+
 
 class ReturnMoveLine(models.Model):
     _name = 'return.move.line'

@@ -64,7 +64,6 @@ class StockWMS(models.Model):
                 }
                 vals_list.append(vals)
         stock_wms.create(vals_list)
-
     
 
     def get_digip_stock(self):
@@ -86,32 +85,8 @@ class StockWMS(models.Model):
         elif response.status_code == 500:
             raise UserError('ERROR: 500 INTERNAL SERVER ERROR. Avise a su administrador de sistema. Probablemente alguno de los productos no se encuentra creado en Digip.')        
 
-    def get_comprado(self):
-        global_purchases = self.env['purchase.order'].search([('china_purchase','=', True)])
-
-        return global_purchases
-    
-    def get_enelagua(self):
-        # product_uom
-        # product_qty
-        # qty_received
-        purchased = self.get_comprado()
-        containers = self.env['stock.picking'].search([('partner_id','=', 16571), ('picking_type_code','!=','outgoing')])
-
         
     def get_fisico_bultos(self):
         for record in self:
             if record.fisico_unidades > 0:
                 record.fisico_bultos = record.fisico_unidades / float(record.uxb)
-
-
-    
-    # def get_comprometido(self)
-
-    # def get_disponible(self):
-
-    # def get_reservado(self):
-
-    # def get_entrante(self):
-
-    # def get_bultos(self, uxb):
