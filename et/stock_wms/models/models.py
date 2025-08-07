@@ -39,7 +39,7 @@ class StockWMS(models.Model):
     reservado_bultos = fields.Float('Reservado Bultos')
     disponible_bultos = fields.Float('Disponible Bultos')    
     entregable_bultos = fields.Float('Entregable Bultos')
-    comprado_bultos = fields.Float
+    comprado_bultos = fields.Float('Comprado Bultos')
     entrante_bultos = fields.Float('Entrante Bultos')
 
     entrante_fecha = fields.Date('ETA')
@@ -50,94 +50,29 @@ class StockWMS(models.Model):
     # teórico
 
     def create_initial_products(self):
-        current_products = self.env['product.template'].search([
-            ('detailed_type', '=', 'product'),
-            ('categ_id.parent_id', 'not in', [1, 756, 763]),
-            ('default_code', 'not like', '9%')
-        ])
 
-        new_stock = self.env['stock.wms']
+        stock_digip = self.get_digip_stock()
+        stock_wms = self.env['stock.wms']
         vals_list = []
-        for product in current_products:
-            vals_list.append({
-                'product_id': product.id if product.id else False,
-                'product_name': product.name if product.name else False,
-                # 'default_code': product.default_code,
-                'uxb': product.uom_po_id.name if product.uom_po_id else False,
-            })
-        if vals_list:
-            new_stock.create(vals_list)
 
-    def update_product_list(self):
-        existing_product_ids = set(
-            self.env['stock.wms'].search([]).mapped('product_id').ids
-        )
+        for record in stock_digip:
+            product_id = self.env['product.template'].search([('default_code', '=', record['codigo'])], limit=1)
+            if product_id:
+                vals = {
+                    'product_id': product_id.id,
+                    'fisico_unidades': record['stock']['disponible']
+                }
+                vals_list.append(vals)
+        stock_wms.create(vals_list)
 
-        current_products = self.env['product.template'].search([
-            ('detailed_type', '=', 'product'),
-            ('categ_id.parent_id', 'not in', [1, 756, 763]),
-            ('id', 'not in', list(existing_product_ids))
-        ], fields=['name', 'default_code', 'uom_po_id'])
+    
 
-        vals_list = []
-        for product in current_products:
-            vals_list.append({
-                'product_id': product.id,                
-                'product_name': product.name,
-                'default_code': product.default_code,
-                'uom_name': product.uom_po_id.name if product.uom_po_id else False,
-            })
-        if vals_list:
-            self.env['stock.wms'].create(vals_list)
-
-
-    def update_products_info(self):
-        fisico_unidades = self.get_fisico()
-
-
-
-    def get_fisico(self):
-        new_stock = self.env['stock.wms'].search([])
-        product_ids = self.env['stock.wms'].search([('product_id', '!=', False)]).mapped('product_id')
-        product_codes = set(product_ids.mapped('default_code'))
-        digip_stock = self._get_digip_stock_en_lotes(product_codes)
-        
-        stock_by_code = {
-            p['codigo']: p['stock']['disponible']
-            for p in digip_stock
-        }
-
-        for s in new_stock:
-            code = s.product_id.default_code
-            disponible = stock_by_code.get(code, 0)
-
-            s.fisico_unidades = disponible
-            s.get_fisico_bultos()
-            s.ultima_actualizacion = fields.Datetime.now()
-
-    def _get_digip_stock_en_lotes(self, product_codes, max_por_lote=387):
-        product_codes = list(product_codes)
-        total_stock = []
-
-        for i in range(0, len(product_codes), max_por_lote):
-            lote = product_codes[i:i + max_por_lote]
-            _logger.info(f"[STOCK] Llamando API para lote {i // max_por_lote + 1} con {len(lote)} códigos")
-            lote_stock = self.get_digip_stock(lote)
-            if lote_stock:
-                total_stock.extend(lote_stock)
-
-        return total_stock
-
-    def get_digip_stock(self, lote):
+    def get_digip_stock(self):
         headers = {}
-        params = {}
         
         url = self.env['ir.config_parameter'].sudo().get_param('digipwms-v2.url')
         headers["x-api-key"] = self.env['ir.config_parameter'].sudo().get_param('digipwms.key')
-        params = {
-            'ArticuloCodigo': lote
-        }
-        response = requests.get(f'{url}/v2/Stock/Tipo', headers=headers, params=params)
+        response = requests.get(f'{url}/v2/Stock/Tipo', headers=headers)
 
         if response.status_code == 200:
             products = response.json()

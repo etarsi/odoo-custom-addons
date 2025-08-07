@@ -59,6 +59,17 @@ class ReturnMoveLine(models.Model):
     uxb = fields.Integer(string="UxB")
     bultos = fields.Float(string="Bultos")
     price_unit = fields.Float(string="Precio Unitario")
+    discount = fields.Float(string="Descuento")
     price_subtotal = fields.Float(string="Precio Subtotal")
     is_broken = fields.Boolean("¿Roto?")
     wib = fields.Char(string="¿Qué está roto?")
+
+    def get_last_price(self):
+
+        last_invoice_line = self.env['account.move.line'].search([
+            ('product_id', '=', self.id),
+            ('parent_state', '=', 'posted'),
+        ], order='date dsc', limit=1)
+
+        if last_invoice_line:
+            self.price_unit = last_invoice_line.price_unit
