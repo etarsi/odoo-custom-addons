@@ -67,7 +67,7 @@ class ReturnMove(models.Model):
         json = {
             "Numero": "R1",
             "Factura": "",
-            "Fecha": "2025-08-07T15:55:007Z",
+            "Fecha": "2025-08-07 16:12:00",
             "CodigoProveedor": "EL MUNDO DEL JUGUETE SA",
             "Observacion": "Prueba de Odoo",
             "DocumentoRecepcionTipo": "remito",
