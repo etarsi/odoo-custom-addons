@@ -1,7 +1,7 @@
 from odoo import models, fields, api
 from odoo.exceptions import ValidationError
 
-class ResConfigSettings(models.Model):
+class ResConfigSettings(models.TransientModel):
     _inherit = 'res.config.settings'
     _description = 'Configuración de Horario Laboral'
 
