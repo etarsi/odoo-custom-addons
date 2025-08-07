@@ -11,6 +11,9 @@
                 <field name="uxb"/>
                 <field name="fisico_unidades"/>
             </tree>
+            <toolbar>
+                <action name="action_copiar_stock_real" string="Copiar stock real"/>
+            </toolbar>
         </field>
     </record>
 
@@ -32,14 +35,16 @@
               action="action_stock_wms_tree" sequence="10"/> -->
 
     <record id="action_copiar_stock_real" model="ir.actions.server">
-        <field name="name">Copiar stock real</field>
-        <field name="model_id" ref="stock_wms.model_stock_wms"/>
-        <field name="binding_model_id" ref="stock_wms.model_stock_wms"/>
-        <field name="binding_type">action</field>
-        <field name="state">code</field>
-        <field name="code">
-            env['stock.wms'].create_initial_products()
-        </field>
+      <field name="name">Copiar stock real</field>
+      <field name="model_id" ref="stock_wms.model_stock_wms"/>
+      <field name="binding_model_id" ref="stock_wms.model_stock_wms"/>
+      <field name="binding_type">action</field>
+      <field name="state">code</field>
+      <field name="code">
+          env['stock.wms'].create_initial_products()
+      </field>
+      <field name="usage">ir_actions_server</field>
     </record>
+
 
 </odoo>
