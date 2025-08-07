@@ -11,9 +11,6 @@
                 <field name="uxb"/>
                 <field name="fisico_unidades"/>
             </tree>
-            <toolbar>
-                <action name="action_copiar_stock_real" string="Copiar stock real"/>
-            </toolbar>
         </field>
     </record>
 
