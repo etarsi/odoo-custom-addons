@@ -79,7 +79,20 @@ class HrPayrollSalary(models.Model):
             if record.state not in ['confirmed']:
                 raise ValidationError('Solo se puede restablecer a Borrador una planilla en estado Confirmado.')
             record.state = 'draft'
-            # Aquí podrías agregar lógica adicional para manejar el restablecimiento, como permitir modificaciones en los detalles de la planilla.
+            
+    def action_load_employees(self):
+        for record in self:
+            if record.state != 'draft':
+                raise ValidationError('Solo se pueden cargar empleados en una planilla en estado Borrador.')
+            # Limpiar líneas existentes
+            record.line_ids.unlink()
+            employees = self.env['hr.employee'].search([('employee_type', '=', record.employee_type)])
+            for emp in employees:
+                self.env['hr.payroll.salary.line'].create({
+                    'payroll_id': record.id,
+                    'employee_id': emp.id,
+                    'basic_amount': emp.wage,
+                })
 
     
 class HrPayrollSalaryLine(models.Model):

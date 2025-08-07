@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_hr_work_schedule_tree" model="ir.ui.view">
+        <field name="name">hr.work.schedule.tree</field>
+        <field name="model">hr.work.schedule</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="type"/>
+                <field name="hour_start"/>
+                <field name="hour_end"/>
+                <field name="hour_start_night"/>
+                <field name="hour_end_night"/>
+                <field name="state" widget="badge" decoration-success="state == 'activo'" decoration-danger="state == 'inactivo'"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_hr_season_labor_cost_form" model="ir.ui.view">
+        <field name="name">hr.season.labor.cost.form</field>
+        <field name="model">hr.season.labor.cost</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group>
+                        <field name="type"/>
+                        <field name="hour_start"/>
+                        <field name="hour_end"/>
+                        <field name="state"/>
+                    </group>
+                    <group>
+                        <field name="hour_start_night"/>
+                        <field name="hour_end_night"/>
+                    </group>
+                </sheet>
+                <!--DETALLE QUIEN  -->
+                <div class="oe_chatter">
+                    <field name="message_follower_ids" widget="mail_followers"/>
+                    <field name="activity_ids" widget="mail_activity"/>
+                    <field name="message_ids" widget="mail_thread"/>
+                </div>
+            </form>
+        </field>
+    </record>
+</odoo>

@@ -28,6 +28,11 @@
                             string="Restablecer a Borrador"
                             icon="fa-undo"
                             attrs="{'invisible': [('state', '!=', 'confirmed')]}"/>
+                    <button name="action_load_employees"
+                            type="object"
+                            string="Cargar Empleados"
+                            icon="fa-users"
+                            attrs="{'invisible': [('state', '!=', 'draft')]}"/>
                 </header>
                 <sheet>
                     <div class="oe_title">
