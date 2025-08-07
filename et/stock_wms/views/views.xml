@@ -1,5 +1,17 @@
 <odoo>
   <data>
+
+    <record id="action_create_initial_products" model="ir.actions.server">
+      <field name="name">Crear Productos</field>
+      <field name="model_id" ref="stock_wms.model_stock_wms"/>
+      <field name="state">code</field>
+      <field name="binding_model_id" ref="stock_wms.model_stock_wms"/>
+      <field name="binding_type">action</field>
+      <field name="code">
+          env['stock.wms'].create_initial_products()
+      </field>
+    </record>
+
     <!-- explicit list view definition -->
 <!--
     <record model="ir.ui.view" id="new_stock.list">
