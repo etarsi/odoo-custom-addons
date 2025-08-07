@@ -6,10 +6,10 @@
         <field name="arch" type="xml">
             <tree>
                 <field name="type"/>
-                <field name="hour_start" context="{'widget': 'float_time'}"/>
-                <field name="hour_end" context="{'widget': 'float_time'}"/>
-                <field name="hour_start_night" context="{'widget': 'float_time'}"/>
-                <field name="hour_end_night" context="{'widget': 'float_time'}"/>
+                <field name="hour_start" widget="float_time"/>
+                <field name="hour_end" widget="float_time"/>
+                <field name="hour_start_night" widget="float_time"/>
+                <field name="hour_end_night" widget="float_time"/>
                 <field name="state" widget="badge" decoration-success="state == 'activo'" decoration-danger="state == 'inactivo'"/>
             </tree>
         </field>
@@ -24,13 +24,13 @@
                     <group>
                         <group string="Información General">
                             <field name="type"/>
-                            <field name="hour_start" context="{'widget': 'float_time'}"/>
-                            <field name="hour_end" context="{'widget': 'float_time'}"/>
+                            <field name="hour_start" widget="float_time"/>
+                            <field name="hour_end" widget="float_time"/>
                             <field name="state"/>
                         </group>
                         <group string="Horario Nocturno">
-                            <field name="hour_start_night" context="{'widget': 'float_time'}"/>
-                            <field name="hour_end_night" context="{'widget': 'float_time'}"/>
+                            <field name="hour_start_night" widget="float_time"/>
+                            <field name="hour_end_night" widget="float_time"/>
                         </group>
                     </group>
                 </sheet>
