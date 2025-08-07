@@ -15,19 +15,19 @@
         </field>
     </record>
 
-    <record id="view_hr_season_labor_cost_form" model="ir.ui.view">
-        <field name="name">hr.season.labor.cost.form</field>
-        <field name="model">hr.season.labor.cost</field>
+    <record id="view_hr_work_schedule_form" model="ir.ui.view">
+        <field name="name">hr.work.schedule.form</field>
+        <field name="model">hr.work.schedule</field>
         <field name="arch" type="xml">
             <form>
                 <sheet>
-                    <group>
+                    <group string="Información General">
                         <field name="type"/>
                         <field name="hour_start"/>
                         <field name="hour_end"/>
                         <field name="state"/>
                     </group>
-                    <group>
+                    <group string="Horario Nocturno">
                         <field name="hour_start_night"/>
                         <field name="hour_end_night"/>
                     </group>
