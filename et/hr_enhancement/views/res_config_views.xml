@@ -16,7 +16,7 @@
                                 Aca se define la hora de inicio del marcado laboral diurno.
                             </div>
                             <div class="text-muted">
-                                <field name="hour_start_day_check" context="{'widget': 'float_time'}"/>
+                                <field name="hour_start_day_check" widget="float_time"/>
                             </div>
                         </div>
                     </div>
@@ -28,7 +28,7 @@
                                 Aca se define la hora de fin del marcado laboral diurno.
                             </div>
                             <div class="text-muted">
-                                <field name="hour_end_day_check" context="{'widget': 'float_time'}"/>
+                                <field name="hour_end_day_check" widget="float_time"/>
                             </div>
                         </div>
                     </div>
@@ -40,7 +40,7 @@
                                 Aca se define la hora de inicio del marcado laboral nocturno.
                             </div>
                             <div class="text-muted">
-                                <field name="hour_start_night_check" context="{'widget': 'float_time'}"/>
+                                <field name="hour_start_night_check" widget="float_time"/>
                             </div>
                         </div>
                     </div>
@@ -52,7 +52,7 @@
                                 Aca se define la hora de fin del marcado laboral nocturno.
                             </div>
                             <div class="text-muted">
-                                <field name="hour_end_night_check" context="{'widget': 'float_time'}"/>
+                                <field name="hour_end_night_check" widget="float_time"/>
                             </div>
                         </div>
                     </div>
