@@ -30,7 +30,6 @@
                         <field name="name"/>
                         <field name="date_start"/>
                         <field name="date_end"/>
-                        <field name="currency_id"/>
                     </group>
                     <group>
                         <field name="hour_cost_normal"/>

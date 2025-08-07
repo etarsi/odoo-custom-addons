@@ -61,30 +61,23 @@
                 <button name="action_request_edit"
                         string="Solicitar Edición"
                         type="object"
-                        attrs="{'invisible': [('state', '!=', 'confirmed')]}"
+                        attrs="{'invisible': [('state', '!=', 'active')]}"
                         class="btn-primary"/>
                 <button name="action_confirm"
                         string="Confirmar"
                         type="object"
                         attrs="{'invisible': [('state', '!=', 'draft')]}"
                         class="btn-success"/>
-            </xpath>
-            <!-- 3. Nueva pestaña de solicitudes de edición -->
-            <xpath expr="//notebook" position="inside">
-                <page string="Solicitudes de Edición">
-                    <field name="edit_request_ids">
-                        <tree create="false" delete="false" edit="false">
-                            <field name="create_date"/>
-                            <field name="reason"/>
-                            <field name="approved_user_id"/>
-                            <field name="state" widget="badge"/>
-                        </tree>
-                        <form>
-                            <field name="reason"/>
-                            <field name="state"/>
-                        </form>
-                    </field>
-                </page>
+                <button name="action_set_active"
+                        string="Dar de Alta"
+                        type="object"
+                        attrs="{'invisible': [('state', '!=', 'confirmed')]}"
+                        class="btn-info"/>
+                <button name="action_set_inactive"
+                        string="Dar de Baja"
+                        type="object"
+                        attrs="{'invisible': [('state', '!=', 'active')]}"
+                        class="btn-danger"/>
             </xpath>
             <xpath expr="//field[@name='image_1920']" position="attributes">
                 <attribute name="attrs">{'readonly': [('state', '!=', 'draft')], 'required': [('state', '=', 'draft')]}</attribute>

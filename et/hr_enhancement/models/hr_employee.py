@@ -63,6 +63,8 @@ class HrEmployee(models.Model):
     state = fields.Selection([
         ('draft', 'Borrador'),
         ('confirmed', 'Confirmado'),
+        ('active', 'Activo'),
+        ('inactive', 'Baja')
     ], string='Estado', default='draft', tracking=True)
     
     employee_type = fields.Selection(
@@ -128,17 +130,38 @@ class HrEmployee(models.Model):
                 
     def action_request_edit(self, *args, **kwargs):
         for rec in self:
-            rec.env['hr.employee.edit.request'].create({
-                'employee_id': rec.id,
-                'user_id': rec.user_id.id,
-                'request_date': datetime.now(),
-                'reason': 'Editar Información del empleado',
-            })
-            rec.env.user.notify_info("¡Solicitud de Modificar Empleado enviada con éxito!")
+            pending = rec.env['hr.employee.edit.request'].search([
+                ('employee_id', '=', rec.id),
+                ('state', '=', 'pending')
+            ], limit=1)
+            # Si no hay solicitudes pendientes, crea una nueva
+            # Esto evita duplicados en el mismo día
+            if not pending:
+                rec.env['hr.employee.edit.request'].create({
+                    'employee_id': rec.id,
+                    'user_id': rec.user_id.id,
+                    'request_date': fields.Date.today(),
+                    'reason': 'Editar Información del empleado',
+                })
+                rec.env.user.notify_info("¡Solicitud de Modificar Empleado enviada con éxito!")
+            else:
+                raise ValidationError("Ya existe una solicitud pendiente. Por favor, espera a que sea procesada antes de enviar otra solicitud.")
 
     def action_confirm(self, *args, **kwargs):
         for record in self:
             record.state = 'confirmed'
+    
+    def action_set_active(self, *args, **kwargs):
+        for record in self:
+            if record.state != 'confirmed':
+                raise UserError('Solo se puede activar un empleado que esté en estado Confirmado.')
+            record.state = 'active'
+    
+    def action_set_inactive(self, *args, **kwargs):
+        for record in self:
+            if record.state != 'active':
+                raise UserError('Solo se puede dar de baja a un empleado que esté en estado Activo.')
+            record.state = 'inactive'
             
     def action_view_my_licenses(self):
         # Obtén las licencias asociadas a este empleado
