@@ -68,8 +68,8 @@
     <menuitem
         id="hr_enhancement.menu_hr_work_schedule_action"
         name="Rangos de Horario Laboral"
-        parent="hr_enhancement.menu_hr_work_schedule_config"
+        parent="hr_enhancement.menu_hr_season_labor_cost_config"
         action="action_hr_work_schedule"
-        sequence="1"/>
+        sequence="2"/>
     
 </odoo>
