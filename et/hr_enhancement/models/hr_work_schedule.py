@@ -5,7 +5,6 @@ from odoo.exceptions import ValidationError
 class HrWorkSchedule(models.Model):
     _name = 'hr.work.schedule'
     _description = 'Rango de Horario Laboral'
-    _inherit = ['mail.thread', 'mail.activity.mixin']
 
     type = fields.Selection([
         ('empleado', 'Empleado'),
