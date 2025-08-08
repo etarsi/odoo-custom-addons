@@ -13,12 +13,18 @@ class HrWorkSchedule(models.Model):
     ], string="Tipo", default="empleado", required=True, tracking=True)
     hour_start = fields.Float(string="Hora Inicio (Normal)", required=True, tracking=True)
     hour_end = fields.Float(string="Hora Fin (Normal)", required=True, tracking=True)
+    break_start = fields.Float(string="Hora Inicio (Descanso)", tracking=True)
+    break_end = fields.Float(string="Hora Fin (Descanso)", tracking=True)
+    
     hour_start_night = fields.Float(string="Hora Inicio (Noche)", tracking=True)
     hour_end_night = fields.Float(string="Hora Fin (Noche)", tracking=True)
+    break_start_night = fields.Float(string="Hora Inicio (Descanso Noche)", tracking=True)
+    break_end_night = fields.Float(string="Hora Fin (Descanso Noche)", tracking=True)
+
     state = fields.Selection([
-        ('activo', 'Activo'),
-        ('inactivo', 'Inactivo')
-    ], string="Estado", default="inactivo", required=True, tracking=True)
+        ('active', 'Activo'),
+        ('inactive', 'Inactivo')
+    ], string="Estado", default="inactive", required=True, tracking=True)
 
     _sql_constraints = [
         ('unique_tipo_activo', 'unique(tipo, state)', 'Sólo puede haber un horario ACTIVO por tipo.'),

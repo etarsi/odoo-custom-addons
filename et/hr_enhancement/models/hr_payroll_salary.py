@@ -103,15 +103,16 @@ class HrPayrollSalaryLine(models.Model):
     payroll_id = fields.Many2one('hr.payroll.salary', string="Planilla", required=True, ondelete='cascade')
     employee_id = fields.Many2one('hr.employee', string="Empleado", required=True)
     job_id = fields.Many2one(related='employee_id.job_id', string="Puesto", store=True)
-    contract_id = fields.Many2one('hr.contract', string="Contrato")  # Opcional, si tenés contratos
     worked_days = fields.Float('Días Trabajados', compute='_compute_attendance', store=True)
-    worked_hours = fields.Float('Horas Trabajadas', compute='_compute_attendance', store=True)
+    worked_hours = fields.Float('H. Trabajadas', compute='_compute_attendance', store=True)
+    overtime = fields.Float('H. 50%', compute='_compute_attendance', store=True)
+    holiday_hours = fields.Float('H. 100%', compute='_compute_attendance', store=True)
     basic_amount = fields.Float('Sueldo Básico', help="Sueldo básico por el período")
-    bonus = fields.Float('Bonos/Premios', default=0.0)
+    bonus = fields.Float('Bonos/Gratificación', default=0.0)
     discount = fields.Float('Descuentos', default=0.0)
     holidays = fields.Float('Días de Licencia', default=0.0)
-    gross_amount = fields.Float('Total Bruto', compute='_compute_gross_amount', store=True)
-    net_amount = fields.Float('Total Neto', compute='_compute_net_amount', store=True)
+    gross_amount = fields.Float('Total a Cobrar Bruto', compute='_compute_gross_amount', store=True)
+    net_amount = fields.Float('Total a Cobrar', compute='_compute_net_amount', store=True)
     note = fields.Char('Nota (Observaciones)')
     currency_id = fields.Many2one(
     'res.currency',
@@ -141,9 +142,9 @@ class HrPayrollSalaryLine(models.Model):
                     ('check_in', '>=', rec.payroll_id.date_start),
                     ('check_in', '<=', rec.payroll_id.date_end),
                 ])
+                # Calcular horas trabajadas, días trabajados, horas extras y horas de vacaciones
+                
                 total_hours = sum(a.worked_hours for a in attendances)
-                # O podés calcularlo manualmente si 'worked_hours' no existe:
-                # total_hours = sum((a.check_out - a.check_in).total_seconds()/3600 for a in attendances if a.check_in and a.check_out)
                 rec.worked_hours = total_hours
                 # Suponiendo 8hs = 1 día trabajado
                 rec.worked_days = total_hours / 8.0 if total_hours else 0.0

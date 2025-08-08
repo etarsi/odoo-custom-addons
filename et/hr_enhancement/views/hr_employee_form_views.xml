@@ -80,48 +80,48 @@
                         class="btn-danger"/>
             </xpath>
             <xpath expr="//field[@name='image_1920']" position="attributes">
-                <attribute name="attrs">{'readonly': [('state', '!=', 'draft')], 'required': [('state', '=', 'draft')]}</attribute>
+                <attribute name="attrs">{'readonly': [('state', '!=', 'draft')], 'required': [('employee_type', '=', 'employee')]}</attribute>
             </xpath>
             <xpath expr="//page[@name='hr_settings']" position="attributes">
                 <attribute name="attrs">{'invisible': [('id', '!=', 0)]}</attribute>
             </xpath>
             <xpath expr="//field[@name='name']" position="attributes">
-                <attribute name="attrs">{'readonly': [('state', '!=', 'draft')], 'required': [('state', '=', 'draft')]}</attribute>
+                <attribute name="attrs">{'readonly': [('state', '!=', 'draft')], 'required': [('employee_type', '=', 'employee')]}</attribute>
             </xpath>
             <xpath expr="//field[@name='job_title']" position="attributes">
-                <attribute name="attrs">{'readonly': [('state', '!=', 'draft')], 'required': [('state', '=', 'draft')]}</attribute>
+                <attribute name="attrs">{'readonly': [('state', '!=', 'draft')], 'required': [('employee_type', '=', 'employee')]}</attribute>
             </xpath>
             <xpath expr="//field[@name='category_ids']" position="attributes">
-                <attribute name="attrs">{'readonly': [('state', '!=', 'draft')], 'required': [('state', '=', 'draft')]}</attribute>
+                <attribute name="attrs">{'readonly': [('state', '!=', 'draft')], 'required': [('employee_type', '=', 'employee')]}</attribute>
             </xpath>
             <xpath expr="//field[@name='mobile_phone']" position="attributes">
-                <attribute name="attrs">{'readonly': [('state', '!=', 'draft')], 'required': [('state', '=', 'draft')]}</attribute>
+                <attribute name="attrs">{'readonly': [('state', '!=', 'draft')], 'required': [('employee_type', '=', 'employee')]}</attribute>
             </xpath>
             <xpath expr="//field[@name='work_phone']" position="attributes">
-                <attribute name="attrs">{'readonly': [('state', '!=', 'draft')], 'required': [('state', '=', 'draft')]}</attribute>
+                <attribute name="attrs">{'readonly': [('state', '!=', 'draft')], 'required': [('employee_type', '=', 'employee')]}</attribute>
             </xpath>
             <xpath expr="//field[@name='work_email']" position="attributes">
-                <attribute name="attrs">{'readonly': [('state', '!=', 'draft')], 'required': [('state', '=', 'draft')]}</attribute>
+                <attribute name="attrs">{'readonly': [('state', '!=', 'draft')], 'required': [('employee_type', '=', 'employee')]}</attribute>
             </xpath>
             <xpath expr="//field[@name='company_id']" position="attributes">
-                <attribute name="attrs">{'readonly': [('state', '!=', 'draft')], 'required': [('state', '=', 'draft')]}</attribute>
+                <attribute name="attrs">{'readonly': [('state', '!=', 'draft')], 'required': [('employee_type', '=', 'employee')]}</attribute>
             </xpath>
             <xpath expr="//field[@name='department_id']" position="attributes">
-                <attribute name="attrs">{'readonly': [('state', '!=', 'draft')], 'required': [('state', '=', 'draft')]}</attribute>
+                <attribute name="attrs">{'readonly': [('state', '!=', 'draft')], 'required': [('employee_type', '=', 'employee')]}</attribute>
             </xpath>
             <xpath expr="//field[@name='parent_id']" position="attributes">
-                <attribute name="attrs">{'readonly': [('state', '!=', 'draft')], 'required': [('state', '=', 'draft')]}</attribute>
+                <attribute name="attrs">{'readonly': [('state', '!=', 'draft')], 'required': [('employee_type', '=', 'employee')]}</attribute>
             </xpath>
             <xpath expr="//field[@name='coach_id']" position="attributes">
-                <attribute name="attrs">{'readonly': [('state', '!=', 'draft')], 'required': [('state', '=', 'draft')]}</attribute>
+                <attribute name="attrs">{'readonly': [('state', '!=', 'draft')], 'required': [('employee_type', '=', 'employee')]}</attribute>
             </xpath>
             <xpath expr="//field[@name='address_id']" position="attributes">
-                <attribute name="attrs">{'readonly': [('state', '!=', 'draft')], 'required': [('state', '=', 'draft')]}</attribute>
+                <attribute name="attrs">{'readonly': [('state', '!=', 'draft')], 'required': [('employee_type', '=', 'employee')]}</attribute>
             </xpath>
             <xpath expr="//field[@name='work_location_id']" position="replace">
             </xpath>
             <xpath expr="//field[@name='departure_reason_id']" position="attributes">
-                <attribute name="attrs">{'readonly': [('state', '!=', 'draft')], 'required': [('state', '=', 'draft')]}</attribute>
+                <attribute name="attrs">{'readonly': [('state', '!=', 'draft')], 'required': [('employee_type', '=', 'employee')]}</attribute>
             </xpath>
             <xpath expr="//field[@name='departure_description']" position="attributes">
                 <attribute name="attrs">{'readonly': [('state', '!=', 'draft')]}</attribute>
@@ -149,18 +149,18 @@
                             <field name="location_id" string="Dirección" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
                         </group>
                         <group string="Ciudadanía">
-                            <field name="country_id" options="{&quot;no_open&quot;: True, &quot;no_create&quot;: True}" attrs="{'required': True}"/>
+                            <field name="country_id" options="{&quot;no_open&quot;: True, &quot;no_create&quot;: True}" attrs="{'required': [('employee_type', '=', 'employee')] }"/>
                             <field name="dni" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
                             <field name="cuil" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
-                            <field name="gender" attrs="{'required': True, 'readonly': [('state', '!=', 'draft')]}"/>
-                            <field name="birthday" attrs="{'required': True, 'readonly': [('state', '!=', 'draft')] }"/>
-                            <field name="place_of_birth" attrs="{'required': True, 'readonly': [('state', '!=', 'draft')]}"/>
-                            <field name="country_of_birth" attrs="{'required': True, 'readonly': [('state', '!=', 'draft')]}"/>
+                            <field name="gender" attrs="{'required': [('employee_type', '=', 'employee')], 'readonly': [('state', '!=', 'draft')]}"/>
+                            <field name="birthday" attrs="{'required': [('employee_type', '=', 'employee')], 'readonly': [('state', '!=', 'draft')] }"/>
+                            <field name="place_of_birth" attrs="{'required': [('employee_type', '=', 'employee')], 'readonly': [('state', '!=', 'draft')]}"/>
+                            <field name="country_of_birth" attrs="{'required': [('employee_type', '=', 'employee')], 'readonly': [('state', '!=', 'draft')]}"/>
                             <field name="identification_id" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
                             <field name="passport_id" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
                         </group>
                         <group string="Estado Civil">
-                            <field name="marital" attrs="{'required': True, 'readonly': [('state', '!=', 'draft')]}"/>
+                            <field name="marital" attrs="{'required': [('state', '=', 'draft'), ('employee_type', '=', 'employee')], 'readonly': [('state', '!=', 'draft')]}"/>
                             <field name="spouse_complete_name" attrs="{'invisible': [('marital', 'not in', ['married', 'cohabitant'])],
                                                                         'required': [('marital', 'in', ['married', 'cohabitant'])],
                                                                         'readonly': [('state', '!=', 'draft')]}"/>
@@ -186,7 +186,7 @@
                         </group>
                         <group string="Documentación">
                             <field name="dni_photo_front" 
-                                attrs="{'readonly': [('state', '!=', 'draft')], 'required': [('employee_type', '=', 'employee')]}"
+                                attrs="{'readonly': [('state', '!=', 'draft')], 'required': [('employee_type', '=', 'employee')]} "
                                 widget="image" 
                                 options="{'preview_image': 'dni_front', 'size': [100, 150]}"/>
                                 
@@ -226,7 +226,7 @@
                     <group>
                         <field name="children_ids" widget="one2many_list" 
                             attrs="{'required': [('is_children', '=', True)],
-                                    'readonly': [('state', '!=', 'draft')]}"/>
+                                    'readonly': [('state', '!=', 'draft'), ('employee_type', '=', 'employee')]}" />
                     </group>
                 </page>
             </xpath>

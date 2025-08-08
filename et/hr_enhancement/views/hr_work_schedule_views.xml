@@ -26,21 +26,25 @@
                             <field name="type"/>
                             <field name="hour_start" widget="float_time"/>
                             <field name="hour_end" widget="float_time"/>
+                            <field name="break_start" widget="float_time"/>
+                            <field name="break_end" widget="float_time"/>
                             <field name="state"/>
                         </group>
                         <group string="Horario Nocturno">
                             <field name="hour_start_night" widget="float_time"/>
                             <field name="hour_end_night" widget="float_time"/>
+                            <field name="break_start_night" widget="float_time"/>
+                            <field name="break_end_night" widget="float_time"/>
                         </group>
                     </group>
                 </sheet>
+                <!--DETALLE QUIEN  -->
+                <div class="oe_chatter">
+                    <field name="message_follower_ids" widget="mail_followers"/>
+                    <field name="activity_ids" widget="mail_activity"/>
+                    <field name="message_ids" widget="mail_thread"/>
+                </div>
             </form>
-            <!--DETALLE QUIEN  -->
-            <div class="oe_chatter">
-                <field name="message_follower_ids" widget="mail_followers"/>
-                <field name="activity_ids" widget="mail_activity"/>
-                <field name="message_ids" widget="mail_thread"/>
-            </div>
         </field>
     </record>
 </odoo>
