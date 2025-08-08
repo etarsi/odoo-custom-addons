@@ -14,7 +14,9 @@ class HrAttendanceController(http.Controller):
             data = request.jsonrequest
             employee_dni = data.get('dni')
             employee_name = data.get('name')
-            check_time = data.get('check_time')
+            check_time = datetime.now()
+            print(f"Recibido webhook de asistencia: DNI {employee_dni}, Nombre {employee_name}, Hora {check_time}")
+            
             
             #sacar configuracion de parametricas
             param_hour_start_day_check = float(request.env['ir.config_parameter'].sudo().get_param('hr_enhancement.hour_start_day_check'))
@@ -34,6 +36,7 @@ class HrAttendanceController(http.Controller):
                 })
                 request.env['hr.attendance'].sudo().create({
                     'employee_id': employee.id,
+                    #coloca la hora actual como hora de entrada
                     'check_in': check_time,
                 })
             else:
