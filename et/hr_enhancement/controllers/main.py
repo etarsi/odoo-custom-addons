@@ -101,7 +101,7 @@ class HrAttendanceController(http.Controller):
                         'dni': employee_dni,
                         'name': employee_name,
                         'employee_type': 'eventual',
-                        'state': 'activo',
+                        'state': 'active',
                     })
                     open_att = hr_attendance.create({
                         'employee_id': employee.id,
