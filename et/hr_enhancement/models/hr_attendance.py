@@ -23,82 +23,75 @@ class HrAttendance(models.Model):
     def _compute_worked_hours(self):
         """
         worked_hours = horas dentro del horario (start-end) - break (si check_out > break_start)
-                    + overtime_before (redondeo 30m -> 1h, entero)
-                    + overtime_after  (redondeo 30m -> 1h, entero)
-                    + holiday_hours
+                       + overtime_before (redondeo 30m -> 1h, entero)
+                       + overtime_after  (redondeo 30m -> 1h, entero)
+                       + holiday_hours
+
+        Reglas pedidas:
+        - El break se descuenta SOLO si check_out > inicio del break, y solo el solapamiento real.
+        - Overtime sin decimales, redondeo por tramo (antes y después):
+            >=30min => +1h, <30min => 0h. El redondeo se aplica POR TRAMO, y luego se suman.
         """
         for att in self:
             att.worked_hours = 0.0
             att.overtime = 0.0
-            att.holiday_hours = att.holiday_hours or 0.0
+            att.holiday_hours = 0.0
+            if att.check_in and att.check_out and att.employee_id:
+                # Determinar tipo de empleado para elegir el schedule
+                type_employee = 'employee' if att.employee_id.employee_type == 'employee' else 'eventual'
 
-            if not (att.check_in and att.check_out and att.employee_id):
-                continue
-            if att.check_out <= att.check_in:
-                continue
+                schedule = self.env['hr.work.schedule'].search([
+                    ('type', '=', type_employee),
+                    ('state', '=', 'active')
+                ], limit=1)
+                if not schedule:
+                    raise UserError("No se encontró un horario laboral activo para el empleado.")
 
-            # --- Convertir a HORA LOCAL para comparar con floats locales del schedule ---
-            local_in = fields.Datetime.context_timestamp(att, att.check_in)
-            local_out = fields.Datetime.context_timestamp(att, att.check_out)
+                # Si no es turno diurno, podés ajustar la lógica acá.
+                if getattr(att.employee_id, 'type_shift', 'day') != 'day':
+                    total_secs = (att.check_out - att.check_in).total_seconds()
+                    att.overtime = float(self._round_30_up_to_int_hours(total_secs))
+                    att.worked_hours = att.overtime + (att.holiday_hours or 0.0)
+                    continue
 
-            # Tipo de empleado para elegir schedule
-            type_employee = 'employee' if getattr(att.employee_id, 'employee_type', 'employee') == 'employee' else 'eventual'
-            schedule = self.env['hr.work.schedule'].search([
-                ('type', '=', type_employee),
-                ('state', '=', 'active')
-            ], limit=1)
-            if not schedule:
-                raise UserError("No se encontró un horario laboral activo para el empleado.")
+                # ----- Horario programado (float -> time -> datetime del día) -----
+                start_t = self._float_to_time(schedule.hour_start + 3)
+                end_t   = self._float_to_time(schedule.hour_end + 3)
 
-            # Si no es turno diurno, considerar todas las horas como extra (ajustá si tenés otra lógica)
-            if getattr(att.employee_id, 'type_shift', 'day') != 'day':
-                total_secs = (local_out - local_in).total_seconds()
-                att.overtime = float(self._round_30_up_to_int_hours(total_secs))
-                att.worked_hours = att.overtime + (att.holiday_hours or 0.0)
-                continue
+                day = att.check_in.date()
+                start_dt = datetime.combine(day, start_t)
+                end_dt   = datetime.combine(day, end_t)
 
-            # ----- Horario programado (float -> time -> datetime local del día) -----
-            start_t = self._float_to_time(schedule.hour_start)
-            end_t   = self._float_to_time(schedule.hour_end)
-            day = local_in.date()
-            start_dt = datetime.combine(day, start_t)
-            end_dt   = datetime.combine(day, end_t)
+                att_in  = att.check_in
+                att_out = att.check_out
 
-            # Solapamiento con horario (en segundos, local)
-            scheduled_overlap_secs = self._overlap_seconds(local_in, local_out, start_dt, end_dt)
+                # Solapamiento con el horario programado (en segundos)
+                scheduled_overlap_secs = self._overlap_seconds(att_in, att_out, start_dt, end_dt)
 
-            # ----- Break (por defecto 13:00–14:00 si no está definido) -----
-            b_start_f = getattr(schedule, 'break_start', 13.0)
-            b_end_f   = getattr(schedule,  'break_end',   14.0)
-            b_start_dt = datetime.combine(day, self._float_to_time(b_start_f))
-            b_end_dt   = datetime.combine(day, self._float_to_time(b_end_f))
+                b_start_t = self._float_to_time(schedule.break_start + 3)
+                b_end_t   = self._float_to_time(schedule.break_end + 3)
 
-            # Descontar break SOLO si check_out > inicio del break, y solo el solapamiento real
-            break_secs = 0.0
-            if local_out > b_start_dt:
-                break_secs = self._overlap_seconds(local_in, local_out, b_start_dt, b_end_dt)
+                b_start_dt = datetime.combine(day, b_start_t)
+                b_end_dt   = datetime.combine(day, b_end_t)
 
-            # Horas base dentro del horario, menos break (nunca negativo)
-            base_secs = max(0.0, scheduled_overlap_secs - break_secs)
-            base_hours = base_secs / 3600.0
+                # Descontar break SOLO si check_out > inicio del break, y solo el solapamiento real
+                break_secs = 0.0
+                if att_out > b_start_dt:
+                    break_secs = self._overlap_seconds(att_in, att_out, b_start_dt, b_end_dt)
 
-            # ----- OVERTIME por tramo (antes y después), redondeo 30m -> 1h, sin decimales -----
-            overtime_before_secs = 0.0
-            #if local_in < start_dt:
-            #    overtime_before_secs = max(0.0, (min(local_out, start_dt) - local_in).total_seconds())
+                # Horas base dentro del horario, menos break (nunca negativo)
+                base_secs = max(0.0, scheduled_overlap_secs - break_secs)
+                base_hours = base_secs / 3600.0
 
-            overtime_after_secs = 0.0
-            if local_out > end_dt:
-                overtime_after_secs = max(0.0, (local_out - max(local_in, end_dt)).total_seconds())
+                over_time_base = 0.0
+                if att_out > end_dt:
+                    over_time_base = max(0.0, (att_out - max(att_in, end_dt)).total_seconds())
+                # Redondeo por tramo: >=30 min -> 1h; <30 -> 0h (sin decimales)
+                overtime_time_base_hours = float(self._round_30_up_to_int_hours(over_time_base))
 
-            overtime_before_hours = float(self._round_30_up_to_int_hours(overtime_before_secs))
-            overtime_after_hours  = float(self._round_30_up_to_int_hours(overtime_after_secs))
-            overtime_hours = overtime_before_hours + overtime_after_hours
-
-            # Resultado final
-            att.overtime = overtime_hours
-            att.worked_hours = base_hours + overtime_hours + (att.holiday_hours or 0.0)
-
+                # Resultado final
+                att.overtime = overtime_time_base_hours
+                att.worked_hours = base_hours
                 
     @api.depends('check_in', 'check_out')
     def _compute_worked_hours(self):
