@@ -59,10 +59,9 @@ def _window_bounds_utc(check_local, start_f, end_f):
         w_end_local += timedelta(days=1)
     return _to_utc_naive(w_start_local), _to_utc_naive(w_end_local)
 
-
 class HrAttendanceController(http.Controller):
-
-    @http.route('/hr_enhancement/attendance_v2', type='http', auth='public', csrf=False, methods=['POST'])
+    
+    @http.route('/hr_enhancement/attendance', type='http', auth='public', csrf=False, methods=['POST'])
     def attendance_webhook(self, **kw):
         # Para ver lo que llega siempre
         data = request.httprequest.get_json(silent=True) or {}
@@ -71,9 +70,20 @@ class HrAttendanceController(http.Controller):
             employee_name = data.get('name')
             check_time = data.get('check_time')
             open_method = data.get('openMethod')
-            check_local = BA_TZ.localize(check_time)
-            check_utc   = _to_utc_naive(check_local)
-            
+
+            if not (employee_dni and employee_name and check_time):
+                return _json({'success': False, 'error': "Faltan 'dni', 'name' o 'check_time'.", 'received': data}, status=400)
+
+            # Soporta con o sin milisegundos
+            fmt = "%Y-%m-%d %H:%M:%S.%f" if '.' in check_time else "%Y-%m-%d %H:%M:%S"
+            try:
+                check_time_naive = datetime.strptime(check_time, fmt)   # datetime naive
+            except Exception as pe:
+                return Response(json.dumps({'success': False, 'error': f"Formato de 'check_time' inválido: {pe}", 'received': data}),
+                                status=400, content_type='application/json')
+
+            check_local = BA_TZ.localize(check_time_naive)              # aware BA
+            check_utc   = _to_utc_naive(check_local)                    # naive UTC (DB)
             # Paramétricas (seguras)
             p_day_start   = _get_param_float('hr_enhancement.hour_start_day_check')
             p_day_end     = _get_param_float('hr_enhancement.hour_end_day_check')
@@ -84,7 +94,7 @@ class HrAttendanceController(http.Controller):
             employee = hr_employee.search([('dni', '=', employee_dni)], limit=1)
             message = f'Asistencia registrada para {employee_name} ({employee_dni}) a las {check_local.strftime("%Y-%m-%d %H:%M:%S")}'
             if open_method == 'FACE_RECOGNITION':
-                return _json({'success': True, 'message': message}, status=200)
+                return Response(json.dumps({'success': True, 'message': message}), status=200, content_type='application/json')
 
             elif open_method == 'FINGERPRINT':
                 if not employee:
@@ -111,6 +121,7 @@ class HrAttendanceController(http.Controller):
                             ('employee_id', '=', employee.id),
                             ('check_in', '>=', day_start_utc),
                             ('check_in', '<=', day_end_utc),
+                            ('check_out', '=', False),
                         ], limit=1)
                         if open_att:
                             open_att.write({'check_out': check_utc})
@@ -131,6 +142,7 @@ class HrAttendanceController(http.Controller):
                             ('employee_id', '=', employee.id),
                             ('check_in', '>=', day_start_utc),
                             ('check_in', '<=', day_end_utc),
+                            ('check_out', '=', False),
                         ], limit=1)
                         if open_att:
                             open_att.write({'check_out': check_utc})
@@ -142,12 +154,14 @@ class HrAttendanceController(http.Controller):
                             })
                             message += f' (asistencia abierta: {open_att.id})'
 
-            return _json({'success': True, 'message': message}, status=200)
+            return Response(json.dumps({'success': True, 'message': message}), status=200, content_type='application/json')
 
         except ValidationError as ve:
-            return _json({'success': False, 'error': str(ve), 'error_class': ve.__class__.__name__, 'received': data}, status=400)
+            return Response(json.dumps({'success': False, 'error': str(ve), 'error_class': ve.__class__.__name__, 'received': data}),
+                            status=400, content_type='application/json')
 
         except Exception as e:
             # rollback explícito por si quedó algo a medio camino
             request.env.cr.rollback()
-            return _json({'success': False, 'error': str(e), 'error_class': e.__class__.__name__, 'received': data}, status=500)
+            return Response(json.dumps({'success': False, 'error': str(e), 'error_class': e.__class__.__name__, 'received': data}),
+                            status=500, content_type='application/json')

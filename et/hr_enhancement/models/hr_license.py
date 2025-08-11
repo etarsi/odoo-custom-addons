@@ -9,10 +9,10 @@ class hrLicense(models.Model):
 
     description = fields.Text('Descripción', tracking=True)
     employee_id = fields.Many2one('hr.employee', string="Empleado", required=True, tracking=True)
-    requested_date = fields.Datetime('Fecha solicitada', defaulta=lambda self: fields.Datetime.now())
-    start_date = fields.Date('Fecha Inicio', required=True, tracking=True)
-    end_date = fields.Date('Fecha Fin', store=True, readonly=False, tracking=True)
-    days_qty = fields.Integer('Cantidad de días', default=0, compute='_compute_days_qty', required=True, tracking=True, store=True)
+    requested_date = fields.Datetime('Fecha solicitada', default=lambda self: fields.Datetime.now())
+    start_date = fields.Date('Fecha Inicio', required=True, default=fields.Date.today, tracking=True)
+    end_date = fields.Date('Fecha Fin', store=True, default=fields.Date.today, tracking=True)
+    days_qty = fields.Integer('Cantidad de días', default=0, compute='_compute_days_qty', required=True, readonly=True, tracking=True, store=True)
     license_type_id = fields.Many2one('hr.license.type', string='Tipo de Licencia', domain="[('active', '=', True)]", required=True, tracking=True)
     reason = fields.Char('Motivo', tracking=True)
     state = fields.Selection(selection=[
