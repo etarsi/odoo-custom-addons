@@ -46,7 +46,7 @@
         id="hr_enhancement.menu_hr_season_labor_cost_config"
         name="Recursos Humanos"
         parent="hr.menu_human_resources_configuration"
-        group="hr_enhancement.group_hr_administrador"
+        groups="hr_enhancement.group_hr_administrador"
         sequence="25"/>
         
     <record id="action_hr_season_labor_cost" model="ir.actions.act_window">
