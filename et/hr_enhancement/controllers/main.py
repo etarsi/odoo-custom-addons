@@ -62,7 +62,7 @@ def _window_bounds_utc(check_local, start_f, end_f):
 
 class HrAttendanceController(http.Controller):
 
-    @http.route('/hr_enhancement/attendance', type='http', auth='public', csrf=False, methods=['POST'])
+    @http.route('/hr_enhancement/attendance_v2', type='http', auth='public', csrf=False, methods=['POST'])
     def attendance_webhook(self, **kw):
         # Para ver lo que llega siempre
         data = request.httprequest.get_json(silent=True) or {}

@@ -1,0 +1,7 @@
+<odoo>
+    <!-- Grupo HR Administrador -->
+    <record id="group_hr_administrador" model="res.groups">
+        <field name="name">HR Administrador</field>
+        <field name="category_id" ref="base.module_category_human_resources"/>
+    </record>
+</odoo>

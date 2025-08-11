@@ -11,7 +11,8 @@
                     type="object"
                     name="action_view_my_salary_adjustments"
                     class="oe_stat_button"
-                    icon="fa-money">
+                    icon="fa-money"
+                    groups="hr_enhancement.group_hr_administrador">
                     <div class="o_stat_info">
                         <span class="o_stat_text">Salario Actual</span>
                         <span class="o_stat_value">
@@ -197,7 +198,7 @@
                         </group>
                     </group>
                 </page>
-                <page string="Historial Salarial">
+                <page string="Historial Salarial" group="hr_enhancement.group_hr_administrador" name="salary_history">
                     <field name="salary_ids">
                         <tree create="false" delete="false" edit="false">
                             <field name="date"/>
@@ -212,7 +213,7 @@
                         </tree>
                     </field>
                 </page>
-                <page name="information_internal" string="Informacion Interna">
+                <page name="information_internal" string="Informacion Interna" group="hr_enhancement.group_hr_administrador">
                     <group>
                         <field name="employee_type" widget="selection" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
                         <field name="wage" readonly="1"/>

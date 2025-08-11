@@ -17,6 +17,7 @@
         id="hr_enhancement.menu_approve_licenses"
         name="Aprobar Licencias"
         parent="hr_enhancement.menu_hr_license"
+        groups="hr_enhancement.group_hr_administrador"
         action="hr_enhancement.action_approve_licenses"
         sequence="2"/>
 
@@ -25,6 +26,7 @@
         id="hr_enhancement.menu_hr_payroll_salary"
         name="Planilla de Sueldos"
         parent="hr.menu_hr_root"
+        groups="hr_enhancement.group_hr_administrador"
         sequence="10"/>
     <menuitem 
         id="hr_enhancement.menu_payroll_eventuales"
@@ -44,6 +46,7 @@
         id="hr_enhancement.menu_hr_season_labor_cost_config"
         name="Recursos Humanos"
         parent="hr.menu_human_resources_configuration"
+        group="hr_enhancement.group_hr_administrador"
         sequence="25"/>
         
     <record id="action_hr_season_labor_cost" model="ir.actions.act_window">
