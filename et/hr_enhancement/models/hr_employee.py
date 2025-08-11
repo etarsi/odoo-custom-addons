@@ -61,7 +61,7 @@ class HrEmployee(models.Model):
         ('inactive', 'Baja')
     ], string='Estado', default='draft', tracking=True)
     employee_type = fields.Selection(
-        selection_add=[('eventual', 'Eventuales')],
+        selection_add=[('eventual', 'Eventual')],
         ondelete={'eventual': 'set default'},
         default='employee', tracking=True
     )
