@@ -112,8 +112,8 @@ class HrAttendanceController(http.Controller):
                     hh = check_local.hour + check_local.minute/60.0 + check_local.second/3600.0
                     if employee.type_shift == 'day':
                         in_day = _in_window(hh, p_day_start, p_day_end)
-                        #if not in_day:
-                        #    raise ValidationError(f'Hora fuera de rango diurno. hora={hh:.2f}, rango=[{p_day_start:.2f},{p_day_end:.2f})')
+                        if not in_day:
+                            return {'success': False, 'error': f'Hora fuera de rango diurno. hora={hh:.2f}, rango=[{p_day_start:.2f},{p_day_end:.2f})'}
                         # Limites del día (para agrupar por día local)
                         day_start_utc, day_end_utc = _day_bounds_utc(check_local)
                         open_att = hr_attendance.search([
@@ -133,8 +133,8 @@ class HrAttendanceController(http.Controller):
                             message += f' (asistencia abierta: {open_att.id})'
                     elif employee.type_shift == 'night':
                         in_night = _in_window(hh, p_night_start, p_night_end)
-                        #if not in_night:
-                        #    raise ValidationError(f'Hora fuera de rango nocturno. hora={hh:.2f}, rango=[{p_night_start:.2f},{p_night_end:.2f})')
+                        if not in_night:
+                            return {'success': False, 'error': f'Hora fuera de rango nocturno. hora={hh:.2f}, rango=[{p_night_start:.2f},{p_night_end:.2f})'}
                         # Limites del día (para agrupar por día local)
                         day_start_utc, day_end_utc = _day_bounds_utc(check_local)
                         open_att = hr_attendance.search([
