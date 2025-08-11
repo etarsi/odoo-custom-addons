@@ -8,7 +8,7 @@ class HrWorkSchedule(models.Model):
     _inherit = ['mail.thread', 'mail.activity.mixin']
 
     type = fields.Selection([
-        ('empleado', 'Empleado'),
+        ('employee', 'Empleado'),
         ('eventual', 'Eventual')
     ], string="Tipo", default="empleado", required=True, tracking=True)
     hour_start = fields.Float(string="Hora Inicio (Normal)", required=True, tracking=True)
