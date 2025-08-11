@@ -19,8 +19,6 @@ class HrAttendance(models.Model):
         help="Horas trabajadas en feriado."
     )
 
-    # ===================== CÁLCULOS PRINCIPALES =====================
-
     @api.depends('check_in', 'check_out', 'employee_id', 'employee_id.employee_type', 'employee_id.type_shift')
     def _compute_worked_hours(self):
         """

@@ -38,6 +38,7 @@
         'views/hr_employee_salary_views.xml',
         'views/hr_payroll_salary_views.xml',
         'views/hr_work_schedule_views.xml',
+        'views/hr_attendance_views.xml',
         'views/res_config_views.xml',
         'views/menu.xml',
         'views/views.xml',
