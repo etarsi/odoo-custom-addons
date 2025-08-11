@@ -143,15 +143,15 @@
                     <group string="Legajo Personal">
                         <group string="Contacto Privado">
                             <field name="state" invisible="1"/>
-                            <field name="email_personal" string="Email" widget="email" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                            <field name="email_personal" string="Email" widget="email" attrs="{'readonly': [('state', '!=', 'draft')], 'required': [('employee_type', '=', 'employee')]}"/>
                             <field name="phone" class="o_force_ltr" groups="hr.group_hr_user" string="Teléfono" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
-                            <field name="celular" string="Celular" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                            <field name="celular" string="Celular" attrs="{'readonly': [('state', '!=', 'draft')], 'required': [('employee_type', '=', 'employee')]}"/>
                             <field name="location_id" string="Dirección" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
                         </group>
                         <group string="Ciudadanía">
                             <field name="country_id" options="{&quot;no_open&quot;: True, &quot;no_create&quot;: True}" attrs="{'required': [('employee_type', '=', 'employee')] }"/>
                             <field name="dni" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
-                            <field name="cuil" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                            <field name="cuil" attrs="{'readonly': [('state', '!=', 'draft')], 'required': [('employee_type', '=', 'employee')]}"/>
                             <field name="gender" attrs="{'required': [('employee_type', '=', 'employee')], 'readonly': [('state', '!=', 'draft')]}"/>
                             <field name="birthday" attrs="{'required': [('employee_type', '=', 'employee')], 'readonly': [('state', '!=', 'draft')] }"/>
                             <field name="place_of_birth" attrs="{'required': [('employee_type', '=', 'employee')], 'readonly': [('state', '!=', 'draft')]}"/>
@@ -174,10 +174,10 @@
                             <field name="emergency_phone" class="o_force_ltr" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
                         </group>
                         <group string="Datos Bancarios" name="bank_details">
-                            <field name="bank" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
-                            <field name="nro_account" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
-                            <field name="cbu" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
-                            <field name="alias" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                            <field name="bank" attrs="{'readonly': [('state', '!=', 'draft')], 'required': [('employee_type', '=', 'employee')]}"/>
+                            <field name="nro_account" attrs="{'readonly': [('state', '!=', 'draft')], 'required': [('employee_type', '=', 'employee')]}"/>
+                            <field name="cbu" attrs="{'readonly': [('state', '!=', 'draft')], 'required': [('employee_type', '=', 'employee')]}"/>
+                            <field name="alias" attrs="{'readonly': [('state', '!=', 'draft')], 'required': [('employee_type', '=', 'employee')]}"/>
                         </group>
                         <group string="Educación">
                             <field name="certificate" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
