@@ -62,11 +62,10 @@ def _window_bounds_utc(check_local, start_f, end_f):
 
 class HrAttendanceController(http.Controller):
 
-    @http.route('/hr_enhancement/attendance', type='json', auth='public', csrf=False, methods=['POST'])
+    @http.route('/hr_enhancement/attendance', type='http', auth='public', csrf=False, methods=['POST'])
     def attendance_webhook(self, **kw):
         # Para ver lo que llega siempre
-        data = request.jsonrequest or {}
-        debug = bool(data.get('debug'))  # si mandás "debug:true" en el body
+        data = request.httprequest.get_json(silent=True) or {}
         try:
             employee_dni = data.get('dni')
             employee_name = data.get('name')
@@ -84,12 +83,8 @@ class HrAttendanceController(http.Controller):
             hr_employee = request.env['hr.employee'].sudo()
             employee = hr_employee.search([('dni', '=', employee_dni)], limit=1)
             message = f'Asistencia registrada para {employee_name} ({employee_dni}) a las {check_local.strftime("%Y-%m-%d %H:%M:%S")}'
-            resp = {
-                'success': True,
-                'message': message,
-            }
             if open_method == 'FACE_RECOGNITION':
-                return Response(json.dumps(resp), status=200, mimetype='application/json')
+                return _json({'success': True, 'message': message}, status=200)
 
             elif open_method == 'FINGERPRINT':
                 if not employee:
@@ -107,7 +102,7 @@ class HrAttendanceController(http.Controller):
                 else:
                     hh = check_local.hour + check_local.minute/60.0 + check_local.second/3600.0
                     if employee.type_shift == 'day':
-                        #in_day = _in_window(hh, p_day_start, p_day_end)
+                        in_day = _in_window(hh, p_day_start, p_day_end)
                         #if not in_day:
                         #    raise ValidationError(f'Hora fuera de rango diurno. hora={hh:.2f}, rango=[{p_day_start:.2f},{p_day_end:.2f})')
                         # Limites del día (para agrupar por día local)
@@ -147,30 +142,12 @@ class HrAttendanceController(http.Controller):
                             })
                             message += f' (asistencia abierta: {open_att.id})'
 
-            return Response(json.dumps(resp), status=200, mimetype='application/json')
+            return _json({'success': True, 'message': message}, status=200)
 
         except ValidationError as ve:
-            # Error de validación del negocio → 400
-            resp = {
-                'success': False,
-                'error': str(ve),
-                'error_class': ve.__class__.__name__,
-                'received': data,
-            }
-            if debug:
-                resp['traceback'] = traceback.format_exc()
-            return Response(json.dumps(resp), status=400, mimetype='application/json')
+            return _json({'success': False, 'error': str(ve), 'error_class': ve.__class__.__name__, 'received': data}, status=400)
 
         except Exception as e:
-            # Cualquier otra excepción → 500 y devolvés detalle
-            resp = {
-                'success': False,
-                'error': str(e),
-                'error_class': e.__class__.__name__,
-                'received': data,
-            }
-            if debug:
-                resp['traceback'] = traceback.format_exc()
             # rollback explícito por si quedó algo a medio camino
             request.env.cr.rollback()
-            return Response(json.dumps(resp), status=500, mimetype='application/json')
+            return _json({'success': False, 'error': str(e), 'error_class': e.__class__.__name__, 'received': data}, status=500)
