@@ -61,10 +61,10 @@ def _window_bounds_utc(check_local, start_f, end_f):
 
 class HrAttendanceController(http.Controller):
     
-    @http.route('/hr_enhancement/attendance', type='http', auth='public', csrf=False, methods=['POST'])
+    @http.route('/hr_enhancement/attendance', type='json', auth='public', csrf=False, methods=['POST'])
     def attendance_webhook(self, **kw):
         # Para ver lo que llega siempre
-        data = request.httprequest.get_json(silent=True) or {}
+        data = request.jsonrequest or {}
         try:
             employee_dni = data.get('dni')
             employee_name = data.get('name')
@@ -72,15 +72,14 @@ class HrAttendanceController(http.Controller):
             open_method = data.get('openMethod')
 
             if not (employee_dni and employee_name and check_time):
-                return _json({'success': False, 'error': "Faltan 'dni', 'name' o 'check_time'.", 'received': data}, status=400)
+                return {'success': False, 'error': "Faltan 'dni', 'name' o 'check_time'.", 'received': data}
 
             # Soporta con o sin milisegundos
             fmt = "%Y-%m-%d %H:%M:%S.%f" if '.' in check_time else "%Y-%m-%d %H:%M:%S"
             try:
                 check_time_naive = datetime.strptime(check_time, fmt)   # datetime naive
             except Exception as pe:
-                return Response(json.dumps({'success': False, 'error': f"Formato de 'check_time' inválido: {pe}", 'received': data}),
-                                status=400, content_type='application/json')
+                return {'success': False, 'error': f"Formato de 'check_time' inválido: {pe}", 'received': data}
 
             check_local = BA_TZ.localize(check_time_naive)              # aware BA
             check_utc   = _to_utc_naive(check_local)                    # naive UTC (DB)
@@ -94,7 +93,7 @@ class HrAttendanceController(http.Controller):
             employee = hr_employee.search([('dni', '=', employee_dni)], limit=1)
             message = f'Asistencia registrada para {employee_name} ({employee_dni}) a las {check_local.strftime("%Y-%m-%d %H:%M:%S")}'
             if open_method == 'FACE_RECOGNITION':
-                return Response(json.dumps({'success': True, 'message': message}), status=200, content_type='application/json')
+                return {'success': True, 'message': message}
 
             elif open_method == 'FINGERPRINT':
                 if not employee:
@@ -154,14 +153,12 @@ class HrAttendanceController(http.Controller):
                             })
                             message += f' (asistencia abierta: {open_att.id})'
 
-            return Response(json.dumps({'success': True, 'message': message}), status=200, content_type='application/json')
+            return {'success': True, 'message': message}
 
         except ValidationError as ve:
-            return Response(json.dumps({'success': False, 'error': str(ve), 'error_class': ve.__class__.__name__, 'received': data}),
-                            status=400, content_type='application/json')
+            return {'success': False, 'error': str(ve), 'error_class': ve.__class__.__name__, 'received': data}
 
         except Exception as e:
             # rollback explícito por si quedó algo a medio camino
             request.env.cr.rollback()
-            return Response(json.dumps({'success': False, 'error': str(e), 'error_class': e.__class__.__name__, 'received': data}),
-                            status=500, content_type='application/json')
+            return {'success': False, 'error': str(e), 'received': data}
