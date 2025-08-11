@@ -84,11 +84,12 @@ class HrAttendanceController(http.Controller):
             hr_employee = request.env['hr.employee'].sudo()
             employee = hr_employee.search([('dni', '=', employee_dni)], limit=1)
             message = f'Asistencia registrada para {employee_name} ({employee_dni}) a las {check_local.strftime("%Y-%m-%d %H:%M:%S")}'
+            resp = {
+                'success': True,
+                'message': message,
+            }
             if open_method == 'FACE_RECOGNITION':
-                return _json({
-                    'success': True,
-                    'message': message,
-                }, status=200)
+                return Response(json.dumps(resp), status=200, mimetype='application/json')
 
             elif open_method == 'FINGERPRINT':
                 if not employee:
@@ -145,19 +146,8 @@ class HrAttendanceController(http.Controller):
                                 'check_in': check_utc,
                             })
                             message += f' (asistencia abierta: {open_att.id})'
-                        
-            return _json({
-                'success': True,
-                'message': message,
-                'employee': {'id': employee.id, 'dni': employee.dni, 'name': employee.name, 'created': employee.create_date},
-                'attendance': {
-                    'id': open_att.id,
-                    'check_in': open_att.check_in.strftime('%Y-%m-%d %H:%M:%S'),
-                    'check_out': check_utc.strftime('%Y-%m-%d %H:%M:%S')
-                },
-                'hora_local': check_local.strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]
-            }, status=200)
 
+            return Response(json.dumps(resp), status=200, mimetype='application/json')
 
         except ValidationError as ve:
             # Error de validación del negocio → 400
