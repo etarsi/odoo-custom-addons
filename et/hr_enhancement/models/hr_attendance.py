@@ -91,8 +91,8 @@ class HrAttendance(models.Model):
     def _compute_hours_late(self):
         icp = self.env['ir.config_parameter'].sudo()
         # Paramétricas
-        p_day_start   = self._float_to_time(icp.get_param('hr_enhancement.hour_start_day_check') + 3)
-        p_night_start = self._float_to_time(icp.get_param('hr_enhancement.hour_start_night_check') + 3)
+        p_day_start   = self._float_to_time(float(icp.get_param('hr_enhancement.hour_start_day_check')) + 3)
+        p_night_start = self._float_to_time(float(icp.get_param('hr_enhancement.hour_start_night_check')) + 3)
 
         for rec in self:
             rec.hours_late = 0.0
