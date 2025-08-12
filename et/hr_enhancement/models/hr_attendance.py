@@ -21,7 +21,6 @@ class HrAttendance(models.Model):
     
     hours_late = fields.Float(
         string='Horas de retraso',
-        compute='_compute_hours_late',
         store=True,
         help='Horas de retraso contra la hora límite de entrada configurada.'
     )
