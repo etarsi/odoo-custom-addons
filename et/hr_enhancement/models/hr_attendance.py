@@ -6,7 +6,6 @@ import math
 class HrAttendance(models.Model):
     _inherit = 'hr.attendance'
 
-    # Overtime sin decimales, se calcula en _compute_worked_hours
     overtime = fields.Float(
         string='Horas Extra',
         compute="_compute_worked_hours",
@@ -113,8 +112,8 @@ class HrAttendance(models.Model):
                 continue
 
             # Si llegó después del umbral, se computa retraso
-            #delay = hh - threshold
-            rec.hours_late =  0.0
+            delay = hh - threshold
+            rec.hours_late = delay if delay > 0 else 0.0
 
     @api.depends('check_in', 'check_out')
     def _compute_holiday_hours(self):
