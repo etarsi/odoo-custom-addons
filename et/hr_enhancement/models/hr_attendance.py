@@ -23,7 +23,6 @@ class HrAttendance(models.Model):
         string='Horas de retraso',
         compute='_compute_hours_late',
         store=True,
-        group_operator='sum',   # así el pivot/lista puede sumar
         help='Horas de retraso contra la hora límite de entrada configurada.'
     )
 
@@ -115,8 +114,8 @@ class HrAttendance(models.Model):
                 continue
 
             # Si llegó después del umbral, se computa retraso
-            delay = hh - threshold
-            rec.hours_late = delay if delay > 0 else 0.0
+            #delay = hh - threshold
+            rec.hours_late =  0.0
 
     @api.depends('check_in', 'check_out')
     def _compute_worked_hours(self):
