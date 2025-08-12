@@ -117,10 +117,6 @@ class HrAttendance(models.Model):
             rec.hours_late =  0.0
 
     @api.depends('check_in', 'check_out')
-    def _compute_worked_hours(self):
-        return True
-
-    @api.depends('check_in', 'check_out')
     def _compute_holiday_hours(self):
         """
         Ejemplo simple: si la fecha de check_in está en feriados públicos,
