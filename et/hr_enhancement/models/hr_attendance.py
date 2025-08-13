@@ -59,11 +59,9 @@ class HrAttendance(models.Model):
                     eff_check_in = max(ci_floor, start_dt)
                     eff_check_out = att.check_out
                     
-                    # Semana: Mon=0 ... Sun=6
                     dow = day.weekday()
-                    if dow == 6:
-                        # ===== DOMINGO =====
-                        # Todo va a feriado con redondeo de 30' a horas enteras.
+                    if dow == 6:  # Domingo
+                        # Si es domingo, no se computa horas trabajadas
                         total_secs = max(0.0, (eff_check_out - eff_check_in).total_seconds())
                         att.holiday_hours = float(self._round_30_up_to_int_hours(total_secs))
                         att.worked_hours  = 0.0
@@ -79,41 +77,30 @@ class HrAttendance(models.Model):
                     break_secs = 0.0
 
                     if eff_check_out > b_start_dt:
-                        break_secs = 3600.0  # 1 hora en segundos
-                    # Base preliminar (dentro del horario - break)
+                        break_secs = 3600.0
                     base_secs_raw = max(0.0, scheduled_overlap_secs - break_secs)
                     base_hours_raw = base_secs_raw / 3600.0
 
-                    if dow == 5:
-                        # ===== SÁBADO =====
-                        # Límite de la jornada del sábado: 12:00 BA -> +3
-                        sat_end_t  = self._float_to_time(12.0 + 3)
+                    if dow == 5:  # Sábado
+                        # Si es sábado, se considera un horario especial
+                        sat_end_t  = self._float_to_time(15.0)
                         sat_end_dt = datetime.combine(day, sat_end_t)
-
-                        # Asegurarnos de no contar después de las 12:00 del sábado dentro de base
-                        # (ya contamos solapamiento contra [start_dt, end_dt], pero por si end_dt > 12:00)
-                        if end_dt > sat_end_dt:
-                            # Recalcular solapamiento restringido a [start_dt, sat_end_dt]
-                            scheduled_overlap_secs = self._overlap_seconds(
-                                eff_check_in, eff_check_out, start_dt, sat_end_dt
-                            )
-                            base_secs_raw  = scheduled_overlap_secs
-                            base_hours_raw = base_secs_raw / 3600.0
-                        # Tope de 6 horas laborales los sábados
-                        base_hours = min(base_hours_raw, 6.0)
-                        # Overtime = todo lo trabajado - base (redondeado por tramos de 30')
-                        total_secs = max(0.0, (eff_check_out - eff_check_in).total_seconds())
-                        ot_secs    = max(0.0, total_secs - base_hours * 3600.0)
-                        att.overtime     = float(self._round_30_up_to_int_hours(ot_secs))
-                        att.worked_hours = base_hours
+                        base_secs_raw = self._overlap_seconds(
+                            eff_check_in, eff_check_out, start_dt, sat_end_dt
+                        )
+                        base_hours_raw = base_secs_raw / 3600.0
+                        over_time_base = 0.0
+                        if eff_check_out > sat_end_dt:
+                            over_time_base = max(0.0, (eff_check_out - max(eff_check_in, sat_end_dt)).total_seconds())
+                        att.overtime += float(self._round_30_up_to_int_hours(over_time_base))
+                        att.worked_hours = base_hours_raw
                     else:
                         # ===== Lunes a Viernes (tu lógica original) =====
                         base_hours = base_hours_raw
-                        # Overtime = exceso después del fin del horario
                         over_time_base = 0.0
                         if eff_check_out > end_dt:
                             over_time_base = max(0.0, (eff_check_out - max(eff_check_in, end_dt)).total_seconds())
-                        att.overtime     = float(self._round_30_up_to_int_hours(over_time_base))
+                        att.overtime += float(self._round_30_up_to_int_hours(over_time_base))
                         att.worked_hours = base_hours
 
     @api.depends('check_in', 'employee_id', 'check_out')
@@ -158,7 +145,6 @@ class HrAttendance(models.Model):
             att.holiday_hours = 0.0
 
     # ===================== VALIDACIONES =====================
-
     @api.constrains('overtime', 'holiday_hours')
     def _check_non_negative_hours(self):
         for att in self:
@@ -166,7 +152,6 @@ class HrAttendance(models.Model):
                 raise ValidationError("Las horas extra y las horas de feriado no pueden ser negativas.")
 
     # ===================== HELPERS =====================
-
     def _float_to_time(self, f):
         """Convierte 7.5 -> 07:30, 17.0 -> 17:00 (float a time)."""
         if f is None:
@@ -197,3 +182,30 @@ class HrAttendance(models.Model):
             start = max(a_start, b_start)
         end = min(a_end, b_end)
         return max(0.0, (end - start).total_seconds())
+    
+    @api.model
+    def create(self, vals):
+        if 'check_in' in vals and 'employee_id' in vals:
+            check_in = vals['check_in']
+            employee = vals['employee_id']
+            if employee.employee_type == 'eventual':
+                schedule = self.env['hr.work.schedule'].search([
+                        ('type', '=', self.employee_id.employee_type),
+                        ('state', '=', 'active')
+                    ], limit=1)
+                if not schedule:
+                    raise ValidationError("No se encontró un horario laboral activo para el empleado.")
+                # Verificar si el horario del empleado es diurno
+                if employee.type_shift == 'day':
+                    # Si es diurno, aplicar la lógica de horario
+                    start_t = self._float_to_time(schedule.hour_start + 3)
+                    start_dt = datetime.combine(check_in.date(), start_t)
+                    if check_in < start_dt:
+                        raise ValidationError("La hora de entrada debe estar dentro del horario laboral diurno.")
+                elif employee.type_shift == 'night':
+                    # Si es nocturno, aplicar la lógica de horario nocturno
+                    start_t = self._float_to_time(schedule.hour_start_night + 3)
+                    start_dt = datetime.combine(check_in.date(), start_t)
+                    if check_in < start_dt:
+                        raise ValidationError("La hora de entrada debe estar dentro del horario laboral nocturno.")
+        return super(HrAttendance, self).create(vals)

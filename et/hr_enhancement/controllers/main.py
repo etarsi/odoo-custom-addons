@@ -90,6 +90,8 @@ class HrAttendanceController(http.Controller):
             p_night_end   = _get_param_float('hr_enhancement.hour_end_night_check')
             hr_attendance = request.env['hr.attendance'].sudo()
             hr_employee = request.env['hr.employee'].sudo()
+
+
             employee = hr_employee.search([('dni', '=', employee_dni)], limit=1)
             message = f'Asistencia registrada para {employee_name} ({employee_dni}) a las {check_local.strftime("%Y-%m-%d %H:%M:%S")}'
             if open_method == 'FACE_RECOGNITION':
