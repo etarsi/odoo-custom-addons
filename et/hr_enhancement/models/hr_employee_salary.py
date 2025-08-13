@@ -74,10 +74,19 @@ class HrEmployeeSalary(models.Model):
                 raise ValidationError('No se puede eliminar un ajuste salarial que no esté en estado Borrador o Cancelado.')
         return super(HrEmployeeSalary, self).unlink()
 
+    @api.depends('employee_id', 'employee_id.salary_ids', 'employee_id.salary_ids.state', 'employee_id.salary_ids.date', 'employee_id.salary_ids.real_salary')
     def _compute_actual_salary(self):
         for rec in self:
-            # último salario por fecha y el estado debe ser confirmado
-            if rec.employee_id.salary_ids:
-                rec.actual_salary = max(rec.employee_id.salary_ids.filtered(lambda s: s.state == 'confirmed'), key=lambda s: s.date).real_salary
-            else:
-                rec.actual_salary = 0.0
+            actual = 0.0
+            emp = rec.employee_id
+            if emp:
+                confirmed = emp.salary_ids.filtered(lambda s: s.state == 'confirmed')
+                if confirmed:
+                    # opción A: ordenar y tomar el más reciente
+                    last = confirmed.sorted(lambda s: s.date)[-1]
+                    actual = last.real_salary or 0.0
+                    # opción B (equivalente): usar max con default
+                    # last = max(confirmed, key=lambda s: s.date, default=False)
+                    # actual = last.real_salary if last else 0.0
+            rec.actual_salary = actual
+
