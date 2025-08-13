@@ -73,3 +73,11 @@ class HrEmployeeSalary(models.Model):
             if record.state not in ['draft', 'cancelled']:
                 raise ValidationError('No se puede eliminar un ajuste salarial que no esté en estado Borrador o Cancelado.')
         return super(HrEmployeeSalary, self).unlink()
+
+    def _compute_actual_salary(self):
+        for rec in self:
+            # último salario por fecha y el estado debe ser confirmado
+            if rec.employee_id.salary_ids:
+                rec.actual_salary = max(rec.employee_id.salary_ids.filtered(lambda s: s.state == 'confirmed'), key=lambda s: s.date).real_salary
+            else:
+                rec.actual_salary = 0.0
