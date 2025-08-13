@@ -84,7 +84,7 @@ class HrEmployee(models.Model):
         for rec in self:
             # último salario por fecha
             if rec.salary_ids:
-                rec.wage = max(rec.salary_ids, key=lambda s: s.date).amount
+                rec.wage = max(rec.salary_ids, key=lambda s: s.date).real_salary
             else:
                 rec.wage = 0.0
 
