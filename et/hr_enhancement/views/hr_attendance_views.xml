@@ -8,8 +8,8 @@
 
             <!-- Insertamos después de la columna worked_hours -->
             <xpath expr="//field[@name='worked_hours']" position="after">
-                <field name="overtime"/>
-                <field name="holiday_hours"/>
+                <field name="overtime" widget="float_time"/>
+                <field name="holiday_hours" widget="float_time"/>
             </xpath>
 
         </field>
