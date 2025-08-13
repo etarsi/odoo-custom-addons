@@ -55,19 +55,24 @@ class HrAttendance(models.Model):
                     start_dt = datetime.combine(day, start_t)
                     end_dt   = datetime.combine(day, end_t)
 
+                    # ========= REGLA SOLICITADA PARA check_in =========
+                    # 1) Quitar minutos/segundos a check_in (floor a la hora)
+                    ci_floor = att.check_in.replace(minute=0, second=0, microsecond=0)
+                    # 2) Si quedó antes del inicio del horario, forzar al inicio
+                    eff_check_in = max(ci_floor, start_dt)
+                    # (check_out no se pidió tocar; se usa tal cual)
+                    eff_check_out = att.check_out
                     # Solapamiento con el horario programado (en segundos)
-                    scheduled_overlap_secs = self._overlap_seconds(att.check_in, att.check_out, start_dt, end_dt)
-
-                    b_start_t = self._float_to_time(schedule.break_start + 3)
-                    b_end_t   = self._float_to_time(schedule.break_end + 3)
-
+                    scheduled_overlap_secs = self._overlap_seconds(
+                        eff_check_in, eff_check_out, start_dt, end_dt
+                    )
+                    b_start_t = self._float_to_time(16.0)  # Hora de inicio del break
                     b_start_dt = datetime.combine(day, b_start_t)
-                    b_end_dt   = datetime.combine(day, b_end_t)
-
                     # Descontar break SOLO si check_out > inicio del break, y solo el solapamiento real
                     break_secs = 0.0
                     if att.check_out > b_start_dt:
-                        break_secs = self._overlap_seconds(att.check_in, att.check_out, b_start_dt, b_end_dt)
+                        #quiero colocar 1 hora en segundos
+                        break_secs = 3600.0
 
                     # Horas base dentro del horario, menos break (nunca negativo)
                     base_secs = max(0.0, scheduled_overlap_secs - break_secs)
@@ -158,8 +163,8 @@ class HrAttendance(models.Model):
         minutes = max(0.0, seconds) / 60.0
         return int((minutes + 30) // 60)
 
-    def _overlap_seconds(self, a_start, a_end, b_start, b_end):
+    def _overlap_seconds(self, a_start, a_end):
         """Segundos de solapamiento entre [a_start,a_end] y [b_start,b_end]."""
-        start = max(a_start, b_start)
-        end = min(a_end, b_end)
+        start = max(a_start)
+        end = min(a_end)
         return max(0.0, (end - start).total_seconds())
