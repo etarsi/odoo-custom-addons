@@ -60,24 +60,22 @@ class HrAttendance(models.Model):
                     eff_check_in = max(ci_floor, start_dt)
                     eff_check_out = att.check_out
                     
-                    
                     scheduled_overlap_secs = self._overlap_seconds(
                         eff_check_in, eff_check_out, start_dt, end_dt
                     )
-                    b_start_t = self._float_to_time(16.0 + 3)
+                    b_start_t = self._float_to_time(16.0)
                     b_start_dt = datetime.combine(day, b_start_t)
                     b_end_dt = b_start_dt + timedelta(hours=1)
-                    
-                    break_secs = self._overlap_seconds(
-                        eff_check_in, eff_check_out, b_start_dt, b_end_dt
-                    )
+                    break_secs = 0.0
+                    if eff_check_out > b_start_dt:
+                        break_secs = 3600.0  # 1 hora en segundos
                     # Horas base = dentro de horario - break
                     base_secs = max(0.0, scheduled_overlap_secs - break_secs)
                     base_hours = base_secs / 3600.0
 
                     over_time_base = 0.0
-                    if att.check_out > end_dt:
-                        over_time_base = max(0.0, (att.check_out - max(att.check_in, end_dt)).total_seconds())
+                    if eff_check_out > end_dt:
+                        over_time_base = max(0.0, (eff_check_out - max(eff_check_in, end_dt)).total_seconds())
                     # Redondeo por tramo: >=30 min -> 1h; <30 -> 0h (sin decimales)
                     overtime_time_base_hours = float(self._round_30_up_to_int_hours(over_time_base))
 
@@ -161,7 +159,9 @@ class HrAttendance(models.Model):
         return int((minutes + 30) // 60)
 
     def _overlap_seconds(self, a_start, a_end, b_start, b_end):
-        """Segundos de solapamiento entre [a_start,a_end] y [b_start,b_end]."""
-        start = max(a_start, b_start)
+        if a_start >= b_start:
+            start = min(a_start, b_start)
+        else:
+            start = max(a_start, b_start)
         end = min(a_end, b_end)
         return max(0.0, (end - start).total_seconds())
