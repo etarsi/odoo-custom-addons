@@ -84,15 +84,30 @@ class HrPayrollSalary(models.Model):
         for record in self:
             if record.state != 'draft':
                 raise ValidationError('Solo se pueden cargar empleados en una planilla en estado Borrador.')
-            # Limpiar líneas existentes
-            record.line_ids.unlink()
-            employees = self.env['hr.employee'].search([('employee_type', '=', record.employee_type)])
+            # no eliminar las lineas de la planilla sino traer los empleados que falten
+            if record.line_ids:
+                existing_employees = record.line_ids.mapped('employee_id')
+                employees = self.env['hr.employee'].search([('employee_type', '=', record.employee_type), ('id', 'not in', existing_employees.ids)])
+            else:
+                employees = self.env['hr.employee'].search([('employee_type', '=', record.employee_type)])
             for emp in employees:
-                self.env['hr.payroll.salary.line'].create({
-                    'payroll_id': record.id,
-                    'employee_id': emp.id,
-                    'basic_amount': emp.wage,
-                })
+                attendances = self.env['hr.attendance'].search([
+                    ('employee_id', '=', emp.id),
+                    ('check_in', '>=', record.date_start),
+                    ('check_in', '<=', record.date_end),
+                ])
+                if attendances:
+                    total_hours = sum(a.worked_hours for a in attendances)
+                    total_overtime = sum(a.overtime for a in attendances)
+                    total_holiday_hours = sum(a.holiday_hours for a in attendances)
+                    self.env['hr.payroll.salary.line'].create({
+                        'payroll_id': record.id,
+                        'employee_id': emp.id,
+                        'basic_amount': emp.wage,
+                        'worked_hours': total_hours,
+                        'overtime': total_overtime,
+                        'holiday_hours': total_holiday_hours,
+                    })
 
     
 class HrPayrollSalaryLine(models.Model):
@@ -103,10 +118,10 @@ class HrPayrollSalaryLine(models.Model):
     payroll_id = fields.Many2one('hr.payroll.salary', string="Planilla", required=True, ondelete='cascade')
     employee_id = fields.Many2one('hr.employee', string="Empleado", required=True)
     job_id = fields.Many2one(related='employee_id.job_id', string="Puesto", store=True)
-    worked_days = fields.Float('Días Trabajados', compute='_compute_attendance', store=True)
-    worked_hours = fields.Float('H. Trabajadas', compute='_compute_attendance', store=True)
-    overtime = fields.Float('H. 50%', compute='_compute_attendance', store=True)
-    holiday_hours = fields.Float('H. 100%', compute='_compute_attendance', store=True)
+    worked_days = fields.Float('Días Trabajados', compute='_compute_attendance',  readonly=True, store=True)
+    worked_hours = fields.Float('H. Trabajadas', compute='_compute_attendance', readonly=True, store=True)
+    overtime = fields.Float('H. 50%', compute='_compute_attendance', readonly=True, store=True)
+    holiday_hours = fields.Float('H. 100%', compute='_compute_attendance', readonly=True, store=True)
     basic_amount = fields.Float('Sueldo Básico', help="Sueldo básico por el período")
     bonus = fields.Float('Bonos/Gratificación', default=0.0)
     discount = fields.Float('Descuentos', default=0.0)
@@ -136,6 +151,9 @@ class HrPayrollSalaryLine(models.Model):
     @api.depends('employee_id', 'payroll_id.date_start', 'payroll_id.date_end')
     def _compute_attendance(self):
         for rec in self:
+            rec.worked_hours = 0.0
+            rec.overtime = 0.0
+            rec.holiday_hours = 0.0
             if rec.employee_id and rec.payroll_id:
                 attendances = self.env['hr.attendance'].search([
                     ('employee_id', '=', rec.employee_id.id),
@@ -143,11 +161,10 @@ class HrPayrollSalaryLine(models.Model):
                     ('check_in', '<=', rec.payroll_id.date_end),
                 ])
                 # Calcular horas trabajadas, días trabajados, horas extras y horas de vacaciones
-                
-                total_hours = sum(a.worked_hours for a in attendances)
-                rec.worked_hours = total_hours
-                # Suponiendo 8hs = 1 día trabajado
-                rec.worked_days = total_hours / 8.0 if total_hours else 0.0
-            else:
-                rec.worked_hours = 0.0
-                rec.worked_days = 0.0
+                for att in attendances:
+                    rec.worked_hours += att.worked_hours
+                    rec.overtime += att.overtime
+                    rec.holiday_hours += att.holiday_hours
+                    
+    @api.constrains('worked_hours', 'overtime', 'holiday_hours')
+    def _check_hours(self):
