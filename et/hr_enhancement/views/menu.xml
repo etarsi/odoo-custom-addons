@@ -74,4 +74,11 @@
         parent="hr_enhancement.menu_hr_season_labor_cost_config"
         action="action_hr_work_schedule"
         sequence="2"/>
+
+    <menuitem
+        id="hr_enhancement.menu_hr_holiday_custom"
+        name="Días No Laborales"
+        parent="hr_enhancement.menu_hr_season_labor_cost_config"
+        action="action_hr_holiday_custom"
+        sequence="3"/>
 </odoo>
