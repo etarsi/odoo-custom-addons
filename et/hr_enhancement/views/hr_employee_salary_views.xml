@@ -29,7 +29,12 @@
                     <group>
                         <group name="group_location_info" string="Información del Ajuste Salarial">
                             <field name="employee_id" required="True" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
-                            <field name="amount" string="Sueldo Bruto" required="True" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                            <field name="actual_salary" string="Sueldo Actual" required="True" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                            <field name="real_salary" string="Salario Real" required="True" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                            <field name="gross_salary" string="Sueldo Bruto" required="True" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                            <field name="bank_salary" string="Sueldo por Banco" required="True" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                        </group>
+                        <group name="group_adjustment_info" string="Información del Ajuste">
                             <field name="date" string="Fecha" required="True" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
                             <field name="percentage_increase" string="Porcentaje de Incremento" compute="_compute_percentage_increase" store="True" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
                             <field name="tipo_ajuste" string="Tipo de Ajuste" required="True" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
@@ -52,7 +57,10 @@
         <field name="arch" type="xml">
             <tree>
                 <field name="employee_id"/>
-                <field name="amount"/>
+                <field name="actual_salary"/>
+                <field name="real_salary"/>
+                <field name="gross_salary"/>
+                <field name="bank_salary"/>
                 <field name="date"/>
                 <field name="percentage_increase"/>
                 <field name="tipo_ajuste"/>
