@@ -75,7 +75,7 @@ class HrAttendance(models.Model):
                         break_secs = 3600.0
 
                     # Horas base dentro del horario, menos break (nunca negativo)
-                    base_secs = max(0.0, scheduled_overlap_secs - break_secs)
+                    base_secs = scheduled_overlap_secs - break_secs
                     base_hours = base_secs / 3600.0
 
                     over_time_base = 0.0
@@ -163,8 +163,8 @@ class HrAttendance(models.Model):
         minutes = max(0.0, seconds) / 60.0
         return int((minutes + 30) // 60)
 
-    def _overlap_seconds(self, a_start, a_end):
+    def _overlap_seconds(self, a_start, a_end, b_start, b_end):
         """Segundos de solapamiento entre [a_start,a_end] y [b_start,b_end]."""
-        start = max(a_start)
-        end = min(a_end)
+        start = max(a_start, b_start)
+        end = min(a_end, b_end)
         return max(0.0, (end - start).total_seconds())
