@@ -26,15 +26,11 @@
                             <field name="type"/>
                             <field name="hour_start" widget="float_time"/>
                             <field name="hour_end" widget="float_time"/>
-                            <field name="break_start" widget="float_time"/>
-                            <field name="break_end" widget="float_time"/>
                             <field name="state"/>
                         </group>
                         <group string="Horario Nocturno">
                             <field name="hour_start_night" widget="float_time"/>
                             <field name="hour_end_night" widget="float_time"/>
-                            <field name="break_start_night" widget="float_time"/>
-                            <field name="break_end_night" widget="float_time"/>
                         </group>
                     </group>
                 </sheet>
