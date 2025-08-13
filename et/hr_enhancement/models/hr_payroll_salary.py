@@ -165,6 +165,3 @@ class HrPayrollSalaryLine(models.Model):
                     rec.worked_hours += att.worked_hours
                     rec.overtime += att.overtime
                     rec.holiday_hours += att.holiday_hours
-                    
-    @api.constrains('worked_hours', 'overtime', 'holiday_hours')
-    def _check_hours(self):
