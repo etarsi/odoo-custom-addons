@@ -79,7 +79,7 @@ class HrEmployee(models.Model):
         ('unique_account', 'UNIQUE(nro_account)', 'El Número de Cuenta debe ser único por empleado.'),
     ]
     
-    @api.depends('salary_ids.amount', 'salary_ids.date')
+    @api.depends('salary_ids.real_salary', 'salary_ids.date')
     def _compute_wage(self):
         for rec in self:
             # último salario por fecha
@@ -88,12 +88,12 @@ class HrEmployee(models.Model):
             else:
                 rec.wage = 0.0
 
-    @api.depends('salary_ids.amount', 'salary_ids.date')
+    @api.depends('salary_ids.real_salary', 'salary_ids.date')
     def _compute_total_percentage_increase(self):
         for rec in self:
             salaries = rec.salary_ids.sorted(key=lambda s: s.date)
-            if len(salaries) >= 2 and salaries[0].amount:
-                rec.total_percentage_increase = ((salaries[-1].amount - salaries[0].amount) / salaries[0].amount) * 100
+            if len(salaries) >= 2 and salaries[0].real_salary:
+                rec.total_percentage_increase = ((salaries[-1].real_salary - salaries[0].real_salary) / salaries[0].real_salary) * 100
             else:
                 rec.total_percentage_increase = 0.0
 
