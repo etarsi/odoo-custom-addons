@@ -85,8 +85,5 @@ class HrEmployeeSalary(models.Model):
                     # opción A: ordenar y tomar el más reciente
                     last = confirmed.sorted(lambda s: s.date)[-1]
                     actual = last.real_salary or 0.0
-                    # opción B (equivalente): usar max con default
-                    # last = max(confirmed, key=lambda s: s.date, default=False)
-                    # actual = last.real_salary if last else 0.0
             rec.actual_salary = actual
 

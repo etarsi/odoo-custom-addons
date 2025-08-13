@@ -202,7 +202,9 @@
                     <field name="salary_ids">
                         <tree create="false" delete="false" edit="false">
                             <field name="date"/>
-                            <field name="amount"/>
+                            <field name="real_salary"/>
+                            <field name="gross_salary"/>
+                            <field name="bank_salary"/>
                             <field name="percentage_increase"/>
                             <field name="tipo_ajuste"/>
                             <field name="notes"/>
