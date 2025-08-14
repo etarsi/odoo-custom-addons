@@ -1,8 +1,8 @@
 from odoo import http
 from odoo.http import request
 from odoo.exceptions import ValidationError
-from datetime import datetime, timedelta
-import pytz
+from datetime import datetime, timedelta, time
+import pytz, math
 
 
 def _float_to_time(f):
