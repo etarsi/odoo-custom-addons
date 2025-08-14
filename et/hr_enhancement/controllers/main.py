@@ -50,6 +50,7 @@ class HrAttendanceController(http.Controller):
             p_night_end_limit   = _float_to_time(float(hr_enhancement.get_param('hr_enhancement.hour_end_night_check')) + 3)
 
             day = check_utc.date()
+            dow = day.weekday()
             start_limit_day = datetime.combine(day, p_day_start_limit)
             end_limit_day   = datetime.combine(day, p_day_end_limit)
             start_limit_night = datetime.combine(day, p_night_start_limit)
@@ -120,16 +121,24 @@ class HrAttendanceController(http.Controller):
                             ('check_in', '<=', check_utc)], limit=1)
                         if employee.type_shift == 'day':
                             if open_att:
-                                if check_utc > end_limit_day:
-                                    message += f'--asistencia fuera del limite de salida diurno ({end_limit_day.strftime("%H:%M")})'
-                                    return {'success': False, 'error': message, 'received': data}
+                                if dow in [0,1,2,3,4]:  # Lunes a Viernes
+                                    if check_utc > end_limit_day:
+                                        message += f'--asistencia fuera del limite de salida diurno ({end_limit_day.strftime("%H:%M")})'
+                                        return {'success': False, 'error': message, 'received': data}
                                 # Cerrar asistencia abierta
                                 open_att.write({'check_out': check_utc})
                                 message += f' (asistencia cerrada: {open_att.id})'
                             else:
-                                if check_utc > start_limit_day:
-                                    message += f'--asistencia fuera del limite de ingreso diurno ({start_limit_day.strftime("%H:%M")})'
-                                    return {'success': False, 'error': message, 'received': data}
+                                if dow in [0,1,2,3,4]:  # Lunes a Viernes
+                                    if check_utc > start_limit_day:
+                                        message += f'--asistencia fuera del limite de ingreso diurno ({start_limit_day.strftime("%H:%M")})'
+                                        return {'success': False, 'error': message, 'received': data}
+                                elif dow == 5:  # Sábado
+                                    p_day_start_limit   = _float_to_time(float(hr_enhancement.get_param('hr_enhancement.hour_start_day_check')) + 2)
+                                    start_limit_day = datetime.combine(day, p_day_start_limit)
+                                    if check_utc > start_limit_day:
+                                        message += f'--asistencia fuera del limite de ingreso diurno ({start_limit_day.strftime("%H:%M")})'
+                                        return {'success': False, 'error': message, 'received': data}
                                 # Crear asistencia abierta
                                 open_att = hr_attendance.create({
                                     'employee_id': employee.id,

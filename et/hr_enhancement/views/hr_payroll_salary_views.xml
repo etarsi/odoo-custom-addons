@@ -54,25 +54,25 @@
                             <field name="total_amount"/>
                         </group>
                     </group>
+                    <notebook>
+                        <page name="employees_lines" string="Líneas de Empleados">
+                            <field name="line_ids" widget="one2many_list">
+                                <tree editable="bottom">
+                                    <field name="state" invisible="1"/>
+                                    <field name="payroll_id" invisible="1"/>
+                                    <field name="employee_id" domain="[('employee_type', '=', parent.employee_type)]" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                                    <field name="worked_hours" />
+                                    <field name="overtime" />
+                                    <field name="holiday_hours" />
+                                    <field name="bonus" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                                    <field name="discount" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                                    <field name="gross_amount" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                                    <field name="net_amount" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                                </tree>
+                            </field>
+                        </page>
+                    </notebook>
                 </sheet>
-                <notebook>
-                    <page name="employees_lines" string="Líneas de Empleados">
-                        <field name="line_ids" widget="one2many_list">
-                            <tree editable="bottom">
-                                <field name="state" invisible="1"/>
-                                <field name="payroll_id" invisible="1"/>
-                                <field name="employee_id" domain="[('employee_type', '=', parent.employee_type)]"/>
-                                <field name="worked_hours" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
-                                <field name="overtime" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
-                                <field name="holiday_hours" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
-                                <field name="bonus" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
-                                <field name="discount" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
-                                <field name="gross_amount" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
-                                <field name="net_amount" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
-                            </tree>
-                        </field>
-                    </page>
-                </notebook>
                 <!--DETALLE QUIEN  -->
                 <div class="oe_chatter">
                     <field name="message_follower_ids" widget="mail_followers"/>

@@ -137,11 +137,18 @@ class HrPayrollSalaryLine(models.Model):
     )
     state = fields.Selection(related='payroll_id.state', string='Estado', store=True)
     labor_cost_id = fields.Many2one('hr.season.labor.cost', string="Costo Laboral")
+    payment_id = fields.Many2one('account.payment', string="Pago")  
 
+    @api.depends('worked_hours', 'overtime', 'holiday_hours', 'bonus', 'discount')
     def _compute_gross_amount(self):
         for rec in self:
-            rec.gross_amount = rec.basic_amount + rec.bonus
-
+            rec.gross_amount = 0.00
+            if rec.labor_cost_id:
+                amount_overtime = rec.labor_cost_id.hour_cost_extra
+                amount_holiday = rec.labor_cost_id.hour_cost_holiday
+                rec.gross_amount = (rec.bonus + (rec.worked_hours * rec.labor_cost_id.hour_cost_normal) +
+                                    (rec.overtime * amount_overtime) +
+                                    (rec.holiday_hours * amount_holiday))
     def _compute_net_amount(self):
         for rec in self:
             rec.net_amount = rec.gross_amount - rec.discount
@@ -173,3 +180,5 @@ class HrPayrollSalaryLine(models.Model):
                     rec.worked_hours += att.worked_hours
                     rec.overtime += att.overtime
                     rec.holiday_hours += att.holiday_hours
+    
+    
