@@ -20,7 +20,7 @@
                             attrs="{'invisible': [('state', '!=', 'confirmed')]}"/>
                     <button name="action_paid"
                             type="object"
-                            string="Marcar como Pagada"
+                            string="Pagar Planilla"
                             icon="fa-check"
                             attrs="{'invisible': [('state', '!=', 'confirmed')]}"/>
                     <button name="action_draft"
@@ -69,7 +69,8 @@
                                     <field name="gross_amount" optional="show" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
                                     <field name="discount" optional="show" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
                                     <field name="net_amount" optional="show" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
-                                    <button name="action_paid" type="object" string="Marcar como Pagado" 
+
+                                    <button name="action_paid" type="object" string="Pagar" class="btn-primary oe_highlight"
                                             icon="fa-check" attrs="{'invisible': [('state', '!=', 'confirmed')]}"/>
                                 </tree>
                             </field>
