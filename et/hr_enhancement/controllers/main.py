@@ -42,8 +42,7 @@ class HrAttendanceController(http.Controller):
                 return {'success': False, 'error': f"Formato de 'check_time' inválido: {pe}", 'received': data}
 
             #a check_local le quiero agregar 3 horas mas porque esta en fecha BA
-            check_local += timedelta(hours=3)
-            check_utc = check_local.astimezone(pytz.utc)  # datetime aware UTC (DB)
+            check_utc = check_local + timedelta(hours=3)  # Convertir a UTC
             # Paramétricas (seguras)
             hr_enhancement = request.env['ir.config_parameter'].sudo()
             p_day_start_limit   = _float_to_time(float(hr_enhancement.get_param('hr_enhancement.hour_start_day_check')) + 3)
