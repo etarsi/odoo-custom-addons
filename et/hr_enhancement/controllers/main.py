@@ -1,23 +1,22 @@
 from odoo import http
-from odoo.http import request, Response
+from odoo.http import request
 from odoo.exceptions import ValidationError
 from datetime import datetime, timedelta
-import pytz, traceback, json
+import pytz
 
 
-def _get_param_float(key, default=None):
-    """Lee paramétricas. Acepta '07:30' -> 7.5 o '7.5' -> 7.5."""
-    raw = float(request.env['ir.config_parameter'].sudo().get_param(key) + 3) #
-    if raw in (None, ''):
-        return default
-    s = str(raw).strip()
-    try:
-        if ':' in s:
-            h, m = s.split(':', 1)
-            return int(h) + int(m)/60.0
-        return float(s)
-    except Exception:
-        return default
+def _float_to_time(f):
+    """Convierte 7.5 -> 07:30, 17.0 -> 17:00 (float a time)."""
+    if f is None:
+        return time(0, 0, 0)
+    h = int(math.floor(f))
+    m = int(round((f - h) * 60))
+    if m == 60:  # por si entra 7.99999
+        h += 1
+        m = 0
+    h = max(0, min(23, h))
+    m = max(0, min(59, m))
+    return time(h, m, 0)
 
 def _to_utc_naive(dt_local_aware):
     """Aware (con tz) -> naive UTC (lo que guarda Odoo)."""
@@ -44,13 +43,14 @@ class HrAttendanceController(http.Controller):
                 check_local = datetime.strptime(check_time, fmt)   # datetime naive
             except Exception as pe:
                 return {'success': False, 'error': f"Formato de 'check_time' inválido: {pe}", 'received': data}
-
+            
             check_utc   = _to_utc_naive(check_local)                    # naive UTC (DB)
             # Paramétricas (seguras)
-            p_day_start_limit   = _get_param_float('hr_enhancement.hour_start_day_check')
-            p_day_end_limit     = _get_param_float('hr_enhancement.hour_end_day_check')
-            p_night_start_limit = _get_param_float('hr_enhancement.hour_start_night_check')
-            p_night_end_limit   = _get_param_float('hr_enhancement.hour_end_night_check')
+            hr_enhancement = request.env['ir.config_parameter'].sudo()
+            p_day_start_limit   = _float_to_time(float(hr_enhancement.get_param('hr_enhancement.hour_start_day_check')) + 3)
+            p_day_end_limit     = _float_to_time(float(hr_enhancement.get_param('hr_enhancement.hour_end_day_check')) + 3)
+            p_night_start_limit = _float_to_time(float(hr_enhancement.get_param('hr_enhancement.hour_start_night_check')) + 3)
+            p_night_end_limit   = _float_to_time(float(hr_enhancement.get_param('hr_enhancement.hour_end_night_check')) + 3)
 
             day = check_utc.date()
             start_limit_day = datetime.combine(day, p_day_start_limit)
