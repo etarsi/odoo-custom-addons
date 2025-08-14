@@ -112,7 +112,7 @@ class HrPayrollSalary(models.Model):
     
 class HrPayrollSalaryLine(models.Model):
     _name = 'hr.payroll.salary.line'
-    _description = 'Detalle de Planilla de Pago'
+    _description = 'Detalle de Planilla de Pago' 
     _inherit = ['mail.thread', 'mail.activity.mixin']
 
     payroll_id = fields.Many2one('hr.payroll.salary', string="Planilla", required=True, ondelete='cascade')
@@ -122,12 +122,13 @@ class HrPayrollSalaryLine(models.Model):
     worked_hours = fields.Float('H. Trabajadas', compute='_compute_attendance', readonly=True, store=True)
     overtime = fields.Float('H. 50%', compute='_compute_attendance', readonly=True, store=True)
     holiday_hours = fields.Float('H. 100%', compute='_compute_attendance', readonly=True, store=True)
-    basic_amount = fields.Float('Sueldo Básico', help="Sueldo básico por el período")
+    salary_id = fields.Many2one('hr.employee.salary', string="Sueldo Básico", help="Sueldo básico por el período")
+    basic_amount = fields.Float('Sueldo Básico', help="Sueldo básico")
     bonus = fields.Float('Bonos/Gratificación', default=0.0)
-    discount = fields.Float('Descuentos', default=0.0)
+    discount = fields.Float('Descuento', default=0.0)
     holidays = fields.Float('Días de Licencia', default=0.0)
-    gross_amount = fields.Float('Total a Cobrar Bruto', compute='_compute_gross_amount', store=True)
-    net_amount = fields.Float('Total a Cobrar', compute='_compute_net_amount', store=True)
+    gross_amount = fields.Float('Monto Bruto', compute='_compute_amount', store=True)
+    net_amount = fields.Float('Total a Cobrar', compute='_compute_amount', store=True)
     note = fields.Char('Nota (Observaciones)')
     currency_id = fields.Many2one(
     'res.currency',
@@ -140,7 +141,7 @@ class HrPayrollSalaryLine(models.Model):
     payment_id = fields.Many2one('account.payment', string="Pago")  
 
     @api.depends('worked_hours', 'overtime', 'holiday_hours', 'bonus', 'discount')
-    def _compute_gross_amount(self):
+    def _compute_amount(self):
         for rec in self:
             rec.gross_amount = 0.00
             if rec.labor_cost_id:
@@ -149,9 +150,7 @@ class HrPayrollSalaryLine(models.Model):
                 rec.gross_amount = (rec.bonus + (rec.worked_hours * rec.labor_cost_id.hour_cost_normal) +
                                     (rec.overtime * amount_overtime) +
                                     (rec.holiday_hours * amount_holiday))
-    def _compute_net_amount(self):
-        for rec in self:
-            rec.net_amount = rec.gross_amount - rec.discount
+                rec.net_amount = rec.gross_amount - rec.discount
             
     @api.depends('employee_id', 'payroll_id.date_start', 'payroll_id.date_end')
     def _compute_attendance(self):
