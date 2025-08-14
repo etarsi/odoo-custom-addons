@@ -60,7 +60,7 @@ class HrAttendance(models.Model):
                     eff_check_out = att.check_out
                     
                     #verificar si hay hr holiday custom
-                    holiday = self.env['hr.holidays.custom'].search([('date', '=', day)], limit=1)
+                    holiday = self.env['hr.holiday.custom'].search([('date', '=', day)], limit=1)
                     dow = day.weekday()
                     if dow == 6 or holiday:
                         # Si es domingo o feriado, no se computa horas trabajadas
