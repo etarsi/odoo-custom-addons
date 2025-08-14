@@ -138,7 +138,6 @@ class HrPayrollSalaryLine(models.Model):
     )
     state = fields.Selection(related='payroll_id.state', string='Estado', store=True)
     labor_cost_id = fields.Many2one('hr.season.labor.cost', string="Costo Laboral")
-    payment_id = fields.Many2one('account.payment', string="Pago")  
 
     @api.depends('worked_hours', 'overtime', 'holiday_hours', 'bonus', 'discount')
     def _compute_amount(self):

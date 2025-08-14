@@ -120,5 +120,33 @@
         <field name="domain">[('employee_type', '=', 'empleado')]</field>
         <field name="context">{'default_employee_type': 'empleado'}</field>
     </record>
+    <record id="view_hr_payroll_salary_line_form" model="ir.ui.view">
+        <field name="name">hr.payroll.salary.line.form</field>
+        <field name="model">hr.payroll.salary.line</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group>
+                        <group name="information" string="Información Pago">
+                            <field name="employee_id"/>
+                            <field name="worked_days"/>
+                            <field name="worked_hours"/>
+                            <field name="overtime"/>
+                            <field name="holiday_hours"/>
+                            <field name="holidays"/>
+                        </group>
+                        <group name="paid" string="Información Pagada">
+                            <field name="bonus"/>
+                            <field name="discount"/>
+                            <field name="gross_amount"/>
+                            <field name="net_amount"/>
+                            <field name="currency_id"/>
+                            <field name="labor_cost_id"/>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
 
 </odoo>
