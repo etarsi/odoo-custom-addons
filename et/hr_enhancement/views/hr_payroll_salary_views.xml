@@ -59,6 +59,7 @@
                     <page name="employees_lines" string="Líneas de Empleados">
                         <field name="line_ids" widget="one2many_list">
                             <tree editable="bottom">
+                                <field name="state" invisible="1"/>
                                 <field name="payroll_id" invisible="1"/>
                                 <field name="employee_id" domain="[('employee_type', '=', parent.employee_type)]"/>
                                 <field name="worked_hours" attrs="{'readonly': [('state', '!=', 'draft')]}"/>

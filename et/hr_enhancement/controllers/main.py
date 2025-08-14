@@ -18,45 +18,10 @@ def _get_param_float(key, default=None):
         return float(s)
     except Exception:
         return default
-    
-def _float_to_hm(hf):
-    h = int(hf)
-    m = int(round((hf - h) * 60))
-    if m == 60:
-        h += 1; m = 0
-    return h % 24, m
-
-def _in_window(hf, start_f, end_f):
-    """Valida si hf (0..24) cae en [start_f, end_f) soportando cruce de medianoche."""
-    if start_f is None or end_f is None:
-        return True
-    if not (0 <= hf < 24):
-        return False
-    if start_f <= end_f:
-        return start_f <= hf < end_f
-    # cruza medianoche
-    return hf >= start_f or hf < end_f
 
 def _to_utc_naive(dt_local_aware):
     """Aware (con tz) -> naive UTC (lo que guarda Odoo)."""
     return dt_local_aware.astimezone(pytz.UTC).replace(tzinfo=None)
-
-def _day_bounds_utc(check_local):
-    """Inicio y fin del día (local) en UTC naive."""
-    start_local = check_local.replace(hour=0, minute=0, second=0, microsecond=0)
-    end_local   = check_local.replace(hour=23, minute=59, second=59, microsecond=999999)
-    return _to_utc_naive(start_local), _to_utc_naive(end_local)
-
-def _window_bounds_utc(check_local, start_f, end_f):
-    """Devuelve (inicio_ventana_utc_naive, fin_ventana_utc_naive) para el día de check_local."""
-    sh, sm = _float_to_hm(start_f)
-    eh, em = _float_to_hm(end_f)
-    w_start_local = check_local.replace(hour=sh, minute=sm, second=0, microsecond=0)
-    w_end_local   = check_local.replace(hour=eh, minute=em, second=0, microsecond=0)
-    if start_f is not None and end_f is not None and start_f > end_f:
-        # cruza medianoche: fin pasa al día siguiente
-        w_end_local += timedelta(days=1)
-    return _to_utc_naive(w_start_local), _to_utc_naive(w_end_local)
 
 class HrAttendanceController(http.Controller):
     
