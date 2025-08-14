@@ -40,11 +40,12 @@ class HrAttendanceController(http.Controller):
             # Soporta con o sin milisegundos
             fmt = "%Y-%m-%d %H:%M:%S.%f" if '.' in check_time else "%Y-%m-%d %H:%M:%S"
             try:
-                check_local = datetime.strptime(check_time, fmt)   # datetime naive
+                check_stptime = datetime.strptime(check_time, fmt)   # datetime naive
             except Exception as pe:
                 return {'success': False, 'error': f"Formato de 'check_time' inválido: {pe}", 'received': data}
-            
-            check_utc   = _to_utc_naive(check_local)                    # naive UTC (DB)
+
+            check_local = check_stptime.replace(tzinfo=pytz.timezone(request.env.user.tz or 'UTC'))  # datetime aware
+            check_utc = _to_utc_naive(check_local)              # naive UTC (DB)
             # Paramétricas (seguras)
             hr_enhancement = request.env['ir.config_parameter'].sudo()
             p_day_start_limit   = _float_to_time(float(hr_enhancement.get_param('hr_enhancement.hour_start_day_check')) + 3)
