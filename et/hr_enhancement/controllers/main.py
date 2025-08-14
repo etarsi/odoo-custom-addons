@@ -18,9 +18,6 @@ def _float_to_time(f):
     m = max(0, min(59, m))
     return time(h, m, 0)
 
-def _to_utc_naive(dt_local_aware):
-    """Aware (con tz) -> naive UTC (lo que guarda Odoo)."""
-    return dt_local_aware.astimezone(pytz.UTC).replace(tzinfo=None)
 
 class HrAttendanceController(http.Controller):
     
@@ -40,12 +37,13 @@ class HrAttendanceController(http.Controller):
             # Soporta con o sin milisegundos
             fmt = "%Y-%m-%d %H:%M:%S.%f" if '.' in check_time else "%Y-%m-%d %H:%M:%S"
             try:
-                check_stptime = datetime.strptime(check_time, fmt)   # datetime naive
+                check_local = datetime.strptime(check_time, fmt)   # datetime naive
             except Exception as pe:
                 return {'success': False, 'error': f"Formato de 'check_time' inválido: {pe}", 'received': data}
 
-            check_local = check_stptime.replace(tzinfo=pytz.timezone(request.env.user.tz or 'UTC'))  # datetime aware
-            check_utc = _to_utc_naive(check_local)              # naive UTC (DB)
+            #a check_local le quiero agregar 3 horas mas porque esta en fecha BA
+            check_local += timedelta(hours=3)
+            check_utc = check_local.astimezone(pytz.utc)  # datetime aware UTC (DB)
             # Paramétricas (seguras)
             hr_enhancement = request.env['ir.config_parameter'].sudo()
             p_day_start_limit   = _float_to_time(float(hr_enhancement.get_param('hr_enhancement.hour_start_day_check')) + 3)
@@ -117,14 +115,12 @@ class HrAttendanceController(http.Controller):
                         message += f'--asistencia abierta: {open_att.id} (empleado en borrador)'
                 else:
                     if employee.employee_type == 'eventual':
-                        # Limites del día (para agrupar por día local)
-                        open_att = hr_attendance.search([
-                            ('employee_id', '=', employee.id),
-                            ('check_in', '>=', check_utc),
-                            ('check_in', '<=', check_utc),
-                            ('check_out', '=', False)], limit=1)
-
-                        if employee.type_shift == 'day':                            
+                        if employee.type_shift == 'day':
+                            # Limites del día (para agrupar por día local)
+                            open_att = hr_attendance.search([
+                                ('employee_id', '=', employee.id),
+                                ('check_in', '>=', check_utc),
+                                ('check_out', '=', False)], limit=1)
                             if open_att:
                                 if check_utc > end_limit_day:
                                     message += f'--asistencia fuera del limite de salida diurno ({end_limit_day.strftime("%H:%M")})'
@@ -143,6 +139,11 @@ class HrAttendanceController(http.Controller):
                                 })
                                 message += f' (asistencia abierta: {open_att.id})'
                         elif employee.type_shift == 'night':
+                            # Limites del noche (para agrupar por día local)
+                            open_att = hr_attendance.search([
+                                ('employee_id', '=', employee.id),
+                                ('check_in', '<=', check_utc),
+                                ('check_out', '=', False)], limit=1)
                             if open_att:
                                 if check_utc > end_limit_night:
                                     message += f'--asistencia fuera de rango nocturno ({end_limit_night.strftime("%H:%M")})'
