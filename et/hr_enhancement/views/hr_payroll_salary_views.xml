@@ -61,13 +61,13 @@
                             <tree editable="bottom">
                                 <field name="payroll_id" invisible="1"/>
                                 <field name="employee_id" domain="[('employee_type', '=', parent.employee_type)]"/>
-                                <field name="worked_days" />
-                                <field name="worked_hours" />
-                                <field name="bonus" />
-                                <field name="holidays" />
-                                <field name="discount" />
-                                <field name="gross_amount" />
-                                <field name="net_amount" />
+                                <field name="worked_hours" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                                <field name="overtime" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                                <field name="holiday_hours" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                                <field name="bonus" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                                <field name="discount" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                                <field name="gross_amount" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                                <field name="net_amount" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
                             </tree>
                         </field>
                     </page>

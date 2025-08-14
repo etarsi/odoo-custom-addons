@@ -136,14 +136,12 @@ class HrPayrollSalaryLine(models.Model):
     default=lambda self: self.env.company.currency_id.id
     )
     state = fields.Selection(related='payroll_id.state', string='Estado', store=True)
-    
+    labor_cost_id = fields.Many2one('hr.season.labor.cost', string="Costo Laboral")
 
-    @api.depends('basic_amount', 'bonus', 'discount')
     def _compute_gross_amount(self):
         for rec in self:
             rec.gross_amount = rec.basic_amount + rec.bonus
 
-    @api.depends('gross_amount', 'discount')
     def _compute_net_amount(self):
         for rec in self:
             rec.net_amount = rec.gross_amount - rec.discount
@@ -151,9 +149,19 @@ class HrPayrollSalaryLine(models.Model):
     @api.depends('employee_id', 'payroll_id.date_start', 'payroll_id.date_end')
     def _compute_attendance(self):
         for rec in self:
+            rec.worked_days = 0.0
             rec.worked_hours = 0.0
             rec.overtime = 0.0
             rec.holiday_hours = 0.0
+            season_costo = self.env['hr.season.labor.cost'].search([('active', '=', True),
+                                                                    ('date_start', '<=', rec.payroll_id.date_start),
+                                                                    ('date_end', '>=', rec.payroll_id.date_end)], limit=1)
+            if not season_costo:
+                raise ValidationError('No hay una temporada activa para calcular el costo laboral. Por favor, cree y active una temporada en Costo Laboral por Temporada.')
+            rec.labor_cost_id = season_costo.id
+            season_costo.hour_cost_normal
+            
+            
             if rec.employee_id and rec.payroll_id:
                 attendances = self.env['hr.attendance'].search([
                     ('employee_id', '=', rec.employee_id.id),
