@@ -41,7 +41,6 @@ class HrAttendanceController(http.Controller):
             except Exception as pe:
                 return {'success': False, 'error': f"Formato de 'check_time' inválido: {pe}", 'received': data}
 
-            #a check_local le quiero agregar 3 horas mas porque esta en fecha BA
             check_utc = check_local + timedelta(hours=3)  # Convertir a UTC
             # Paramétricas (seguras)
             hr_enhancement = request.env['ir.config_parameter'].sudo()
@@ -114,12 +113,12 @@ class HrAttendanceController(http.Controller):
                         message += f'--asistencia abierta: {open_att.id} (empleado en borrador)'
                 else:
                     if employee.employee_type == 'eventual':
+                        # Limites del día (para agrupar por día local)
+                        open_att = hr_attendance.search([
+                            ('employee_id', '=', employee.id),
+                            ('check_out', '=', False),
+                            ('check_in', '<=', check_utc)], limit=1)
                         if employee.type_shift == 'day':
-                            # Limites del día (para agrupar por día local)
-                            open_att = hr_attendance.search([
-                                ('employee_id', '=', employee.id),
-                                ('check_in', '>=', check_utc),
-                                ('check_out', '=', False)], limit=1)
                             if open_att:
                                 if check_utc > end_limit_day:
                                     message += f'--asistencia fuera del limite de salida diurno ({end_limit_day.strftime("%H:%M")})'
@@ -138,11 +137,6 @@ class HrAttendanceController(http.Controller):
                                 })
                                 message += f' (asistencia abierta: {open_att.id})'
                         elif employee.type_shift == 'night':
-                            # Limites del noche (para agrupar por día local)
-                            open_att = hr_attendance.search([
-                                ('employee_id', '=', employee.id),
-                                ('check_in', '<=', check_utc),
-                                ('check_out', '=', False)], limit=1)
                             if open_att:
                                 if check_utc > end_limit_night:
                                     message += f'--asistencia fuera de rango nocturno ({end_limit_night.strftime("%H:%M")})'
