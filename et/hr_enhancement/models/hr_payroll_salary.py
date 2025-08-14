@@ -179,5 +179,7 @@ class HrPayrollSalaryLine(models.Model):
                     rec.worked_hours += att.worked_hours
                     rec.overtime += att.overtime
                     rec.holiday_hours += att.holiday_hours
-    
-    
+
+    def action_paid(self):
+        self.ensure_one()
+        return True
