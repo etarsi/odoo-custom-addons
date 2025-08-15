@@ -71,7 +71,7 @@ class ReturnMove(models.Model):
                 "Accept": "application/json",
             }
             payload = {
-                "Numero": str(next_number),
+                "Numero": f'R + f{next_number}',
                 "Factura": "",
                 "Fecha": str(record.date),
                 "CodigoProveedor":"",
