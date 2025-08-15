@@ -366,11 +366,8 @@ class SaleOrderLineInherit(models.Model):
         for line in self:
             if line.product_uom_qty:
                 if line.product_uom_qty != int(line.product_uom_qty):
-                    floor_qty = math.floor(line.product_uom_qty)
-                    ceil_qty = math.ceil(line.product_uom_qty)
                     raise ValidationError(
-                        f"La cantidad de unidades se transformó a {line.product_uom_qty:.2f}, que tiene decimales. "
-                        f"Por favor, ajuste las unidades. Podría colocar {floor_qty} o {ceil_qty}."
+                        f"No se aceptan unidades con valores decimales: {line.product_uom_qty:.2f}."
                 )
 
     
