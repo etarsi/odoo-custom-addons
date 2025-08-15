@@ -62,29 +62,53 @@ class ReturnMove(models.Model):
 
 
     def action_send_return(self):        
+        for record in self:
+            
+            providers = self.get_providers()
+            next_number = self.env['ir.sequence'].sudo().next_by_code('DEV')
+            headers = {}
+            payload = {
+                "Numero": str(next_number),
+                "Factura": "",
+                "Fecha": record.date,
+                "CodigoProveedor":"",
+                "Proveedor":"",
+                "Observacion": "Prueba de Odoo",
+                "DocumentoRecepcionTipo": "remito",
+                "RecepcionTipo": "devolucion",
+                "DocumentoRecepcionDetalleRequest": [
+                ]
+                }            
+
+            for p in providers:
+                if p['Descripcion'] == record.partner_id.name:
+                    payload['CodigoProveedor'] = p['Codigo']
+                    payload['Proveedor'] = p['Descripcion']
+
+            raise UserError(payload['CodigoProveedor'])
+            
+            
+            headers["x-api-key"] = self.env['ir.config_parameter'].sudo().get_param('digipwms.key')
+            response = requests.post('http://api.patagoniawms.com/v1/DocumentoRecepcion', headers=headers, json=json)
+
+            if response.status_code == 200:
+                self.state == 'inprogress'
+                self.wms_code = 'R1'
+            else:
+                raise UserError(f'Error code: {response.status_code} - Error Msg: {response.text}')
+
+    def get_providers(self):
         
         headers = {}
-        json = {
-            "Numero": "R1",
-            "Factura": "",
-            "Fecha": "2025-08-07 16:12:00",
-            "CodigoProveedor": "None",
-            "Proveedor": "EL MUNDO DEL JUGUETE SA",
-            "Observacion": "Prueba de Odoo",
-            "DocumentoRecepcionTipo": "remito",
-            "RecepcionTipo": "devolucion",
-            "DocumentoRecepcionDetalleRequest": [
-            ]
-            }
-        
         headers["x-api-key"] = self.env['ir.config_parameter'].sudo().get_param('digipwms.key')
-        response = requests.post('http://api.patagoniawms.com/v1/DocumentoRecepcion', headers=headers, json=json)
+        response = requests.get('http://api.patagoniawms.com/v1/Proveedor', headers=headers)
 
         if response.status_code == 200:
-            self.state == 'inprogress'
-            self.wms_code = 'R1'
+            data = response.json()
+            return data
+        
         else:
-            raise UserError(f'Error code: {response.status_code} - Error Msg: {response.text}')
+            raise UserError(f'No se pudo obtener los proveedores de Digip. STATUS_CODE: {response.status_code}')
 
 
 
