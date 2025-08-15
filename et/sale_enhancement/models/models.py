@@ -271,6 +271,7 @@ class SaleOrderLineInherit(models.Model):
     def create(self, vals):
         res = super().create(vals)
         for rec in res:
+            rec.alert_decimal_qty()
             # Si no hay un producto_packaging_id definido, asigna el primero del producto
             if not rec.product_packaging_id:
                 if rec.product_id.packaging_ids:
@@ -329,6 +330,7 @@ class SaleOrderLineInherit(models.Model):
         # Procesamos cada línea con el contexto ajustado para evitar bucle
         lines_with_context = self.with_context(from_uom_qty=True)
         for line in lines_with_context:
+            line.alert_decimal_qty()
             so_config = line.env['sale.order.settings'].browse(1)
             if not line.product_packaging_id or not line.product_packaging_id.qty:
                 line.product_packaging_qty = False
@@ -359,6 +361,17 @@ class SaleOrderLineInherit(models.Model):
                             f"Por favor, ajuste las unidades. Podría colocar {floor_qty} o {ceil_qty}."
                         )
                     self.product_uom_qty = product_uom_qty
+
+    def alert_decimal_qty(self):
+        for line in self:
+            if line.product_uom_qty:
+                if line.product_uom_qty != int(line.product_uom_qty):
+                    floor_qty = math.floor(line.product_uom_qty)
+                    ceil_qty = math.ceil(line.product_uom_qty)
+                    raise ValidationError(
+                        f"La cantidad de unidades se transformó a {line.product_uom_qty:.2f}, que tiene decimales. "
+                        f"Por favor, ajuste las unidades. Podría colocar {floor_qty} o {ceil_qty}."
+                )
 
     
 class ResPartnerInherit(models.Model):
