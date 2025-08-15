@@ -96,7 +96,7 @@ class ReturnMove(models.Model):
             response = requests.post('http://api.patagoniawms.com/v1/DocumentoRecepcion', headers=headers, json=payload)
 
             if response.status_code == 200:
-                record.state == 'inprogress'
+                record.state = 'inprogress'
                 record.wms_code = f'R + {next_number}'
             else:
                 raise UserError(f'Error code: {response.status_code} - Error Msg: {response.text}')
