@@ -71,7 +71,7 @@
                                     <field name="bonus" widget="monetary" optional="show" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
                                     <field name="gross_amount" widget="monetary" optional="show" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
                                     <field name="discount" widget="monetary" optional="show" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
-                                    <field name="net_amount" widget="monetary" optional="show" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                                    <field name="net_amount" widget="monetary" optional="show"/>
 
                                     <button name="action_paid" type="object" string="Liquidar" class="btn-primary oe_highlight"
                                             icon="fa-check" attrs="{'invisible': ['|', ('state', '!=', 'confirmed'), ('is_paid', '=', True)]}"/>

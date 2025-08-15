@@ -128,7 +128,7 @@ class HrPayrollSalaryLine(models.Model):
     discount = fields.Monetary('Descuento', currency_field='currency_id', default=0.0)
     holidays = fields.Monetary('Días de Licencia', currency_field='currency_id', default=0.0)
     gross_amount = fields.Monetary('Monto Bruto', currency_field='currency_id', compute='_compute_amount', store=True)
-    net_amount = fields.Monetary('Total a Cobrar', currency_field='currency_id', compute='_compute_amount', store=True)
+    net_amount = fields.Monetary('Total a Cobrar', currency_field='currency_id', compute='_compute_amount', readonly=True, store=True)
     note = fields.Char('Nota (Observaciones)')
     currency_id = fields.Many2one(
     'res.currency',

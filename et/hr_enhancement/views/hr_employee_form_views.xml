@@ -235,4 +235,39 @@
             </xpath>
         </field>
     </record>
+
+    <!-- Agregar filtros -->
+    <record id="hr_employee_search_inherit_custom" model="ir.ui.view">
+        <field name="name">hr.employee.search.custom</field>
+        <field name="model">hr.employee</field>
+        <field name="inherit_id" ref="hr.view_employee_filter"/>
+        <field name="arch" type="xml">
+            <xpath expr="//search" position="inside">
+
+                <!-- Nuevo filtro por correo corporativo -->
+                <filter string="Empleados" name="filter_employee_types"
+                        domain="[('employee_type', '=', 'employee')]"/>
+
+                <filter string="Eventuales" name="filter_eventual_types"
+                        domain="[('employee_type', '=', 'eventual')]"/>
+
+                <filter string="Bajas" name="filter_state_bajas"
+                        domain="[('state', '=', 'inactive')]"/>
+
+                <!-- Nuevo filtro por empleados activos -->
+                <filter string="Activos" name="filter_employee_active"
+                        domain="[('state', '=', 'active')]"/>
+
+                <!-- Separador visual -->
+                <separator/>
+
+                <!-- Nuevo Agrupar por -->
+                <group expand="0" string="Agrupar por">
+                    <filter string="Tipo de Empleado" name="group_employee_type" context="{'group_by': 'employee_type'}"/>
+                    <filter string="Estado" name="group_state" context="{'group_by': 'state'}"/>
+                </group>
+
+            </xpath>
+        </field>
+    </record>
 </odoo>
