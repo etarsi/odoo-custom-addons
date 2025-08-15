@@ -32,10 +32,10 @@
                         <field name="date_end"/>
                     </group>
                     <group>
-                        <field name="hour_cost_normal"/>
-                        <field name="hour_cost_night"/>
-                        <field name="hour_cost_extra"/>
-                        <field name="hour_cost_holiday"/>
+                        <field name="hour_cost_normal" widget="monetary"/>
+                        <field name="hour_cost_night" widget="monetary"/>
+                        <field name="hour_cost_extra" widget="monetary"/>
+                        <field name="hour_cost_holiday" widget="monetary"/>
                     </group>
                 </sheet>
                 <!--DETALLE QUIEN  -->

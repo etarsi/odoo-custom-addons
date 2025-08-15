@@ -11,10 +11,10 @@ class HrSeasonLaborCost(models.Model):
     date_start = fields.Date('Inicio Temporada', required=True, tracking=True)
     date_end = fields.Date('Fin Temporada', required=True, tracking=True)
 
-    hour_cost_normal = fields.Float('Costo Hora Normal', required=True, tracking=True)
-    hour_cost_night = fields.Float('Costo Hora Nocturna', required=True, tracking=True)
-    hour_cost_extra = fields.Float('Costo Hora Extra', required=True, tracking=True)
-    hour_cost_holiday = fields.Float('Costo Hora Feriado', required=True, tracking=True)
+    hour_cost_normal = fields.Monetary('Costo Hora Normal', currency_field='currency_id', required=True, tracking=True)
+    hour_cost_night = fields.Monetary('Costo Hora Nocturna', currency_field='currency_id', required=True, tracking=True)
+    hour_cost_extra = fields.Monetary('Costo Hora Extra', currency_field='currency_id', required=True, tracking=True)
+    hour_cost_holiday = fields.Monetary('Costo Hora Feriado', currency_field='currency_id', required=True, tracking=True)
 
     currency_id = fields.Many2one('res.currency', string="Moneda", required=True, default=lambda self: self.env.company.currency_id.id)
     user_id = fields.Many2one('res.users', string='Usuario Creador', default=lambda self: self.env.user, readonly=True, tracking=True)
