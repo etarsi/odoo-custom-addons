@@ -4,7 +4,7 @@
             inherit_id="l10n_ar_afipws_fe.report_invoice_document">
 
     <!-- Inserta antes del paginador -->
-    <xpath expr="//div[@name='pager']" position="replace">
+    <xpath expr="//div[@name='footer_right_column']" position="replace">
         <div name="footer_right_column" class="col-4 text-right">
             <t t-if="o.company_id.id != 1">
               <div>CAE: <span t-field="o.afip_auth_code"/></div>
