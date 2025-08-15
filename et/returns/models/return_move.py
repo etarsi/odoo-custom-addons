@@ -72,6 +72,8 @@ class ReturnMove(models.Model):
 
             provider = record.get_current_provider(record.partner_id)
 
+            raise UserError(provider['code'])
+
             payload = {
                 "Numero": f'R{next_number}',
                 "Factura": "",
