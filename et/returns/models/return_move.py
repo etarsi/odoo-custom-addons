@@ -71,7 +71,7 @@ class ReturnMove(models.Model):
                 "Accept": "application/json",
             }
             payload = {
-                "Numero": f'R + f{next_number}',
+                "Numero": f'R{next_number}',
                 "Factura": "",
                 "Fecha": str(record.date),
                 "CodigoProveedor":"",
@@ -96,8 +96,8 @@ class ReturnMove(models.Model):
             response = requests.post('http://api.patagoniawms.com/v1/DocumentoRecepcion', headers=headers, json=payload)
 
             if response.status_code == 200:
-                self.state == 'inprogress'
-                self.wms_code = f'R + {next_number}'
+                record.state == 'inprogress'
+                record.wms_code = f'R + {next_number}'
             else:
                 raise UserError(f'Error code: {response.status_code} - Error Msg: {response.text}')
 
