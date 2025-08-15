@@ -85,15 +85,16 @@ class ReturnMove(models.Model):
                     payload['CodigoProveedor'] = p['Codigo']
                     payload['Proveedor'] = p['Descripcion']
 
-            raise UserError(payload['CodigoProveedor'])
+            if not payload['CodigoProveedor']:
+                record.create_provider(record.partner_id)
             
             
             headers["x-api-key"] = self.env['ir.config_parameter'].sudo().get_param('digipwms.key')
-            response = requests.post('http://api.patagoniawms.com/v1/DocumentoRecepcion', headers=headers, json=json)
+            response = requests.post('http://api.patagoniawms.com/v1/DocumentoRecepcion', headers=headers, json=payload)
 
             if response.status_code == 200:
                 self.state == 'inprogress'
-                self.wms_code = 'R1'
+                self.wms_code = f'R + {next_number}'
             else:
                 raise UserError(f'Error code: {response.status_code} - Error Msg: {response.text}')
 
@@ -101,15 +102,31 @@ class ReturnMove(models.Model):
         
         headers = {}
         headers["x-api-key"] = self.env['ir.config_parameter'].sudo().get_param('digipwms.key')
+        
         response = requests.get('http://api.patagoniawms.com/v1/Proveedor', headers=headers)
 
         if response.status_code == 200:
             data = response.json()
-            return data
-        
+            return data        
         else:
             raise UserError(f'No se pudo obtener los proveedores de Digip. STATUS_CODE: {response.status_code}')
+        
+    def create_provider(self, provider):
+        
+        headers = {}
+        headers["x-api-key"] = self.env['ir.config_parameter'].sudo().get_param('digipwms.key')
+        payload = {
+                "Codigo": str(provider.id),
+                "Descripcion": provider.name,
+                "RequiereControlCiego": True,
+                "Activo": True,
+                }
+        response = requests.post('http://api.patagoniawms.com/v1/Proveedor', headers=headers, json=payload)
 
+        if response.status_code == 200:
+            return True        
+        else:
+            raise UserError(f'No se pudo crear el proveedor en Digip. STATUS_CODE: {response.status_code}')
 
 
 class ReturnMoveLine(models.Model):
