@@ -98,8 +98,10 @@ class ReturnMove(models.Model):
             if response.status_code == 200:
                 record.state = 'inprogress'
                 record.wms_code = f'R{next_number}'
+                record.name = record.get_document_name(next_number)
             else:
                 raise UserError(f'Error code: {response.status_code} - Error Msg: {response.text}')
+
 
     def get_providers(self):
         
@@ -130,6 +132,17 @@ class ReturnMove(models.Model):
             return True        
         else:
             raise UserError(f'No se pudo crear el proveedor en Digip. STATUS_CODE: {response.status_code}')
+        
+
+
+    def get_document_name(self, next_number):
+        
+        name = f'DEV-{next_number}'
+
+        return name
+
+
+
 
 
 class ReturnMoveLine(models.Model):
