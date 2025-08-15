@@ -73,7 +73,7 @@ class ReturnMove(models.Model):
             payload = {
                 "Numero": str(next_number),
                 "Factura": "",
-                "Fecha": record.date,
+                "Fecha": str(record.date),
                 "CodigoProveedor":"",
                 "Proveedor":"",
                 "Observacion": "Prueba de Odoo",
