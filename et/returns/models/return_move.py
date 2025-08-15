@@ -95,7 +95,7 @@ class ReturnMove(models.Model):
             headers["x-api-key"] = self.env['ir.config_parameter'].sudo().get_param('digipwms.key')
             response = requests.post('http://api.patagoniawms.com/v1/DocumentoRecepcion', headers=headers, json=payload)
 
-            if response.status_code == 204:
+            if response.status_code == 200:
                 self.state == 'inprogress'
                 self.wms_code = f'R + {next_number}'
             else:
