@@ -26,7 +26,7 @@
         ],
     },
     # any module necessary for this one to work correctly
-    'depends': ['account_check_printing', 'account_payment_group', 'l10n_latam_check', 'l10n_ar', 'account'],
+    'depends': ['account_check_printing', 'account_payment_group', 'l10n_latam_check', 'l10n_ar', 'l10n_ar_afipws_fe', 'account'],
 
     # always loaded
     'data': [
@@ -37,6 +37,7 @@
         'permissions/res_group.xml',
         'views/views.xml',
         'views/report_account_payment_group.xml',
+        'views/report_account_move.xml',
         'views/templates.xml',
         'views/menu.xml'
     ],

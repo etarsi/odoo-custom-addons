@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+  <template id="report_invoice_document_inherit_custom"
+            inherit_id="l10n_ar_afipws_fe.report_invoice_document">
+
+    <!-- Inserta antes del paginador -->
+    <xpath expr="//div[@name='pager']" position="replace">
+        <t t-if="o.company_id != 1">
+          <div>CAE: <span t-field="o.afip_auth_code"/></div>
+          <div>CAE Vencimiento: <span t-field="o.afip_auth_code_due"/></div>
+        </t>
+    </xpath>
+  </template>
+</odoo>

@@ -14,3 +14,4 @@ from . import hr_work_schedule
 from . import res_config
 from . import hr_attendance
 from . import hr_holiday_custom
+from . import hr_employee_offboard
