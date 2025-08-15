@@ -5,10 +5,15 @@
 
     <!-- Inserta antes del paginador -->
     <xpath expr="//div[@name='pager']" position="replace">
-        <t t-if="o.company_id != 1">
-          <div>CAE: <span t-field="o.afip_auth_code"/></div>
-          <div>CAE Vencimiento: <span t-field="o.afip_auth_code_due"/></div>
-        </t>
+        <div name="footer_right_column" class="col-4 text-right">
+            <t t-if="o.company_id.id != 1">
+              <div>CAE: <span t-field="o.afip_auth_code"/></div>
+              <div>CAE Vencimiento: <span t-field="o.afip_auth_code_due"/></div>
+            </t>
+            <div name="pager" t-if="report_type == 'pdf'">
+                Page: <span class="page"/> / <span class="topage"/>
+            </div>
+        </div>
     </xpath>
   </template>
 </odoo>
