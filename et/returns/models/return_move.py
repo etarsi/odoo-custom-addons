@@ -123,7 +123,7 @@ class ReturnMove(models.Model):
                 }
         response = requests.post('http://api.patagoniawms.com/v1/Proveedor', headers=headers, json=payload)
 
-        if response.status_code == 200:
+        if response.status_code == 204:
             return True        
         else:
             raise UserError(f'No se pudo crear el proveedor en Digip. STATUS_CODE: {response.status_code}')
