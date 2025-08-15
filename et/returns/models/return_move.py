@@ -97,10 +97,7 @@ class ReturnMove(models.Model):
                 raise UserError(f'Error code: {response.status_code} - Error Msg: {response.text}')
 
     def get_current_provider(self, partner_id):
-        current_provider = {
-            'code':'',
-            'name':'',
-        }
+        current_provider = {}
         
         providers = self.get_providers()
 
