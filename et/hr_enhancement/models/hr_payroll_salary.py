@@ -47,6 +47,10 @@ class HrPayrollSalary(models.Model):
         store=True
     )
     line_ids = fields.One2many('hr.payroll.salary.line', 'payroll_id', string="Detalles de Planilla", copy=True)
+    #campo para saber que si fue pagado para eventuales
+    is_paid = fields.Boolean(string="¿Pagado?", default=False)
+    user_paid = fields.Many2one('res.users', string="Usuario que Pagó", readonly=True)
+    date_paid = fields.Date(string="Fecha de Pago", readonly=True)
 
     @api.depends('line_ids.net_amount')
     def _compute_total_amount(self):
@@ -123,12 +127,12 @@ class HrPayrollSalaryLine(models.Model):
     overtime = fields.Float('H. 50%', compute='_compute_attendance', readonly=True, store=True)
     holiday_hours = fields.Float('H. 100%', compute='_compute_attendance', readonly=True, store=True)
     salary_id = fields.Many2one('hr.employee.salary', string="Sueldo Básico", help="Sueldo básico por el período")
-    basic_amount = fields.Float('Sueldo Básico', help="Sueldo básico")
-    bonus = fields.Float('Bonos/Gratificación', default=0.0)
-    discount = fields.Float('Descuento', default=0.0)
-    holidays = fields.Float('Días de Licencia', default=0.0)
-    gross_amount = fields.Float('Monto Bruto', compute='_compute_amount', store=True)
-    net_amount = fields.Float('Total a Cobrar', compute='_compute_amount', store=True)
+    basic_amount = fields.Monetary('Sueldo Básico', help="Sueldo básico")
+    bonus = fields.Monetary('Bonos/Gratificación', currency_field='currency_id', default=0.0)
+    discount = fields.Monetary('Descuento', currency_field='currency_id', default=0.0)
+    holidays = fields.Monetary('Días de Licencia', currency_field='currency_id', default=0.0)
+    gross_amount = fields.Monetary('Monto Bruto', currency_field='currency_id', compute='_compute_amount', store=True)
+    net_amount = fields.Monetary('Total a Cobrar', currency_field='currency_id', compute='_compute_amount', store=True)
     note = fields.Char('Nota (Observaciones)')
     currency_id = fields.Many2one(
     'res.currency',
@@ -181,4 +185,8 @@ class HrPayrollSalaryLine(models.Model):
 
     def action_paid(self):
         self.ensure_one()
-        return True
+        self.write({
+            'is_paid': True,
+            'user_paid': self.env.user.id,
+            'date_paid': fields.Date.today()
+        })
