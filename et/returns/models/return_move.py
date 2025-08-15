@@ -64,32 +64,26 @@ class ReturnMove(models.Model):
     def action_send_return(self):        
         for record in self:
             
-            providers = self.get_providers()
             next_number = self.env['ir.sequence'].sudo().next_by_code('DEV')
             headers = {
                 "Content-Type": "application/json",
                 "Accept": "application/json",
             }
+
+            provider = record.get_current_provider(record.partner_id)
+
             payload = {
                 "Numero": f'R{next_number}',
                 "Factura": "",
                 "Fecha": str(record.date),
-                "CodigoProveedor":"",
-                "Proveedor":"",
+                "CodigoProveedor": provider['code'],
+                "Proveedor": provider['name'],
                 "Observacion": "Prueba de Odoo",
                 "DocumentoRecepcionTipo": "remito",
                 "RecepcionTipo": "devolucion",
                 "DocumentoRecepcionDetalleRequest": [
                 ]
-            }            
-
-            for p in providers:
-                if p['Descripcion'] == record.partner_id.name:
-                    payload['CodigoProveedor'] = p['Codigo']
-                    payload['Proveedor'] = p['Descripcion']
-
-            if not payload['CodigoProveedor']:
-                record.create_provider(record.partner_id)
+            }          
             
             
             headers["x-api-key"] = self.env['ir.config_parameter'].sudo().get_param('digipwms.key')
@@ -101,6 +95,27 @@ class ReturnMove(models.Model):
                 record.name = record.get_document_name(next_number)
             else:
                 raise UserError(f'Error code: {response.status_code} - Error Msg: {response.text}')
+
+    def get_current_provider(self, partner_id):
+        current_provider = {
+            'code':'',
+            'name':'',
+        }
+        
+        providers = self.get_providers()
+
+        for p in providers:
+                if p['Descripcion'] == partner_id.name:
+                    current_provider['code'] = p['Codigo']
+                    current_provider['name'] = p['Descripcion']
+
+                    return current_provider
+
+        if not current_provider['code']:
+            self.create_provider(partner_id)
+            self.get_current_provider(partner_id)
+
+
 
 
     def get_providers(self):
