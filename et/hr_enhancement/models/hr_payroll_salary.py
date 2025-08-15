@@ -47,10 +47,6 @@ class HrPayrollSalary(models.Model):
         store=True
     )
     line_ids = fields.One2many('hr.payroll.salary.line', 'payroll_id', string="Detalles de Planilla", copy=True)
-    #campo para saber que si fue pagado para eventuales
-    is_paid = fields.Boolean(string="¿Pagado?", default=False)
-    user_paid = fields.Many2one('res.users', string="Usuario que Pagó", readonly=True)
-    date_paid = fields.Date(string="Fecha de Pago", readonly=True)
 
     @api.depends('line_ids.net_amount')
     def _compute_total_amount(self):
@@ -142,6 +138,10 @@ class HrPayrollSalaryLine(models.Model):
     )
     state = fields.Selection(related='payroll_id.state', string='Estado', store=True)
     labor_cost_id = fields.Many2one('hr.season.labor.cost', string="Costo Laboral")
+    #campo para saber que si fue pagado para eventuales
+    is_paid = fields.Boolean(string="¿Pagado?", default=False)
+    user_paid = fields.Many2one('res.users', string="Usuario que Pagó", readonly=True)
+    date_paid = fields.Date(string="Fecha de Pago", readonly=True)
 
     @api.depends('worked_hours', 'overtime', 'holiday_hours', 'bonus', 'discount')
     def _compute_amount(self):
