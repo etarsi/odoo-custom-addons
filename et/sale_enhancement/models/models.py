@@ -176,7 +176,6 @@ class SaleOrderInherit(models.Model):
         for record in self:
             if record.partner_id.state_id.id == 566:
                 record.is_misiones = True
-                raise UserError("Hola")
             else:
                 record.is_misiones = False
 
