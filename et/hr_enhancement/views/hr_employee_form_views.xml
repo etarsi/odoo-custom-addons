@@ -369,7 +369,7 @@
     </record>
 
     <!-- heredar la vista al llamado de employee-->
-    <record id="open_view_employee_list_my" model="ir.actions.act_window">
+    <record id="hr.open_view_employee_list_my" model="ir.actions.act_window">
         <field name="domain">[('state','!=','inactive')]</field>
     </record>
 </odoo>
