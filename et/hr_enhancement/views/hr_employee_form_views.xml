@@ -367,4 +367,13 @@
         </xpath>
         </field>
     </record>
+
+    <!-- heredar la vista al llamado de employee-->
+    <record id="open_view_employee_list_inherit" model="ir.actions.act_window">
+        <field name="name">Employees (Activos)</field>
+        <!-- Se hereda el record original -->
+        <field name="inherit_id" ref="hr.open_view_employee_list_my"/>
+        <!-- Sobrescribimos el domain -->
+        <field name="domain">[('state','!=','inactive')]</field>
+    </record>
 </odoo>
