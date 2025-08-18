@@ -157,12 +157,12 @@ class ReporteFacturaWizard(models.TransientModel):
             categorias = '-'.join(factura.partner_id.category_id.mapped('name')) if factura.partner_id.category_id else ''
             if facturas_lines:
                 for line in facturas_lines:
-                    if line.quantity==0 or line.price_unit==0 or line.price_subtotal==0:
-                        continue;
+                    if not line.product_id and (line.quantity==0 or line.price_unit==0 or line.price_subtotal==0):
+                        continue
                     # solo imprimir las lineas que tengan esa marca
                     if self.marca_ids:
                         if not line.product_id.product_brand_id:
-                            continue;
+                            continue
                         else:
                             if line.product_id.product_brand_id.id not in self.marca_ids.ids:
                                 continue
