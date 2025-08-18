@@ -74,11 +74,11 @@
                         type="object"
                         attrs="{'invisible': [('state', '!=', 'confirmed')]}"
                         class="btn-info"/>
-                <button name="action_set_inactive"
+                <button type="action"
+                        name="%(action_hr_employee_offboard_wizard)d"
                         string="Dar de Baja"
-                        type="object"
-                        attrs="{'invisible': [('state', '!=', 'active')]}"
-                        class="btn-danger"/>
+                        class="btn-danger"
+                        attrs="{'invisible': [('active', '=', False)]}"/>
             </xpath>
             <xpath expr="//field[@name='image_1920']" position="attributes">
                 <attribute name="attrs">{'readonly': [('state', '!=', 'draft')], 'required': [('employee_type', '=', 'employee')]}</attribute>
@@ -268,6 +268,109 @@
                 </group>
 
             </xpath>
+        </field>
+    </record>
+
+
+    <!-- Agregar wizard de empleado -->
+    <record id="view_hr_employee_offboard_wizard_form" model="ir.ui.view">
+        <field name="name">hr.employee.offboard.wizard.form</field>
+        <field name="model">hr.employee.offboard.wizard</field>
+        <field name="arch" type="xml">
+        <form string="Dar de Baja Empleado" create="false" edit="false">
+            <group>
+            <field name="employee_id" options="{'no_create': True}" required="1"/>
+            <field name="date" required="1"/>
+            <field name="reason" required="1"/>
+            <field name="description" placeholder="Detalle u observaciones..."/>
+            </group>
+            <footer>
+            <button string="Confirmar Baja" type="object" name="action_confirm" class="btn-primary"/>
+            <button string="Cancelar" special="cancel" class="btn-secondary"/>
+            </footer>
+        </form>
+        </field>
+    </record>
+
+    <!-- Acción del wizard (modal) -->
+    <record id="action_hr_employee_offboard_wizard" model="ir.actions.act_window">
+        <field name="name">Dar de Baja Empleado</field>
+        <field name="res_model">hr.employee.offboard.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="view_id" ref="view_hr_employee_offboard_wizard_form"/>
+        <field name="target">new</field>
+        <!-- default_employee_id se toma del empleado actual -->
+        <field name="context">{'default_employee_id': active_id}</field>
+    </record>
+
+    <!-- ========================================================= -->
+    <!-- (OPCIONAL) Historial de bajas del empleado               -->
+    <!-- Requiere un modelo persistente hr.employee.offboard      -->
+    <!-- con campos: employee_id, date, reason, description,      -->
+    <!-- user_id, company_id.                                     -->
+    <!-- ========================================================= -->
+
+    <!-- Vista tree del historial -->
+    <record id="view_hr_employee_offboard_tree" model="ir.ui.view">
+        <field name="name">hr.employee.offboard.tree</field>
+        <field name="model">hr.employee.offboard</field>
+        <field name="arch" type="xml">
+        <tree>
+            <field name="date"/>
+            <field name="reason"/>
+            <field name="description"/>
+            <field name="user_id"/>
+            <field name="company_id"/>
+        </tree>
+        </field>
+    </record>
+
+    <!-- Vista form simple del historial (opcional) -->
+    <record id="view_hr_employee_offboard_form" model="ir.ui.view">
+        <field name="name">hr.employee.offboard.form</field>
+        <field name="model">hr.employee.offboard</field>
+        <field name="arch" type="xml">
+        <form string="Baja de Empleado">
+            <group>
+            <field name="employee_id" readonly="1"/>
+            <field name="date" readonly="1"/>
+            <field name="reason" readonly="1"/>
+            <field name="description" readonly="1"/>
+            <field name="user_id" readonly="1"/>
+            <field name="company_id" readonly="1"/>
+            </group>
+            <footer>
+            <button string="Cerrar" class="btn-secondary" special="cancel"/>
+            </footer>
+        </form>
+        </field>
+    </record>
+
+    <!-- Acción para abrir el historial filtrado por empleado -->
+    <record id="action_hr_employee_offboard_history" model="ir.actions.act_window">
+        <field name="name">Historial de Bajas</field>
+        <field name="res_model">hr.employee.offboard</field>
+        <field name="view_mode">tree,form</field>
+        <field name="domain">[('employee_id', '=', active_id)]</field>
+        <field name="context">{'default_employee_id': active_id}</field>
+    </record>
+
+    <!-- Smart button en ficha de empleado para ver historial -->
+    <record id="view_hr_employee_form_inherit_offboard_smart" model="ir.ui.view">
+        <field name="name">hr.employee.form.inherit.offboard.smart</field>
+        <field name="model">hr.employee</field>
+        <field name="inherit_id" ref="hr.view_employee_form"/>
+        <field name="arch" type="xml">
+        <xpath expr="//div[@name='button_box']" position="inside">
+            <button class="oe_stat_button"
+                    type="action"
+                    name="%(action_hr_employee_offboard_history)d"
+                    icon="fa-user-times">
+            <div class="o_stat_info">
+                <span class="o_stat_text">Bajas</span>
+            </div>
+            </button>
+        </xpath>
         </field>
     </record>
 </odoo>

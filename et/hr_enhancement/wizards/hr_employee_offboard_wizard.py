@@ -33,15 +33,13 @@ class HrEmployeeOffboardWizard(models.TransientModel):
         })
 
         # 2) cambiar estado del empleado a inactivo
-        #    A) si tu módulo tiene un campo state ('active'/'inactive'):
         if 'state' in emp._fields:
             try:
                 emp.write({'state': 'inactive'})
             except Exception:
-                # B) de lo contrario, usar archivo lógico (active=False)
-                emp.write({'active': False})
+                emp.write({'state': 'active'})
         else:
-            emp.write({'active': False})
+            emp.write({'state': 'inactive'})
 
         # 3) log en chatter del empleado
         emp.message_post(
