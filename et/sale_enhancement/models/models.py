@@ -34,6 +34,8 @@ class SaleOrderInherit(models.Model):
     global_discount = fields.Float('Descuento', default=0)
     old_sale = fields.Boolean(default=False, copy=False)
     old_sale_txt = fields.Text(default='⚠️ PEDIDO VIEJO - FACTURAR DE LA VIEJA FORMA')
+    is_misiones = fields.Boolean(default=False, copy=False)
+    warning_txt = fields.Text(default='⚠️ EL CLIENTE PERTENECE A MISIONES')
     items_ids = fields.Many2many(
         'product.category', string='Rubros', compute='_compute_items_ids', store=True, readonly=False,
         help="Rubros de los productos en la orden de venta. Se usa para filtrar productos en la vista de formulario."
@@ -44,8 +46,11 @@ class SaleOrderInherit(models.Model):
     @api.onchange('partner_id')
     def _onchange_partner_id(self):
         for record in self:
+
             if record.partner_id:
                 record.check_price_list()
+
+            self.check_partner_origin()
 
 
     @api.onchange('pricelist_id')
@@ -106,7 +111,12 @@ class SaleOrderInherit(models.Model):
 
     @api.model
     def create(self, vals):
+
+        self.check_partner_origin()
+
         records = super().create(vals)
+
+
         for record in records:
             company_produccionb_id = 1
             if record.company_id.id != company_produccionb_id and record.condicion_m2m.name == 'TIPO 3':
@@ -115,22 +125,8 @@ class SaleOrderInherit(models.Model):
                     if line.company_id.id != company_produccionb_id:
                         line.write({'company_id': company_produccionb_id})
                 record.message_post(body=_("Compañía cambiada a %s en el pedido y todas sus líneas durante la creación.") % record.company_id.name)
-            #POR RUBRO CORRECCION DE COMPANIA
-            #if record.order_line and record.condicion_m2m.name != 'TIPO 3':
-            #    for line in record.order_line:
-            #       if line.product_id and line.product_id.categ_id.parent_id:
-            #            rubro = line.product_id.categ_id.parent_id.name
-            #            if rubro in self.RUBRO_COMPANY_MAPPING:
-            #                expected_company_id = self.RUBRO_COMPANY_MAPPING[rubro]
-            #                if expected_company_id != record.company_id.id:
-            #                    raise ValidationError(
-            #                        _("El rubro '%s' pertenece a la compañía ID %s, "
-            #                          "pero el pedido está en compañía ID %s (%s). "
-            #                          "No se puede mezclar.") % (
-            #                            rubro, expected_company_id, record.company_id.id, record.company_id.name
-            #                        )
-            #                    )
-            # Paso 4: Tu lógica original (solo si pasa la verificación)
+                    
+            
             record.check_order()
             if not record.message_ids:
                 record.message_post(body=_("Orden de venta creada."))
@@ -174,7 +170,16 @@ class SaleOrderInherit(models.Model):
         self.show_update_pricelist = False
 
 
-    ### CUSTOM  
+    ### CUSTOM
+
+    def check_partner_origin(self):
+        for record in self:
+            if record.partner_id.state_id.id == 566:
+                record.is_misiones = True
+                raise UserError("Hola")
+            else:
+                record.is_misiones = False
+
 
     def _get_company_letter(self, order):
         company_id = order.company_id

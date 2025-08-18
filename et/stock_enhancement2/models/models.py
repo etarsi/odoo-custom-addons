@@ -785,7 +785,7 @@ class StockPickingInherit(models.Model):
             'codigo_wms': picking.codigo_wms or '',
             'destination': {
                 'name': f"{partner.property_delivery_carrier_id.name or ''}",
-                'address': f"{partner.property_delivery_carrier_id.partner_id.name or ''}",
+                'address': f"{partner.property_delivery_carrier_id.address or ''}",
             },
             'move_lines': lines,
             'total_bultos': picking.number_of_packages,
