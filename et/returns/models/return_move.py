@@ -102,7 +102,10 @@ class ReturnMove(models.Model):
 
 
     def get_current_provider(self, partner_id):
-        current_provider = {}
+        current_provider = {
+            'code': "",
+            'name': "",
+        }
         
         providers = self.get_providers()
 
