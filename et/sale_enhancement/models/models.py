@@ -174,7 +174,7 @@ class SaleOrderInherit(models.Model):
 
     def check_partner_origin(self):
         for record in self:
-            if record.partner_id.state_id.id == 566:
+            if record.partner_shipping_id.state_id.id == 566:
                 record.is_misiones = True
             else:
                 record.is_misiones = False
