@@ -26,12 +26,14 @@
     },
 
     # any module necessary for this one to work correctly
-    'depends': ['stock', 'stock-packaging', 'sale', 'stock_picking_invoicing', 'merge_deliveries_bs'],
+    'depends': ['stock', 'stock-packaging', 'sale', 'stock_picking_invoicing', 'merge_deliveries_bs', 'contacts'],
 
     # always loaded
     'data': [
         # 'security/ir.model.access.csv',
         'views/views.xml',
+        'views/delivery_carrier_views.xml',
+        'views/menu.xml',
         'views/templates.xml',
     ],
     # only loaded in demonstration mode

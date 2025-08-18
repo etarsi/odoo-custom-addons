@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!--HEREDAR EL contacts.res_partner_menu_config -->
+    <record id="stock_metodo_envio" model="ir.ui.menu">
+        <field name="name">Transporte</field>
+        <field name="parent_id" ref="contacts.res_partner_menu_config"/>
+        <field name="action" ref="delivery.action_delivery_carrier_form"/>
+        <field name="sequence" eval="1"/>
+    </record>
+</odoo>

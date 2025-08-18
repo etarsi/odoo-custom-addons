@@ -1216,3 +1216,8 @@ class RemitoCoords(models.Model):
 
     valor_declarado_x = fields.Integer('Valor Declarado X')
     valor_declarado_y = fields.Integer('Valor Declarado Y')
+
+class DeliveryCarrierInherit(models.Model):
+    _inherit = "delivery.carrier"
+
+    address = fields.Char(string="Dirección")
