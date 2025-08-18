@@ -10,6 +10,7 @@ import math
 import requests
 from itertools import groupby
 from datetime import timedelta
+_logger = logging.getLogger(__name__)
 
 class ReturnMove(models.Model):
     _name = 'return.move'
@@ -71,7 +72,7 @@ class ReturnMove(models.Model):
             }
 
             provider = record.get_current_provider(record.partner_id)
-
+            _logger.info()
 
             payload = {
                 "Numero": f'R{next_number}',
@@ -107,12 +108,16 @@ class ReturnMove(models.Model):
                 if p['Descripcion'] == partner_id.name:
                     current_provider['code'] = p['Codigo']
                     current_provider['name'] = p['Descripcion']
-
+                    _logger.info(f"---- 1 ---- code: {current_provider['code']}")
+                    _logger.info(f"---- 1 ---- code: {current_provider['code']}")
+                    _logger.info(f"---- 1 ---- code: {current_provider['code']}")
                     return current_provider
 
-        if not current_provider['code']:            
+        if not current_provider['code']:        
             current_provider = self.create_provider(partner_id)
-
+            _logger.info(f"---- 3 ---- code: {current_provider['code']}")
+            _logger.info(f"---- 3 ---- code: {current_provider['code']}")
+            _logger.info(f"---- 3 ---- code: {current_provider['code']}")
             return current_provider
             
 
@@ -131,6 +136,9 @@ class ReturnMove(models.Model):
 
 
     def create_provider(self, provider):
+        _logger.info(f"---- 2 ---- partner_id.id: {provider.id}")
+        _logger.info(f"---- 2 ---- partner_id.id: {provider.id}")
+        _logger.info(f"---- 2 ---- partner_id.id: {provider.id}")
         current_provider = {}
         headers = {}
         headers["x-api-key"] = self.env['ir.config_parameter'].sudo().get_param('digipwms.key')
