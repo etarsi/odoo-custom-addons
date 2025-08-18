@@ -62,29 +62,100 @@ class ReturnMove(models.Model):
 
 
     def action_send_return(self):        
+        for record in self:
+            
+            next_number = self.env['ir.sequence'].sudo().next_by_code('DEV')
+            headers = {
+                "Content-Type": "application/json",
+                "Accept": "application/json",
+            }
+
+            provider = record.get_current_provider(record.partner_id)
+
+            raise UserError(provider['code'])
+
+            payload = {
+                "Numero": f'R{next_number}',
+                "Factura": "",
+                "Fecha": str(record.date),
+                "CodigoProveedor": provider['code'],
+                "Proveedor": provider['name'],
+                "Observacion": "Prueba de Odoo",
+                "DocumentoRecepcionTipo": "remito",
+                "RecepcionTipo": "devolucion",
+                "DocumentoRecepcionDetalleRequest": [
+                ]
+            }          
+            
+            
+            headers["x-api-key"] = self.env['ir.config_parameter'].sudo().get_param('digipwms.key')
+            response = requests.post('http://api.patagoniawms.com/v1/DocumentoRecepcion', headers=headers, json=payload)
+
+            if response.status_code == 200:
+                record.state = 'inprogress'
+                record.wms_code = f'R{next_number}'
+                record.name = record.get_document_name(next_number)
+            else:
+                raise UserError(f'Error code: {response.status_code} - Error Msg: {response.text}')
+
+    def get_current_provider(self, partner_id):
+        current_provider = {}
+        
+        providers = self.get_providers()
+
+        for p in providers:
+                if p['Descripcion'] == partner_id.name:
+                    current_provider['code'] = p['Codigo']
+                    current_provider['name'] = p['Descripcion']
+
+                    return current_provider
+
+        if not current_provider['code']:
+            self.create_provider(partner_id)
+            self.get_current_provider(partner_id)
+
+
+
+
+    def get_providers(self):
         
         headers = {}
-        json = {
-            "Numero": "R1",
-            "Factura": "",
-            "Fecha": "2025-08-07 16:12:00",
-            "CodigoProveedor": "None",
-            "Proveedor": "EL MUNDO DEL JUGUETE SA",
-            "Observacion": "Prueba de Odoo",
-            "DocumentoRecepcionTipo": "remito",
-            "RecepcionTipo": "devolucion",
-            "DocumentoRecepcionDetalleRequest": [
-            ]
-            }
-        
         headers["x-api-key"] = self.env['ir.config_parameter'].sudo().get_param('digipwms.key')
-        response = requests.post('http://api.patagoniawms.com/v1/DocumentoRecepcion', headers=headers, json=json)
+        
+        response = requests.get('http://api.patagoniawms.com/v1/Proveedor', headers=headers)
 
         if response.status_code == 200:
-            self.state == 'inprogress'
-            self.wms_code = 'R1'
+            data = response.json()
+            return data        
         else:
-            raise UserError(f'Error code: {response.status_code} - Error Msg: {response.text}')
+            raise UserError(f'No se pudo obtener los proveedores de Digip. STATUS_CODE: {response.status_code}')
+        
+    def create_provider(self, provider):
+        
+        headers = {}
+        headers["x-api-key"] = self.env['ir.config_parameter'].sudo().get_param('digipwms.key')
+        payload = {
+                "Codigo": str(provider.id),
+                "Descripcion": provider.name,
+                "RequiereControlCiego": True,
+                "Activo": True,
+                }
+        response = requests.post('http://api.patagoniawms.com/v1/Proveedor', headers=headers, json=payload)
+
+        if response.status_code == 204:
+            return True        
+        else:
+            raise UserError(f'No se pudo crear el proveedor en Digip. STATUS_CODE: {response.status_code}')
+        
+
+
+    def get_document_name(self, next_number):
+        
+        name = f'DEV-{next_number}'
+
+        return name
+
+
 
 
 
