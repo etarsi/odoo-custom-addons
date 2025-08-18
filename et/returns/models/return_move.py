@@ -72,7 +72,9 @@ class ReturnMove(models.Model):
             }
 
             provider = record.get_current_provider(record.partner_id)
-            _logger.info()
+            _logger.info(f"---- 4 ---- code: {provider['code']}")
+            _logger.info(f"---- 4 ---- code: {provider['code']}")
+            _logger.info(f"---- 4 ---- code: {provider['code']}")
 
             payload = {
                 "Numero": f'R{next_number}',
