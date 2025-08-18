@@ -107,13 +107,14 @@ class ReturnMove(models.Model):
         providers = self.get_providers()
 
         for p in providers:
-                if p['Descripcion'] == partner_id.name:
-                    current_provider['code'] = p['Codigo']
-                    current_provider['name'] = p['Descripcion']
-                    _logger.info(f"---- 1 ---- code: {current_provider['code']}")
-                    _logger.info(f"---- 1 ---- code: {current_provider['code']}")
-                    _logger.info(f"---- 1 ---- code: {current_provider['code']}")
-                    return current_provider
+                if p['Activo']:
+                    if p['Descripcion'] == partner_id.name:
+                        current_provider['code'] = p['Codigo']
+                        current_provider['name'] = p['Descripcion']
+                        _logger.info(f"---- 1 ---- code: {current_provider['code']}")
+                        _logger.info(f"---- 1 ---- code: {current_provider['code']}")
+                        _logger.info(f"---- 1 ---- code: {current_provider['code']}")
+                        return current_provider
 
         if not current_provider['code']:        
             current_provider = self.create_provider(partner_id)
