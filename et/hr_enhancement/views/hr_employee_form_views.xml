@@ -32,6 +32,7 @@
         <field name="context">{'default_employee_id': active_id}</field>
     </record>
 
+    <!-- Employee Form Inherit -->
     <record id="view_hr_employee_form_inherit" model="ir.ui.view">
         <field name="name">hr.employee.form.inherit</field>
         <field name="model">hr.employee</field>
@@ -270,7 +271,7 @@
         </field>
     </record>
 
-    <!-- Agregar filtros -->
+    <!-- Agregar filtros personalizado employee -->
     <record id="hr_employee_search_inherit_custom" model="ir.ui.view">
         <field name="name">hr.employee.search.custom</field>
         <field name="model">hr.employee</field>
@@ -292,6 +293,8 @@
                 <filter string="Activos" name="filter_employee_active"
                         domain="[('state', '=', 'active')]"/>
 
+                <filter string="Lista Activa" name="filter_employee_active_list"
+                        domain="[('state', '!=', 'inactive')]"/>
                 <!-- Separador visual -->
                 <separator/>
 
@@ -370,6 +373,6 @@
 
     <!-- heredar la vista al llamado de employee-->
     <record id="hr.open_view_employee_list_my" model="ir.actions.act_window">
-        <field name="domain">[('state','!=','inactive')]</field>
+        <field name="context">{'search_default_filter_employee_active_list': 1}</field>
     </record>
 </odoo>
