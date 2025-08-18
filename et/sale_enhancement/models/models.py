@@ -50,7 +50,10 @@ class SaleOrderInherit(models.Model):
             if record.partner_id:
                 record.check_price_list()
 
-            self.check_partner_origin()
+
+    @api.onchange('partner_shipping_id')
+    def _onchange_partner_shipping_id(self):
+        self.check_partner_origin()
 
 
     @api.onchange('pricelist_id')
