@@ -29,7 +29,6 @@ class HrEmployeeOffboardWizard(models.TransientModel):
             'reason': self.reason,
             'description': self.description,
             'user_id': self.env.user.id,
-            'company_id': emp.company_id.id or self.env.company.id,
         })
 
         # 2) cambiar estado del empleado a inactivo

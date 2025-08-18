@@ -8,14 +8,14 @@
         <field name="arch" type="xml">
         <form string="Dar de Baja Empleado" create="false" edit="false">
             <group>
-            <field name="employee_id" options="{'no_create': True}" required="1"/>
-            <field name="date" required="1"/>
-            <field name="reason" required="1"/>
-            <field name="description" placeholder="Detalle u observaciones..."/>
+                <field name="employee_id" options="{'no_create': True}" required="1" readonly="1"/>
+                <field name="date" required="1"/>
+                <field name="reason" required="1"/>
+                <field name="description" placeholder="Detalle u observaciones..."/>
             </group>
             <footer>
-            <button string="Confirmar Baja" type="object" name="action_confirm" class="btn-primary"/>
-            <button string="Cancelar" special="cancel" class="btn-secondary"/>
+                <button string="Confirmar" type="object" name="action_confirm" class="btn-primary"/>
+                <button string="Cancelar" special="cancel" class="btn-secondary"/>
             </footer>
         </form>
         </field>
@@ -105,9 +105,11 @@
                         string="Dar de Alta"
                         type="object"
                         attrs="{'invisible': [('state', '!=', 'confirmed')]}"
+                        groups="hr_enhancement.group_hr_administrador"
                         class="btn-info"/>
                 <button type="action"
                         name="%(action_hr_employee_offboard_wizard)d"
+                        groups="hr_enhancement.group_hr_administrador"
                         string="Dar de Baja"
                         class="btn-danger"
                         attrs="{'invisible': [('active', '=', False)]}"/>
@@ -137,7 +139,7 @@
                 <attribute name="attrs">{'readonly': [('state', '!=', 'draft')], 'required': [('employee_type', '=', 'employee')]}</attribute>
             </xpath>
             <xpath expr="//field[@name='company_id']" position="attributes">
-                <attribute name="attrs">{'readonly': [('state', '!=', 'draft')], 'required': [('employee_type', '=', 'employee')]}</attribute>
+                <attribute name="attrs">{'readonly': [('state', '!=', 'draft')]}</attribute>
             </xpath>
             <xpath expr="//field[@name='department_id']" position="attributes">
                 <attribute name="attrs">{'readonly': [('state', '!=', 'draft')], 'required': [('employee_type', '=', 'employee')]}</attribute>
@@ -230,7 +232,7 @@
                         </group>
                     </group>
                 </page>
-                <page string="Historial Salarial" group="hr_enhancement.group_hr_administrador" name="salary_history">
+                <page string="Historial Salarial" groups="hr_enhancement.group_hr_administrador" name="salary_history">
                     <field name="salary_ids">
                         <tree create="false" delete="false" edit="false">
                             <field name="date"/>
@@ -247,7 +249,7 @@
                         </tree>
                     </field>
                 </page>
-                <page name="information_internal" string="Informacion Interna" group="hr_enhancement.group_hr_administrador">
+                <page name="information_internal" string="Informacion Interna" groups="hr_enhancement.group_hr_administrador">
                     <group>
                         <field name="employee_type" widget="selection" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
                         <field name="wage" readonly="1"/>
@@ -314,7 +316,6 @@
             <field name="reason"/>
             <field name="description"/>
             <field name="user_id"/>
-            <field name="company_id"/>
         </tree>
         </field>
     </record>
@@ -326,15 +327,14 @@
         <field name="arch" type="xml">
         <form string="Baja de Empleado">
             <group>
-            <field name="employee_id" readonly="1"/>
-            <field name="date" readonly="1"/>
-            <field name="reason" readonly="1"/>
-            <field name="description" readonly="1"/>
-            <field name="user_id" readonly="1"/>
-            <field name="company_id" readonly="1"/>
+                <field name="employee_id" readonly="1"/>
+                <field name="date" readonly="1"/>
+                <field name="reason" readonly="1"/>
+                <field name="description" readonly="1"/>
+                <field name="user_id" readonly="1"/>
             </group>
             <footer>
-            <button string="Cerrar" class="btn-secondary" special="cancel"/>
+                <button string="Cerrar" class="btn-secondary" special="cancel"/>
             </footer>
         </form>
         </field>

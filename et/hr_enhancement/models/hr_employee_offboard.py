@@ -8,8 +8,7 @@ class HrEmployeeOffboard(models.Model):
     _order = 'date desc, id desc'
 
     employee_id = fields.Many2one('hr.employee', string="Empleado", required=True, ondelete='restrict', tracking=True)
-    company_id = fields.Many2one('res.company', string="Compañía", default=lambda s: s.env.company.id, required=True)
-    user_id = fields.Many2one('res.users', string="Registrado por", default=lambda s: s.env.user, readonly=True, tracking=True)
+    user_id = fields.Many2one('res.users', string="Dado de baja por", default=lambda s: s.env.user, readonly=True, tracking=True)
     date = fields.Date(string="Fecha de baja", required=True, default=fields.Date.context_today, tracking=True)
     reason = fields.Selection([
         ('resignation', 'Renuncia'),
