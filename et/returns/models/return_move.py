@@ -72,7 +72,6 @@ class ReturnMove(models.Model):
 
             provider = record.get_current_provider(record.partner_id)
 
-            raise UserError(provider['code'])
 
             payload = {
                 "Numero": f'R{next_number}',
@@ -98,6 +97,7 @@ class ReturnMove(models.Model):
             else:
                 raise UserError(f'Error code: {response.status_code} - Error Msg: {response.text}')
 
+
     def get_current_provider(self, partner_id):
         current_provider = {}
         
@@ -110,12 +110,11 @@ class ReturnMove(models.Model):
 
                     return current_provider
 
-        if not current_provider['code']:
-            self.create_provider(partner_id)
-            self.get_current_provider(partner_id)
+        if not current_provider['code']:            
+            current_provider = self.create_provider(partner_id)
 
-
-
+            return current_provider
+            
 
     def get_providers(self):
         
@@ -129,9 +128,10 @@ class ReturnMove(models.Model):
             return data        
         else:
             raise UserError(f'No se pudo obtener los proveedores de Digip. STATUS_CODE: {response.status_code}')
-        
+
+
     def create_provider(self, provider):
-        
+        current_provider = {}
         headers = {}
         headers["x-api-key"] = self.env['ir.config_parameter'].sudo().get_param('digipwms.key')
         payload = {
@@ -143,7 +143,10 @@ class ReturnMove(models.Model):
         response = requests.post('http://api.patagoniawms.com/v1/Proveedor', headers=headers, json=payload)
 
         if response.status_code == 204:
-            return True        
+            current_provider['code'] = provider.id
+            current_provider['name'] = provider.name
+
+            return current_provider
         else:
             raise UserError(f'No se pudo crear el proveedor en Digip. STATUS_CODE: {response.status_code}')
         
