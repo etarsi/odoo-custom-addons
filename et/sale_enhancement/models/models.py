@@ -279,6 +279,9 @@ class SaleOrderLineInherit(models.Model):
         res = super().create(vals)
         for rec in res:
             rec.alert_decimal_qty()
+            # Validar si el producto tiene el sale_ok true
+            if not rec.product_id.sale_ok:
+                raise ValidationError(_("Este producto no esta habilitado para la venta con este código: %s", rec.product_id.default_code))
             # Si no hay un producto_packaging_id definido, asigna el primero del producto
             if not rec.product_packaging_id:
                 if rec.product_id.packaging_ids:
