@@ -26,11 +26,14 @@
         ],
     },
     # any module necessary for this one to work correctly
-    'depends': ['account_check_printing', 'account_payment_group', 'l10n_latam_check', 'l10n_ar', 'l10n_ar_afipws_fe', 'account'],
+    'depends': ['account_check_printing', 'account_payment_group', 'l10n_latam_check', 'l10n_ar', 'l10n_ar_afipws_fe', 'account', 'mail'],
 
     # always loaded
     'data': [
         'security/ir.model.access.csv',
+        # Data
+        'data/group_pago.xml',
+        'data/ir_cron.xml',
         #Reportes
         'wizard/generar_factura_wizard_views.xml',
         #permissions
@@ -38,6 +41,7 @@
         'views/views.xml',
         'views/report_account_payment_group.xml',
         'views/report_account_move.xml',
+        'views/account_move_views.xml',
         'views/templates.xml',
         'views/menu.xml'
     ],

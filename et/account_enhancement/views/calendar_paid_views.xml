@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Calendario de facturas por pagar (usa date_paid) -->
+    <record id="view_move_calendar_to_pay" model="ir.ui.view">
+        <field name="name">account.move.calendar.to.pay</field>
+        <field name="model">account.move</field>
+        <field name="arch" type="xml">
+            <calendar string="Pagos programados"
+                    date_start="date_paid"
+                    color="partner_id"
+                    quick_add="false"
+                    create="false">
+                <!-- Campos visibles en el popup del evento -->
+                <field name="name"/>
+                <field name="partner_id"/>
+                <field name="amount_total"/>
+                <field name="amount_residual"/>
+                <field name="invoice_date_due"/>
+                <field name="journal_id"/>
+            </calendar>
+        </field>
+    </record>
+
+  <!-- Acción con modos calendar/tree/form -->
+    <record id="action_account_move_calendar_to_pay" model="ir.actions.act_window">
+        <field name="name">Calendario de Pagos</field>
+        <field name="res_model">account.move</field>
+        <field name="view_mode">calendar,tree,form</field>
+        <field name="view_id" ref="view_move_calendar_to_pay"/>
+        <!-- SOLO facturas de proveedor, posteadas y con saldo -->
+        <field name="domain">[
+            ('date_paid','!=',False),
+            ('move_type','=','in_invoice'),
+            ('state','=','posted'),
+            ('payment_state','!=', 'paid')
+        ]</field>
+        <field name="context">
+            {'calendar_view': 1, 'search_default_group_by_partner': 1}
+        </field>
+    </record>
+
+    <!-- Menú (ajustá el parent a donde te guste en Contabilidad) -->
+    <menuitem id="menu_account_move_calendar_to_pay"
+                name="Calendario de Pagos"
+                parent="account.menu_finance_payables"
+                action="action_account_move_calendar_to_pay"
+                sequence="40"/>
+</odoo>

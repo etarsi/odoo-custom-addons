@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from odoo import models, api, fields, _
+from dateutil.relativedelta import relativedelta
 from odoo.exceptions import AccessError, UserError, ValidationError
 import logging
 from datetime import date
@@ -25,7 +26,9 @@ class AccountMoveInherit(models.Model):
         'picking_id',
         string='Remitos relacionados'
     )
-    
+
+    date_paid = fields.Date(string="Fecha de pago", tracking=True)
+
     @api.onchange('journal_id')
     def _onchange_journal_id(self):
         for record in self:
@@ -64,6 +67,54 @@ class AccountMoveInherit(models.Model):
                 
                 if 75 in category_ids and journal_id:
                     record.journal_id = journal_id
+                    
+    @api.model
+    def cron_notify_date_paid(self):
+        """Crea actividades para facturas cuya date_paid sea mañana,
+        asignadas al usuario que creó la factura (create_uid)."""
+        today = fields.Date.context_today(self)
+        target = today + relativedelta(days=1)
+
+        # Tipología de actividad "To Do"
+        todo_type = self.env.ref("mail.mail_activity_data_todo")
+        ir_model_id = self.env["ir.model"]._get_id("account.move")
+
+        # Buscar facturas relevantes (ajustá move_type/state a tu necesidad)
+        moves = self.search([
+            ("date_paid", "=", target),
+            ("move_type", "=", "in_invoice"),
+            ("state", "in", ["draft", "posted"]),
+        ])
+
+        group = self.env.ref("account_enhancement.group_recordatorio_pago", raise_if_not_found=False)
+        if not group or not group.users:
+            return  # sin usuarios, no hay a quién notificar
+
+        for move in moves:
+            for user in group.users:
+                # Evitar duplicados: ¿ya existe una actividad igual?
+                existing = self.env["mail.activity"].search_count([
+                    ("res_model", "=", "account.move"),
+                    ("res_id", "=", move.id),
+                    ("activity_type_id", "=", todo_type.id),
+                    ("user_id", "=", user.id),
+                    ("summary", "=", "Recordatorio: Debe realizar el pago de la factura falta 1 día"),
+                ])
+
+                if existing:
+                    continue
+
+                # Crear actividad
+                self.env["mail.activity"].create({
+                    "activity_type_id": todo_type.id,
+                    "res_model_id": ir_model_id,
+                    "res_id": move.id,
+                    "user_id": user.id,
+                    "summary": _("Recordatorio: Debe realizar el pago de la factura falta 1 día"),
+                    "note": _("La factura %s tiene fecha de pago %s.")
+                            % (move.name or move.ref or move.id, move.date_paid),
+                    "date_deadline": target,
+                })
 
 
 

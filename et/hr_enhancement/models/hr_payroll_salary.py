@@ -177,6 +177,8 @@ class HrPayrollSalaryLine(models.Model):
                     ('check_in', '>=', rec.payroll_id.date_start),
                     ('check_in', '<=', rec.payroll_id.date_end),
                 ])
+                if not attendances:
+                    raise ValidationError('No se encontraron asistencias para el empleado %s en el período seleccionado.' % rec.employee_id.name)
                 # Calcular horas trabajadas, días trabajados, horas extras y horas de vacaciones
                 for att in attendances:
                     rec.worked_hours += att.worked_hours

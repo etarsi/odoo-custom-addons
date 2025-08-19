@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Grupo para recibir recordatorios de factura (date_paid) -->
+    <record id="group_recordatorio_pago" model="res.groups">
+        <field name="name">Recordatorio de pago de facturas</field>
+        <field name="category_id" ref="base.module_category_accounting"/>
+    </record>
+</odoo>
