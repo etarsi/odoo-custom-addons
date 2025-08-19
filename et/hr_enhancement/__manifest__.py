@@ -20,7 +20,7 @@
     'version': '0.1',
 
     # any module necessary for this one to work correctly
-    'depends': ['hr', 'base', 'hr_attendance'],
+    'depends': ['hr', 'base', 'hr_attendance', 'web'],
 
     # always loaded
     'data': [
@@ -48,4 +48,9 @@
     'demo': [
         'demo/demo.xml',
     ],
+    'assets': {
+        'web.assets_backend': [
+            'hr_enhancement/static/src/js/handle_service.js',
+        ],
+    },
 }
