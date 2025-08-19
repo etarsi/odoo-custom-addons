@@ -15,8 +15,8 @@
                 <!-- Campos visibles en el popup del evento -->
                 <field name="name"/>
                 <field name="partner_id"/>
-                <field name="amount_total"/>
                 <field name="amount_residual"/>
+                <field name="amount_total_day"/>
                 <field name="invoice_date_due"/>
                 <field name="journal_id"/>
             </calendar>

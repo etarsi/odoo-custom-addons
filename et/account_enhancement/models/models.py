@@ -29,6 +29,22 @@ class AccountMoveInherit(models.Model):
 
     date_paid = fields.Date(string="Fecha de pago", tracking=True)
 
+    amount_total_day = fields.Float(string="Total del día", compute="_compute_amount_total_day")
+
+    def _compute_amount_total_day(self):
+        for record in self:
+            if record.date_paid:
+                #debe sumar las facturas de la misma fecha y sumar el amount_residual
+                invoices = self.search([
+                    ('date_paid', '=', record.date_paid),
+                    ('move_type', '=', 'in_invoice'),
+                    ('payment_state', '!=', 'paid'),
+                    ('state', '=', 'posted'),
+                ])
+                record.amount_total_day = sum(inv.amount_residual for inv in invoices)
+            else:
+                record.amount_total_day = 0
+
     @api.onchange('journal_id')
     def _onchange_journal_id(self):
         for record in self:
