@@ -9,12 +9,12 @@ class HrEmployeeSalary(models.Model):
 
     employee_id = fields.Many2one('hr.employee', string="Empleado", required=True, tracking=True)
     date = fields.Date(string="Fecha", required=True, default=fields.Date.today, tracking=True)
-    actual_salary = fields.Float(string="Sueldo Actual", compute="_compute_actual_salary", store=True, tracking=True)
+    actual_salary = fields.Float(string="Sueldo Actual", compute="_compute_actual_salary", readonly=True, store=True, tracking=True)
     real_salary = fields.Float(string="Salario Real", store=True, tracking=True)
     gross_salary = fields.Float(string="Sueldo Bruto", required=True, tracking=True)
     bank_salary = fields.Float(string="Sueldo por Banco", required=True, tracking=True)
     percentage_increase = fields.Float(string="Porcentaje de Incremento",
-                                        compute="_compute_percentage_increase", store=True, tracking=True)
+                                        compute="_compute_percentage_increase", readonly=True,store=True, tracking=True)
     state = fields.Selection([
         ('draft', 'Borrador'),
         ('confirmed', 'Confirmado'),

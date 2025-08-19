@@ -28,17 +28,17 @@
                 <sheet>
                     <group>
                         <group name="group_location_info" string="Información del Ajuste Salarial">
-                            <field name="employee_id" required="True" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
-                            <field name="actual_salary" string="Sueldo Actual" required="True" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
-                            <field name="real_salary" string="Salario Real" required="True" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
-                            <field name="gross_salary" string="Sueldo Bruto" required="True" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
-                            <field name="bank_salary" string="Sueldo por Banco" required="True" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                            <field name="employee_id" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                            <field name="date" string="Fecha" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                            <field name="tipo_ajuste" string="Tipo de Ajuste" attrs="{'readonly': [('state', '!=', 'draft')]}" />
+                            <field name="actual_salary" />
+                            <field name="percentage_increase" widget="percentage" />
+                            <field name="notes" attrs="{'readonly': [('state', '!=', 'draft')]}" />
                         </group>
-                        <group name="group_adjustment_info" string="Información del Ajuste">
-                            <field name="date" string="Fecha" required="True" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
-                            <field name="percentage_increase" string="Porcentaje de Incremento" compute="_compute_percentage_increase" store="True" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
-                            <field name="tipo_ajuste" string="Tipo de Ajuste" required="True" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
-                            <field name="notes" string="Notas" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                        <group name="group_adjustment_info" string="Información Monto Salarial">
+                            <field name="real_salary" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                            <field name="gross_salary" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                            <field name="bank_salary" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
                         </group>
                     </group>
                 </sheet>
@@ -62,7 +62,7 @@
                 <field name="gross_salary"/>
                 <field name="bank_salary"/>
                 <field name="date"/>
-                <field name="percentage_increase"/>
+                <field name="percentage_increase" widget="percentage" />
                 <field name="tipo_ajuste"/>
                 <field name="notes"/>
                 <field name="state" widget="badge" decoration-info="state == 'draft'" 
