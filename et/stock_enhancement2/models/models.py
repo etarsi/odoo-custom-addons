@@ -4,7 +4,7 @@ from reportlab.lib.pagesizes import A4
 from reportlab.pdfgen import canvas
 from io import BytesIO
 from datetime import datetime
-from odoo.exceptions import UserError, AccessError
+from odoo.exceptions import UserError, ValidationError
 import logging
 import math
 import requests
@@ -1221,3 +1221,12 @@ class DeliveryCarrierInherit(models.Model):
     _inherit = "delivery.carrier"
 
     address = fields.Char(string="Dirección")
+    cuit = fields.Char(string="CUIT")
+    
+    #validar que el cuit sea unico debe salir validaterror
+    @api.constrains('cuit')
+    def _check_cuit_unique(self):
+        for record in self:
+            if record.cuit:
+                if self.search_count([('cuit', '=', record.cuit)]) > 1:
+                    raise ValidationError(_('El CUIT debe ser único por Transporte.'))

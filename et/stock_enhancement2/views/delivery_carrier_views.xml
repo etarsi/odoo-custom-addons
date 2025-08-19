@@ -7,6 +7,7 @@
         <field name="arch" type="xml">
             <xpath expr="//field[@name='name']" position="after">
                 <field name="address" />
+                <field name="cuit" />
             </xpath>
         </field>
     </record>
@@ -17,6 +18,7 @@
         <field name="arch" type="xml">
             <xpath expr="//field[@name='integration_level']" position="before">
                 <field name="address" />
+                <field name="cuit" />
             </xpath>
             <xpath expr="//field[@name='partner_id']" position="attributes">
                 <attribute name="attrs">{'invisible': 1}</attribute>
