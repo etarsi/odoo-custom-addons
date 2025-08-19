@@ -9,7 +9,9 @@
                     date_start="date_paid"
                     color="partner_id"
                     quick_add="false"
-                    create="false">
+                    create="false"
+                    delete="false"
+                    mode="month">
                 <!-- Campos visibles en el popup del evento -->
                 <field name="name"/>
                 <field name="partner_id"/>
