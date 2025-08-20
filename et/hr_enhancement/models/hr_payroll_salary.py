@@ -117,6 +117,9 @@ class HrPayrollSalaryLine(models.Model):
 
     payroll_id = fields.Many2one('hr.payroll.salary', string="Planilla", required=True, ondelete='cascade')
     employee_id = fields.Many2one('hr.employee', string="Empleado", required=True)
+    employee_state = fields.Selection(
+        related='employee_id.state', string='Estado Empleado', store=False, readonly=True
+    )
     job_id = fields.Many2one(related='employee_id.job_id', string="Puesto", store=True)
     worked_days = fields.Float('Días Trabajados', compute='_compute_attendance',  readonly=True, store=True)
     worked_hours = fields.Float('H. Trabajadas', compute='_compute_attendance', readonly=True, store=True)
