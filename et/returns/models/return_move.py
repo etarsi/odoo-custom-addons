@@ -184,9 +184,14 @@ class ReturnMoveLine(models.Model):
     def get_last_price(self):
 
         last_invoice_line = self.env['account.move.line'].search([
-            ('product_id', '=', self.id),
+            ('product_id', '=', self.product_id.id),
             ('parent_state', '=', 'posted'),
-        ], order='date dsc', limit=1)
+        ], order='date desc', limit=1)
 
         if last_invoice_line:
             self.price_unit = last_invoice_line.price_unit
+
+    @api.model
+    def create(self):
+
+        self.get_last_price()

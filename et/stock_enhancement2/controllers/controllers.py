@@ -57,8 +57,8 @@ class StockPickingController(http.Controller):
 
         pdf = picking._build_remito_pdf2(picking, proportion, company_id, type)
 
-        if company_id.id == 4:
-            pdf = picking._build_remito_pdf(picking, proportion, company_id, type)
+        # if company_id.id == 4:
+        #     pdf = picking._build_remito_pdf(picking, proportion, company_id, type)
 
         return request.make_response(
             pdf,
@@ -86,8 +86,8 @@ class StockPickingController(http.Controller):
 
         pdf = picking._build_remito_pdf2(picking, proportion, company_id, type)
 
-        if company_id.id == 4:
-            pdf = picking._build_remito_pdf(picking, proportion, company_id, type)
+        # if company_id.id == 4:
+        #     pdf = picking._build_remito_pdf(picking, proportion, company_id, type)
 
         return request.make_response(
             pdf,
@@ -117,8 +117,8 @@ class StockPickingController(http.Controller):
 
         pdf = picking._build_remito_pdf2(picking, proportion, company_id, type)
 
-        if company_id.id == 4:
-            pdf = picking._build_remito_pdf(picking, proportion, company_id, type)
+        # if company_id.id == 4:
+        #     pdf = picking._build_remito_pdf(picking, proportion, company_id, type)
         
         return request.make_response(
             pdf,
