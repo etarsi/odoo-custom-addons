@@ -181,17 +181,15 @@ class ReturnMoveLine(models.Model):
     wib = fields.Char(string="¿Qué está roto?")
     state = fields.Selection(string='State', selection=[('draft','Borrador'), ('confirmed','Confirmado'), ('done', 'Hecho')])
 
-    def get_last_price(self):
-
-        last_invoice_line = self.env['account.move.line'].search([
-            ('product_id', '=', self.product_id.id),
-            ('parent_state', '=', 'posted'),
-        ], order='date desc', limit=1)
-
-        if last_invoice_line:
-            self.price_unit = last_invoice_line.price_unit
-
     @api.model
-    def create(self):
+    def create(self, vals):
+        if vals.get('product_id'):
+            last_invoice_line = self.env['account.move.line'].search([
+                ('product_id', '=', vals['product_id']),
+                ('parent_state', '=', 'posted'),
+            ], order='date desc', limit=1)
 
-        self.get_last_price()
+            if last_invoice_line:
+                vals['price_unit'] = last_invoice_line.price_unit
+
+        return super().create(vals)
