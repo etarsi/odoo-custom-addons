@@ -12,7 +12,7 @@
                 <field name="hour_cost_night"/>
                 <field name="hour_cost_extra"/>
                 <field name="hour_cost_holiday"/>
-                <field name="state"/>
+                <field name="state" widget="badge" decoration-success="state == 'active'" decoration-danger="state == 'inactive'" />
             </tree>
         </field>
     </record>
