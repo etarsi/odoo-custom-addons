@@ -68,7 +68,6 @@ class AccountMoveInherit(models.Model):
                     else:
                         raise UserError('No se encontró banco destinatario, asignar manualmente')
 
-
     @api.onchange('partner_id')
     def _onchange_journal_gc(self):
         journal_id = self.env['account.journal'].search([
@@ -78,9 +77,16 @@ class AccountMoveInherit(models.Model):
         ], limit=1) 
 
         for record in self:
+            category_ids = record.partner_id.category_id.mapped('id')
             if record.partner_id:
-                category_ids = record.partner_id.category_id.mapped('id')
-                
+                if 78 in category_ids:
+                    journal_id = self.env['account.journal'].search([
+                        ('code', '=', '00009'),
+                        ('company_id', '=', self.env.company.id),
+                        ('type', '=', 'sale')
+                    ], limit=1)
+                    if journal_id:
+                        record.journal_id = journal_id
                 if 75 in category_ids and journal_id:
                     record.journal_id = journal_id
                     
