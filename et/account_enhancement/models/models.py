@@ -72,8 +72,7 @@ class AccountMoveInherit(models.Model):
     def _onchange_journal_gc(self):
         for record in self:
             if record.partner_id:
-                category_ids = record.partner_id.category_id.mapped('id')
-                if category_ids.filtered(lambda c: c.name == 'GC'):
+                if record.partner_id.category_id and record.partner_id.category_id.filtered(lambda c: c.name == 'GC'):
                     journal_id = self.env['account.journal'].search([
                         ('code', '=', '00009'),
                         ('company_id', '=', record.company_id.id),
