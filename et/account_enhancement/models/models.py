@@ -70,25 +70,17 @@ class AccountMoveInherit(models.Model):
 
     @api.onchange('partner_id')
     def _onchange_journal_gc(self):
-        journal_id = self.env['account.journal'].search([
-            ('l10n_ar_afip_pos_number', '=', 9),
-            ('company_id', '=', self.env.company.id),
-            ('type', '=', 'sale')
-        ], limit=1) 
-
         for record in self:
             category_ids = record.partner_id.category_id.mapped('id')
             if record.partner_id:
                 if 78 in category_ids:
                     journal_id = self.env['account.journal'].search([
                         ('code', '=', '00009'),
-                        ('company_id', '=', self.env.company.id),
+                        ('company_id', '=', record.company_id.id),
                         ('type', '=', 'sale')
                     ], limit=1)
                     if journal_id:
-                        record.journal_id = journal_id
-                if 75 in category_ids and journal_id:
-                    record.journal_id = journal_id
+                        record.journal_id = journal_id.id
                     
     @api.model
     def cron_notify_date_paid(self):
