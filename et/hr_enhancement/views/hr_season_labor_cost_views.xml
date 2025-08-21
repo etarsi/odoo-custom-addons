@@ -12,7 +12,7 @@
                 <field name="hour_cost_night"/>
                 <field name="hour_cost_extra"/>
                 <field name="hour_cost_holiday"/>
-                <field name="active"/>
+                <field name="state"/>
             </tree>
         </field>
     </record>
@@ -22,9 +22,6 @@
         <field name="model">hr.season.labor.cost</field>
         <field name="arch" type="xml">
             <form>
-                <header>
-                    <field name="active"/>
-                </header>
                 <sheet>
                     <group>
                         <field name="name"/>
@@ -36,6 +33,7 @@
                         <field name="hour_cost_night" widget="monetary"/>
                         <field name="hour_cost_extra" widget="monetary"/>
                         <field name="hour_cost_holiday" widget="monetary"/>
+                        <field name="state" />
                     </group>
                 </sheet>
                 <!--DETALLE QUIEN  -->
