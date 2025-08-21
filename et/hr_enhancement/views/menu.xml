@@ -1,4 +1,4 @@
-1<odoo>
+<odoo>
     <!-- Menú principal "Licencias" -->
     <menuitem 
         id="hr_enhancement.menu_hr_license"
