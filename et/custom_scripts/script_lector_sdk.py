@@ -38,7 +38,6 @@ except ImportError as e:
 # =========================
 # CONFIG
 # =========================
-CSV_PATH = r"C:\Users\Usuario\Downloads\eventos_tiempo_real.csv"
 CSV_FIELDNAMES = [
     "Timestamp", "DeviceIP", "EventType", "EventSubType", "DeviceTime", "ChannelID_Evento", "ChannelID_Puerta",
     "EventID", "CardNo", "UserID", "UserName", "OpenMethod", "Status", "ErrorCode", "CardType",
@@ -86,17 +85,6 @@ def format_sdk_time(sdk_time_obj):
         ).strftime('%Y-%m-%d %H:%M:%S') + f".{int(getattr(sdk_time_obj, 'dwMillisecond', 0)):03d}"
     except ValueError as e:
         return f"Error Fecha: {e}"
-
-def write_csv_row(row: dict):
-    try:
-        file_exists = os.path.isfile(CSV_PATH)
-        with open(CSV_PATH, "a", newline='', encoding='utf-8') as f_csv:
-            writer = csv.DictWriter(f_csv, fieldnames=CSV_FIELDNAMES)
-            if not file_exists or os.path.getsize(CSV_PATH) == 0:
-                writer.writeheader()
-            writer.writerow(row)
-    except Exception as e:
-        print(f"  Error escribiendo a CSV: {e}")
 
 def post_to_odoo(payload: dict):
     if not POST_TO_ODOO:
@@ -385,18 +373,6 @@ def main():
         print(f"❌ SDK Init Error: {client.GetLastErrorMessage()}")
         sys.exit(1)
     print("✅ SDK Inicializado.")
-
-    # Asegurar CSV con header
-    try:
-        file_is_new = not os.path.exists(CSV_PATH) or os.path.getsize(CSV_PATH) == 0
-        with open(CSV_PATH, "a", newline='', encoding='utf-8') as f_csv:
-            writer = csv.DictWriter(f_csv, fieldnames=CSV_FIELDNAMES)
-            if file_is_new:
-                writer.writeheader()
-    except IOError as e:
-        print(f"❌ Error CSV: {e}")
-        client.Cleanup()
-        sys.exit(1)
 
     stop_event = threading.Event()
     threads = []
