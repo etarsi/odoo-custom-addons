@@ -1,11 +1,11 @@
-<odoo>
-    <!-- Nuevo menú Licencias en recursos humanos -->
+1<odoo>
     <!-- Menú principal "Licencias" -->
     <menuitem 
         id="hr_enhancement.menu_hr_license"
         name="Licencias"
         parent="hr.menu_hr_root"
-        sequence="10"/>
+        sequence="20"/>
+    <!-- Submenú "Mis Licencias" -->
     <menuitem 
         id="hr_enhancement.menu_my_licenses"
         name="Mis Licencias"
@@ -27,13 +27,15 @@
         name="Planilla de Sueldos"
         parent="hr.menu_hr_root"
         groups="hr_enhancement.group_hr_administrador"
-        sequence="10"/>
+        sequence="30"/>
+    <!-- Submenú "Planilla de Eventuales" -->
     <menuitem 
         id="hr_enhancement.menu_payroll_eventuales"
         name="Planilla de Eventuales"
         parent="hr_enhancement.menu_hr_payroll_salary"
         action="hr_enhancement.action_hr_payroll_eventuales"
         sequence="1"/>
+    <!-- Submenú "Planilla de Empleados" -->
     <menuitem 
         id="hr_enhancement.menu_payroll_employees"
         name="Planilla de Empleados"
@@ -47,7 +49,7 @@
         name="Informes"
         parent="hr.menu_hr_root"
         groups="hr_enhancement.group_hr_administrador"
-        sequence="10"/>
+        sequence="40"/>
 
     <!-- Nuevo menú dentro de Recursos Humanos > Configuración -->
     <menuitem 
@@ -62,7 +64,7 @@
         <field name="res_model">hr.season.labor.cost</field>
         <field name="view_mode">tree,form</field>
     </record>
-
+    <!-- Submenú "Costos Laborales por Temporada" -->
     <menuitem
         id="hr_enhancement.menu_hr_season_labor_cost_config_action"
         name="Costos Laborales por Temporada"
@@ -75,14 +77,14 @@
         <field name="res_model">hr.work.schedule</field>
         <field name="view_mode">tree,form</field>
     </record>
-
+    <!-- Submenú "Rangos de Horario Laboral" -->
     <menuitem
         id="hr_enhancement.menu_hr_work_schedule_action"
         name="Rangos de Horario Laboral"
         parent="hr_enhancement.menu_hr_season_labor_cost_config"
         action="action_hr_work_schedule"
         sequence="2"/>
-
+    <!-- Submenú "Días No Laborales" -->
     <menuitem
         id="hr_enhancement.menu_hr_holiday_custom"
         name="Días No Laborales"

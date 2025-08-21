@@ -183,7 +183,7 @@ class HrPayrollSalaryLine(models.Model):
             rec.worked_hours = 0.0
             rec.overtime = 0.0
             rec.holiday_hours = 0.0
-            season_costo = self.env['hr.season.labor.cost'].search([('active', '=', True),
+            season_costo = self.env['hr.season.labor.cost'].search([('state', '=', 'active'),
                                                                     ('date_start', '<=', rec.payroll_id.date_start),
                                                                     ('date_end', '>=', rec.payroll_id.date_end)], limit=1)
             if not season_costo:
