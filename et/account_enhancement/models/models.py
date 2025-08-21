@@ -68,7 +68,7 @@ class AccountMoveInherit(models.Model):
                     else:
                         raise UserError('No se encontró banco destinatario, asignar manualmente')
 
-    @api.depends('partner_id')
+    @api.onchange('partner_id')
     def _onchange_journal_gc(self):
         for record in self:
             if record.partner_id:
@@ -79,7 +79,9 @@ class AccountMoveInherit(models.Model):
                         ('type', '=', 'sale')
                     ], limit=1)
                     if journal_id:
-                        record.journal_id = journal_id
+                        record.write({
+                            'journal_id': journal_id.id
+                        })
                     
     @api.model
     def cron_notify_date_paid(self):
