@@ -68,7 +68,7 @@ class AccountMoveInherit(models.Model):
                     else:
                         raise UserError('No se encontró banco destinatario, asignar manualmente')
 
-    @api.onchange('partner_id')
+    @api.depends('partner_id')
     def _onchange_journal_gc(self):
         for record in self:
             if record.partner_id:
