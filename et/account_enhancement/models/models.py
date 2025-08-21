@@ -79,9 +79,7 @@ class AccountMoveInherit(models.Model):
                         ('type', '=', 'sale')
                     ], limit=1)
                     if journal_id:
-                        record.write({
-                            'journal_id': journal_id.id
-                        })
+                        record.journal_id = journal_id
                     
     @api.model
     def cron_notify_date_paid(self):
