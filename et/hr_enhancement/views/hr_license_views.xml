@@ -36,6 +36,10 @@
                             <field name="document" filename="document_name" string="Documento de Licencia" required="True" widget="binary" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
                             <field name="description" string="Descripción" required="True" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
                         </group>
+                        <group name="group_info_art" string="Información Extra" attrs="{'invisible': [('state', '!=', 'draft')]}" >
+                            <field name="location_id" string="Ubicación" required="True" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                            <field name="department_id" string="Departamento" required="True" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                        </group>
                     </group>
                 </sheet>
                 <!--DETALLE QUIEN  -->

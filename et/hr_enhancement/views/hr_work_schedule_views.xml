@@ -8,8 +8,8 @@
                 <field name="type"/>
                 <field name="hour_start" widget="float_time"/>
                 <field name="hour_end" widget="float_time"/>
-                <field name="hour_start_night" widget="float_time"/>
-                <field name="hour_end_night" widget="float_time"/>
+                <field name="hour_start_night" widget="float_time" />
+                <field name="hour_end_night" widget="float_time" />
                 <field name="state" widget="badge" decoration-success="state == 'activo'" decoration-danger="state == 'inactivo'"/>
             </tree>
         </field>
@@ -28,7 +28,7 @@
                             <field name="hour_end" widget="float_time"/>
                             <field name="state"/>
                         </group>
-                        <group string="Horario Nocturno">
+                        <group string="Horario Nocturno" attrs="'invisible':[('type','!=','eventual')]">
                             <field name="hour_start_night" widget="float_time"/>
                             <field name="hour_end_night" widget="float_time"/>
                         </group>

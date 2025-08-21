@@ -39,8 +39,9 @@ class hrLicense(models.Model):
     art_diagnosis = fields.Char('Diagnóstico Médico')
     alta_afip = fields.Date('Fecha de Alta Médica/AFIP')
     art_company = fields.Char('Nombre de la ART')
-
     
+    
+
     @api.model
     def default_get(self, fields):
         res = super().default_get(fields)

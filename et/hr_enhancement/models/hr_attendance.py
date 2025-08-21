@@ -7,20 +7,21 @@ class HrAttendance(models.Model):
     _inherit = 'hr.attendance'
 
     overtime = fields.Float(
-        string='Horas Extra',
+        string='Horas al 50%/Extra',
         compute="_compute_worked_hours",
         help="Horas extras del día (sin decimales, regla 30m -> 1h por tramo)."
     )
     # Ejemplo básico: horas trabajadas en feriado (ajustar a tu lógica)
     holiday_hours = fields.Float(
-        string='Horas Feriado',
+        string='Horas al 100%/Feriados/Sábados',
         compute="_compute_worked_hours",
-        help="Horas trabajadas en feriado."
+        help="Horas trabajadas en feriados/Sábados después del medio día."
     )
     
     hours_late = fields.Float(
         string='Horas de retraso',
         store=True,
+        compute="_compute_worked_hours",
         help='Horas de retraso contra la hora límite de entrada configurada.'
     )
 
@@ -67,8 +68,9 @@ class HrAttendance(models.Model):
                         eff_check_in = att.check_in # Sin limite de ingreso
                         total_secs = max(0.0, (eff_check_out - eff_check_in).total_seconds())
                         att.holiday_hours = float(self._round_30_up_to_int_hours(total_secs))
-                        att.worked_hours  = 0.0
-                        att.overtime      = 0.0
+                        att.worked_hours = 0.0
+                        att.overtime = 0.0
+                        att.hours_late = 0.0
                         continue
 
                     scheduled_overlap_secs = self._overlap_seconds(
@@ -94,11 +96,12 @@ class HrAttendance(models.Model):
                             eff_check_in, eff_check_out, start_dt, sat_end_dt
                         )
                         base_hours_raw = base_secs_raw / 3600.0
-                        over_time_base = 0.0
+                        holiday_base = 0.0
                         if eff_check_out > sat_end_dt:
-                            over_time_base = max(0.0, (eff_check_out - max(eff_check_in, sat_end_dt)).total_seconds())
-                        att.overtime += float(self._round_30_up_to_int_hours(over_time_base))
+                            holiday_base = max(0.0, (eff_check_out - max(eff_check_in, sat_end_dt)).total_seconds())
+                        att.holiday_hours += float(self._round_30_up_to_int_hours(holiday_base))
                         att.worked_hours = base_hours_raw
+                        att.overtime = 0.0
                     else:
                         # ===== Lunes a Viernes (tu lógica original) =====
                         base_hours = base_hours_raw
@@ -107,47 +110,6 @@ class HrAttendance(models.Model):
                             over_time_base = max(0.0, (eff_check_out - max(eff_check_in, end_dt)).total_seconds())
                         att.overtime += float(self._round_30_up_to_int_hours(over_time_base))
                         att.worked_hours = base_hours
-
-    @api.depends('check_in', 'employee_id', 'check_out')
-    def _compute_hours_late(self):
-        icp = self.env['ir.config_parameter'].sudo()
-        # Paramétricas
-        p_day_start   = self._float_to_time(float(icp.get_param('hr_enhancement.hour_start_day_check')) + 3)
-        p_night_start = self._float_to_time(float(icp.get_param('hr_enhancement.hour_start_night_check')) + 3)
-
-        for rec in self:
-            rec.hours_late = 0.0
-            if not rec.check_in:
-                continue
-            # check_in en DB está en UTC naive → convertir a BA para comparar
-            # 1) poner tzinfo UTC y 2) llevar a BA
-            hh = rec.check_in.hour + rec.check_in.minute/60.0 + rec.check_in.second/3600.0
-
-            # Elegir umbral según turno (si no usás type_shift, usá siempre p_day_start)
-            threshold = None
-            if getattr(rec.employee_id, 'type_shift', False) == 'night':
-                threshold = p_night_start
-            else:
-                threshold = p_day_start
-
-            if threshold is None:
-                # si no hay param configurada, no penaliza
-                rec.hours_late = 0.0
-                continue
-
-            # Si llegó después del umbral, se computa retraso
-            delay = hh - threshold
-            rec.hours_late = delay if delay > 0 else 0.0
-
-    @api.depends('check_in', 'check_out')
-    def _compute_holiday_hours(self):
-        """
-        Ejemplo simple: si la fecha de check_in está en feriados públicos,
-        holiday_hours = horas totales trabajadas ese día; de lo contrario 0.
-        Ajustá la búsqueda según tu fuente de feriados (modelo/tabla que uses).
-        """
-        for att in self:
-            att.holiday_hours = 0.0
 
     # ===================== VALIDACIONES =====================
     @api.constrains('overtime', 'holiday_hours')

@@ -17,7 +17,7 @@ class HrPayrollSalary(models.Model):
         ('mensual', 'Mensual'),
         ('dia', 'Día'),
         ('otro', 'Otro')
-    ], string="Tipo de Pago", required=True, tracking=True)
+    ], string="Tipo de Pago", default='quincenal', required=True, tracking=True)
     pay_month = fields.Selection([
         ('1', 'Enero'), ('2', 'Febrero'), ('3', 'Marzo'), ('4', 'Abril'), ('5', 'Mayo'), ('6', 'Junio'),
         ('7', 'Julio'), ('8', 'Agosto'), ('9', 'Septiembre'), ('10', 'Octubre'), ('11', 'Noviembre'), ('12', 'Diciembre'),
@@ -47,6 +47,23 @@ class HrPayrollSalary(models.Model):
         store=True
     )
     line_ids = fields.One2many('hr.payroll.salary.line', 'payroll_id', string="Detalles de Planilla", copy=True)
+    
+    
+    @api.model
+    def create(self, vals):
+        # Si viene default desde el action, respetalo
+        if 'employee_type' not in vals and self.env.context.get('default_employee_type'):
+            vals['employee_type'] = self.env.context['default_employee_type']
+        rec = super().create(vals)
+        return rec
+
+    def write(self, vals):
+        # No permitir cambiar employee_type una vez creado
+        if 'employee_type' in vals:
+            for r in self:
+                if r.employee_type and vals['employee_type'] != r.employee_type:
+                    raise ValidationError("El tipo de empleado no puede modificarse en la planilla.")
+        return super().write(vals)
 
     @api.depends('line_ids.net_amount')
     def _compute_total_amount(self):
@@ -130,7 +147,7 @@ class HrPayrollSalaryLine(models.Model):
     bonus = fields.Monetary('Bonos/Gratificación', currency_field='currency_id', default=0.0)
     discount = fields.Monetary('Descuento', currency_field='currency_id', default=0.0)
     holidays = fields.Monetary('Días de Licencia', currency_field='currency_id', default=0.0)
-    gross_amount = fields.Monetary('Monto Bruto', currency_field='currency_id', compute='_compute_amount', store=True)
+    gross_amount = fields.Monetary('Monto Neto', currency_field='currency_id', compute='_compute_amount', store=True)
     net_amount = fields.Monetary('Total a Cobrar', currency_field='currency_id', compute='_compute_amount', readonly=True, store=True)
     note = fields.Char('Nota (Observaciones)')
     currency_id = fields.Many2one(
@@ -145,6 +162,7 @@ class HrPayrollSalaryLine(models.Model):
     is_paid = fields.Boolean(string="¿Pagado?", default=False)
     user_paid = fields.Many2one('res.users', string="Usuario que Pagó", readonly=True)
     date_paid = fields.Date(string="Fecha de Pago", readonly=True)
+
 
     @api.depends('worked_hours', 'overtime', 'holiday_hours', 'bonus', 'discount')
     def _compute_amount(self):

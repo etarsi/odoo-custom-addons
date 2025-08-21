@@ -140,7 +140,7 @@ class HrEmployee(models.Model):
                     'request_date': fields.Date.today(),
                     'reason': 'Editar Información del empleado',
                 })
-                rec.env.user.notify_info("¡Solicitud de Modificar Empleado enviada con éxito!")
+                rec.message_post(body="¡Solicitud de Modificar Empleado enviada con éxito!")
             else:
                 raise ValidationError("Ya existe una solicitud pendiente. Por favor, espera a que sea procesada antes de enviar otra solicitud.")
 

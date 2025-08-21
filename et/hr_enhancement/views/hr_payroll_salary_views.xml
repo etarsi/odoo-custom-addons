@@ -36,14 +36,13 @@
                 </header>
                 <sheet>
                     <div class="oe_title">
-                        <!-- Number -->
                         <h1 class="mt0" attrs="{'invisible':[('name', '=', '/')]}">
-                            <field name="name" attrs="{'readonly': [('state', '!=', 'draft')]}" placeholder="PLANILLA-AGOSTO/2025"/>
+                            <field name="name" attrs="{'readonly': [('state', '!=', 'draft')]}" placeholder="QUINCENA/MES/001/2025"/>
                         </h1>
                     </div>
                     <group name="group_info" string="Información de la Planilla">
                         <group>
-                            <field name="employee_type" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                            <field name="employee_type" readonly="1"/>
                             <field name="type_paid" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
                             <field name="date_start" attrs="{'readonly': [('state', '!=', 'draft')], 'invisible': [('type_paid', '=', 'mensual')]}"/>
                             <field name="date_end" attrs="{'readonly': [('state', '!=', 'draft')], 'invisible': [('type_paid', '=', 'mensual')]}"/>
@@ -121,8 +120,8 @@
         <field name="name">Planillas de Sueldo Empleados</field>
         <field name="res_model">hr.payroll.salary</field>
         <field name="view_mode">tree,form</field>
-        <field name="domain">[('employee_type', '=', 'empleado')]</field>
-        <field name="context">{'default_employee_type': 'empleado'}</field>
+        <field name="domain">[('employee_type', '=', 'employee')]</field>
+        <field name="context">{'default_employee_type': 'employee'}</field>
     </record>
     <record id="view_hr_payroll_salary_line_form" model="ir.ui.view">
         <field name="name">hr.payroll.salary.line.form</field>

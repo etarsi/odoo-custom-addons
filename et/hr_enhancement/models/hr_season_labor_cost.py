@@ -18,39 +18,23 @@ class HrSeasonLaborCost(models.Model):
 
     currency_id = fields.Many2one('res.currency', string="Moneda", required=True, default=lambda self: self.env.company.currency_id.id)
     user_id = fields.Many2one('res.users', string='Usuario Creador', default=lambda self: self.env.user, readonly=True, tracking=True)
-    active = fields.Boolean('Activo', default=True, tracking=True)
-    
-    def _check_no_overlap(self, vals, exclude_id=None):
-        """Valida que no haya solapamiento de fechas con otros registros activos."""
-        date_start = vals.get('date_start', self.date_start)
-        date_end = vals.get('date_end', self.date_end)
-        domain = [
-            ('date_start', '<=', date_end),
-            ('date_end', '>=', date_start)
-        ]
-        if exclude_id:
-            domain.append(('id', '!=', exclude_id))
-        if self.search_count(domain):
-            raise ValidationError(
-                "Ya existe una temporada registrada que se superpone con el rango de fechas seleccionado."
-            )
+    state = fields.Selection([
+        ('active', 'Activo'),
+        ('inactive', 'Inactivo')
+    ], string="Estado", default="inactive", required=True, tracking=True)
 
     @api.model
     def create(self, vals):
-        # Validar solapamiento antes de crear
-        self._check_no_overlap(vals)
-        # Si este registro se marca como activo, desactiva los demás
-        if vals.get('active', False):
-            self.search([('active', '=', True)]).write({'active': False})
+        # Si este registro se marca como activo, desactiva los demás sin cambiar este id
+        if vals.get('state', False) == 'active':
+            self.search([('state', '=', 'active'), ('id', '!=', self.id)]).write({'state': 'inactive'})
         return super(HrSeasonLaborCost, self).create(vals)
 
     def write(self, vals):
-        # Validar solapamiento antes de escribir
-        self._check_no_overlap(vals, exclude_id=self.id)
         # Validar montos
         for field in ['hour_cost_normal', 'hour_cost_night', 'hour_cost_extra', 'hour_cost_holiday']:
             if field in vals and vals[field] <= 0:
                 raise ValidationError("Los montos de Costo de Hora deben ser mayores a 0")
-        if 'active' in vals and vals['active']:
-            self.search([('active', '=', True), ('id', '!=', self.id)]).write({'active': False})
+        if 'state' in vals and vals['state'] == 'active':
+            self.search([('state', '=', 'active'), ('id', '!=', self.id)]).write({'state': 'inactive'})
         return super(HrSeasonLaborCost, self).write(vals)

@@ -41,6 +41,14 @@
         action="hr_enhancement.action_hr_payroll_employees"
         sequence="2"/>
 
+    <!-- Menú principal "Informes" -->
+    <menuitem 
+        id="hr_enhancement.menu_hr_payroll_reports"
+        name="Informes"
+        parent="hr.menu_hr_root"
+        groups="hr_enhancement.group_hr_administrador"
+        sequence="10"/>
+
     <!-- Nuevo menú dentro de Recursos Humanos > Configuración -->
     <menuitem 
         id="hr_enhancement.menu_hr_season_labor_cost_config"
