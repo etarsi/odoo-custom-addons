@@ -11,10 +11,6 @@
             <xpath expr="//div[@name='journal_div']" position="replace">
                 <div name="journal_div" class="d-flex">
                     <field name="journal_id" options="{'no_create': True}" attrs="{'readonly': [('state', '!=', 'draft')]}" />
-                    <span class="oe_inline o_form_label mx-3 oe_read_only" groups="base.group_multi_currency" invisible="1"> in </span>
-                    <!-- Bigger margin on the left because in edit mode the external link button covers the text -->
-                    <span class="oe_inline o_form_label mr-3 ml-5 oe_edit_only" groups="base.group_multi_currency" invisible="1"> in </span>
-                    <field name="currency_id" groups="base.group_multi_currency" attrs="{'readonly': [('state', '!=', 'draft')]}" invisible="1"/>
                 </div>
             </xpath>
         </field>
