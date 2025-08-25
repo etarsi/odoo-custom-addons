@@ -16,20 +16,30 @@ system_type = sys_platform + python_bit_num
 
 print(os.path.dirname(__file__))
 
-netsdkdllpath_dict = {'windows64': os.path.dirname(__file__) + '\\Libs\\win64\\'+'dhnetsdk.dll', 'windows32': os.path.dirname(__file__) + '\\Libs\\win32\\'+'dhnetsdk.dll',
-                      'linux64': os.path.dirname(__file__) + '/Libs/linux64/libdhnetsdk.so', 'linux32': os.path.dirname(__file__) + '/Libs/linux32/libdhnetsdk.so'}
-print(netsdkdllpath_dict)
-configdllpath_dict = {'windows64': os.path.dirname(__file__) + '\\Libs\\win64\\'+'dhconfigsdk.dll', 'windows32': os.path.dirname(__file__) + '\\Libs\\win32\\'+'dhconfigsdk.dll',
-                      'linux64': os.path.dirname(__file__) + '/Libs/linux64/libdhconfigsdk.so', 'linux32': os.path.dirname(__file__) + '/Libs/linux32/libdhconfigsdk.so'}
-playsdkdllpath_dict = {'windows64': os.path.dirname(__file__) + '\\Libs\\win64\\'+'play.dll', 'windows32': os.path.dirname(__file__) + '\\Libs\\win32\\'+'play.dll',
-                      'linux64': os.path.dirname(__file__) + '/Libs/linux64/libplay.so', 'linux32': os.path.dirname(__file__) + '/Libs/linux32/libplay.so'}
-renderdllpath_dict = {'windows64': os.path.dirname(__file__) + '\\Libs\\win64\\'+'RenderEngine.dll', 'windows32': os.path.dirname(__file__) + '\\Libs\\win32\\'+'RenderEngine.dll',
-                      'linux64': os.path.dirname(__file__) + '/Libs/linux64/libRenderEngine.so', 'linux32': os.path.dirname(__file__) + '/Libs/linux32/libRenderEngine.so'}
-infrasdkdllpath_dict = {'windows64': os.path.dirname(__file__) + '\\Libs\\win64\\'+'Infra.dll', 'windows32': os.path.dirname(__file__) + '\\Libs\\win32\\'+'Infra.dll',
-                        'linux64': os.path.dirname(__file__) + '/Libs/linux64/libInfra.so', 'linux32': os.path.dirname(__file__) + '/Libs/linux32/libInfra.so'}
+netsdkdllpath_dict = {'/opt/odoo-custom-addons/et/custom_scripts/Libs/linux64/libdhnetsdk.so',
+                      '/opt/odoo-custom-addons/et/custom_scripts/Libs/linux32/libdhnetsdk.so'}
 
-imagealgdllpath_dict = {'windows64': os.path.dirname(__file__) + '\\Libs\\win64\\'+'ImageAlg.dll', 'windows32': os.path.dirname(__file__) + '\\Libs\\win32\\'+'ImageAlg.dll',
-                        'linux64': os.path.dirname(__file__) + '/Libs/linux64/ImageAlg.so', 'linux32': os.path.dirname(__file__) + '/Libs/linux32/ImageAlg.so'}
+configdllpath_dict = {'windows64': '/opt/odoo-custom-addons/et/custom_scripts/Libs/win64/dhconfigsdk.dll',
+                      'windows32': '/opt/odoo-custom-addons/et/custom_scripts/Libs/win32/dhconfigsdk.dll',
+                      'linux64': '/opt/odoo-custom-addons/et/custom_scripts/Libs/linux64/libdhconfigsdk.so',
+                      'linux32': '/opt/odoo-custom-addons/et/custom_scripts/Libs/linux32/libdhconfigsdk.so'}
+playsdkdllpath_dict = {'windows64': '/opt/odoo-custom-addons/et/custom_scripts/Libs/win64/play.dll',
+                       'windows32': '/opt/odoo-custom-addons/et/custom_scripts/Libs/win32/play.dll',
+                       'linux64': '/opt/odoo-custom-addons/et/custom_scripts/Libs/linux64/libplay.so',
+                       'linux32': '/opt/odoo-custom-addons/et/custom_scripts/Libs/linux32/libplay.so'}
+renderdllpath_dict = {'windows64': '/opt/odoo-custom-addons/et/custom_scripts/Libs/win64/RenderEngine.dll',
+                      'windows32': '/opt/odoo-custom-addons/et/custom_scripts/Libs/win32/RenderEngine.dll',
+                      'linux64': '/opt/odoo-custom-addons/et/custom_scripts/Libs/linux64/libRenderEngine.so',
+                      'linux32': '/opt/odoo-custom-addons/et/custom_scripts/Libs/linux32/libRenderEngine.so'}
+infrasdkdllpath_dict = {'windows64': '/opt/odoo-custom-addons/et/custom_scripts/Libs/win64/Infra.dll',
+                        'windows32': '/opt/odoo-custom-addons/et/custom_scripts/Libs/win32/Infra.dll',
+                        'linux64': '/opt/odoo-custom-addons/et/custom_scripts/Libs/linux64/libInfra.so',
+                        'linux32': '/opt/odoo-custom-addons/et/custom_scripts/Libs/linux32/libInfra.so'}
+
+imagealgdllpath_dict = {'windows64': '/opt/odoo-custom-addons/et/custom_scripts/Libs/win64/ImageAlg.dll',
+                        'windows32': '/opt/odoo-custom-addons/et/custom_scripts/Libs/win32/ImageAlg.dll',
+                        'linux64': '/opt/odoo-custom-addons/et/custom_scripts/Libs/linux64/ImageAlg.so',
+                        'linux32': '/opt/odoo-custom-addons/et/custom_scripts/Libs/linux32/ImageAlg.so'}
 
 C_LLONG_DICT = {'windows64': c_longlong, 'windows32': c_long, 'linux32': c_long, 'linux64': c_long}
 C_LONG_DICT = {'windows64': c_long, 'windows32': c_long, 'linux32': c_int, 'linux64': c_int}
