@@ -14,6 +14,7 @@
     </record>
 
     <!-- Acción para abrir la vista tree -->
+
     <record id="action_stock_erp_tree" model="ir.actions.act_window">
         <field name="name">Stock ERP</field>
         <field name="res_model">stock.erp</field>
@@ -51,7 +52,7 @@
 
     <!-- menu categories -->
 
-    <menuitem name="Stock" id="stock_erp.stock" parent="stock_erp.menu_root"/>
+    <!-- <menuitem name="Stock" id="stock_erp.stock" parent="stock_erp.menu_root"/> -->
 
 <!--
     <menuitem name="Menu 2" id="stock_erp.menu_2" parent="stock_erp.menu_root"/>
