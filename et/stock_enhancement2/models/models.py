@@ -47,6 +47,43 @@ class StockPickingInherit(models.Model):
 
     delivery_state = fields.Selection(selection=[('no', 'No entregado'), ('delivered', 'Entregado'), ('returned', 'Devuelto')], default='no', copy=False, string='Estado Delivery')
     china_purchase = fields.Boolean(default=False, copy=True)
+    wesend_ids = fields.One2many('stock.sequence.wesend', 'picking_id', string="Remitos")
+
+
+
+    def action_correction_secuence(self):
+        for picking in self:
+            for wesend in picking.wesend_ids:
+                wesend.name = self.env['ir.sequence'].next_by_code('stock.sequence.wesend')
+        return True
+
+    def action_generate_wesend(self):
+        valor = 1
+        for picking in self:
+            seq = self.env['ir.sequence'].search([
+                ('code', '=', 'stock.sequence.wesend'),
+                ('company_id', '=', picking.company_id.id)
+            ], limit=1)
+            if not seq:
+                raise UserError(f"No se encontró la secuencia de remitos para la compañía {picking.company_id.name}.")
+
+            # Importante: pedir el número en el contexto de la compañía del picking
+            seq_in_company = seq.with_company(picking.company_id)
+
+            vals_list = []
+            for _ in range(int(valor or 1)):
+                number = seq_in_company.next_by_id()  # respeta date_range y compañía
+                if not number:
+                    raise UserError("No se pudo generar el número de remito (sequence next_by_id devolvió vacío).")
+                vals_list.append((0, 0, {
+                    'name': number,
+                    'sequence_id': seq.id,
+                }))
+
+            if vals_list:
+                picking.write({'remito_ids': vals_list})
+        return True
+
 
     def assign_lots(self):
         for record in self:
@@ -1231,3 +1268,11 @@ class DeliveryCarrierInherit(models.Model):
             if record.cuit:
                 if self.search_count([('cuit', '=', record.cuit)]) > 1:
                     raise ValidationError(_('El CUIT debe ser único por Transporte.'))
+
+class StockSequenceWesend(models.Model):
+    _name = "stock.sequence.wesend"
+
+    name = fields.Char(string="Nombre", required=True)
+    picking_id = fields.Many2one('stock.picking', string="Transferencia", required=True)
+    sequence = fields.Integer(string="Secuencia", required=True)
+    sequence_id = fields.Many2one('ir.sequence', string="Secuencia", required=True)
