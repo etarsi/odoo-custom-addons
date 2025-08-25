@@ -44,7 +44,7 @@ class ReturnMove(models.Model):
         for record in self:
             if record.partner_id:
                 journals = self.env['account.journal'].search([
-                    ('code', '=', '00010')
+                    ('code', 'in', ['00010', '00009'])
                 ])
                 domain = [
                     ('partner_id', '=', record.partner_id.id),
@@ -161,7 +161,16 @@ class ReturnMove(models.Model):
         return name
 
 
-    # def receive_from_digip(self):
+    def receive_from_digip(self):
+        self.get_random_products()
+
+
+    def get_random_products(self):
+        return_move_lines = self.env['return.move.line']
+        for record in self:
+            vals = {
+                
+            }
 
 
 
@@ -173,23 +182,52 @@ class ReturnMoveLine(models.Model):
     product_id = fields.Many2one('product.product', string="Producto")
     quantity = fields.Integer(string="Cantidad")
     uxb = fields.Integer(string="UxB")
-    bultos = fields.Float(string="Bultos")
+    bultos = fields.Float(string="Bultos", compute="_compute_bultos")
     price_unit = fields.Float(string="Precio Unitario")
     discount = fields.Float(string="Descuento")
     price_subtotal = fields.Float(string="Precio Subtotal")
     is_broken = fields.Boolean("¿Roto?")
     wib = fields.Char(string="¿Qué está roto?")
     state = fields.Selection(string='State', selection=[('draft','Borrador'), ('confirmed','Confirmado'), ('done', 'Hecho')])
+    company_id = fields.Many2one('res.company')
 
-    @api.model
-    def create(self, vals):
-        if vals.get('product_id'):
-            last_invoice_line = self.env['account.move.line'].search([
-                ('product_id', '=', vals['product_id']),
-                ('parent_state', '=', 'posted'),
-            ], order='date desc', limit=1)
+    # @api.model
+    # def create(self, vals):   
+    
 
-            if last_invoice_line:
-                vals['price_unit'] = last_invoice_line.price_unit
+    def update_product(self):
+        uxb = self.get_product_uxb()
+        self.uxb = uxb
 
-        return super().create(vals)
+        last_invoice_line = self.get_last_invoice_line()
+
+        if last_invoice_line:
+            if last_invoice_line.company_id.id == 1:
+                self.price_unit = last_invoice_line.price_unit / 1.21
+                self.company_id = 2
+                self.discount = last_invoice_line.discount
+            else:
+                self.price_unit = last_invoice_line.price_unit
+                self.company_id = last_invoice_line.company_id.id
+                self.discount = last_invoice_line.discount
+
+
+    def get_last_invoice_line(self):
+        last_invoice_line = self.env['account.move.line'].search([
+            ('product_id', '=', self.product_id),
+            ('parent_state', '=', 'posted'),
+        ], order='date desc', limit=1)
+
+        if last_invoice_line:
+            return last_invoice_line
+            
+
+    def get_product_uxb(self):
+        if self.product_id.packaging_ids:
+            return self.product_id.packaging_ids[0].qty
+        
+
+    @api.depends('quantity')
+    def _compute_bultos(self):
+        if self.uxb != 0:
+            self.bultos = self.quantity / self.uxb
