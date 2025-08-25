@@ -16,64 +16,48 @@ system_type = sys_platform + python_bit_num
 
 print(os.path.dirname(__file__))
 
-netsdkdllpath_dict = {'windows64':  '/opt/odoo-custom-addons/et/custom_scripts/Libs/linux64/libdhnetsdk.so',
-                      'windows32':  '/opt/odoo-custom-addons/et/custom_scripts/Libs/linux32/libdhnetsdk.so',
-                      'linux64':  '/opt/odoo-custom-addons/et/custom_scripts/Libs/linux64/libdhnetsdk.so',
+netsdkdllpath_dict = {'linux64':  '/opt/odoo-custom-addons/et/custom_scripts/Libs/linux64/libdhnetsdk.so',
                       'linux32':  '/opt/odoo-custom-addons/et/custom_scripts/Libs/linux32/libdhnetsdk.so'}
 
-configdllpath_dict = {'windows64': '/opt/odoo-custom-addons/et/custom_scripts/Libs/win64/dhconfigsdk.dll',
-                      'windows32': '/opt/odoo-custom-addons/et/custom_scripts/Libs/win32/dhconfigsdk.dll',
-                      'linux64': '/opt/odoo-custom-addons/et/custom_scripts/Libs/linux64/libdhconfigsdk.so',
+configdllpath_dict = {'linux64': '/opt/odoo-custom-addons/et/custom_scripts/Libs/linux64/libdhconfigsdk.so',
                       'linux32': '/opt/odoo-custom-addons/et/custom_scripts/Libs/linux32/libdhconfigsdk.so'}
-playsdkdllpath_dict = {'windows64': '/opt/odoo-custom-addons/et/custom_scripts/Libs/win64/play.dll',
-                       'windows32': '/opt/odoo-custom-addons/et/custom_scripts/Libs/win32/play.dll',
-                       'linux64': '/opt/odoo-custom-addons/et/custom_scripts/Libs/linux64/libplay.so',
+
+playsdkdllpath_dict = {'linux64': '/opt/odoo-custom-addons/et/custom_scripts/Libs/linux64/libplay.so',
                        'linux32': '/opt/odoo-custom-addons/et/custom_scripts/Libs/linux32/libplay.so'}
-renderdllpath_dict = {'windows64': '/opt/odoo-custom-addons/et/custom_scripts/Libs/win64/RenderEngine.dll',
-                      'windows32': '/opt/odoo-custom-addons/et/custom_scripts/Libs/win32/RenderEngine.dll',
-                      'linux64': '/opt/odoo-custom-addons/et/custom_scripts/Libs/linux64/libRenderEngine.so',
+
+renderdllpath_dict = {'linux64': '/opt/odoo-custom-addons/et/custom_scripts/Libs/linux64/libRenderEngine.so',
                       'linux32': '/opt/odoo-custom-addons/et/custom_scripts/Libs/linux32/libRenderEngine.so'}
-infrasdkdllpath_dict = {'windows64': '/opt/odoo-custom-addons/et/custom_scripts/Libs/win64/Infra.dll',
-                        'windows32': '/opt/odoo-custom-addons/et/custom_scripts/Libs/win32/Infra.dll',
-                        'linux64': '/opt/odoo-custom-addons/et/custom_scripts/Libs/linux64/libInfra.so',
+
+infrasdkdllpath_dict = {'linux64': '/opt/odoo-custom-addons/et/custom_scripts/Libs/linux64/libInfra.so',
                         'linux32': '/opt/odoo-custom-addons/et/custom_scripts/Libs/linux32/libInfra.so'}
 
-imagealgdllpath_dict = {'windows64': '/opt/odoo-custom-addons/et/custom_scripts/Libs/win64/ImageAlg.dll',
-                        'windows32': '/opt/odoo-custom-addons/et/custom_scripts/Libs/win32/ImageAlg.dll',
-                        'linux64': '/opt/odoo-custom-addons/et/custom_scripts/Libs/linux64/ImageAlg.so',
+imagealgdllpath_dict = {'linux64': '/opt/odoo-custom-addons/et/custom_scripts/Libs/linux64/ImageAlg.so',
                         'linux32': '/opt/odoo-custom-addons/et/custom_scripts/Libs/linux32/ImageAlg.so'}
 
-C_LLONG_DICT = {'windows64': c_longlong, 'windows32': c_long, 'linux32': c_long, 'linux64': c_long}
-C_LONG_DICT = {'windows64': c_long, 'windows32': c_long, 'linux32': c_int, 'linux64': c_int}
-C_LDWORD_DICT = {'windows64': c_longlong, 'windows32': c_ulong, 'linux32': c_long, 'linux64': c_long}
-C_DWORD_DICT = {'windows64': c_ulong, 'windows32': c_ulong, 'linux32': c_uint, 'linux64': c_uint}
+C_LLONG_DICT = {'linux64': c_long}
+C_LONG_DICT = {'linux64': c_int}
+C_LDWORD_DICT = {'linux64': c_long}
+C_DWORD_DICT = {'linux64': c_uint}
 
-C_LLONG = C_LLONG_DICT[system_type]
-C_LONG = C_LONG_DICT[system_type]
-C_LDWORD = C_LDWORD_DICT[system_type]
-C_DWORD = C_DWORD_DICT[system_type]
+C_LLONG = C_LLONG_DICT['linux64']
+C_LONG = C_LONG_DICT['linux64']
+C_LDWORD = C_LDWORD_DICT['linux64']
+C_DWORD = C_DWORD_DICT['linux64']
 C_TP_U64 = c_ulonglong
 C_BOOL = c_int
 C_UINT = c_uint
 C_BYTE = c_ubyte
 C_ENUM = c_int
 
-if sys_platform == 'linux':
-    load_library = cdll.LoadLibrary
-    CB_FUNCTYPE = CFUNCTYPE
-elif sys_platform == 'windows':
-    load_library = windll.LoadLibrary
-    CB_FUNCTYPE = WINFUNCTYPE
-else:
-    print("************不支持该平台**************")
-    exit(0)
+load_library = cdll.LoadLibrary
+CB_FUNCTYPE = CFUNCTYPE
 
-netsdkdllpath = netsdkdllpath_dict[system_type]
-configdllpath = configdllpath_dict[system_type]
-playsdkdllpath = playsdkdllpath_dict[system_type]
-rendersdkdllpath = renderdllpath_dict[system_type]
-infrasdkdllpath = infrasdkdllpath_dict[system_type]
-imagealgdllpath = imagealgdllpath_dict[system_type]
+netsdkdllpath = netsdkdllpath_dict['linux64']
+configdllpath = configdllpath_dict['linux64']
+playsdkdllpath = playsdkdllpath_dict['linux64']
+rendersdkdllpath = renderdllpath_dict['linux64']
+infrasdkdllpath = infrasdkdllpath_dict['linux64']
+imagealgdllpath = imagealgdllpath_dict['linux64']
 
 POINTERSIZE = int(int(python_bit_num)/8)
 class NETSDK_INIT_PARAM(Structure):
