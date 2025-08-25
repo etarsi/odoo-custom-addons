@@ -15,34 +15,30 @@ sys_platform, python_bit_num = system_get_platform_info()
 system_type = sys_platform + python_bit_num
 
 print(os.path.dirname(__file__))
+netsdkdllpath_dict = {'windows64': os.path.dirname(__file__) + '\\Libs\\win64\\'+'dhnetsdk.dll', 'windows32': os.path.dirname(__file__) + '\\Libs\\win32\\'+'dhnetsdk.dll',
+                      'linux64': os.path.dirname(__file__) + '/Libs/linux64/libdhnetsdk.so', 'linux32': os.path.dirname(__file__) + '/Libs/linux32/libdhnetsdk.so'}
+print(netsdkdllpath_dict)
+configdllpath_dict = {'windows64': os.path.dirname(__file__) + '\\Libs\\win64\\'+'dhconfigsdk.dll', 'windows32': os.path.dirname(__file__) + '\\Libs\\win32\\'+'dhconfigsdk.dll',
+                      'linux64': os.path.dirname(__file__) + '/Libs/linux64/libdhconfigsdk.so', 'linux32': os.path.dirname(__file__) + '/Libs/linux32/libdhconfigsdk.so'}
+playsdkdllpath_dict = {'windows64': os.path.dirname(__file__) + '\\Libs\\win64\\'+'play.dll', 'windows32': os.path.dirname(__file__) + '\\Libs\\win32\\'+'play.dll',
+                      'linux64': os.path.dirname(__file__) + '/Libs/linux64/libplay.so', 'linux32': os.path.dirname(__file__) + '/Libs/linux32/libplay.so'}
+renderdllpath_dict = {'windows64': os.path.dirname(__file__) + '\\Libs\\win64\\'+'RenderEngine.dll', 'windows32': os.path.dirname(__file__) + '\\Libs\\win32\\'+'RenderEngine.dll',
+                      'linux64': os.path.dirname(__file__) + '/Libs/linux64/libRenderEngine.so', 'linux32': os.path.dirname(__file__) + '/Libs/linux32/libRenderEngine.so'}
+infrasdkdllpath_dict = {'windows64': os.path.dirname(__file__) + '\\Libs\\win64\\'+'Infra.dll', 'windows32': os.path.dirname(__file__) + '\\Libs\\win32\\'+'Infra.dll',
+                        'linux64': os.path.dirname(__file__) + '/Libs/linux64/libInfra.so', 'linux32': os.path.dirname(__file__) + '/Libs/linux32/libInfra.so'}
 
-netsdkdllpath_dict = {'linux64':  '/opt/odoo15/odoo-custom-addons/et/custom_scripts/Libs/linux64/libdhnetsdk.so',
-                      'linux32':  '/opt/odoo15/odoo-custom-addons/et/custom_scripts/Libs/linux32/libdhnetsdk.so'}
+imagealgdllpath_dict = {'windows64': os.path.dirname(__file__) + '\\Libs\\win64\\'+'ImageAlg.dll', 'windows32': os.path.dirname(__file__) + '\\Libs\\win32\\'+'ImageAlg.dll',
+                        'linux64': os.path.dirname(__file__) + '/Libs/linux64/ImageAlg.so', 'linux32': os.path.dirname(__file__) + '/Libs/linux32/ImageAlg.so'}
 
-configdllpath_dict = {'linux64': '/opt/odoo15/odoo-custom-addons/et/custom_scripts/Libs/linux64/libdhconfigsdk.so',
-                      'linux32': '/opt/odoo15/odoo-custom-addons/et/custom_scripts/Libs/linux32/libdhconfigsdk.so'}
+C_LLONG_DICT = {'windows64': c_longlong, 'windows32': c_long, 'linux32': c_long, 'linux64': c_long}
+C_LONG_DICT = {'windows64': c_long, 'windows32': c_long, 'linux32': c_int, 'linux64': c_int}
+C_LDWORD_DICT = {'windows64': c_longlong, 'windows32': c_ulong, 'linux32': c_long, 'linux64': c_long}
+C_DWORD_DICT = {'windows64': c_ulong, 'windows32': c_ulong, 'linux32': c_uint, 'linux64': c_uint}
 
-playsdkdllpath_dict = {'linux64': '/opt/odoo15/odoo-custom-addons/et/custom_scripts/Libs/linux64/play.so',
-                       'linux32': '/opt/odoo15/odoo-custom-addons/et/custom_scripts/Libs/linux32/play.so'}
-
-renderdllpath_dict = {'linux64': '/opt/odoo15/odoo-custom-addons/et/custom_scripts/Libs/linux64/RenderEngine.so',
-                      'linux32': '/opt/odoo15/odoo-custom-addons/et/custom_scripts/Libs/linux32/RenderEngine.so'}
-
-infrasdkdllpath_dict = {'linux64': '/opt/odoo15/odoo-custom-addons/et/custom_scripts/Libs/linux64/Infra.so',
-                        'linux32': '/opt/odoo15/odoo-custom-addons/et/custom_scripts/Libs/linux32/Infra.so'}
-
-imagealgdllpath_dict = {'linux64': '/opt/odoo15/odoo-custom-addons/et/custom_scripts/Libs/linux64/ImageAlg.so',
-                        'linux32': '/opt/odoo15/odoo-custom-addons/et/custom_scripts/Libs/linux32/ImageAlg.so'}
-
-C_LLONG_DICT = {'linux64': c_long}
-C_LONG_DICT = {'linux64': c_int}
-C_LDWORD_DICT = {'linux64': c_long}
-C_DWORD_DICT = {'linux64': c_uint}
-
-C_LLONG = C_LLONG_DICT['linux64']
-C_LONG = C_LONG_DICT['linux64']
-C_LDWORD = C_LDWORD_DICT['linux64']
-C_DWORD = C_DWORD_DICT['linux64']
+C_LLONG = C_LLONG_DICT[system_type]
+C_LONG = C_LONG_DICT[system_type]
+C_LDWORD = C_LDWORD_DICT[system_type]
+C_DWORD = C_DWORD_DICT[system_type]
 C_TP_U64 = c_ulonglong
 C_BOOL = c_int
 C_UINT = c_uint
