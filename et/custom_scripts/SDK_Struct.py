@@ -16,11 +16,11 @@ system_type = sys_platform + python_bit_num
 
 print(os.path.dirname(__file__))
 
-netsdkdllpath_dict = {'linux64':  '/opt/odoo15/odoo-custom-addons/et/custom_scripts/Libs/linux64/dhnetsdk.so',
-                      'linux32':  '/opt/odoo15/odoo-custom-addons/et/custom_scripts/Libs/linux32/dhnetsdk.so'}
+netsdkdllpath_dict = {'linux64':  '/opt/odoo15/odoo-custom-addons/et/custom_scripts/Libs/linux64/libdhnetsdk.so',
+                      'linux32':  '/opt/odoo15/odoo-custom-addons/et/custom_scripts/Libs/linux32/libdhnetsdk.so'}
 
-configdllpath_dict = {'linux64': '/opt/odoo15/odoo-custom-addons/et/custom_scripts/Libs/linux64/dhconfigsdk.so',
-                      'linux32': '/opt/odoo15/odoo-custom-addons/et/custom_scripts/Libs/linux32/dhconfigsdk.so'}
+configdllpath_dict = {'linux64': '/opt/odoo15/odoo-custom-addons/et/custom_scripts/Libs/linux64/libdhconfigsdk.so',
+                      'linux32': '/opt/odoo15/odoo-custom-addons/et/custom_scripts/Libs/linux32/libdhconfigsdk.so'}
 
 playsdkdllpath_dict = {'linux64': '/opt/odoo15/odoo-custom-addons/et/custom_scripts/Libs/linux64/play.so',
                        'linux32': '/opt/odoo15/odoo-custom-addons/et/custom_scripts/Libs/linux32/play.so'}
