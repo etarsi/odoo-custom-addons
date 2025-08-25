@@ -75,12 +75,12 @@ class AccountMoveInherit(models.Model):
                 if record.partner_id:
                     if record.partner_id.category_id and record.partner_id.category_id.filtered(lambda c: c.name == 'GC'):
                         journal_id = self.env['account.journal'].search([
-                            ('code', '=', '00009'),
-                            ('company_id', '=', record.company_id.id),
-                        ('type', '=', 'sale')
-                    ], limit=1)
-                    if journal_id:
-                        record.journal_id = journal_id
+                                    ('code', '=', '00009'),
+                                    ('company_id', '=', record.company_id.id),
+                                    ('type', '=', 'sale')
+                            ], limit=1)
+                        if journal_id:
+                            record.journal_id = journal_id
                     
     @api.model
     def cron_notify_date_paid(self):
