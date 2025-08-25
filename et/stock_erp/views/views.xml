@@ -1,19 +1,24 @@
 <odoo>
   <data>
     <!-- explicit list view definition -->
-<!--
-    <record model="ir.ui.view" id="stock_erp.list">
-      <field name="name">stock_erp list</field>
-      <field name="model">stock_erp.stock_erp</field>
-      <field name="arch" type="xml">
-        <tree>
-          <field name="name"/>
-          <field name="value"/>
-          <field name="value2"/>
-        </tree>
-      </field>
+    <record id="view_stock_erp_tree" model="ir.ui.view">
+        <field name="name">stock.erp.tree</field>
+        <field name="model">stock.erp</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="product_id"/>
+                <field name="uxb"/>
+                <field name="fisico_unidades"/>
+            </tree>
+        </field>
     </record>
--->
+
+    <!-- Acción para abrir la vista tree -->
+    <record id="action_stock_erp_tree" model="ir.actions.act_window">
+        <field name="name">Stock ERP</field>
+        <field name="res_model">stock.erp</field>
+        <field name="view_mode">tree,form</field>
+    </record>
 
     <!-- actions opening views on models -->
 <!--
@@ -41,12 +46,14 @@
 -->
 
     <!-- Top menu item -->
-<!--
-    <menuitem name="stock_erp" id="stock_erp.menu_root"/>
--->
+    
+
+
     <!-- menu categories -->
+
+    <menuitem name="Stock" id="stock_erp.stock" parent="stock_erp.menu_root"/>
+
 <!--
-    <menuitem name="Menu 1" id="stock_erp.menu_1" parent="stock_erp.menu_root"/>
     <menuitem name="Menu 2" id="stock_erp.menu_2" parent="stock_erp.menu_root"/>
 -->
     <!-- actions -->
