@@ -16,7 +16,7 @@ class StockERP(models.Model):
 
     product_id = fields.Many2one('product.template', string='Producto', required=True)
     product_name = fields.Char(string='Producto')
-    uxb = fields.Char('UxB')
+    uxb = fields.Integer('UxB')
 
     fisico_unidades = fields.Integer('Físico Unidades')
     enelagua_unidades = fields.Integer('En el Agua Unidades')
@@ -59,3 +59,11 @@ class StockERP(models.Model):
             }
             vals_list.append(vals)
         stock_erp.create(vals_list)
+
+    def get_uxb(self):
+        for record in self:
+            if record.product_id.packaging_ids:
+                record.uxb = record.product_id.packaging_ids[0].qty
+
+    def set_to_zero(self):
+        self.fisico_unidades = 0
