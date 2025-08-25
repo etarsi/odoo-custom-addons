@@ -61,5 +61,3 @@ class StockERP(models.Model):
             }
             vals_list.append(vals)
         stock_erp.create(vals_list)
-
-    
