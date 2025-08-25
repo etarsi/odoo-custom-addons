@@ -16,23 +16,23 @@ system_type = sys_platform + python_bit_num
 
 print(os.path.dirname(__file__))
 
-netsdkdllpath_dict = {'linux64':  '/opt/odoo-custom-addons/et/custom_scripts/Libs/linux64/libdhnetsdk.so',
-                      'linux32':  '/opt/odoo-custom-addons/et/custom_scripts/Libs/linux32/libdhnetsdk.so'}
+netsdkdllpath_dict = {'linux64':  '/opt/odoo15/odoo-custom-addons/et/custom_scripts/Libs/linux64/libdhnetsdk.so',
+                      'linux32':  '/opt/odoo15/odoo-custom-addons/et/custom_scripts/Libs/linux32/libdhnetsdk.so'}
 
-configdllpath_dict = {'linux64': '/opt/odoo-custom-addons/et/custom_scripts/Libs/linux64/libdhconfigsdk.so',
-                      'linux32': '/opt/odoo-custom-addons/et/custom_scripts/Libs/linux32/libdhconfigsdk.so'}
+configdllpath_dict = {'linux64': '/opt/odoo15/odoo-custom-addons/et/custom_scripts/Libs/linux64/libdhconfigsdk.so',
+                      'linux32': '/opt/odoo15/odoo-custom-addons/et/custom_scripts/Libs/linux32/libdhconfigsdk.so'}
 
-playsdkdllpath_dict = {'linux64': '/opt/odoo-custom-addons/et/custom_scripts/Libs/linux64/libplay.so',
-                       'linux32': '/opt/odoo-custom-addons/et/custom_scripts/Libs/linux32/libplay.so'}
+playsdkdllpath_dict = {'linux64': '/opt/odoo15/odoo-custom-addons/et/custom_scripts/Libs/linux64/libplay.so',
+                       'linux32': '/opt/odoo15/odoo-custom-addons/et/custom_scripts/Libs/linux32/libplay.so'}
 
-renderdllpath_dict = {'linux64': '/opt/odoo-custom-addons/et/custom_scripts/Libs/linux64/libRenderEngine.so',
-                      'linux32': '/opt/odoo-custom-addons/et/custom_scripts/Libs/linux32/libRenderEngine.so'}
+renderdllpath_dict = {'linux64': '/opt/odoo15/odoo-custom-addons/et/custom_scripts/Libs/linux64/libRenderEngine.so',
+                      'linux32': '/opt/odoo15/odoo-custom-addons/et/custom_scripts/Libs/linux32/libRenderEngine.so'}
 
-infrasdkdllpath_dict = {'linux64': '/opt/odoo-custom-addons/et/custom_scripts/Libs/linux64/libInfra.so',
-                        'linux32': '/opt/odoo-custom-addons/et/custom_scripts/Libs/linux32/libInfra.so'}
+infrasdkdllpath_dict = {'linux64': '/opt/odoo15/odoo-custom-addons/et/custom_scripts/Libs/linux64/libInfra.so',
+                        'linux32': '/opt/odoo15/odoo-custom-addons/et/custom_scripts/Libs/linux32/libInfra.so'}
 
-imagealgdllpath_dict = {'linux64': '/opt/odoo-custom-addons/et/custom_scripts/Libs/linux64/ImageAlg.so',
-                        'linux32': '/opt/odoo-custom-addons/et/custom_scripts/Libs/linux32/ImageAlg.so'}
+imagealgdllpath_dict = {'linux64': '/opt/odoo15/odoo-custom-addons/et/custom_scripts/Libs/linux64/ImageAlg.so',
+                        'linux32': '/opt/odoo15/odoo-custom-addons/et/custom_scripts/Libs/linux32/ImageAlg.so'}
 
 C_LLONG_DICT = {'linux64': c_long}
 C_LONG_DICT = {'linux64': c_int}
