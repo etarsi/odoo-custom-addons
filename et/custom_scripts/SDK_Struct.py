@@ -16,8 +16,10 @@ system_type = sys_platform + python_bit_num
 
 print(os.path.dirname(__file__))
 
-netsdkdllpath_dict = {'/opt/odoo-custom-addons/et/custom_scripts/Libs/linux64/libdhnetsdk.so',
-                      '/opt/odoo-custom-addons/et/custom_scripts/Libs/linux32/libdhnetsdk.so'}
+netsdkdllpath_dict = {'windows64':  '/opt/odoo-custom-addons/et/custom_scripts/Libs/linux64/libdhnetsdk.so',
+                      'windows32':  '/opt/odoo-custom-addons/et/custom_scripts/Libs/linux32/libdhnetsdk.so',
+                      'linux64':  '/opt/odoo-custom-addons/et/custom_scripts/Libs/linux64/libdhnetsdk.so',
+                      'linux32':  '/opt/odoo-custom-addons/et/custom_scripts/Libs/linux32/libdhnetsdk.so'}
 
 configdllpath_dict = {'windows64': '/opt/odoo-custom-addons/et/custom_scripts/Libs/win64/dhconfigsdk.dll',
                       'windows32': '/opt/odoo-custom-addons/et/custom_scripts/Libs/win32/dhconfigsdk.dll',
