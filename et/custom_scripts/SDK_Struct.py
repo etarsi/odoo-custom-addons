@@ -14,8 +14,11 @@ def system_get_platform_info():
 sys_platform, python_bit_num = system_get_platform_info()
 system_type = sys_platform + python_bit_num
 
+print(os.path.dirname(__file__))
+
 netsdkdllpath_dict = {'windows64': os.path.dirname(__file__) + '\\Libs\\win64\\'+'dhnetsdk.dll', 'windows32': os.path.dirname(__file__) + '\\Libs\\win32\\'+'dhnetsdk.dll',
                       'linux64': os.path.dirname(__file__) + '/Libs/linux64/libdhnetsdk.so', 'linux32': os.path.dirname(__file__) + '/Libs/linux32/libdhnetsdk.so'}
+print(netsdkdllpath_dict)
 configdllpath_dict = {'windows64': os.path.dirname(__file__) + '\\Libs\\win64\\'+'dhconfigsdk.dll', 'windows32': os.path.dirname(__file__) + '\\Libs\\win32\\'+'dhconfigsdk.dll',
                       'linux64': os.path.dirname(__file__) + '/Libs/linux64/libdhconfigsdk.so', 'linux32': os.path.dirname(__file__) + '/Libs/linux32/libdhconfigsdk.so'}
 playsdkdllpath_dict = {'windows64': os.path.dirname(__file__) + '\\Libs\\win64\\'+'play.dll', 'windows32': os.path.dirname(__file__) + '\\Libs\\win32\\'+'play.dll',
