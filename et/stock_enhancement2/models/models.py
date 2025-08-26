@@ -47,6 +47,7 @@ class StockPickingInherit(models.Model):
 
     delivery_state = fields.Selection(selection=[('no', 'No entregado'), ('delivered', 'Entregado'), ('returned', 'Devuelto')], default='no', copy=False, string='Estado Delivery')
     china_purchase = fields.Boolean(default=False, copy=True)
+    wesend_ids = fields.Char(string="Remitos")
 
 
     def assign_lots(self):
