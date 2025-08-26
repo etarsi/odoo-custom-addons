@@ -50,6 +50,9 @@ class StockPickingInherit(models.Model):
     wesend_ids = fields.Char(string="Remitos")
 
 
+    def action_correction_secuence(self):
+        return True
+
     def assign_lots(self):
         for record in self:
             for move in record.move_ids_without_package:
