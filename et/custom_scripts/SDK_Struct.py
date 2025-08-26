@@ -14,10 +14,8 @@ def system_get_platform_info():
 sys_platform, python_bit_num = system_get_platform_info()
 system_type = sys_platform + python_bit_num
 
-print(os.path.dirname(__file__))
 netsdkdllpath_dict = {'windows64': os.path.dirname(__file__) + '\\Libs\\win64\\'+'dhnetsdk.dll', 'windows32': os.path.dirname(__file__) + '\\Libs\\win32\\'+'dhnetsdk.dll',
                       'linux64': os.path.dirname(__file__) + '/Libs/linux64/libdhnetsdk.so', 'linux32': os.path.dirname(__file__) + '/Libs/linux32/libdhnetsdk.so'}
-print(netsdkdllpath_dict)
 configdllpath_dict = {'windows64': os.path.dirname(__file__) + '\\Libs\\win64\\'+'dhconfigsdk.dll', 'windows32': os.path.dirname(__file__) + '\\Libs\\win32\\'+'dhconfigsdk.dll',
                       'linux64': os.path.dirname(__file__) + '/Libs/linux64/libdhconfigsdk.so', 'linux32': os.path.dirname(__file__) + '/Libs/linux32/libdhconfigsdk.so'}
 playsdkdllpath_dict = {'windows64': os.path.dirname(__file__) + '\\Libs\\win64\\'+'play.dll', 'windows32': os.path.dirname(__file__) + '\\Libs\\win32\\'+'play.dll',
@@ -45,6 +43,7 @@ C_UINT = c_uint
 C_BYTE = c_ubyte
 C_ENUM = c_int
 
+<<<<<<< HEAD
 load_library = cdll.LoadLibrary
 CB_FUNCTYPE = CFUNCTYPE
 
@@ -54,6 +53,24 @@ playsdkdllpath = playsdkdllpath_dict['linux64']
 rendersdkdllpath = renderdllpath_dict['linux64']
 infrasdkdllpath = infrasdkdllpath_dict['linux64']
 imagealgdllpath = imagealgdllpath_dict['linux64']
+=======
+if sys_platform == 'linux':
+    load_library = cdll.LoadLibrary
+    CB_FUNCTYPE = CFUNCTYPE
+elif sys_platform == 'windows':
+    load_library = windll.LoadLibrary
+    CB_FUNCTYPE = WINFUNCTYPE
+else:
+    print("************不支持该平台**************")
+    exit(0)
+
+netsdkdllpath = netsdkdllpath_dict[system_type]
+configdllpath = configdllpath_dict[system_type]
+playsdkdllpath = playsdkdllpath_dict[system_type]
+rendersdkdllpath = renderdllpath_dict[system_type]
+infrasdkdllpath = infrasdkdllpath_dict[system_type]
+imagealgdllpath = imagealgdllpath_dict[system_type]
+>>>>>>> rama_otros
 
 POINTERSIZE = int(int(python_bit_num)/8)
 class NETSDK_INIT_PARAM(Structure):
