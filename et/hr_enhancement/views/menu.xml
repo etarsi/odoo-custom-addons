@@ -18,7 +18,7 @@
         name="Asistencias de Empleados/Eventuales"
         parent="hr_enhancement.menu_hr_attendance"
         groups="hr_enhancement.group_hr_administrador"
-        action="hr.hr_attendance_action"
+        action="hr_attendance.hr_attendance_action"
         sequence="2"/>
 
     <!-- Menú principal "Licencias" -->
