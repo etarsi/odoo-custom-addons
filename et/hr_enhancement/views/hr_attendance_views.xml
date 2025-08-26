@@ -56,10 +56,10 @@
         <field name="res_model">hr.attendance</field>
         <field name="view_mode">tree,form</field>
         <!-- Forzamos usar nuestras vistas read-only -->
-        <field name="views">
-            [(ref('hr_enhancement.view_hr_attendance_tree_readonly_self'), 'tree'),
-            (ref('hr_enhancement.view_hr_attendance_form_readonly_self'), 'form')]
-        </field>
+        <field name="views" eval="[
+            (ref('hr_enhancement.view_hr_attendance_tree_readonly_self'), 'tree'),
+            (ref('hr_enhancement.view_hr_attendance_form_readonly_self'), 'form')
+        ]"/>
         <!-- Mostrar solo asistencias del empleado del usuario -->
         <field name="domain">[('employee_id.user_id', '=', uid)]</field>
         <!-- Al crear (si hubiera otro botón), preselecciona su empleado. Igual está bloqueado por las vistas. -->
