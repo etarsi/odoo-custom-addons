@@ -43,17 +43,6 @@ C_UINT = c_uint
 C_BYTE = c_ubyte
 C_ENUM = c_int
 
-<<<<<<< HEAD
-load_library = cdll.LoadLibrary
-CB_FUNCTYPE = CFUNCTYPE
-
-netsdkdllpath = netsdkdllpath_dict['linux64']
-configdllpath = configdllpath_dict['linux64']
-playsdkdllpath = playsdkdllpath_dict['linux64']
-rendersdkdllpath = renderdllpath_dict['linux64']
-infrasdkdllpath = infrasdkdllpath_dict['linux64']
-imagealgdllpath = imagealgdllpath_dict['linux64']
-=======
 if sys_platform == 'linux':
     load_library = cdll.LoadLibrary
     CB_FUNCTYPE = CFUNCTYPE
@@ -70,7 +59,6 @@ playsdkdllpath = playsdkdllpath_dict[system_type]
 rendersdkdllpath = renderdllpath_dict[system_type]
 infrasdkdllpath = infrasdkdllpath_dict[system_type]
 imagealgdllpath = imagealgdllpath_dict[system_type]
->>>>>>> rama_otros
 
 POINTERSIZE = int(int(python_bit_num)/8)
 class NETSDK_INIT_PARAM(Structure):

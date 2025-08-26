@@ -16,23 +16,21 @@ class StockERP(models.Model):
 
     product_id = fields.Many2one('product.template', string='Producto', required=True)
     product_name = fields.Char(string='Producto')
-    uxb = fields.Char('UxB')
+    uxb = fields.Integer('UxB')
 
     fisico_unidades = fields.Integer('Físico Unidades')
     enelagua_unidades = fields.Integer('En el Agua Unidades')
     total_unidades = fields.Integer('Total Unidades')
-    reservado_unidades = fields.Integer('Reservado Unidades')
+    comprometido_unidades = fields.Integer('Comprometido Unidades')
     disponible_unidades = fields.Float('Disponible Unidades', digits=(99,0))
-    entregable_unidades = fields.Integer('Entregable Unidades')
     comprado_unidades = fields.Integer('Comprado Unidades')
     entrante_unidades = fields.Integer('Entrante Unidades')
 
     fisico_bultos = fields.Float('Físico Bultos')
     enelagua_bultos = fields.Float('En el Agua Bultos')    
     total_bultos = fields.Float('Total Bultos')
-    reservado_bultos = fields.Float('Reservado Bultos')
-    disponible_bultos = fields.Float('Disponible Bultos')    
-    entregable_bultos = fields.Float('Entregable Bultos')
+    comprometido_bultos = fields.Float('Comprometido Bultos')
+    disponible_bultos = fields.Float('Disponible Bultos')
     comprado_bultos = fields.Float('Comprado Bultos')
     entrante_bultos = fields.Float('Entrante Bultos')
 
@@ -62,4 +60,10 @@ class StockERP(models.Model):
             vals_list.append(vals)
         stock_erp.create(vals_list)
 
-    
+    def get_uxb(self):
+        for record in self:
+            if record.product_id.packaging_ids:
+                record.uxb = record.product_id.packaging_ids[0].qty
+
+    def set_to_zero(self):
+        self.fisico_unidades = 0
