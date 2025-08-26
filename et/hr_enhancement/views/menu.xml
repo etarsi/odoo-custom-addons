@@ -7,14 +7,14 @@
         sequence="15"/>
     <!-- Submenú "Mi Asistencia" -->
     <menuitem
-        id="hr_enhancement.menu_hr_attendance"
+        id="hr_enhancement.menu_my_hr_attendance"
         name="Mi Asistencia"
         parent="hr_enhancement.menu_hr_attendance"
         action="hr_enhancement.action_my_attendance"
         sequence="1"/>
     <!-- Submenú "Asistencias de Empleados/Eventuales" -->
     <menuitem
-        id="hr_enhancement.menu_hr_attendance"
+        id="hr_enhancement.menu_hr_attendance_enhancements"
         name="Asistencias de Empleados/Eventuales"
         parent="hr_enhancement.menu_hr_attendance"
         groups="hr_enhancement.group_hr_administrador"
