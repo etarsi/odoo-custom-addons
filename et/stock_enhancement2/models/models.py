@@ -48,8 +48,19 @@ class StockPickingInherit(models.Model):
     delivery_state = fields.Selection(selection=[('no', 'No entregado'), ('delivered', 'Entregado'), ('returned', 'Devuelto')], default='no', copy=False, string='Estado Delivery')
     china_purchase = fields.Boolean(default=False, copy=True)
     wesend_ids = fields.One2many('stock.sequence.wesend', 'picking_id', string="Remitos")
+    wesend_search = fields.Char(string="Buscar Remitos", search="_search_wesend", help="Buscar remitos por nombre")
 
 
+    def _search_wesend(self, operator, value):
+        if not value:
+            return ['id', '=', 0]
+        op = operator
+        if op in ('like', '=like'):
+            op = 'ilike'
+            
+        line = self.env['stock.sequence.wesend'].search([('name', op, value)])
+        picking_ids = line.mapped('picking_id').ids
+        return [('id', 'in', picking_ids)] if picking_ids else ['id', '=', 0]
 
     def action_correction_secuence(self):
         for picking in self:

@@ -1,4 +1,26 @@
 <odoo>
+    <!-- Menu de Asistencia en Employee-->
+    <menuitem 
+        id="hr_enhancement.menu_hr_attendance"
+        name="Asistencia"
+        parent="hr.menu_hr_root"
+        sequence="15"/>
+    <!-- Submenú "Mi Asistencia" -->
+    <menuitem
+        id="hr_enhancement.menu_hr_attendance"
+        name="Mi Asistencia"
+        parent="hr_enhancement.menu_hr_attendance"
+        action="hr_enhancement.action_my_attendance"
+        sequence="1"/>
+    <!-- Submenú "Asistencias de Empleados/Eventuales" -->
+    <menuitem
+        id="hr_enhancement.menu_hr_attendance"
+        name="Asistencias de Empleados/Eventuales"
+        parent="hr_enhancement.menu_hr_attendance"
+        groups="hr_enhancement.group_hr_administrador"
+        action="hr.hr_attendance_action"
+        sequence="2"/>
+
     <!-- Menú principal "Licencias" -->
     <menuitem 
         id="hr_enhancement.menu_hr_license"
