@@ -63,7 +63,7 @@
         <!-- Mostrar solo asistencias del empleado del usuario -->
         <field name="domain">[('employee_id.user_id', '=', uid)]</field>
         <!-- Al crear (si hubiera otro botón), preselecciona su empleado. Igual está bloqueado por las vistas. -->
-        <field name="context">{'search_default_today': 1, 'default_employee_id': user.employee_id.id}</field>
+        <field name="context">{'search_default_today': 1}</field>
         <field name="help" type="html">
             <p class="o_view_nocontent_empty_folder">
                 No se encontraron asistencias.
