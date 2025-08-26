@@ -24,20 +24,6 @@
     </record>
 
     <!-- Vista de formulario de voucher herencia-->
-    <record id="view_stock_picking_form_voucher" model="ir.ui.view">
-        <field name="name">stock.picking.form.voucher</field>
-        <field name="model">stock.picking</field>
-        <field name="inherit_id" ref="stock_voucher.view_picking_form"/>
-        <field name="arch" type="xml">
-            <xpath expr="//field[@name='voucher_id']" position="attributes">
-                <attribute name="invisible">1</attribute>
-            </xpath>
-            <xpath expr="//field[@name='book_id']" position="attributes">
-                <attribute name="invisible">1</attribute>
-            </xpath>
-        </field>
-    </record>
-
     <record id="view_picking_search_inherit" model="ir.ui.view">
         <field name="name">stock.picking.search.inherit</field>
         <field name="model">stock.picking</field>
