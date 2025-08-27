@@ -56,6 +56,8 @@ class StockERP(models.Model):
         vals_list = []
 
         for record in stock_wms_records:
+            if not record.product_id:
+                continue
             vals = {
                 'product_id': record.product_id.id,
                 'uxb': int(record.uxb),
@@ -77,6 +79,7 @@ class StockERP(models.Model):
         for record in self:
             if record.product_id:
                 record.name = record.product_id.name
+            else: record.name = record.id
 
     @api.depends('fisico_unidades', 'uxb')
     def _compute_fisico_bultos(self):
