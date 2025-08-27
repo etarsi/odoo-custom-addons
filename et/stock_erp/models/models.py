@@ -76,6 +76,7 @@ class StockERP(models.Model):
         for record in self:
             if record.uxb:
                 record.fisico_bultos = record.fisico_unidades / record.uxb
+            else: record.fisico_bultos = 0
     
     
     @api.depends('enelagua_unidades', 'uxb')
@@ -83,6 +84,7 @@ class StockERP(models.Model):
         for record in self:
             if record.uxb:
                 record.enelagua_bultos = record.enelagua_unidades / record.uxb
+            else: record.enelagua_bultos = 0
     
 
     @api.depends('fisico_unidades', 'enelagua_unidades')
@@ -92,6 +94,7 @@ class StockERP(models.Model):
 
             if record.uxb:
                 record.total_bultos = record.total_unidades / record.uxb
+            else: record.total_bultos = 0
   
     
     @api.depends('comprometido_unidades')
@@ -99,6 +102,7 @@ class StockERP(models.Model):
         for record in self:
             if record.uxb:
                 record.comprometido_bultos = record.comprometido_unidades / record.uxb
+            else: record.comprometido_bultos = 0
     
 
     @api.depends('disponible_unidades')
@@ -106,6 +110,7 @@ class StockERP(models.Model):
         for record in self:
             if record.uxb:
                 record.disponible_bultos = record.disponible_unidades / record.uxb
+            else: record.disponible_bultos = 0
     
     
     @api.depends('comprado_unidades')
@@ -113,6 +118,7 @@ class StockERP(models.Model):
         for record in self:
             if record.uxb:
                 record.comprado_bultos = record.comprado_unidades / record.uxb
+            else: record.comprado_bultos = 0
 
 
     @api.depends('entrante_unidades')
@@ -120,6 +126,7 @@ class StockERP(models.Model):
         for record in self:
             if record.uxb:
                 record.entrante_bultos = record.entrante_unidades / record.uxb
+            else: record.entrante_bultos = 0
 
 
 
