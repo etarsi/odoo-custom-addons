@@ -14,6 +14,7 @@ from datetime import timedelta
 class StockERP(models.Model):
     _name = 'stock.erp'
 
+    name = fields.Char(compute='_compute_name')
     move_lines = fields.One2many('stock.moves.erp', 'stock_erp')
     product_id = fields.Many2one('product.template', string='Producto', required=True)
     product_name = fields.Char(string='Producto')
@@ -38,6 +39,7 @@ class StockERP(models.Model):
     entrante_fecha = fields.Date('ETA')
     entrante_licencia = fields.Char('Licencia')
 
+    
 
     def get_stock_wms(self):
         for record in self:
@@ -63,13 +65,18 @@ class StockERP(models.Model):
         stock_erp.create(vals_list)
 
 
-    #####  COMPUTE METHODS #####
-
     def update_uxb(self):
         for record in self:
             if record.product_id.packaging_ids:
                 record.uxb = record.product_id.packaging_ids[0].qty
 
+    #####  COMPUTE METHODS #####
+
+    @api.depends('product_id')
+    def _compute_name(self):
+        for record in self:
+            if record.product_id:
+                record.name = record.product_id.name
 
     @api.depends('fisico_unidades', 'uxb')
     def _compute_fisico_bultos(self):
@@ -127,8 +134,6 @@ class StockERP(models.Model):
             if record.uxb:
                 record.entrante_bultos = record.entrante_unidades / record.uxb
             else: record.entrante_bultos = 0
-
-
 
 
     ##### DEBUG METHODS #####
