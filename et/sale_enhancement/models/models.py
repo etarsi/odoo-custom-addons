@@ -66,7 +66,7 @@ class SaleOrderInherit(models.Model):
     def _onchange_condicion_m2m(self):
         for record in self:
             if record.condicion_m2m.name == 'TIPO 3':
-                pricelist = self.env['product.pricelist'].search([('id','=',35)])
+                pricelist = self.env['product.pricelist'].search([('id','=',46)])
 
                 if pricelist:
                     record.pricelist_id = pricelist
@@ -82,7 +82,7 @@ class SaleOrderInherit(models.Model):
                         if line.id in discounts:
                             line.discount = discounts[line.id]
                 else: 
-                    raise UserError("No se encontró precio de lista con ID 35")
+                    raise UserError("No se encontró precio de lista con ID 46")
 
 
     @api.onchange('global_discount')
@@ -146,7 +146,7 @@ class SaleOrderInherit(models.Model):
                 picking.origin = record.name
 
             if company_letter == 'P':               
-                pricelist = self.env['product.pricelist'].search([('id','=',35)])
+                pricelist = self.env['product.pricelist'].search([('id','=',46)])
 
                 if pricelist:
                     record.pricelist_id = pricelist
@@ -160,7 +160,7 @@ class SaleOrderInherit(models.Model):
                         if line.id in discounts:
                             line.discount = discounts[line.id]
                 else: 
-                    raise UserError("No se encontró precio de lista con ID 35")
+                    raise UserError("No se encontró precio de lista con ID 46")
 
         return res
 
