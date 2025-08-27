@@ -14,6 +14,7 @@ from datetime import timedelta
 class StockERP(models.Model):
     _name = 'stock.erp'
 
+    move_lines = fields.One2many('stock.moves.erp')
     product_id = fields.Many2one('product.template', string='Producto', required=True)
     product_name = fields.Char(string='Producto')
     uxb = fields.Integer('UxB')
@@ -26,13 +27,13 @@ class StockERP(models.Model):
     comprado_unidades = fields.Integer('Comprado Unidades')
     entrante_unidades = fields.Integer('Entrante Unidades')
 
-    fisico_bultos = fields.Float('Físico Bultos')
-    enelagua_bultos = fields.Float('En el Agua Bultos')    
-    total_bultos = fields.Float('Total Bultos')
-    comprometido_bultos = fields.Float('Comprometido Bultos')
-    disponible_bultos = fields.Float('Disponible Bultos')
-    comprado_bultos = fields.Float('Comprado Bultos')
-    entrante_bultos = fields.Float('Entrante Bultos')
+    fisico_bultos = fields.Float('Físico Bultos', compute="_compute_fisico_bultos")
+    enelagua_bultos = fields.Float('En el Agua Bultos', compute="_compute_enelagua_bultos")    
+    total_bultos = fields.Float('Total Bultos', compute="_compute_total")
+    comprometido_bultos = fields.Float('Comprometido Bultos', compute="_compute_comprometido_bultos")
+    disponible_bultos = fields.Float('Disponible Bultos', compute="_compute_disponible_bultos")
+    comprado_bultos = fields.Float('Comprado Bultos', compute="_compute_comprado_bultos")
+    entrante_bultos = fields.Float('Entrante Bultos', compute="_compute_entrante_bultos")
 
     entrante_fecha = fields.Date('ETA')
     entrante_licencia = fields.Char('Licencia')
@@ -110,6 +111,12 @@ class StockERP(models.Model):
             self.disponible_bultos = self.disponible_unidades / self.uxb
     
     
+    @api.depends('comprado_unidades')
+    def _compute_comprado_bultos(self):
+        if self.uxb:
+            self.comprado_bultos = self.comprado_unidades / self.uxb
+
+
     @api.depends('entrante_unidades')
     def _compute_entrante_bultos(self):
         if self.uxb:
