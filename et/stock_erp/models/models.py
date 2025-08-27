@@ -81,46 +81,53 @@ class StockERP(models.Model):
 
     @api.depends('fisico_unidades', 'uxb')
     def _compute_fisico_bultos(self):
-        if self.uxb:
-            self.fisico_bultos = self.fisico_unidades / self.uxb
+        for record in self:
+            if record.uxb:
+                record.fisico_bultos = record.fisico_unidades / record.uxb
     
     
     @api.depends('enelagua_unidades', 'uxb')
     def _compute_enelagua_bultos(self):
-        if self.uxb:
-            self.enelagua_bultos = self.enelagua_unidades / self.uxb
+        for record in self:
+            if record.uxb:
+                record.enelagua_bultos = record.enelagua_unidades / record.uxb
     
 
     @api.depends('fisico_unidades', 'enelagua_unidades')
     def _compute_total(self):
-        self.total_unidades = self.fisico_unidades + self.enelagua_unidades
+        for record in self:
+            record.total_unidades = record.fisico_unidades + record.enelagua_unidades
 
-        if self.uxb:
-            self.total_bultos = self.total_unidades / self.uxb
+            if record.uxb:
+                record.total_bultos = record.total_unidades / record.uxb
   
     
     @api.depends('comprometido_unidades')
     def _compute_comprometido_bultos(self):
-        if self.uxb:
-            self.comprometido_bultos = self.comprometido_unidades / self.uxb
+        for record in self:
+            if record.uxb:
+                record.comprometido_bultos = record.comprometido_unidades / record.uxb
     
 
     @api.depends('disponible_unidades')
     def _compute_disponible_bultos(self):
-        if self.uxb:
-            self.disponible_bultos = self.disponible_unidades / self.uxb
+        for record in self:
+            if record.uxb:
+                record.disponible_bultos = record.disponible_unidades / record.uxb
     
     
     @api.depends('comprado_unidades')
     def _compute_comprado_bultos(self):
-        if self.uxb:
-            self.comprado_bultos = self.comprado_unidades / self.uxb
+        for record in self:
+            if record.uxb:
+                record.comprado_bultos = record.comprado_unidades / record.uxb
 
 
     @api.depends('entrante_unidades')
     def _compute_entrante_bultos(self):
-        if self.uxb:
-            self.entrante_bultos = self.entrante_unidades / self.uxb
+        for record in self:
+            if record.uxb:
+                record.entrante_bultos = record.entrante_unidades / record.uxb
 
 
 
