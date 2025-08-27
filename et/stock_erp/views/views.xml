@@ -6,6 +6,12 @@
         <field name="model">stock.erp</field>
         <field name="arch" type="xml">
             <tree>
+              <header>
+                  <button name="get_stock_wms" type="object" string="Actualizar Stock"/>
+                  <button name="create_initial_products" type="object" string="Crear Productos"/>
+                  <button name="get_uxb" type="object" string="Actualizar UXB"/>
+                  <button name="set_to_zero" type="object" string="Borrar stock"/>
+                </header>
                 <field name="product_id"/>
                 <field name="uxb"/>
                 <field name="fisico_unidades" optional="show"/>

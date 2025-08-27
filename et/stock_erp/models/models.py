@@ -45,6 +45,7 @@ class StockERP(models.Model):
             if stock_wms:
                 record.fisico_unidades = stock_wms.fisico_unidades
 
+
     def create_initial_products(self):
         stock_wms = self.env['stock.wms']
         stock_erp = self.env['stock.erp']
@@ -60,10 +61,64 @@ class StockERP(models.Model):
             vals_list.append(vals)
         stock_erp.create(vals_list)
 
-    def get_uxb(self):
+
+    #####  COMPUTE METHODS #####
+
+    @api.depends('product_id')
+    def _compute_uxb(self):
+        for record in self:
+            if record.product_id:
+                if record.product_id.packaging_ids:
+                    record.uxb = record.product_id.packaging_ids[0].qty
+
+
+    def update_uxb(self):
         for record in self:
             if record.product_id.packaging_ids:
                 record.uxb = record.product_id.packaging_ids[0].qty
+
+
+    @api.depends('fisico_unidades', 'uxb')
+    def _compute_fisico_bultos(self):
+        if self.uxb:
+            self.fisico_bultos = self.fisico_unidades / self.uxb
+    
+    
+    @api.depends('enelagua_unidades', 'uxb')
+    def _compute_enelagua_bultos(self):
+        if self.uxb:
+            self.enelagua_bultos = self.enelagua_unidades / self.uxb
+    
+
+    @api.depends('fisico_unidades', 'enelagua_unidades')
+    def _compute_total(self):
+        self.total_unidades = self.fisico_unidades + self.enelagua_unidades
+
+        if self.uxb:
+            self.total_bultos = self.total_unidades / self.uxb
+  
+    
+    @api.depends('comprometido_unidades')
+    def _compute_comprometido_bultos(self):
+        if self.uxb:
+            self.comprometido_bultos = self.comprometido_unidades / self.uxb
+    
+
+    @api.depends('disponible_unidades')
+    def _compute_disponible_bultos(self):
+        if self.uxb:
+            self.disponible_bultos = self.disponible_unidades / self.uxb
+    
+    
+    @api.depends('entrante_unidades')
+    def _compute_entrante_bultos(self):
+        if self.uxb:
+            self.entrante_bultos = self.entrante_unidades / self.uxb
+
+
+
+
+    ##### DEBUG METHODS #####
 
     def set_to_zero(self):
         self.fisico_unidades = 0
