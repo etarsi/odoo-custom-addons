@@ -17,7 +17,7 @@ class StockERP(models.Model):
     move_lines = fields.One2many('stock.moves.erp', 'stock_erp')
     product_id = fields.Many2one('product.template', string='Producto', required=True)
     product_name = fields.Char(string='Producto')
-    uxb = fields.Integer('UxB')
+    uxb = fields.Integer('UxB', default=0)
 
     fisico_unidades = fields.Integer('Físico Unidades')
     enelagua_unidades = fields.Integer('En el Agua Unidades')
@@ -56,7 +56,7 @@ class StockERP(models.Model):
         for record in stock_wms_records:
             vals = {
                 'product_id': record.product_id.id,
-                'uxb': record.uxb,
+                'uxb': int(record.uxb),
                 'fisico_unidades': record.fisico_unidades,
             }
             vals_list.append(vals)
@@ -64,14 +64,6 @@ class StockERP(models.Model):
 
 
     #####  COMPUTE METHODS #####
-
-    @api.depends('product_id')
-    def _compute_uxb(self):
-        for record in self:
-            if record.product_id:
-                if record.product_id.packaging_ids:
-                    record.uxb = record.product_id.packaging_ids[0].qty
-
 
     def update_uxb(self):
         for record in self:
