@@ -14,7 +14,7 @@ from datetime import timedelta
 class StockERP(models.Model):
     _name = 'stock.erp'
 
-    move_lines = fields.One2many('stock.moves.erp')
+    move_lines = fields.One2many('stock.moves.erp', 'stock_erp')
     product_id = fields.Many2one('product.template', string='Producto', required=True)
     product_name = fields.Char(string='Producto')
     uxb = fields.Integer('UxB')
