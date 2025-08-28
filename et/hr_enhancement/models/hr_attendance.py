@@ -77,14 +77,13 @@ class HrAttendance(models.Model):
                         eff_check_in, eff_check_out, start_dt, end_dt
                     )
                     
-                    b_start_t = self._float_to_time(16.0)
-                    b_start_dt = datetime.combine(day, b_start_t)
-                    break_secs = 0.0
-
-                    if eff_check_out > b_start_dt:
-                        break_secs = 3600.0
-                    base_secs_raw = max(0.0, scheduled_overlap_secs - break_secs)
-                    base_hours_raw = base_secs_raw / 3600.0
+                    #b_start_t = self._float_to_time(16.0)
+                    #b_start_dt = datetime.combine(day, b_start_t)
+                    #break_secs = 0.0
+                    #if eff_check_out > b_start_dt:
+                    #    break_secs = 3600.0
+                    #base_secs_raw = max(0.0, scheduled_overlap_secs - break_secs)
+                    base_hours_raw = scheduled_overlap_secs / 3600.0
 
                     if dow == 5:  # Sábado
                         # Si es sábado, se considera un horario especial
