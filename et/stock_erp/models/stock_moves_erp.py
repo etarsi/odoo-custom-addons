@@ -11,12 +11,12 @@ import requests
 from itertools import groupby
 from datetime import timedelta
 
-class StockMovesERP2(models.Model):
-    _name = 'stock.moves.erp2'
+class StockMovesERP(models.Model):
+    _name = 'stock.moves.erp'
 
     
     name = fields.Char()
-    stock_erp = fields.Many2one('stock.erp2')
+    stock_erp = fields.Many2one('stock.erp')
     sale_id = fields.Many2one('sale.order')
     picking_id = fields.Many2one('stock.picking')
     product_id = fields.Many2one('product.template')

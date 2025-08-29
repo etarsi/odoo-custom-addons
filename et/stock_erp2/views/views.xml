@@ -1,9 +1,9 @@
 <odoo>
   <data>
     <!-- explicit list view definition -->
-    <record id="view_stock_erp_tree" model="ir.ui.view">
-        <field name="name">stock.erp.tree</field>
-        <field name="model">stock.erp</field>
+    <record id="view_stock_erp_tree2" model="ir.ui.view">
+        <field name="name">stock.erp.tree2</field>
+        <field name="model">stock.erp2</field>
         <field name="arch" type="xml">
             <tree>
               <header>
@@ -31,9 +31,9 @@
 
     <!-- Acción para abrir la vista tree -->
 
-    <record id="action_stock_erp_tree" model="ir.actions.act_window">
-        <field name="name">Stock ERP</field>
-        <field name="res_model">stock.erp</field>
+    <record id="action_stock_erp_tree2" model="ir.actions.act_window">
+        <field name="name">Stock ERP2</field>
+        <field name="res_model">stock.erp2</field>
         <field name="view_mode">tree,form</field>
     </record>
 

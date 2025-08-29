@@ -1,19 +1,41 @@
 <odoo>
   <data>
     <!-- explicit list view definition -->
-<!--
-    <record model="ir.ui.view" id="stock_erp.list">
-      <field name="name">stock_erp list</field>
-      <field name="model">stock_erp.stock_erp</field>
-      <field name="arch" type="xml">
-        <tree>
-          <field name="name"/>
-          <field name="value"/>
-          <field name="value2"/>
-        </tree>
-      </field>
+    <record id="view_stock_erp_tree" model="ir.ui.view">
+        <field name="name">stock.erp.tree</field>
+        <field name="model">stock.erp</field>
+        <field name="arch" type="xml">
+            <tree>
+              <header>
+                  <button name="get_stock_wms" type="object" string="Actualizar Stock"/>
+                  <button name="create_initial_products" type="object" string="Crear Productos"/>
+                  <button name="update_uxb" type="object" string="Actualizar UXB"/>
+                  <button name="set_to_zero" type="object" string="Borrar stock"/>
+                </header>
+                <field name="product_id"/>
+                <field name="uxb"/>
+                <field name="fisico_unidades" optional="show"/>
+                <field name="enelagua_unidades" optional="show"/>
+                <field name="total_unidades" optional="hide"/>
+                <field name="comprometido_unidades" optional="hide"/>
+                <field name="disponible_unidades" optional="show"/>
+
+                <field name="fisico_bultos" optional="hide"/>
+                <field name="enelagua_bultos" optional="hide"/>
+                <field name="total_bultos" optional="hide"/>
+                <field name="comprometido_bultos" optional="hide"/>
+                <field name="disponible_bultos" optional="hide"/>
+            </tree>
+        </field>
     </record>
--->
+
+    <!-- Acción para abrir la vista tree -->
+
+    <record id="action_stock_erp_tree" model="ir.actions.act_window">
+        <field name="name">Stock ERP</field>
+        <field name="res_model">stock.erp</field>
+        <field name="view_mode">tree,form</field>
+    </record>
 
     <!-- actions opening views on models -->
 <!--
@@ -41,12 +63,14 @@
 -->
 
     <!-- Top menu item -->
-<!--
-    <menuitem name="stock_erp" id="stock_erp.menu_root"/>
--->
+    
+
+
     <!-- menu categories -->
+
+    <!-- <menuitem name="Stock" id="stock_erp.stock" parent="stock_erp.menu_root"/> -->
+
 <!--
-    <menuitem name="Menu 1" id="stock_erp.menu_1" parent="stock_erp.menu_root"/>
     <menuitem name="Menu 2" id="stock_erp.menu_2" parent="stock_erp.menu_root"/>
 -->
     <!-- actions -->
