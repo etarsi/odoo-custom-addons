@@ -49,7 +49,7 @@ class StockERP(models.Model):
         for record in stock_digip:
             product_id = self.env['product.product'].search([('default_code', '=', record['codigo'])], limit=1)
             if product_id:
-                uxb = record.get_uxb(product_id.product_tmpl_id)
+                uxb = self.get_uxb(product_id.product_tmpl_id)
                 vals = {
                     'product_id': product_id.id,
                     'uxb': uxb,
