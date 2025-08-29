@@ -15,7 +15,19 @@
             </tree>
         </field>
     </record>
-
+    <!--crear el search para la vista tree-->
+    <record id="view_report_pagos_fuera_fecha_search" model="ir.ui.view">
+        <field name="name">report.pagos.fuera.fecha.search</field>
+        <field name="model">account.move</field>
+        <field name="arch" type="xml">
+            <search string="Buscar">
+                <filter name="group_partner" string="Por Proveedor" context="{'group_by': 'partner_id'}"/>
+                <field name="partner_id" filter_domain="[('partner_id','=',self)]" string="Proveedor"/>
+                <field name="name" string="Número de Factura"/>
+            </search>
+        </field>
+    </record>
+    <!-- Action reporte de pagos de fuera de fecha -->
     <record id="action_reporte_pagos_fuera_fecha" model="ir.actions.act_window">
         <field name="name">Pagos Fuera de Fecha</field>
         <field name="res_model">account.move</field>
@@ -29,18 +41,5 @@
             </p>
         </field>
         <field name="search_view_id" ref="view_report_pagos_fuera_fecha_search" />
-    </record>
-
-    <!--crear el search para la vista tree-->
-    <record id="view_report_pagos_fuera_fecha_search" model="ir.ui.view">
-        <field name="name">report.pagos.fuera.fecha.search</field>
-        <field name="model">account.move</field>
-        <field name="arch" type="xml">
-            <search string="Buscar">
-                <filter name="group_partner" string="Por Proveedor" context="{'group_by': 'partner_id'}"/>
-                <field name="partner_id" filter_domain="[('partner_id','=',self)]" string="Proveedor"/>
-                <field name="name" string="Número de Factura"/>
-            </search>
-        </field>
     </record>
 </odoo>
