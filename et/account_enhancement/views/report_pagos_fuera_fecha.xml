@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- crear una vista tree de facturas fuera de fecha -->
+    <record id="view_report_pagos_fuera_fecha_tree" model="ir.ui.view">
+        <field name="name">report.pagos.fuera.fecha.tree</field>
+        <field name="model">account.move</field>
+        <field name="arch" type="xml">
+            <tree string="Pagos Fuera de Fecha" create="false" edit="false" delete="false">
+                <field name="name" string="Número de Factura" />
+                <field name="partner_id" string="Nombre de Cliente" />
+                <field name="invoice_payment_term_id" string="Término de Pago"/>
+                <field name="invoice_date" string="Fecha de Factura" />
+                <field name="invoice_payments_widget" string="Pagos Relacionados" />
+                <field name="tax_totals_json" string="Total a Cobrar" sum="Total a Cobrar"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="action_reporte_pagos_fuera_fecha" model="ir.actions.act_window">
+        <field name="name">Pagos Fuera de Fecha</field>
+        <field name="res_model">account.move</field>
+        <field name="view_mode">tree</field>
+        <field name="view_id" ref="view_report_pagos_fuera_fecha_tree"/>
+        <field name="domain">[('move_type', '=', 'out_invoice'), ('state', '=', 'posted')</field>
+        <field name="context">{'search_default_group_by_partner': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No hay facturas fuera de Fecha.
+            </p>
+        </field>
+        <field name="search_view_id" ref="view_report_pagos_fuera_fecha_search" />
+    </record>
+
+    <!--crear el search para la vista tree-->
+    <record id="view_report_pagos_fuera_fecha_search" model="ir.ui.view">
+        <field name="name">report.pagos.fuera.fecha.search</field>
+        <field name="model">account.move</field>
+        <field name="arch" type="xml">
+            <search string="Buscar">
+                <filter name="group_partner" string="Por Proveedor" context="{'group_by': 'partner_id'}"/>
+                <field name="partner_id" filter_domain="[('partner_id','=',self)]" string="Proveedor"/>
+                <field name="name" string="Número de Factura"/>
+            </search>
+        </field>
+    </record>
+</odoo>

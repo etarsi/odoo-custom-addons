@@ -43,6 +43,7 @@
         'views/report_account_move.xml',
         'views/account_move_views.xml',
         'views/calendar_paid_views.xml',
+        'views/report_pagos_fuera_fecha.xml',
         'views/templates.xml',
         'views/menu.xml'
     ],

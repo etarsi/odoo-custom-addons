@@ -1,14 +1,29 @@
 <odoo>
-    <!-- MENU DE REPORTE ACCOUNT FACTURAS-->
+    <!-- Submenú de Proveedores -->
+    <menuitem id="menu_account_move_calendar_to_pay"
+                name="Calendario de Pagos"
+                parent="account.menu_finance_payables"
+                action="action_account_move_calendar_to_pay"
+                sequence="40"/>
+
+    <!-- SUBMENU DE REPORTE ACCOUNT FACTURAS-->
     <menuitem 
         id="account_enhancement.menu_account_report_factura_general"
         name="Reportes Generales"
         parent="account.menu_finance_reports"
         sequence="30"/>
+
     <menuitem
         id="account_enhancement.menu_account_report_factura_action"
         name="Reporte de Facturas"
         parent="account_enhancement.menu_account_report_factura_general"
         action="action_reporte_factura_wizard"
         sequence="1"/>
+
+    <!-- SUBMENU DE PAGOS FUERA DE FECHA EN INFORMES-->
+    <menuitem
+        id="account_enhancement.menu_account_report_pagos_fuera_fecha_action"
+        name="Pagos Fuera de Fecha"
+        sequence="2"
+        action="action_reporte_pagos_fuera_fecha"/>
 </odoo>
