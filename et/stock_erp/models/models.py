@@ -16,7 +16,7 @@ class StockERP(models.Model):
 
     name = fields.Char(compute='_compute_name')
     move_lines = fields.One2many('stock.moves.erp', 'stock_erp')
-    product_id = fields.Many2one('product.template', string='Producto', required=True)
+    product_id = fields.Many2one('product.product', string='Producto', required=True)
     product_name = fields.Char(string='Producto')
     uxb = fields.Integer('UxB', default=0)
 
