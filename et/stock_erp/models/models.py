@@ -87,24 +87,6 @@ class StockERP(models.Model):
                 record.fisico_unidades = stock_wms.fisico_unidades
 
 
-    # def create_initial_products(self):
-    #     stock_wms = self.env['stock.wms']
-    #     stock_erp = self.env['stock.erp']
-    #     stock_wms_records = stock_wms.search([])
-    #     vals_list = []
-
-    #     for record in stock_wms_records:
-    #         if not record.product_id:
-    #             continue
-    #         vals = {
-    #             'product_id': record.product_id.id,
-    #             'uxb': int(record.uxb),
-    #             'fisico_unidades': record.fisico_unidades,
-    #         }
-    #         vals_list.append(vals)
-    #     stock_erp.create(vals_list)
-
-
     def update_uxb(self):
         for record in self:
             if record.product_id.product_tmpl_id.packaging_ids:
