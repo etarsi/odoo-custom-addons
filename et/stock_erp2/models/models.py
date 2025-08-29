@@ -11,11 +11,11 @@ import requests
 from itertools import groupby
 from datetime import timedelta
 
-class StockERP(models.Model):
-    _name = 'stock.erp'
+class StockERP2(models.Model):
+    _name = 'stock.erp2'
 
     name = fields.Char(compute='_compute_name')
-    move_lines = fields.One2many('stock.moves.erp', 'stock_erp')
+    move_lines = fields.One2many('stock.moves.erp2', 'stock_erp')
     product_id = fields.Many2one('product.template', string='Producto', required=True)
     product_name = fields.Char(string='Producto')
     uxb = fields.Integer('UxB', default=0)
@@ -51,7 +51,7 @@ class StockERP(models.Model):
 
     def create_initial_products(self):
         stock_wms = self.env['stock.wms']
-        stock_erp = self.env['stock.erp']
+        stock_erp = self.env['stock.erp2']
         stock_wms_records = stock_wms.search([])
         vals_list = []
 

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 {
-    'name': "stock_erp",
+    'name': "stock_erp2",
 
     'summary': """
         Short (1 phrase/line) summary of the module's purpose, used as
