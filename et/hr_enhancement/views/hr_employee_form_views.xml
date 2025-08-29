@@ -140,7 +140,7 @@
                 <attribute name="attrs">{'readonly': [('state', '!=', 'draft')], 'required': [('employee_type', '=', 'employee')]}</attribute>
             </xpath>
             <xpath expr="//field[@name='company_id']" position="attributes">
-                <attribute name="attrs">{'readonly': [('state', '!=', 'draft')]}</attribute>
+                <attribute name="invisible">1</attribute>
             </xpath>
             <xpath expr="//field[@name='department_id']" position="attributes">
                 <attribute name="attrs">{'readonly': [('state', '!=', 'draft')], 'required': [('employee_type', '=', 'employee')]}</attribute>
@@ -271,6 +271,18 @@
         </field>
     </record>
 
+    <!--     <record id="view_kanban_hr_employee_inherit" model="ir.ui.view">
+            <field name="name">hr.employee.kanban.inherit</field>
+            <field name="model">hr.employee</field>
+            <field name="inherit_id" ref="hr.hr_kanban_view_employees"/>
+            <field name="arch" type="xml">
+                <xpath expr="//li[@class='o_kanban_details']" position="inside">
+                    <field name="job_title"/>
+                    <field name="department_id"/>
+                </xpath>
+            </field>
+        </record> -->
+
     <!-- Agregar filtros personalizado employee -->
     <record id="hr_employee_search_inherit_custom" model="ir.ui.view">
         <field name="name">hr.employee.search.custom</field>
@@ -278,26 +290,16 @@
         <field name="inherit_id" ref="hr.view_employee_filter"/>
         <field name="arch" type="xml">
             <xpath expr="//search" position="inside">
-
                 <!-- Nuevo filtro por correo corporativo -->
-                <filter string="Empleados" name="filter_employee_types"
-                        domain="[('employee_type', '=', 'employee')]"/>
-
-                <filter string="Eventuales" name="filter_eventual_types"
-                        domain="[('employee_type', '=', 'eventual')]"/>
-
-                <filter string="Bajas" name="filter_state_bajas"
-                        domain="[('state', '=', 'inactive')]"/>
-
-                <!-- Nuevo filtro por empleados activos -->
-                <filter string="Activos" name="filter_employee_active"
-                        domain="[('state', '=', 'active')]"/>
-
-                <filter string="Lista Activa" name="filter_employee_active_list"
-                        domain="[('state', '!=', 'inactive')]"/>
-                <!-- Separador visual -->
+                <filter string="Empleados Activos" name="filter_employee_active_types"
+                        domain="[('employee_type', '=', 'employee'), ('state', '!=', 'inactive')]"/>
+                <filter string="Eventuales Activos" name="filter_eventual_active_types"
+                        domain="[('employee_type', '=', 'eventual'), ('state', '!=', 'inactive')]"/>
+                <filter string="Empleados Bajas" name="filter_state_bajas"
+                        domain="[('employee_type', '=', 'employee'), ('state', '=', 'inactive')]"/>
+                <filter string="Eventuales Bajas" name="filter_eventual_bajas"
+                        domain="[('employee_type', '=', 'eventual'), ('state', '=', 'inactive')]"/>
                 <separator/>
-
                 <!-- Nuevo Agrupar por -->
                 <group expand="0" string="Agrupar por">
                     <filter string="Tipo de Empleado" name="group_employee_type" context="{'group_by': 'employee_type'}"/>

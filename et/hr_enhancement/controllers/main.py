@@ -57,15 +57,22 @@ class HrAttendanceController(http.Controller):
             end_limit_night   = datetime.combine(day, p_night_end_limit)
             hr_attendance = request.env['hr.attendance'].sudo()
             hr_employee = request.env['hr.employee'].sudo()
-            employee = hr_employee.search([('dni', '=', employee_dni)], limit=1)
+            employee = hr_employee.search([('id_lector', '=', employee_dni), ('state', '!=', 'inactive')], limit=1)
             message = f'ingreso: {check_utc.strftime("%Y-%m-%d %H:%M:%S")}--'
             if open_method == 'FACE_RECOGNITION':
                 if not employee:
-                    return {'success': False, 'message': 'Empleado no registrado, debe registrarlo por el Panel de odoo'}
+                    employee = hr_employee.create({
+                        'id_reader': employee_dni,
+                        'dni': employee_dni,
+                        'name': employee_name,
+                        'employee_type': 'employee',
+                        'state': 'active',
+                    })
 
             elif open_method == 'FINGERPRINT':
                 if not employee:
                     employee = hr_employee.create({
+                        'id_reader': employee_dni,
                         'dni': employee_dni,
                         'name': employee_name,
                         'employee_type': 'eventual',
@@ -113,6 +120,11 @@ class HrAttendanceController(http.Controller):
                             if open_att:
                                 if dow in [0,1,2,3,4]:  # Lunes a Viernes
                                     if check_utc > end_limit_day:
+                                        request.env['hr.temp.attendance'].sudo().create({
+                                            'employee_id': employee.id,
+                                            'check_date': check_utc,
+                                            'employee_type': employee.employee_type,
+                                        })
                                         message += f'--asistencia fuera del limite de salida diurno ({end_limit_day.strftime("%H:%M")})'
                                         return {'success': False, 'error': message, 'received': data}
                                 # Cerrar asistencia abierta
@@ -121,12 +133,22 @@ class HrAttendanceController(http.Controller):
                             else:
                                 if dow in [0,1,2,3,4]:  # Lunes a Viernes
                                     if check_utc > start_limit_day:
+                                        request.env['hr.temp.attendance'].sudo().create({
+                                            'employee_id': employee.id,
+                                            'check_date': check_utc,
+                                            'employee_type': employee.employee_type,
+                                        })
                                         message += f'--asistencia fuera del limite de ingreso diurno ({start_limit_day.strftime("%H:%M")})'
                                         return {'success': False, 'error': message, 'received': data}
                                 elif dow == 5:  # Sábado
                                     p_day_start_limit   = _float_to_time(float(hr_enhancement.get_param('hr_enhancement.hour_start_day_check')) + 2)
                                     start_limit_day = datetime.combine(day, p_day_start_limit)
                                     if check_utc > start_limit_day:
+                                        request.env['hr.temp.attendance'].sudo().create({
+                                            'employee_id': employee.id,
+                                            'check_date': check_utc,
+                                            'employee_type': employee.employee_type,
+                                        })
                                         message += f'--asistencia fuera del limite de ingreso diurno ({start_limit_day.strftime("%H:%M")})'
                                         return {'success': False, 'error': message, 'received': data}
                                 # Crear asistencia abierta
@@ -138,6 +160,11 @@ class HrAttendanceController(http.Controller):
                         elif employee.type_shift == 'night':
                             if open_att:
                                 if check_utc > end_limit_night:
+                                    request.env['hr.temp.attendance'].sudo().create({
+                                        'employee_id': employee.id,
+                                        'check_date': check_utc,
+                                        'employee_type': employee.employee_type,
+                                    })
                                     message += f'--asistencia fuera de rango nocturno ({end_limit_night.strftime("%H:%M")})'
                                     return {'success': False, 'error': message, 'received': data}
                                 # Cerrar asistencia abierta
@@ -145,6 +172,11 @@ class HrAttendanceController(http.Controller):
                                 message += f' (asistencia cerrada: {open_att.id})'
                             else:
                                 if check_utc > start_limit_night:
+                                    request.env['hr.temp.attendance'].sudo().create({
+                                        'employee_id': employee.id,
+                                        'check_date': check_utc,
+                                        'employee_type': employee.employee_type,
+                                    })
                                     message += f'--asistencia fuera de rango nocturno ({start_limit_night.strftime("%H:%M")}-{end_limit_night.strftime("%H:%M")})'
                                     return {'success': False, 'error': message, 'received': data}
                                 # Crear asistencia abierta

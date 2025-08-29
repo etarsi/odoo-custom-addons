@@ -9,6 +9,7 @@
             <xpath expr="//field[@name='worked_hours']" position="after">
                 <field name="overtime" widget="float_time" sum="Horas Extras"/>
                 <field name="holiday_hours" widget="float_time" sum="Horas Feriado"/>
+                <field name="employee_type" />
             </xpath>
         </field>
     </record>
@@ -20,12 +21,13 @@
         <field name="arch" type="xml">
             <tree string="Mis Asistencias" create="false" edit="false" delete="false">
                 <field name="employee_id" optional="show"/>
+                <field name="employee_type" optional="show"/>
                 <field name="check_in" optional="show"/>
                 <field name="check_out" optional="show"/>
-                <field name="worked_hours" optional="show"/>
+                <field name="worked_hours" optional="show" sum="Horas Trabajadas"/>
                 <!-- Si agregaste estos campos personalizados, los podés mostrar también: -->
-                <field name="overtime" optional="show"/>
-                <field name="holiday_hours" optional="show"/>
+                <field name="overtime" optional="show" sum="Horas al 50%"/>
+                <field name="holiday_hours" optional="show" sum="Horas al 100%"/>
             </tree>
         </field>
     </record>
