@@ -25,5 +25,6 @@
         id="account_enhancement.menu_account_report_pagos_fuera_fecha_action"
         name="Pagos Fuera de Fecha"
         sequence="2"
+        parent="account_enhancement.menu_account_report_factura_general"
         action="action_reporte_pagos_fuera_fecha"/>
 </odoo>
