@@ -111,7 +111,7 @@ class StockERP(models.Model):
                 record.uxb = record.product_id.product_tmpl_id.packaging_ids[0].qty
 
     def get_uxb(self, product_product_id):
-        product_id = self.env['product.template'].browse(product_product_id)
+        product_id = self.env['product.template'].browse(product_product_id.id)
 
         if product_id:
             if product_id.packaging_ids:
