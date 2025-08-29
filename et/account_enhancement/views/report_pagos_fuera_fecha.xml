@@ -29,6 +29,7 @@
             </p>
         </field>
         <field name="search_view_id" ref="view_report_pagos_fuera_fecha_search" />
+        
     </record>
 
     <!--crear el search para la vista tree-->
