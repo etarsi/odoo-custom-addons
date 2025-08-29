@@ -16,7 +16,7 @@ class StockERP(models.Model):
 
     name = fields.Char(compute='_compute_name')
     move_lines = fields.One2many('stock.moves.erp', 'stock_erp')
-    product_id = fields.Many2one('product.template', string='Producto', required=True)
+    product_id = fields.Many2one('product.product', string='Producto', required=True)
     product_name = fields.Char(string='Producto')
     uxb = fields.Integer('UxB', default=0)
 
@@ -39,6 +39,44 @@ class StockERP(models.Model):
     entrante_fecha = fields.Date('ETA')
     entrante_licencia = fields.Char('Licencia')
 
+
+    def create_initial_products(self):
+
+        stock_digip = self.get_digip_stock()
+        stock_erp = self.env['stock.erp']
+        vals_list = []
+
+        for record in stock_digip:
+            product_id = self.env['product.product'].search([('default_code', '=', record['codigo'])], limit=1)
+            if product_id:
+                uxb = self.get_uxb(product_id.product_tmpl_id)
+                vals = {
+                    'product_id': product_id.id,
+                    'uxb': uxb,
+                    'fisico_unidades': record['stock']['disponible']
+                }
+                vals_list.append(vals)
+        stock_erp.create(vals_list)
+    
+
+    def get_digip_stock(self):
+        headers = {}
+        
+        url = self.env['ir.config_parameter'].sudo().get_param('digipwms-v2.url')
+        headers["x-api-key"] = self.env['ir.config_parameter'].sudo().get_param('digipwms.key')
+        response = requests.get(f'{url}/v2/Stock/Tipo', headers=headers)
+
+        if response.status_code == 200:
+            products = response.json()
+            if products:
+                return products
+
+        elif response.status_code == 400:
+            raise UserError('ERROR: 400 BAD REQUEST. Avise a su administrador de sistema.')
+        elif response.status_code == 404:
+            raise UserError('ERROR: 404 NOT FOUND. Avise a su administrador de sistema.')
+        elif response.status_code == 500:
+            raise UserError('ERROR: 500 INTERNAL SERVER ERROR. Avise a su administrador de sistema. Probablemente alguno de los productos no se encuentra creado en Digip.')     
     
 
     def get_stock_wms(self):
@@ -49,28 +87,17 @@ class StockERP(models.Model):
                 record.fisico_unidades = stock_wms.fisico_unidades
 
 
-    def create_initial_products(self):
-        stock_wms = self.env['stock.wms']
-        stock_erp = self.env['stock.erp']
-        stock_wms_records = stock_wms.search([])
-        vals_list = []
-
-        for record in stock_wms_records:
-            if not record.product_id:
-                continue
-            vals = {
-                'product_id': record.product_id.id,
-                'uxb': int(record.uxb),
-                'fisico_unidades': record.fisico_unidades,
-            }
-            vals_list.append(vals)
-        stock_erp.create(vals_list)
-
-
     def update_uxb(self):
         for record in self:
-            if record.product_id.packaging_ids:
-                record.uxb = record.product_id.packaging_ids[0].qty
+            if record.product_id.product_tmpl_id.packaging_ids:
+                record.uxb = record.product_id.product_tmpl_id.packaging_ids[0].qty
+
+    def get_uxb(self, product_product_id):
+        product_id = self.env['product.template'].browse(product_product_id.id)
+
+        if product_id:
+            if product_id.packaging_ids:
+                return product_id.packaging_ids[0].qty
 
     #####  COMPUTE METHODS #####
 
