@@ -19,7 +19,7 @@ class StockMovesERP(models.Model):
     stock_erp = fields.Many2one('stock.erp')
     sale_id = fields.Many2one('sale.order')
     picking_id = fields.Many2one('stock.picking')
-    product_id = fields.Many2one('product.template')
+    product_id = fields.Many2one('product.product')
     quantity = fields.Integer()
     bultos = fields.Float()
     uxb = fields.Integer()
