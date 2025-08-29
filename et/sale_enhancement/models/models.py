@@ -169,7 +169,7 @@ class SaleOrderInherit(models.Model):
                 if stock_erp:
                     vals['stock_erp'] = stock_erp.id
                 else:
-                    raise UserError(f'El producto {line.product_id.name} no se encuentra en el listado de Stock. Avise al administrador.')
+                    raise UserError(f'El producto [{line.product_id.default_code}]{line.product_id.name} no se encuentra en el listado de Stock. Avise al administrador.')
 
                 if record.picking_ids:
                     vals['picking_id'] = record.picking_ids[0].id
