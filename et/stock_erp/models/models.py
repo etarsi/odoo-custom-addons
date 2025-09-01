@@ -23,7 +23,7 @@ class StockERP(models.Model):
     fisico_unidades = fields.Integer('Físico Unidades')
     enelagua_unidades = fields.Integer('En el Agua Unidades')
     total_unidades = fields.Integer('Total Unidades', compute="_compute_total")
-    comprometido_unidades = fields.Integer('Comprometido Unidades')
+    comprometido_unidades = fields.Integer('Comprometido Unidades', compute="_compute_comprometido_unidades")
     disponible_unidades = fields.Float('Disponible Unidades', digits=(99,0))
     comprado_unidades = fields.Integer('Comprado Unidades')
     entrante_unidades = fields.Integer('Entrante Unidades')
