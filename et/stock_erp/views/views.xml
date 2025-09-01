@@ -34,7 +34,7 @@
         <field name="model">stock.erp</field>
         <field name="arch" type="xml">
             <form>
-              <sheet>
+                <sheet>
                   <field name="product_id"/>
                   <field name="product_category"/>
                   <field name="uxb"/>
@@ -65,7 +65,7 @@
                       </page>
                     </notebook>
                   </group>
-                <sheet/>
+                </sheet>
             </form>
         </field>
     </record>
