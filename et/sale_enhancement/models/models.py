@@ -177,6 +177,7 @@ class SaleOrderInherit(models.Model):
                 if record.picking_ids:
                     vals['picking_id'] = record.picking_ids[0].id
                 vals['sale_id'] = record.id
+                vals['sale_line_id'] = line.id
                 vals['product_id'] = line.product_id.id
                 vals['quantity'] = line.product_uom_qty
                 vals['uxb'] = line.product_packaging_id.qty or ''
@@ -298,6 +299,10 @@ class SaleOrderLineInherit(models.Model):
     qty_invoiced = fields.Float(
         compute='_compute_qty_invoiced', string='Invoiced Quantity', store=True,
         digits='Product Unit of Measure', readonly=False)
+
+    stock_state = fields.Selection(string='Disponibilidad', selection=[('available', 'Disponible'), ('unavailable', 'No Disponible')], compute="_compute_stock_state")
+    disponible_unidades = fields.Integer('Disponible')
+    comprometido_unidades = fields.Integer('Comprometido')
     
     def create(self, vals):
         res = super().create(vals)
@@ -312,15 +317,27 @@ class SaleOrderLineInherit(models.Model):
                     rec.product_packaging_id = rec.product_id.packaging_ids[0]
                     rec.product_packaging_qty = rec.product_uom_qty / rec.product_packaging_id.qty
 
-            rec.validate_stock_erp()
-                    
+
+            rec.update_stock_erp()
+             
         return res
 
 
-    def validate_stock_erp(self):
+    def update_stock_erp(self):
         for record in self:
-            raise UserError(f'Producto: {record.product_id}')
+            stock_erp = self.env['stock.erp'].search([('product_id', '=', record.product_id.id)], limit=1)
+            if stock_erp:
+                record.disponible_unidades = stock_erp.disponible_unidades
         
+    # COMPUTED
+
+    @api.depends('disponible_unidades')
+    def _compute_disponible_unidades(self):
+        for record in self:
+            if record.product_uom_qty <= record.disponible_unidades:
+                record.stock_state = 'available'
+            else:
+                record.stock_state = 'unavailable'
 
 
     def _update_line_quantity(self, values):

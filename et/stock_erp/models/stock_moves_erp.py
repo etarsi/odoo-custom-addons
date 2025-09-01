@@ -18,6 +18,7 @@ class StockMovesERP(models.Model):
     name = fields.Char()
     stock_erp = fields.Many2one('stock.erp')
     sale_id = fields.Many2one('sale.order')
+    sale_line_id = fields.Many2one('sale.order.line')
     picking_id = fields.Many2one('stock.picking')
     product_id = fields.Many2one('product.product')
     quantity = fields.Integer()
@@ -38,5 +39,11 @@ class StockMovesERP(models.Model):
                                 else:
                                     if move.product_uom_qty < record.quantity:
                                         partial_quantity += move.product_uom_qty
-                                    elif record.quantity == move.product_uom_qty or record.quantity == partial_quantity:
+                                    elif record.quantity == move.product_uom_qty or record.quantity == partial_quantity:                                        
+                                        record.unreserve_sale_line()
                                         record.unlink()
+    
+
+    def unreserve_sale_line(self):
+        for record in self:
+            
