@@ -62,7 +62,7 @@ class HrAttendanceController(http.Controller):
             if open_method == 'FACE_RECOGNITION':
                 if not employee:
                     employee = hr_employee.create({
-                        'id_reader': employee_dni,
+                        'id_lector': employee_dni,
                         'dni': employee_dni,
                         'name': employee_name,
                         'employee_type': 'employee',
@@ -72,7 +72,7 @@ class HrAttendanceController(http.Controller):
             elif open_method == 'FINGERPRINT':
                 if not employee:
                     employee = hr_employee.create({
-                        'id_reader': employee_dni,
+                        'id_lector': employee_dni,
                         'dni': employee_dni,
                         'name': employee_name,
                         'employee_type': 'eventual',
