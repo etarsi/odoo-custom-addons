@@ -231,3 +231,5 @@ class ReturnMoveLine(models.Model):
     def _compute_bultos(self):
         if self.uxb != 0:
             self.bultos = self.quantity / self.uxb
+        else:
+            self.bultos = 0
