@@ -18,6 +18,7 @@ class StockERP(models.Model):
     move_lines = fields.One2many('stock.moves.erp', 'stock_erp')
     product_id = fields.Many2one('product.product', string='Producto', required=True)
     product_name = fields.Char(string='Producto')
+    product_category = fields.Many2one('product.category', string="Categoría", compute="_compute_category_id")
     uxb = fields.Integer('UxB', default=0)
 
     fisico_unidades = fields.Integer('Físico Unidades')
@@ -117,6 +118,11 @@ class StockERP(models.Model):
                 record.comprometido_unidades = 0
 
 
+    @api.depends('product_id')
+    def _compute_category_id(self):
+        for record in self:
+            if record.product_id:
+                record.product_category = record.product_id.categ_id.parent_id.id
 
     @api.depends('fisico_unidades', 'uxb')
     def _compute_fisico_bultos(self):
