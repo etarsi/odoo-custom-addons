@@ -33,13 +33,8 @@
         <field name="res_model">account.move</field>
         <field name="view_mode">tree</field>
         <field name="view_id" ref="view_report_pagos_fuera_fecha_tree"/>
-        <field name="domain">[('move_type', '=', 'out_invoice'), ('state', '=', 'posted')</field>
+        <field name="domain">[('move_type', '=', 'out_invoice'), ('state', '=', 'posted')]</field>
         <field name="context">{'search_default_group_by_partner': 1}</field>
-        <field name="help" type="html">
-            <p class="o_view_nocontent_smiling_face">
-                No hay facturas fuera de Fecha.
-            </p>
-        </field>
         <field name="search_view_id" ref="view_report_pagos_fuera_fecha_search" />
     </record>
 </odoo>
