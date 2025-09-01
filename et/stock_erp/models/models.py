@@ -25,7 +25,7 @@ class StockERP(models.Model):
     enelagua_unidades = fields.Integer('En el Agua Unidades')
     total_unidades = fields.Integer('Total Unidades', compute="_compute_total")
     comprometido_unidades = fields.Integer('Comprometido Unidades', compute="_compute_comprometido_unidades")
-    disponible_unidades = fields.Float('Disponible Unidades', digits=(99,0))
+    disponible_unidades = fields.Float('Disponible Unidades', digits=(99,0), compute="_compute_disponible_unidades")
     comprado_unidades = fields.Integer('Comprado Unidades')
     entrante_unidades = fields.Integer('Entrante Unidades')
 
@@ -116,6 +116,11 @@ class StockERP(models.Model):
                 record.comprometido_unidades = sum(line.quantity for line in record.move_lines)
             else:
                 record.comprometido_unidades = 0
+
+    @api.depends('fisico_unidades', 'enelagua_unidades', 'comprometido_unidades')
+    def _compute_disponible_unidades(self):
+        for record in self:
+            record.disponible_unidades = record.fisico_unidades + record.enelagua_unidades - record.comprometido_unidades
 
 
     @api.depends('product_id')
