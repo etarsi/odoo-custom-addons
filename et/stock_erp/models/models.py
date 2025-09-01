@@ -29,11 +29,11 @@ class StockERP(models.Model):
     comprado_unidades = fields.Integer('Comprado Unidades')
     entrante_unidades = fields.Integer('Entrante Unidades')
 
-    fisico_bultos = fields.Float('Físico Bultos', compute="_compute_fisico_bultos")
-    enelagua_bultos = fields.Float('En el Agua Bultos', compute="_compute_enelagua_bultos")    
+    fisico_bultos = fields.Float('Físico Bultos', compute="_compute_fisico_bultos", store=True)
+    enelagua_bultos = fields.Float('En el Agua Bultos', compute="_compute_enelagua_bultos", store=True)    
     total_bultos = fields.Float('Total Bultos', compute="_compute_total")
-    comprometido_bultos = fields.Float('Comprometido Bultos', compute="_compute_comprometido_bultos")
-    disponible_bultos = fields.Float('Disponible Bultos', compute="_compute_disponible_bultos")
+    comprometido_bultos = fields.Float('Comprometido Bultos', compute="_compute_comprometido_bultos", store=True)
+    disponible_bultos = fields.Float('Disponible Bultos', compute="_compute_disponible_bultos", store=True)
     comprado_bultos = fields.Float('Comprado Bultos', compute="_compute_comprado_bultos")
     entrante_bultos = fields.Float('Entrante Bultos', compute="_compute_entrante_bultos")
 
