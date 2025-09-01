@@ -18,7 +18,7 @@ class StockERP(models.Model):
     move_lines = fields.One2many('stock.moves.erp', 'stock_erp')
     product_id = fields.Many2one('product.product', string='Producto', required=True)
     product_name = fields.Char(string='Producto')
-    product_category = fields.Many2one('product.category', string="Categoría", compute="_compute_category_id")
+    product_category = fields.Many2one('product.category', string="Categoría", compute="_compute_category_id", store=True)
     uxb = fields.Integer('UxB', default=0)
 
     fisico_unidades = fields.Integer('Físico Unidades')
