@@ -375,6 +375,6 @@
 
     <!-- heredar la vista al llamado de employee-->
     <record id="hr.open_view_employee_list_my" model="ir.actions.act_window">
-        <field name="context">{'search_default_filter_employee_active_list': 1}</field>
+        <field name="context">{'search_default_filter_employee_active_types': 1}</field>
     </record>
 </odoo>
