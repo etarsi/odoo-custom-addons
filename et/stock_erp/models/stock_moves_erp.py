@@ -24,3 +24,19 @@ class StockMovesERP(models.Model):
     bultos = fields.Float()
     uxb = fields.Integer()
 
+    def unreserve_stock(self):
+        for record in self:
+            partial_quantity = 0
+            if record.sale_id.picking_ids:
+
+                for picking in record.sale_id.picking_ids:
+                    if picking.move_ids_without_package:
+                        for move in picking.move_ids_without_package:
+                            if move.product_id == record.product_id.id:
+                                if picking.state_wms != 'no':
+                                    raise UserError(f'No se puede liberar la cantidad comprometida ({record.sale_id}) porque las unidades están siendo preparadas o ya han sido preparadas en la transferencia {record.picking_id}.')
+                                else:
+                                    if move.product_uom_qty < record.quantity:
+                                        partial_quantity += move.product_uom_qty
+                                    elif record.quantity == move.product_uom_qty or record.quantity == partial_quantity:
+                                        record.unlink()
