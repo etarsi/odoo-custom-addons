@@ -112,11 +112,10 @@ class StockERP(models.Model):
     def _compute_comprometido_unidades(self):
         for record in self:
             if record.move_lines:
-                comp_total = 0
-                for line in record.move_lines:
-                    comp_total += line.quantity
-                
-                record.comprometido_unidades = comp_total
+                record.comprometido_unidades = sum(line.quantity for line in record.move_lines)
+            else:
+                record.comprometido_unidades = 0
+
 
 
     @api.depends('fisico_unidades', 'uxb')
