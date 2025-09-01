@@ -311,7 +311,17 @@ class SaleOrderLineInherit(models.Model):
                 if rec.product_id.packaging_ids:
                     rec.product_packaging_id = rec.product_id.packaging_ids[0]
                     rec.product_packaging_qty = rec.product_uom_qty / rec.product_packaging_id.qty
+
+            rec.validate_stock_erp()
+                    
         return res
+
+
+    def validate_stock_erp(self):
+        for record in self:
+            raise UserError(f'Producto: {record.product_id}')
+        
+
 
     def _update_line_quantity(self, values):
         orders = self.mapped('order_id')
