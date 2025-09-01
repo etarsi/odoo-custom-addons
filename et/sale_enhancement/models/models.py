@@ -161,6 +161,27 @@ class SaleOrderInherit(models.Model):
                             line.discount = discounts[line.id]
                 else: 
                     raise UserError("No se encontró precio de lista con ID 46")
+                
+            vals_list = []
+            for line in record.order_line:
+                vals = {}
+                stock_erp = self.env['stock.erp'].search([('product_id', '=', line.product_id.id)], limit=1)
+                if stock_erp:
+                    vals['stock_erp'] = stock_erp.id
+                else:
+                    raise UserError(f'El producto [{line.product_id.default_code}]{line.product_id.name} no se encuentra en el listado de Stock. Avise al administrador.')
+
+                if record.picking_ids:
+                    vals['picking_id'] = record.picking_ids[0].id
+                vals['sale_id'] = record.id
+                vals['product_id'] = line.product_id.id
+                vals['quantity'] = line.product_uom_qty
+                vals['uxb'] = line.product_packaging_id.qty or ''
+                vals['bultos'] = line.product_packaging_qty
+
+                vals_list.append(vals)
+            
+            self.env['stock.moves.erp'].create(vals_list)
 
         return res
 
