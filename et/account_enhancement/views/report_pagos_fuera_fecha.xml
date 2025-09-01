@@ -6,6 +6,7 @@
         <field name="model">account.move</field>
         <field name="arch" type="xml">
             <tree string="Pagos Fuera de Fecha" create="false" edit="false" delete="false">
+                <field name="state" invisible="1" />
                 <field name="name" string="Número de Factura" />
                 <field name="partner_id" string="Nombre de Cliente" />
                 <field name="invoice_payment_term_id" string="Término de Pago"/>
