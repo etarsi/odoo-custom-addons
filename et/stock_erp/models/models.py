@@ -108,6 +108,17 @@ class StockERP(models.Model):
                 record.name = record.product_id.name
             else: record.name = record.id
 
+    @api.depends('move_lines')
+    def _compute_comprometido_unidades(self):
+        for record in self:
+            if record.move_lines:
+                comp_total = 0
+                for line in record.move_lines:
+                    comp_total += line.quantity
+                
+                record.comprometido_unidades = comp_total
+
+
     @api.depends('fisico_unidades', 'uxb')
     def _compute_fisico_bultos(self):
         for record in self:

@@ -161,7 +161,10 @@ class SaleOrderInherit(models.Model):
                             line.discount = discounts[line.id]
                 else: 
                     raise UserError("No se encontró precio de lista con ID 46")
-                
+            
+
+            # STOCK ERP
+
             vals_list = []
             for line in record.order_line:
                 vals = {}
