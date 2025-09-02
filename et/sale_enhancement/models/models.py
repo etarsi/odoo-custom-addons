@@ -165,6 +165,9 @@ class SaleOrderInherit(models.Model):
 
             # STOCK ERP
 
+            record.validate_stock_erp()
+
+
             vals_list = []
             for line in record.order_line:
                 vals = {}
@@ -199,6 +202,11 @@ class SaleOrderInherit(models.Model):
 
 
     ### CUSTOM
+
+    def validate_stock_erp(self):
+        for record in self:
+            for line in record.order_line:
+
 
     def check_partner_origin(self):
         for record in self:
@@ -331,7 +339,7 @@ class SaleOrderLineInherit(models.Model):
         
     # COMPUTED
 
-    @api.depends('disponible_unidades')
+    @api.depends('disponible_unidades', 'product_uom_qty')
     def _compute_is_available(self):
         for record in self:
             if record.product_uom_qty <= record.disponible_unidades:
