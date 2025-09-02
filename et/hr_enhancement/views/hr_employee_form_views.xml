@@ -258,7 +258,7 @@
                         </group>
                         <group>
                             <field name="employee_type" widget="selection" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
-                            <field name="id_lector"/>
+                            <field name="id_lector" attrs="{'readonly': [('state', '!=', 'draft')]}"/>  
                             <field name="type_shift" widget="radio" 
                                 options="{'horizontal': true}" 
                                 attrs="{'readonly': [('state', '!=', 'draft')]}"/>
