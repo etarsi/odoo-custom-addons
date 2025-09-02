@@ -300,7 +300,7 @@ class SaleOrderLineInherit(models.Model):
         compute='_compute_qty_invoiced', string='Invoiced Quantity', store=True,
         digits='Product Unit of Measure', readonly=False)
 
-    is_available = fields.Boolean(string='Disponible', compute="_compute_is_available")
+    is_available = fields.Boolean(string='Disponible', compute="_compute_is_available", store=True)
     disponible_unidades = fields.Integer('Disponible')
     comprometido_unidades = fields.Integer('Comprometido')
     
