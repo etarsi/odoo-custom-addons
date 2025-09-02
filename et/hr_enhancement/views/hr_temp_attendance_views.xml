@@ -5,7 +5,7 @@
         <field name="model">hr.temp.attendance</field>
         <field name="arch" type="xml">
             <!-- create/edit deshabilitados; delete permitido por defecto -->
-            <tree string="Asistencias Temporales" create="false" edit="false">
+            <tree string="Bitacora de Asistencias" create="false" edit="false">
                 <field name="employee_id"/>
                 <field name="check_date"/>
                 <field name="employee_type"/>
@@ -17,7 +17,7 @@
         <field name="name">hr.temp.attendance.search</field>
         <field name="model">hr.temp.attendance</field>
         <field name="arch" type="xml">
-            <search string="Buscar Asistencias Temporales">
+            <search string="Bitacora de Asistencias">
                 <field name="employee_id"/>
                 <field name="check_date"/>
                 <filter name="filter_employee_type_eventual" string="Tipo Eventual"
@@ -39,7 +39,7 @@
     </record>
 
     <record id="action_hr_temp_attendance" model="ir.actions.act_window">
-        <field name="name">Asistencias Temporales</field>
+        <field name="name">Bitacora de Asistencias</field>
         <field name="res_model">hr.temp.attendance</field>
         <field name="view_mode">tree</field>
         <field name="search_view_id" ref="hr_enhancement.view_hr_temp_attendance_search"/>
