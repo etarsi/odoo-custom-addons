@@ -20,9 +20,9 @@
             <search string="Buscar Asistencias Temporales">
                 <field name="employee_id"/>
                 <field name="check_date"/>
-                <field name="filter_employee_type_eventual" string="Tipo Eventual"
+                <filter name="filter_employee_type_eventual" string="Tipo Eventual"
                         domain="[('employee_type', '=', 'eventual')]"/>
-                <field name="filter_employee_type_empleado" string="Tipo Empleado"
+                <filter name="filter_employee_type_empleado" string="Tipo Empleado"
                         domain="[('employee_type', '=', 'empleado')]"/>
                 <separator/>
                 <!-- Filtro de agrupación por empleado -->
