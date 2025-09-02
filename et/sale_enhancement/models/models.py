@@ -332,7 +332,7 @@ class SaleOrderLineInherit(models.Model):
     # COMPUTED
 
     @api.depends('disponible_unidades')
-    def _compute_disponible_unidades(self):
+    def _compute_stock_state(self):
         for record in self:
             if record.product_uom_qty <= record.disponible_unidades:
                 record.stock_state = 'available'
