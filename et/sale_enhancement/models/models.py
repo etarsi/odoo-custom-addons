@@ -203,9 +203,9 @@ class SaleOrderInherit(models.Model):
 
     ### CUSTOM
 
-    def validate_stock_erp(self):
-        for record in self:
-            for line in record.order_line:
+    # def validate_stock_erp(self):
+    #     for record in self:
+    #         for line in record.order_line:
 
 
     def check_partner_origin(self):
