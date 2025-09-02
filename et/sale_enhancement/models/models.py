@@ -300,7 +300,7 @@ class SaleOrderLineInherit(models.Model):
         compute='_compute_qty_invoiced', string='Invoiced Quantity', store=True,
         digits='Product Unit of Measure', readonly=False)
 
-    stock_state = fields.Selection(string='Disponibilidad', selection=[('available', 'Disponible'), ('unavailable', 'No Disponible')], compute="_compute_stock_state")
+    is_available = fields.Boolean(string='Disponible', compute="_compute_is_available")
     disponible_unidades = fields.Integer('Disponible')
     comprometido_unidades = fields.Integer('Comprometido')
     
@@ -332,12 +332,12 @@ class SaleOrderLineInherit(models.Model):
     # COMPUTED
 
     @api.depends('disponible_unidades')
-    def _compute_stock_state(self):
+    def _compute_is_available(self):
         for record in self:
             if record.product_uom_qty <= record.disponible_unidades:
-                record.stock_state = 'available'
+                record.is_available = True
             else:
-                record.stock_state = 'unavailable'
+                record.is_available = False
 
 
     def _update_line_quantity(self, values):
