@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_hr_temp_attendance_tree" model="ir.ui.view">
+        <field name="name">hr.temp.attendance.tree</field>
+        <field name="model">hr.temp.attendance</field>
+        <field name="arch" type="xml">
+            <!-- create/edit deshabilitados; delete permitido por defecto -->
+            <tree string="Asistencias Temporales" create="false" edit="false">
+                <field name="employee_id"/>
+                <field name="check_date"/>
+                <field name="employee_type"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_hr_temp_attendance_search" model="ir.ui.view">
+        <field name="name">hr.temp.attendance.search</field>
+        <field name="model">hr.temp.attendance</field>
+        <field name="arch" type="xml">
+            <search string="Buscar Asistencias Temporales">
+                <field name="employee_id"/>
+                <field name="check_date"/>
+                <field name="filter_employee_type_eventual" string="Tipo Eventual"
+                        domain="[('employee_type', '=', 'eventual')]"/>
+                <field name="filter_employee_type_empleado" string="Tipo Empleado"
+                        domain="[('employee_type', '=', 'empleado')]"/>
+                <separator/>
+                <!-- Filtro de agrupación por empleado -->
+                <group expand="0" string="Agrupar por">
+                    <filter name="group_employee"
+                            string="Agrupar por Empleado"
+                            context="{'group_by': 'employee_id'}"/>
+                    <filter name="group_employee_type"
+                            string="Agrupar por Tipo de Empleado"
+                            context="{'group_by': 'employee_type'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_hr_temp_attendance" model="ir.actions.act_window">
+        <field name="name">Asistencias Temporales</field>
+        <field name="res_model">hr.temp.attendance</field>
+        <field name="view_mode">tree</field>
+        <field name="search_view_id" ref="hr_enhancement.view_hr_temp_attendance_search"/>
+        <field name="view_id" ref="hr_enhancement.view_hr_temp_attendance_tree"/>
+        <!-- Activa el filtro de agrupación por defecto -->
+        <field name="context">{'search_default_group_employee': 1}</field>
+    </record>
+</odoo>
+
