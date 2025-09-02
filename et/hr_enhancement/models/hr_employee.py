@@ -70,7 +70,7 @@ class HrEmployee(models.Model):
         ('night', 'Turno Nocturno'),
     ], string='Tipo de Turno', default='day', tracking=True)
 
-    id_lector = fields.Char(string='ID del Lector')
+    id_lector = fields.Char(string='ID del Lector', tracking=True)
 
     _sql_constraints = [
         ('unique_dni', 'UNIQUE(dni)', 'El DNI debe ser único por empleado.'),
