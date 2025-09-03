@@ -220,6 +220,7 @@ class SaleOrderInherit(models.Model):
                 if picking.move_ids_without_package:
                     for move in picking.move_ids_without_package:
                         if move.product_id.id in up:
+                            move.state = 'draft'
                             move.unlink()
 
 
