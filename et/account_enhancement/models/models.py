@@ -260,14 +260,15 @@ class AccountPaymentGroupInherit(models.Model):
         store=True,
         readonly=True
     )
-
     paid_date_venc_html = fields.Html(
         compute='_compute_paid_date_venc_html',
         string="Vencimientos vs fecha de pago",
         sanitize=False,
     )
+    is_paid_date_venc_text = fields.Boolean(default=False, copy=False)
+    paid_date_venc_text = fields.Text(default='⚠️ EL PAGO SE REALIZÓ DESPUÉS DE LA FECHA DE VENCIMIENTO ⚠️')
 
-    @api.depends('payment_date', 'to_pay_move_line_ids', 'to_pay_move_line_ids.date_maturity', 'to_pay_move_line_ids.move_id')
+    @api.onchange('payment_date', 'to_pay_move_line_ids', 'to_pay_move_line_ids.date_maturity', 'to_pay_move_line_ids.move_id')
     def _compute_paid_date_venc_html(self):
         for rec in self:
             rec.paid_date_venc_html = False
@@ -294,6 +295,7 @@ class AccountPaymentGroupInherit(models.Model):
                     )
 
             if overdue_items or same_day_items:
+                rec.is_paid_date_venc_text = True
                 parts = []
                 title = _("La fecha de pago (%s)") % format_date(self.env, rec.payment_date)
                 if overdue_items:

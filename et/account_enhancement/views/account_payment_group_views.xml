@@ -10,6 +10,14 @@
                     <field name="paid_date_venc_html" widget="html" nolabel="1"/>
                 </div>
             </xpath>
+            <xpath expr="//field[@name='payment_date']" position="before">
+                <div attrs="{'invisible': [('is_paid_date_venc_text', '=', False)]}">
+                    <div style="color: red; font-size: 22px; font-weight: bold; margin: 10px 0;">
+                        <field name="paid_date_venc_text" readonly="1"/>
+                        <field name="is_paid_date_venc_text" invisible="1"/>
+                    </div>
+                </div>
+            </xpath>
         </field>
     </record>
 </odoo>
