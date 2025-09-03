@@ -220,7 +220,7 @@ class SaleOrderInherit(models.Model):
             for picking in record.picking_ids:
                 if picking.move_ids_without_package:
                     for move in picking.move_ids_without_package:
-                        if move.product_id in up:
+                        if move.product_id.id in up:
                             move.unlink()
 
 
