@@ -44,9 +44,15 @@
         'views/account_move_views.xml',
         'views/calendar_paid_views.xml',
         'views/report_pagos_fuera_fecha.xml',
+        'views/account_payment_group_views.xml',
         'views/templates.xml',
         'views/menu.xml'
     ],
+    "assets": {
+        "web.assets_backend": [
+            "account_enhancement/static/src/scss/check_eff.scss",
+        ],
+    },
     # only loaded in demonstration mode
     'demo': [
         'demo/demo.xml',
