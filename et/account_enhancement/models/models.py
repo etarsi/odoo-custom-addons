@@ -160,54 +160,52 @@ class AccountPaymentInherit(models.Model):
         store=True,  # <<-- esto lo hace almacenado, ahora es ordenable y filtrable
         string='Importe en moneda compañía',  # Cambia el nombre aquí si quieres
     )
-    check_issuer_effectiveness = fields.Float(
-        string="Efectividad cheque emisor (%)",
-        compute="_compute_check_issuer_effectiveness",
-        digits=(16, 0)
-    )
-    check_issuer_effectiveness_html = fields.Html(
-        string="Banner efectividad",
-        compute="_compute_check_issuer_effectiveness",
-        sanitize=False
-    )
+    is_check_issuer_effectiveness_text = fields.Boolean(default=False)
+    check_issuer_effectiveness_text = fields.Text(compute="_compute_check_issuer_effectiveness")
 
-    @api.depends('l10n_latam_check_issuer_vat', 'payment_method_line_id', 'journal_id')
+    @api.onchange('l10n_latam_check_issuer_vat', 'payment_method_line_id', 'journal_id')
     def _compute_check_issuer_effectiveness(self):
         Payment = self.env['account.payment'].sudo()
-        success_states = {'deposited', 'debited', 'paid', 'done'}
-        rejected_states = {'rejected', 'returned', 'bounced', 'rejected_bank'}
+
+        # Estados según tu base (ajustá si usan otros nombres)
+        success_states = {'Entregado'}
+        rejected_states = {'Rechazado'}
 
         for rec in self:
-            # reset
-            rec.check_issuer_effectiveness = 0.0
-            rec.check_issuer_effectiveness_html = False
+            # reset por defecto: no mostrar nada
+            rec.is_check_issuer_effectiveness_text = False
+            rec.check_issuer_effectiveness_text = False
 
-            if rec.l10n_latam_check_issuer_vat and rec.payment_method_line_id and rec.journal_id:
-                if rec.journal_id.code == 'CSH3' and rec.payment_method_line_id.id == 18:
-                    vat = rec.l10n_latam_check_issuer_vat
-                    domain = [
-                        ('l10n_latam_check_issuer_vat', '=', vat),
-                        ('state', '=', 'posted'),
-                    ]
-                    grouped = Payment.read_group(domain, ['id:count'], ['check_state'])
-                    counts = {g['check_state'] or 'unknown': g['id_count'] for g in grouped}
+            # Requisitos mínimos
+            if not (rec.l10n_latam_check_issuer_vat and rec.payment_method_line_id and rec.journal_id):
+                continue
 
-                    succ = sum(counts.get(s, 0) for s in success_states)
-                    rej  = sum(counts.get(s, 0) for s in rejected_states)
-                    base = succ + rej
+            # Filtro puntual de diario / método (como pediste)
+            if not (rec.journal_id.code == 'CSH3' and rec.payment_method_line_id.id == 18):
+                continue
 
-                    # Si no hay antecedentes (base == 0): NO mostramos nada
-                    if base == 0:
-                        continue
+            vat = rec.l10n_latam_check_issuer_vat
 
-                    pct = int(round(100.0 * succ / float(base)))
-                    rec.check_issuer_effectiveness = pct
-                    rec.check_issuer_effectiveness_html = (
-                        "<div class='o-check-eff %s'>"
-                        "<span class='o-check-eff__pct'>%s%%</span>"
-                        "<span class='o-check-eff__label'> cheque aprobado</span>"
-                        "</div>"
-                    ) % ('o-check-eff--ok' if pct >= 70 else 'o-check-eff--warn', pct)
+            domain = [('l10n_latam_check_issuer_vat', '=', vat), ('state', '=', 'posted')]
+            # Si querés restringir solo a cheques de tercero de cierto método, podés agregar:
+            # ('payment_method_line_id.payment_method_id.code', '=', 'in_third_check'),
+
+            grouped = Payment.read_group(domain, ['id:count'], ['check_state'])
+            counts = {g['check_state'] or 'unknown': g['id_count'] for g in grouped}
+
+            succ = sum(counts.get(s, 0) for s in success_states)
+            rej  = sum(counts.get(s, 0) for s in rejected_states)
+            base = succ + rej
+
+            # Sin antecedentes: no mostramos nada
+            if base == 0:
+                continue
+
+            pct = int(round(100.0 * succ / float(base)))
+
+            # Texto final (ej: "45% cheque aprobado")
+            rec.check_issuer_effectiveness_text = _("%(pct)s%% Cheque Aprobado") % {'pct': pct}
+            rec.is_check_issuer_effectiveness_text = True
 
     @api.depends('l10n_latam_check_current_journal_id')
     def _compute_check_state(self):
