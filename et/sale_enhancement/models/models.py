@@ -168,11 +168,10 @@ class SaleOrderInherit(models.Model):
             up = record.comprometer_stock()
 
             if up:
-                record.clean_stock_moves(up)
-
-            
+                record.clean_stock_moves(up)            
 
         return res
+    
 
     def update_prices(self):
         self.ensure_one()
@@ -362,6 +361,12 @@ class SaleOrderLineInherit(models.Model):
                 record.is_available = True
             else:
                 record.is_available = False
+    
+
+    @api.onchange('product_id')
+    def _onchange_availability(self):
+        for record in self:
+            record.update_stock_erp()
 
 
     def _update_line_quantity(self, values):
