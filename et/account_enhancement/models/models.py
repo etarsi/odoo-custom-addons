@@ -4,6 +4,7 @@ from dateutil.relativedelta import relativedelta
 from odoo.exceptions import AccessError, UserError, ValidationError
 import logging
 from datetime import date
+from odoo.tools.misc import format_date
 _logger = logging.getLogger(__name__)
 
 class AccountMoveInherit(models.Model):
@@ -153,7 +154,54 @@ class AccountPaymentInherit(models.Model):
         store=True,  # <<-- esto lo hace almacenado, ahora es ordenable y filtrable
         string='Importe en moneda compañía',  # Cambia el nombre aquí si quieres
     )
+    check_issuer_effectiveness = fields.Float(
+        string="Efectividad cheque emisor (%)",
+        compute="_compute_check_issuer_effectiveness",
+        digits=(16, 0)
+    )
+    check_issuer_effectiveness_html = fields.Html(
+        string="Banner efectividad",
+        compute="_compute_check_issuer_effectiveness",
+        sanitize=False
+    )
 
+    @api.depends('l10n_latam_check_issuer_vat', 'payment_method_line_id', 'journal_id')
+    def _compute_check_issuer_effectiveness(self):
+        Payment = self.env['account.payment'].sudo()
+        success_states = {'deposited', 'debited', 'paid', 'done'}
+        rejected_states = {'rejected', 'returned', 'bounced', 'rejected_bank'}
+
+        for rec in self:
+            # reset
+            rec.check_issuer_effectiveness = 0.0
+            rec.check_issuer_effectiveness_html = False
+
+            if rec.l10n_latam_check_issuer_vat and rec.payment_method_line_id and rec.journal_id:
+                if rec.journal_id.code == 'CSH3' and rec.payment_method_line_id.id == 18:
+                    vat = rec.l10n_latam_check_issuer_vat
+                    domain = [
+                        ('l10n_latam_check_issuer_vat', '=', vat),
+                        ('state', '=', 'posted'),
+                    ]
+                    grouped = Payment.read_group(domain, ['id:count'], ['check_state'])
+                    counts = {g['check_state'] or 'unknown': g['id_count'] for g in grouped}
+
+                    succ = sum(counts.get(s, 0) for s in success_states)
+                    rej  = sum(counts.get(s, 0) for s in rejected_states)
+                    base = succ + rej
+
+                    # Si no hay antecedentes (base == 0): NO mostramos nada
+                    if base == 0:
+                        continue
+
+                    pct = int(round(100.0 * succ / float(base)))
+                    rec.check_issuer_effectiveness = pct
+                    rec.check_issuer_effectiveness_html = (
+                        "<div class='o-check-eff %s'>"
+                        "<span class='o-check-eff__pct'>%s%%</span>"
+                        "<span class='o-check-eff__label'> cheque aprobado</span>"
+                        "</div>"
+                    ) % ('o-check-eff--ok' if pct >= 70 else 'o-check-eff--warn', pct)
 
     @api.depends('l10n_latam_check_current_journal_id')
     def _compute_check_state(self):
@@ -205,7 +253,6 @@ class AccountPaymentInherit(models.Model):
 class AccountPaymentGroupInherit(models.Model):
     _inherit = 'account.payment.group'
 
-
     executive_id = fields.Many2one(
         'res.users',
         string="Ejecutivo de Cuenta",
@@ -213,6 +260,54 @@ class AccountPaymentGroupInherit(models.Model):
         store=True,
         readonly=True
     )
+
+    paid_date_venc_html = fields.Html(
+        compute='_compute_paid_date_venc_html',
+        string="Vencimientos vs fecha de pago",
+        sanitize=False,
+    )
+
+    @api.depends('payment_date', 'to_pay_move_line_ids', 'to_pay_move_line_ids.date_maturity', 'to_pay_move_line_ids.move_id')
+    def _compute_paid_date_venc_html(self):
+        for rec in self:
+            rec.paid_date_venc_html = False
+            if not rec.payment_date or not rec.to_pay_move_line_ids:
+                continue
+
+            overdue_items = []   # pago > vencimiento
+            same_day_items = []  # pago == vencimiento
+
+            for l in rec.to_pay_move_line_ids.filtered(lambda x: x.date_maturity):
+                due = l.date_maturity
+                delay = (rec.payment_date - due).days
+                inv = l.move_id.display_name or l.move_id.name or (l.move_id.ref or str(l.move_id.id))
+
+                if delay > 0:
+                    overdue_items.append(
+                        "%s — vence: %s — atraso: %s día(s)" %
+                        (inv, format_date(self.env, due), delay)
+                    )
+                elif delay == 0:
+                    same_day_items.append(
+                        "%s — vence hoy (%s)" %
+                        (inv, format_date(self.env, due))
+                    )
+
+            if overdue_items or same_day_items:
+                parts = []
+                title = _("La fecha de pago (%s)") % format_date(self.env, rec.payment_date)
+                if overdue_items:
+                    parts.append("<p><strong>%s %s</strong></p><ul>%s</ul>" % (
+                        title, _("es mayor a la fecha de vencimiento en:"),
+                        "".join("<li>%s</li>" % i for i in overdue_items)
+                    ))
+                if same_day_items:
+                    parts.append("<p><strong>%s</strong></p><ul>%s</ul>" % (
+                        _("Vencen el mismo día:"),
+                        "".join("<li>%s</li>" % i for i in same_day_items)
+                    ))
+                css = 'alert-danger' if overdue_items else 'alert-info'
+                rec.paid_date_venc_html = "<div class='alert %s'>%s</div>" % (css, "".join(parts))
 
     def set_payments_date(self):
         for record in self:
