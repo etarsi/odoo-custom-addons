@@ -160,11 +160,11 @@ class AccountPaymentInherit(models.Model):
         store=True,  # <<-- esto lo hace almacenado, ahora es ordenable y filtrable
         string='Importe en moneda compañía',  # Cambia el nombre aquí si quieres
     )
-    is_check_issuer_effectiveness_text = fields.Boolean(default=False)
-    check_issuer_effectiveness_text = fields.Text(compute="_compute_check_issuer_effectiveness")
+    is_effectiveness_text = fields.Boolean(default=False)
+    check_effectiveness_text = fields.Text(compute="_compute_check_effectiveness")
 
     @api.onchange('l10n_latam_check_issuer_vat', 'payment_method_line_id', 'journal_id')
-    def _compute_check_issuer_effectiveness(self):
+    def _compute_check_effectiveness(self):
         Payment = self.env['account.payment'].sudo()
 
         # Estados según tu base (ajustá si usan otros nombres)
@@ -173,8 +173,8 @@ class AccountPaymentInherit(models.Model):
 
         for rec in self:
             # reset por defecto: no mostrar nada
-            rec.is_check_issuer_effectiveness_text = False
-            rec.check_issuer_effectiveness_text = False
+            rec.is_effectiveness_text = False
+            rec.check_effectiveness_text = False
 
             # Requisitos mínimos
             if not (rec.l10n_latam_check_issuer_vat and rec.payment_method_line_id and rec.journal_id):
@@ -204,8 +204,8 @@ class AccountPaymentInherit(models.Model):
             pct = int(round(100.0 * succ / float(base)))
 
             # Texto final (ej: "45% cheque aprobado")
-            rec.check_issuer_effectiveness_text = _("%(pct)s%% Cheque Aprobado") % {'pct': pct}
-            rec.is_check_issuer_effectiveness_text = True
+            rec.check_effectiveness_text = _("%(pct)s%% Cheque Aprobado") % {'pct': pct}
+            rec.is_effectiveness_text = True
 
     @api.depends('l10n_latam_check_current_journal_id')
     def _compute_check_state(self):
