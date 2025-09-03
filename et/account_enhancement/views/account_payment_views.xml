@@ -8,10 +8,10 @@
             <xpath expr="//field[@name='journal_id']" position="before">
                 <div class="text-danger"
                     style="font-weight:700; font-size:16px; margin:8px 0; white-space:pre-line;"
-                    attrs="{'invisible': ['|', ('state','!=','draft'), ('is_check_issuer_effectiveness_text','=', False)]}">
-                    <field name="check_issuer_effectiveness_text" readonly="1" nolabel="1"/>
+                    attrs="{'invisible': ['|', ('state','!=','draft'), ('is_effectiveness_text','=', False)]}">
+                    <field name="check_effectiveness_text" readonly="1" nolabel="1"/>
                 </div>
-                <field name="is_check_issuer_effectiveness_text" invisible="1"/>
+                <field name="is_effectiveness_text" invisible="1"/>
             </xpath>
         </field>
     </record>
