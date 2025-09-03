@@ -45,6 +45,7 @@
         'views/calendar_paid_views.xml',
         'views/report_pagos_fuera_fecha.xml',
         'views/account_payment_group_views.xml',
+        'views/account_payment_views.xml',
         'views/templates.xml',
         'views/menu.xml'
     ],

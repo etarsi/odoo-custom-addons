@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="account_payment_form_view_inherit" model="ir.ui.view">
+        <field name="name">account.payment.form.view.inherit</field>
+        <field name="model">account.payment</field>
+        <field name="inherit_id" ref="account.view_account_payment_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='journal_id']" position="before">
+                <div style="font-weight:700; font-size:16px; margin:8px 0; white-space:pre-line;">
+                    <field name="check_issuer_effectiveness_html" widget="html" readonly="1" nolabel="1"/>
+                </div>
+            </xpath>
+        </field>
+    </record>
+</odoo>
