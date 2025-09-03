@@ -68,6 +68,12 @@ class AccountMoveInherit(models.Model):
                         record.partner_bank_id = res_partner_bank.id
                     else:
                         raise UserError('No se encontró banco destinatario, asignar manualmente')
+    
+    # @api.onchange('partner_id')
+    # def _onchange_update_taxed(self):
+    #     for record in self:
+    #         if record.invoice_line_ids:
+    #             record.update_taxes()
 
     @api.onchange('partner_id')
     def _onchange_journal_gc(self):

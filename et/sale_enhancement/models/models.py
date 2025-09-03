@@ -165,32 +165,13 @@ class SaleOrderInherit(models.Model):
 
             # STOCK ERP
 
-            record.validate_stock_erp()
+            up = record.comprometer_stock()
 
-
-            vals_list = []
-            for line in record.order_line:
-                vals = {}
-                stock_erp = self.env['stock.erp'].search([('product_id', '=', line.product_id.id)], limit=1)
-                if stock_erp:
-                    vals['stock_erp'] = stock_erp.id
-                else:
-                    raise UserError(f'El producto [{line.product_id.default_code}]{line.product_id.name} no se encuentra en el listado de Stock. Avise al administrador.')
-
-                if record.picking_ids:
-                    vals['picking_id'] = record.picking_ids[0].id
-                vals['sale_id'] = record.id
-                vals['sale_line_id'] = line.id
-                vals['product_id'] = line.product_id.id
-                vals['quantity'] = line.product_uom_qty
-                vals['uxb'] = line.product_packaging_id.qty or ''
-                vals['bultos'] = line.product_packaging_qty
-
-                vals_list.append(vals)
-            
-            self.env['stock.moves.erp'].create(vals_list)
+            if up:
+                record.clean_stock_moves(up)            
 
         return res
+    
 
     def update_prices(self):
         self.ensure_one()
@@ -203,9 +184,43 @@ class SaleOrderInherit(models.Model):
 
     ### CUSTOM
 
-    # def validate_stock_erp(self):
-    #     for record in self:
-    #         for line in record.order_line:
+    def comprometer_stock(self):
+        for record in self:
+            vals_list = []
+            unavailable_products = []
+            for line in record.order_line:
+                if line.is_available:
+                    vals = {}
+                    stock_erp = self.env['stock.erp'].search([('product_id', '=', line.product_id.id)], limit=1)
+                    if stock_erp:
+                        vals['stock_erp'] = stock_erp.id
+                    else:
+                        raise UserError(f'El producto [{line.product_id.default_code}]{line.product_id.name} no se encuentra en el listado de Stock. Avise al administrador.')
+
+                    if record.picking_ids:
+                        vals['picking_id'] = record.picking_ids[0].id
+                    vals['sale_id'] = record.id
+                    vals['sale_line_id'] = line.id
+                    vals['product_id'] = line.product_id.id
+                    vals['quantity'] = line.product_uom_qty
+                    vals['uxb'] = line.product_packaging_id.qty or ''
+                    vals['bultos'] = line.product_packaging_qty
+
+                    vals_list.append(vals)
+                else:                    
+                    unavailable_products.append(line.product_id.id)
+
+            
+            self.env['stock.moves.erp'].create(vals_list)
+            return unavailable_products
+
+    def clean_stock_moves(self, up):
+        for record in self:
+            for picking in record.picking_ids:
+                if picking.move_ids_without_package:
+                    for move in picking.move_ids_without_package:
+                        if move.product_id.id in up:
+                            move.unlink()
 
 
     def check_partner_origin(self):
@@ -346,6 +361,12 @@ class SaleOrderLineInherit(models.Model):
                 record.is_available = True
             else:
                 record.is_available = False
+    
+
+    @api.onchange('product_id')
+    def _onchange_availability(self):
+        for record in self:
+            record.update_stock_erp()
 
 
     def _update_line_quantity(self, values):
