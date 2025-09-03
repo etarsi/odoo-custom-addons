@@ -191,7 +191,7 @@ class AccountPaymentInherit(models.Model):
             # ('payment_method_line_id.payment_method_id.code', '=', 'in_third_check'),
 
             grouped = Payment.read_group(domain, ['id:count'], ['check_state'])
-            counts = {g['check_state'] or 'unknown': g['id_count'] for g in grouped}
+            counts = {g['check_state'] for g in grouped}
 
             succ = sum(counts.get(s, 0) for s in success_states)
             rej  = sum(counts.get(s, 0) for s in rejected_states)
