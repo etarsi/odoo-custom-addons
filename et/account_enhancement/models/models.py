@@ -266,7 +266,7 @@ class AccountPaymentGroupInherit(models.Model):
         sanitize=False,
     )
     is_paid_date_venc_text = fields.Boolean(default=False, copy=False)
-    paid_date_venc_text = fields.Text(default='⚠️ EL PAGO SE REALIZÓ DESPUÉS DE LA FECHA DE VENCIMIENTO ⚠️')
+    paid_date_venc_text = fields.Text(default='⚠️ EL PAGO A REGISTRAR ESTA FUERA DE FECHA ⚠️')
 
     @api.onchange('payment_date', 'to_pay_move_line_ids', 'to_pay_move_line_ids.date_maturity', 'to_pay_move_line_ids.move_id')
     def _compute_paid_date_venc_html(self):
