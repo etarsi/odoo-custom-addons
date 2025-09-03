@@ -163,47 +163,43 @@ class AccountPaymentInherit(models.Model):
     is_effectiveness_text = fields.Boolean(default=False)
     check_effectiveness_text = fields.Text(compute="_compute_check_effectiveness")
 
-    @api.onchange('l10n_latam_check_issuer_vat', 'payment_method_line_id', 'journal_id')
+    @api.depends('l10n_latam_check_issuer_vat', 'payment_method_line_id', 'journal_id', 'company_id')
     def _compute_check_effectiveness(self):
         Payment = self.env['account.payment'].sudo()
 
-        # Estados según tu base (ajustá si usan otros nombres)
-        success_states = {'Entregado'}
+        success_states = {'Entregado'}   # ajustá a los *valores* reales de check_state
         rejected_states = {'Rechazado'}
 
         for rec in self:
-            # reset por defecto: no mostrar nada
             rec.is_effectiveness_text = False
             rec.check_effectiveness_text = False
 
-            # Requisitos mínimos
             if not (rec.l10n_latam_check_issuer_vat and rec.payment_method_line_id and rec.journal_id):
                 continue
-
-            # Filtro puntual de diario / método (como pediste)
             if not (rec.journal_id.code == 'CSH3' and rec.payment_method_line_id.id == 18):
                 continue
 
-            vat = rec.l10n_latam_check_issuer_vat
+            domain = [
+                ('l10n_latam_check_issuer_vat', '=', rec.l10n_latam_check_issuer_vat),
+                ('company_id', '=', rec.company_id.id if rec.company_id else self.env.company.id),
+                ('state', '=', 'posted'),
+            ]
 
-            domain = [('l10n_latam_check_issuer_vat', '=', vat), ('state', '=', 'posted')]
-            # Si querés restringir solo a cheques de tercero de cierto método, podés agregar:
-            # ('payment_method_line_id.payment_method_id.code', '=', 'in_third_check'),
+            # Usar __count (si querés, podés agregar 'id:count' y leer 'id_count', pero __count siempre está)
+            grouped = Payment.read_group(domain, ['check_state'], ['check_state'])
 
-            grouped = Payment.read_group(domain, ['id:count'], ['check_state'])
-            counts = {g['check_state'] for g in grouped}
+            counts = { (g.get('check_state')): g.get('__count', 0) for g in grouped }
+            # Si preferís con 'id:count', sería:
+            # grouped = Payment.read_group(domain, ['id:count', 'check_state'], ['check_state'])
+            # counts = { (g.get('check_state') or 'unknown'): g.get('id_count', g.get('__count', 0)) for g in grouped }
 
             succ = sum(counts.get(s, 0) for s in success_states)
             rej  = sum(counts.get(s, 0) for s in rejected_states)
             base = succ + rej
-
-            # Sin antecedentes: no mostramos nada
             if base == 0:
                 continue
 
             pct = int(round(100.0 * succ / float(base)))
-
-            # Texto final (ej: "45% cheque aprobado")
             rec.check_effectiveness_text = _("%(pct)s%% Cheque Aprobado") % {'pct': pct}
             rec.is_effectiveness_text = True
 
