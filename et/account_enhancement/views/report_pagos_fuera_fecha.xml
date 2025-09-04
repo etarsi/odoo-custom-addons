@@ -7,13 +7,15 @@
         <field name="arch" type="xml">
             <tree string="Pagos Fuera de Fecha" create="false" edit="false" delete="false">
                 <field name="state" invisible="1" />
-                <field name="name" string="Número de Factura" />
-                <field name="partner_id" string="Nombre de Cliente" />
-                <field name="invoice_payment_term_id" string="Término de Pago"/>
-                <field name="invoice_date" string="Fecha de Factura" />
-                <field name="invoice_payments_widget" string="Pagos Relacionados" />
-                <field name="payment_refs_html" widget="html" string="Refs pagos" optional="show"/>
-                <field name="tax_totals_json" string="Total a Cobrar" sum="Total a Cobrar" />
+                <field name="name" string="Número de Factura" optional="show" />
+                <field name="partner_id" string="Nombre de Cliente" optional="show" />
+                <field name="invoice_payment_term_id" string="Término de Pago" optional="show" />
+                <field name="invoice_date" string="Fecha de Factura" optional="show" />
+                
+                <field name="invoice_date_due" string="Fecha Vencimiento" optional="show" attrs="{'invisible': [('state', '!=', 'posted')]}" />
+                <field name="payment_refs_html" widget="html" optional="show" />
+                <field name="payment_amount_html" widget="html" optional="show" />
+                <field name="payment_date_html" widget="html" optional="show" />
             </tree>
         </field>
     </record>
