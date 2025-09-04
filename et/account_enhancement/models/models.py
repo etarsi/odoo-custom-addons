@@ -253,9 +253,9 @@ class AccountPaymentInherit(models.Model):
             rec.is_effectiveness_text = False
             rec.check_effectiveness_text = False
 
-            if not (rec.l10n_latam_check_issuer_vat and rec.payment_method_line_id and rec.journal_id):
+            if not (rec.l10n_latam_check_issuer_vat and rec.journal_id):
                 continue
-            if not (rec.journal_id.code in ('CSH3', 'ECHEQ') and rec.payment_method_line_id.id == 18):
+            if rec.journal_id.code not in ('CSH3', 'ECHEQ'):
                 continue
 
             # Buscar y contar manualmente
