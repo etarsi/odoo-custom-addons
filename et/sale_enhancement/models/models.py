@@ -214,6 +214,7 @@ class SaleOrderInherit(models.Model):
             self.env['stock.moves.erp'].create(vals_list)
             return unavailable_products
 
+
     def clean_stock_moves(self, up):
         for record in self:
             for picking in record.picking_ids:
@@ -222,6 +223,7 @@ class SaleOrderInherit(models.Model):
                         if move.product_id.id in up:
                             move.state = 'draft'
                             move.unlink()
+                picking.show_operations = False
 
 
     def check_partner_origin(self):

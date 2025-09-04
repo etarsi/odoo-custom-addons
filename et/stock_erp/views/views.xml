@@ -59,7 +59,7 @@
                                 <field name="quantity"/>
                                 <field name="uxb"/>
                                 <field name="bultos"/>      
-                                <button name="unreserve_stock" type="object" string="Liberar" class="btn-link text-danger"/>               
+                                <button name="unreserve_stock" type="object" string="Liberar"/>               
                             </tree>
                           </field>
                       </page>

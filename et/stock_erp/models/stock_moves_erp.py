@@ -42,7 +42,7 @@ class StockMovesERP(models.Model):
                                     elif record.quantity == move.product_uom_qty or record.quantity == partial_quantity:                                        
                                         # record.unreserve_sale_line()
                                         record.unlink()
-    
+
 
     # def unreserve_sale_line(self):
     #     for record in self:
