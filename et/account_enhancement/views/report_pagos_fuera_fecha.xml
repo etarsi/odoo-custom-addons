@@ -11,8 +11,8 @@
                 <field name="partner_id" string="Nombre de Cliente" />
                 <field name="invoice_payment_term_id" string="Término de Pago"/>
                 <field name="invoice_date" string="Fecha de Factura" />
-                <field name="invoice_payments_widget" string="Pagos Relacionados" widget="payment"/>
-                <field name="tax_totals_json" string="Total a Cobrar" sum="Total a Cobrar" widget="payment" />
+                <field name="invoice_payments_widget" string="Pagos Relacionados" />
+                <field name="tax_totals_json" string="Total a Cobrar" sum="Total a Cobrar" />
             </tree>
         </field>
     </record>
