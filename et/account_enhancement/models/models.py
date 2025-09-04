@@ -163,10 +163,9 @@ class AccountPaymentInherit(models.Model):
     is_effectiveness_text = fields.Boolean(default=False)
     check_effectiveness_text = fields.Text(compute="_compute_check_effectiveness")
 
-    @api.depends('l10n_latam_check_issuer_vat', 'payment_method_line_id', 'journal_id', 'company_id')
+    @api.onchange('l10n_latam_check_issuer_vat', 'payment_method_line_id', 'journal_id')
     def _compute_check_effectiveness(self):
         Payment = self.env['account.payment'].sudo()
-
         success_states = {'Entregado'}   # ajustá a los *valores* reales de check_state
         rejected_states = {'Rechazado'}
 
@@ -181,27 +180,29 @@ class AccountPaymentInherit(models.Model):
 
             domain = [
                 ('l10n_latam_check_issuer_vat', '=', rec.l10n_latam_check_issuer_vat),
-                ('company_id', '=', rec.company_id.id if rec.company_id else self.env.company.id),
                 ('state', '=', 'posted'),
             ]
 
-            # Usar __count (si querés, podés agregar 'id:count' y leer 'id_count', pero __count siempre está)
-            grouped = Payment.read_group(domain, ['check_state'], ['check_state'])
+            # Buscar y contar manualmente
+            payments = Payment.search(domain)
+            if payments:
+                succ = 0
+                rej = 0
+                for p in payments:
+                    st = p.check_state
+                    if st in success_states:
+                        succ += 1
+                    elif st in rejected_states:
+                        rej += 1
 
-            counts = { (g.get('check_state')): g.get('__count', 0) for g in grouped }
-            # Si preferís con 'id:count', sería:
-            # grouped = Payment.read_group(domain, ['id:count', 'check_state'], ['check_state'])
-            # counts = { (g.get('check_state') or 'unknown'): g.get('id_count', g.get('__count', 0)) for g in grouped }
+                base = succ + rej
+                if base == 0:
+                    # sin antecedentes → no mostramos nada
+                    continue
 
-            succ = sum(counts.get(s, 0) for s in success_states)
-            rej  = sum(counts.get(s, 0) for s in rejected_states)
-            base = succ + rej
-            if base == 0:
-                continue
-
-            pct = int(round(100.0 * succ / float(base)))
-            rec.check_effectiveness_text = _("%(pct)s%% Cheque Aprobado") % {'pct': pct}
-            rec.is_effectiveness_text = True
+                pct = int(round(100.0 * succ / float(base)))
+                rec.check_effectiveness_text = _("%(pct)s%% Cheque Aprobado") % {'pct': pct}
+                rec.is_effectiveness_text = True
 
     @api.depends('l10n_latam_check_current_journal_id')
     def _compute_check_state(self):
