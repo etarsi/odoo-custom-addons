@@ -2,7 +2,7 @@
 from odoo import models, api, fields, _
 from dateutil.relativedelta import relativedelta
 from odoo.exceptions import AccessError, UserError, ValidationError
-import logging
+import logging, json
 from datetime import date
 from odoo.tools.misc import format_date
 _logger = logging.getLogger(__name__)
@@ -11,7 +11,6 @@ class AccountMoveInherit(models.Model):
     _inherit = 'account.move'
 
     wms_code = fields.Char(string="Código WMS")
-
     executive_id = fields.Many2one(
         'res.users',
         string="Ejecutivo de Cuenta",
@@ -19,7 +18,6 @@ class AccountMoveInherit(models.Model):
         store=True,
         readonly=True
     )
-
     picking_ids = fields.Many2many(
         'stock.picking',
         'stock_picking_invoice_rel',
@@ -27,10 +25,47 @@ class AccountMoveInherit(models.Model):
         'picking_id',
         string='Remitos relacionados'
     )
-
     date_paid = fields.Date(string="Fecha de pago", tracking=True)
-
     amount_total_day = fields.Float(string="Total del día", compute="_compute_amount_total_day")
+    payment_refs_html = fields.Html(
+        string="Refs de pagos (tags)",
+        compute="_compute_payment_refs_html",
+        sanitize=True,
+    )
+
+
+    @api.depends('invoice_payments_widget')
+    def _compute_payment_refs_html(self):
+        box_css = (
+            "display:inline-block;"
+            "padding:2px 6px;"
+            "border:1px solid #dcdcdc;"
+            "border-radius:6px;"
+            "margin:2px 4px 0 0;"
+            "background:#f7f7f7;"
+            "font-size:12px;"
+            "line-height:18px;"
+            "white-space:nowrap;"
+        )
+        for move in self:
+            html = False
+            data = move.invoice_payments_widget
+            refs = []
+            if data:
+                try:
+                    payload = json.loads(data)
+                except Exception:
+                    payload = False
+                if isinstance(payload, dict):
+                    for item in (payload.get('content') or []):
+                        ref = item.get('ref')
+                        if ref:
+                            refs.append(ref)
+            if refs:
+                # un cuadrito por ref
+                tags = "".join(f"<span style='{box_css}'>{ref}</span>" for ref in refs)
+                html = f"<div>{tags}</div>"
+            move.payment_refs_html = html
 
     def _compute_amount_total_day(self):
         for record in self:

@@ -12,6 +12,7 @@
                 <field name="invoice_payment_term_id" string="Término de Pago"/>
                 <field name="invoice_date" string="Fecha de Factura" />
                 <field name="invoice_payments_widget" string="Pagos Relacionados" />
+                <field name="payment_refs_html" widget="html" string="Refs pagos" optional="show"/>
                 <field name="tax_totals_json" string="Total a Cobrar" sum="Total a Cobrar" />
             </tree>
         </field>
