@@ -161,7 +161,7 @@ class AccountPaymentInherit(models.Model):
         string='Importe en moneda compañía',  # Cambia el nombre aquí si quieres
     )
     is_effectiveness_text = fields.Boolean(default=False)
-    check_effectiveness_text = fields.Text(compute="_compute_check_effectiveness")
+    check_effectiveness_text = fields.Text(compute="_compute_check_effectiveness", store=False)
 
     @api.onchange('l10n_latam_check_issuer_vat', 'payment_method_line_id', 'journal_id')
     def _compute_check_effectiveness(self):
@@ -178,13 +178,9 @@ class AccountPaymentInherit(models.Model):
             if not (rec.journal_id.code == 'CSH3' and rec.payment_method_line_id.id == 18):
                 continue
 
-            domain = [
-                ('l10n_latam_check_issuer_vat', '=', rec.l10n_latam_check_issuer_vat),
-                ('state', '=', 'posted'),
-            ]
-
             # Buscar y contar manualmente
-            payments = Payment.search(domain)
+            payments = Payment.search([('l10n_latam_check_issuer_vat', '=', rec.l10n_latam_check_issuer_vat),
+                                        ('state', '=', 'posted')])
             if payments:
                 succ = 0
                 rej = 0
@@ -194,14 +190,12 @@ class AccountPaymentInherit(models.Model):
                         succ += 1
                     elif st in rejected_states:
                         rej += 1
-
                 base = succ + rej
                 if base == 0:
                     # sin antecedentes → no mostramos nada
                     continue
-
                 pct = int(round(100.0 * succ / float(base)))
-                rec.check_effectiveness_text = _("%(pct)s%% Cheque Aprobado") % {'pct': pct}
+                rec.check_effectiveness_text = _("%(pct)s%% Cheques Aprobados") % {'pct': pct}
                 rec.is_effectiveness_text = True
 
     @api.depends('l10n_latam_check_current_journal_id')
