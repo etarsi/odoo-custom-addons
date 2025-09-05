@@ -387,7 +387,8 @@ class SaleOrderLineInherit(models.Model):
     @api.onchange('product_uom_qty')
     def _onchange_client_purchase_intent(self):
         for record in self:
-            record.check_client_purchase_intent()
+            if record.product_id:
+                record.check_client_purchase_intent()
 
     @api.onchange('product_id')
     def _onchange_availability(self):
