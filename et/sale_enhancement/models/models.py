@@ -365,7 +365,7 @@ class SaleOrderLineInherit(models.Model):
                 vals['sale_line_id'] = record.id
                 vals['product_id'] = record.product_id.id
                 vals['quantity'] = record.product_uom_qty
-                vals['uxb'] = record.product_pacakging_id.qty
+                vals['uxb'] = record.product_packaging_id.qty
 
                 self.env['client.purchase.intent'].create(vals)
 
