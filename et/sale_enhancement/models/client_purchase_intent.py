@@ -17,5 +17,5 @@ class ClientPurchaseIntent(models.Model):
     @api.depends('quantity')
     def _compute_bultos(self):
         for record in self:
-            record.bultos = record.quantity / record.uxb
-            
+            if record.uxb:
+                record.bultos = record.quantity / record.uxb
