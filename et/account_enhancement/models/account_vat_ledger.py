@@ -24,21 +24,21 @@ class AccountMoveReversalInherit(models.Model):
     @api.depends('invoice_ids')
     def _compute_total_grav_21(self):
         for record in self:
-            record.total_vat_21 = sum(record.invoice_ids.mapped('base_21'))
+            record.total_grav_21 = sum(record.invoice_ids.mapped('base_21'))
 
     
     @api.depends('invoice_ids')
     def _compute_total_other_taxes(self):
         for record in self:
-            record.total_vat_21 = sum(record.invoice_ids.mapped('other_taxes'))
+            record.total_other_taxes = sum(record.invoice_ids.mapped('other_taxes'))
 
     @api.depends('invoice_ids')
     def _compute_total_iibb_taxes(self):
         for record in self:
-            record.total_vat_21 = sum(record.invoice_ids.mapped('iibb_taxes'))
+            record.total_iibb_taxes = sum(record.invoice_ids.mapped('iibb_taxes'))
 
 
     @api.depends('invoice_ids')
     def _compute_total_final(self):
         for record in self:
-            record.total_vat_21 = sum(record.invoice_ids.mapped('total'))
+            record.total_final = sum(record.invoice_ids.mapped('total'))
