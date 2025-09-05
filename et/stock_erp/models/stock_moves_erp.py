@@ -33,7 +33,7 @@ class StockMovesERP(models.Model):
                 for picking in record.sale_id.picking_ids:
                     if picking.move_ids_without_package:
                         for move in picking.move_ids_without_package:
-                            if move.product_id == record.product_id.id:
+                            if move.product_id.id == record.product_id.id:
                                 if picking.state_wms != 'no':
                                     raise UserError(f'No se puede liberar la cantidad comprometida ({record.sale_id}) porque las unidades están siendo preparadas o ya han sido preparadas en la transferencia {record.picking_id}.')
                                 else:
