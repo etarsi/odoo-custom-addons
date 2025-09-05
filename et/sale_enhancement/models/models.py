@@ -327,6 +327,7 @@ class SaleOrderLineInherit(models.Model):
         digits='Product Unit of Measure', readonly=False)
 
     is_available = fields.Boolean(string='Disponible', compute="_compute_is_available", store=True)
+    is_cancelled = fields.Boolean(default=False)
     disponible_unidades = fields.Integer('Disponible')
     comprometido_unidades = fields.Integer('Comprometido')
     
