@@ -11,5 +11,11 @@ class ClientPurchaseIntent(models.Model):
     product_id = fields.Many2one('product.product')
     quantity = fields.Integer()
     uxb = fields.Integer()
-    bultos = fields.Float()
-    
+    bultos = fields.Float(compute="_compute_bultos")
+
+
+    @api.depends('quantity')
+    def _compute_bultos(self):
+        for record in self:
+            record.bultos = record.quantity / record.uxb
+            

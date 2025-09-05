@@ -345,6 +345,7 @@ class SaleOrderLineInherit(models.Model):
 
 
             rec.update_stock_erp()
+            rec.check_client_purchase_intent()
              
         return res
 
@@ -355,6 +356,21 @@ class SaleOrderLineInherit(models.Model):
             if stock_erp:
                 record.disponible_unidades = stock_erp.disponible_unidades
         
+
+    def check_client_purchase_intent(self):
+        for record in self:
+            if not record.is_available:
+                vals = {}
+                vals['sale_id'] = record.order_id.id
+                vals['sale_line_id'] = record.id
+                vals['product_id'] = record.product_id.id
+                vals['quantity'] = record.product_uom_qty
+                vals['uxb'] = record.product_pacakging_id.qty
+
+                self.env['client.purchase.intent'].create(vals)
+
+
+
     # COMPUTED
 
     @api.depends('disponible_unidades', 'product_uom_qty')
@@ -365,6 +381,13 @@ class SaleOrderLineInherit(models.Model):
             else:
                 record.is_available = False
     
+
+    # ONCHANGE
+
+    @api.onchange('product_uom_qty')
+    def _onchange_client_purchase_intent(self):
+        for record in self:
+            record.check_client_purchase_intent()
 
     @api.onchange('product_id')
     def _onchange_availability(self):
