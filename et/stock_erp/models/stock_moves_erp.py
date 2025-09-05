@@ -33,6 +33,7 @@ class StockMovesERP(models.Model):
             partial_quantity = 0
             total_qty_to_unlink = record.quantity
             moves_to_unlink = []
+            pickings_to_check = ()
 
             for picking in record.sale_id.picking_ids:
                 if picking.state_wms != 'no':
@@ -51,10 +52,25 @@ class StockMovesERP(models.Model):
             if partial_quantity >= total_qty_to_unlink:
                 for move in moves_to_unlink:
                     record.unreserve_sale_line(move)
+                    pickings_to_check.add(move.picking_id)
                     move.state = 'draft'
                     move.unlink()
+                    record.check_picking(pickings_to_check)
+                record.update_sale_orders()
                 record.unlink()
 
+    def update_sale_orders(self):
+        for record in self:
+            sales_lines_to_update = record.stock_erp.move_lines.mapped('sale_line_id')
+            if sales_lines_to_update:
+                for line in sales_lines_to_update:
+                    line.update_stock_erp()
+
+    def check_picking(self, pickings):
+        for p in pickings:
+            if not p.move_ids_without_package:
+                p.state = 'draft'
+                p.unlink()
 
 
     def unreserve_sale_line(self, move):
