@@ -60,5 +60,5 @@ class StockMovesERP(models.Model):
         sale_line = move.sale_line_id
         if sale_line:
             if sale_line.invoice_lines:
-                raise UserError(f"No se puede borrar la línea de venta {sale_line.name} porque ya fue facturada.")
-            sale_line.unlink()
+                raise UserError(f"No se puede borrar la línea de venta {sale_line.name} porque ya fue facturada.")            
+            sale_line.product_uom_qty = 0
