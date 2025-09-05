@@ -51,6 +51,7 @@ class StockMovesERP(models.Model):
             if partial_quantity >= total_qty_to_unlink:
                 for move in moves_to_unlink:
                     record.unreserve_sale_line(move)
+                    move.state = 'draft'
                     move.unlink()
                 record.unlink()
 
