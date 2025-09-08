@@ -201,17 +201,32 @@ class SaleOrderInherit(models.Model):
         for record in self:
             vals_list = []
             unavailable_products = []
+
             for line in record.order_line:
                 if line.is_available:
                     vals = {}
-                    stock_erp = self.env['stock.erp'].search([('product_id', '=', line.product_id.id)], limit=1)
-                    if stock_erp:
+                    default_code = line.product_id.default_code
+
+                    if default_code:
+                        if default_code.startswith('9'):
+                            search_code = default_code[1:]
+                        else:
+                            search_code = default_code
+
+                        stock_erp = self.env['stock.erp'].search([
+                            ('product_id.default_code', '=', search_code)
+                        ], limit=1)
+
+                        if not stock_erp:
+                            raise UserError(f'El producto [{default_code}]{line.product_id.name} no se encuentra en el listado de Stock. Avise al administrador.')
+                        
                         vals['stock_erp'] = stock_erp.id
                     else:
-                        raise UserError(f'El producto [{line.product_id.default_code}]{line.product_id.name} no se encuentra en el listado de Stock. Avise al administrador.')
+                        raise UserError(f'El producto {line.product_id.name} no tiene definido un código interno (default_code).')
 
                     if record.picking_ids:
                         vals['picking_id'] = record.picking_ids[0].id
+
                     vals['sale_id'] = record.id
                     vals['sale_line_id'] = line.id
                     vals['product_id'] = line.product_id.id
@@ -220,10 +235,10 @@ class SaleOrderInherit(models.Model):
                     vals['bultos'] = line.product_packaging_qty
 
                     vals_list.append(vals)
-                else:                    
+
+                else:
                     unavailable_products.append(line.product_id.id)
 
-            
             self.env['stock.moves.erp'].create(vals_list)
             return unavailable_products
 
