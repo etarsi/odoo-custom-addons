@@ -14,8 +14,8 @@
                 <field name="invoice_date_due" string="Fecha Vencimiento" optional="show" />
                 <field name="payment_refs_html" widget="html" optional="show" />
                 <field name="payment_date_html" widget="html" optional="show" />
-                <field name="amount_total_signed" widget="monetary" />
-                <field name="payment_amount_html" widget="html" optional="show" />
+                <field name="amount_total_signed" string="Monto Total de Factura" widget="monetary" />
+                <field name="payment_amount_html" string="Pagos" widget="html" optional="show" />
                 <field name="amount_residual" widget="monetary" />
             </tree>
         </field>
