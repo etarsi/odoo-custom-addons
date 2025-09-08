@@ -197,6 +197,15 @@ class SaleOrderInherit(models.Model):
 
     ### CUSTOM
 
+    # def cancel_stock(self):
+    #     for record in self:
+
+    #         if record.picking_ids:
+    #             for picking in record.picking_ids:
+    #                 if picking.wms_state == 'no':
+                        
+    #                     for move in picking.move_ids_without_package:
+
     def comprometer_stock(self):
         for record in self:
             vals_list = []
