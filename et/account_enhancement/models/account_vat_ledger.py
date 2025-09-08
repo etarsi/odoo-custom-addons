@@ -10,10 +10,14 @@ class AccountMoveReversalInherit(models.Model):
     total_other_taxes = fields.Float('Total Impuestos Otros', compute="_compute_total_other_taxes", store=True)
     total_iibb_taxes = fields.Float('Total IIBB', compute="_compute_total_iibb_taxes", store=True)
     total_final = fields.Float('Total Impuestos', compute="_compute_total_final", store=True)
-
+    total_not_taxed = fields.Float('Total No Gravado', compute="_compute_total_not_taxed", store=True)
 
 
     # COMPUTED
+    @api.depends('invoice_ids')
+    def _compute_total_not_taxed(self):
+        for record in self:
+            record.total_not_taxed = sum(record.invoice_ids.mapped('not_taxed'))
 
     @api.depends('invoice_ids')
     def _compute_total_vat_21(self):
