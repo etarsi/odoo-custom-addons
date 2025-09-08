@@ -99,6 +99,32 @@ class StockERP(models.Model):
         if product_id:
             if product_id.packaging_ids:
                 return product_id.packaging_ids[0].qty
+            
+    def increase_fisico_unidades(self, quantity):
+        for record in self:
+            record.fisico_unidades += quantity
+
+    
+    def increase_comprometido_unidades(self, quantity):
+        for record in self:
+            record.comprometido_unidades += quantity
+
+
+    def decrease_fisico_unidades(self, quantity):
+        for record in self:
+            if quantity < record.fisico_unidades:
+                record.fisico_unidades -= quantity
+            else: 
+                raise UserError(f'Para el product: {record.product_id}, tiene {record.fisico_unidades} unidades y quiere entregar {quantity} unidades. El resultado no puede ser negativo')
+            
+            
+    def decrease_comprometido_unidades(self, quantity):
+        for record in self:
+            if quantity < record.comprometido_unidades:
+                record.comprometido_unidades -= quantity
+            else: 
+                raise UserError(f'Para el product: {record.product_id}, tiene {record.comprometido_unidades} unidades y quiere liberar {quantity} unidades. El resultado no puede ser negativo')
+
 
     #####  COMPUTE METHODS #####
 
@@ -109,13 +135,12 @@ class StockERP(models.Model):
                 record.name = record.product_id.name
             else: record.name = record.id
 
-    @api.depends('move_lines')
-    def _compute_comprometido_unidades(self):
-        for record in self:
-            if record.move_lines:
-                record.comprometido_unidades = sum(line.quantity for line in record.move_lines)
-            else:
-                record.comprometido_unidades = 0
+    # @api.depends('move_lines')
+    # def _compute_comprometido_unidades(self):
+    #     for record in self:
+    #         record.comprometido_unidades = sum(
+    #             line.quantity for line in record.move_lines if line.type == 'reserve'
+    #         )
 
     @api.depends('fisico_unidades', 'enelagua_unidades', 'comprometido_unidades')
     def _compute_disponible_unidades(self):

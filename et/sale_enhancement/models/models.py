@@ -242,6 +242,7 @@ class SaleOrderInherit(models.Model):
                     vals['quantity'] = line.product_uom_qty
                     vals['uxb'] = line.product_packaging_id.qty or ''
                     vals['bultos'] = line.product_packaging_qty
+                    vals['type'] = 'reserve'
 
                     vals_list.append(vals)
 
