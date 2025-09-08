@@ -38,7 +38,7 @@ class StockMovesERP(models.Model):
             elif record.type == 'delivery':
                 record.stock_erp.decrease_fisico_unidades(record.quantity)
                 record.stock_erp.decrease_comprometido_unidades(record.quantity)
-
+        return records
 
     def unreserve_stock(self):
         for record in self:
