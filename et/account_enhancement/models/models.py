@@ -30,6 +30,18 @@ class AccountMoveInherit(models.Model):
     payment_refs_html = fields.Html(string="Ref de Pagos", compute="_compute_payment_html", sanitize=True)
     payment_amount_html = fields.Html(string="Montos de Cobro", compute="_compute_payment_html", sanitize=True)
     payment_date_html = fields.Html(string="Fecha de Pagos", compute="_compute_payment_html", sanitize=True)
+    calendar_color_state = fields.Selection([
+        ('paid', 'Pagado'),
+        ('not_paid', 'No Pagado'),
+    ], compute='_compute_calendar_color_state', store=False)
+
+
+    def _compute_calendar_color_state(self):
+        for move in self:
+            if move.payment_state == 'paid':
+                move.calendar_color_state = 'paid'
+            else:
+                move.calendar_color_state = 'not_paid'
 
     @api.depends('invoice_payments_widget')
     def _compute_payment_html(self):
