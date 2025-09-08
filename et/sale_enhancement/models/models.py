@@ -366,9 +366,25 @@ class SaleOrderLineInherit(models.Model):
 
     def update_stock_erp(self):
         for record in self:
-            stock_erp = self.env['stock.erp'].search([('product_id', '=', record.product_id.id)], limit=1)
-            if stock_erp:
-                record.disponible_unidades = stock_erp.disponible_unidades
+            default_code = record.product_id.default_code
+
+            if default_code:
+                if default_code.startswith('9'):
+                    search_code = default_code[1:]
+                else:
+                    search_code = default_code
+
+                stock_erp = self.env['stock.erp'].search([
+                    ('product_id.default_code', '=', search_code)
+                ], limit=1)
+
+                if stock_erp:
+                    record.disponible_unidades = stock_erp.disponible_unidades
+                else:
+                    record.disponible_unidades = 0.0
+            else:
+                record.disponible_unidades = 0.0
+
         
 
     def check_client_purchase_intent(self):
