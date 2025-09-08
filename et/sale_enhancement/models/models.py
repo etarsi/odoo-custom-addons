@@ -170,7 +170,7 @@ class SaleOrderInherit(models.Model):
             if up:
                 record.clean_stock_moves(up)
 
-            record.update_sales_stock()        
+            # record.update_sales_stock()        
 
         return res
     
