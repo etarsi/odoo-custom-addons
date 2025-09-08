@@ -174,17 +174,17 @@ class SaleOrderInherit(models.Model):
 
         return res
     
-    def update_sales_stock(self):
-        for record in self:
-            product_to_update = []
-            for line in record.order_line:
-                if line.is_available:
-                    product_to_update.append(line.product_id)
+    # def update_sales_stock(self):
+    #     for record in self:
+    #         product_to_update = []
+    #         for line in record.order_line:
+    #             if line.is_available:
+    #                 product_to_update.append(line.product_id)
 
-            sales_lines_to_update = record.stock_erp.move_lines.mapped('sale_line_id')
-            if sales_lines_to_update:
-                for line in sales_lines_to_update:
-                    line.update_stock_erp()
+    #         sales_lines_to_update = record.stock_erp.move_lines.mapped('sale_line_id')
+    #         if sales_lines_to_update:
+    #             for line in sales_lines_to_update:
+    #                 line.update_stock_erp()
 
     def update_prices(self):
         self.ensure_one()
