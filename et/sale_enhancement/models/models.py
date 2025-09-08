@@ -343,6 +343,9 @@ class SaleOrderInherit(models.Model):
         return
     
     #COMPUTES
+
+    
+
     @api.depends('order_line.product_id')
     def _compute_items_ids(self):
         for record in self:

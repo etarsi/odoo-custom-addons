@@ -97,3 +97,10 @@ class StockMovesERP(models.Model):
                 raise UserError(f"No se puede borrar la línea de venta {sale_line.name} porque ya fue facturada.")            
             sale_line.product_uom_qty = 0
             sale_line.is_cancelled = True
+
+    
+    @api.onchange('quantity_delivered')
+    def _onchange_auto_delete_if_fulfilled(self):
+        for record in self:
+            if record.quantity == record.quantity_delivered:
+                record.unlink()
