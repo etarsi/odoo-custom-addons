@@ -7,7 +7,6 @@
         <field name="arch" type="xml">
             <calendar string="Pagos programados"
                     date_start="date_paid"
-                    color="calendar_color_state"
                     quick_add="false"
                     create="false"
                     delete="false"
@@ -20,6 +19,9 @@
                 <field name="amount_total_day"/>
                 <field name="invoice_date_due"/>
                 <field name="journal_id"/>
+                <!-- Colores manuales -->
+                <decoration-success="payment_state == 'paid'"/>
+                <decoration-danger="payment_state != 'paid'"/>
             </calendar>
         </field>
     </record>
