@@ -33,7 +33,7 @@ class StockMovesERP(models.Model):
             partial_quantity = 0
             total_qty_to_unlink = record.quantity
             moves_to_unlink = []
-            pickings_to_check = ()
+            pickings_to_check = set()
 
             for picking in record.sale_id.picking_ids:
                 if picking.state_wms != 'no':
