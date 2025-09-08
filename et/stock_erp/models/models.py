@@ -112,7 +112,7 @@ class StockERP(models.Model):
 
     def decrease_fisico_unidades(self, quantity):
         for record in self:
-            if quantity < record.fisico_unidades:
+            if quantity <= record.fisico_unidades:
                 record.fisico_unidades -= quantity
             else: 
                 raise UserError(f'Para el product: {record.product_id}, tiene {record.fisico_unidades} unidades y quiere entregar {quantity} unidades. El resultado no puede ser negativo')
@@ -120,7 +120,7 @@ class StockERP(models.Model):
             
     def decrease_comprometido_unidades(self, quantity):
         for record in self:
-            if quantity < record.comprometido_unidades:
+            if quantity <= record.comprometido_unidades:
                 record.comprometido_unidades -= quantity
             else: 
                 raise UserError(f'Para el product: {record.product_id}, tiene {record.comprometido_unidades} unidades y quiere liberar {quantity} unidades. El resultado no puede ser negativo')
