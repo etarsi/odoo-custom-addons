@@ -257,11 +257,10 @@
                             <field name="total_percentage_increase" readonly="1" widget="percentage"/>
                         </group>
                         <group>
-                            <field name="employee_type" widget="selection" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
-                            <field name="id_lector" attrs="{'readonly': [('state', '!=', 'draft')]}"/>  
+                            <field name="employee_type" widget="selection" />
+                            <field name="id_lector" />  
                             <field name="type_shift" widget="radio" 
-                                options="{'horizontal': true}" 
-                                attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                                options="{'horizontal': true}" />
                         </group>
                     </group>
                 </page>
