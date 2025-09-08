@@ -124,6 +124,7 @@ class SaleOrderInherit(models.Model):
             company_produccionb_id = 1
             if record.company_id.id != company_produccionb_id and record.condicion_m2m.name == 'TIPO 3':
                 record.write({'company_id': company_produccionb_id})
+                record.write({'warehouse_id': company_produccionb_id})
                 for line in record.order_line:
                     if line.company_id.id != company_produccionb_id:
                         line.write({'company_id': company_produccionb_id})
