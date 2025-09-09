@@ -19,7 +19,8 @@ class StockERP(models.Model):
     move_lines_reserved = fields.One2many('stock.moves.erp', compute="_compute_move_lines_reserved", store=False)
     move_lines_delivered = fields.One2many('stock.moves.erp', compute="_compute_move_lines_delivered", store=False)
     product_id = fields.Many2one('product.product', string='Producto', required=True)
-    product_name = fields.Char(string='Producto')
+    product_code = fields.Char(string="Código", compute="_compute_product_info", store=True)
+    product_name = fields.Char(string='Producto', compute="_compute_product_info", store=True)
     product_category = fields.Many2one('product.category', string="Categoría", compute="_compute_category_id", store=True)
     uxb = fields.Integer('UxB', default=0)
 
@@ -129,6 +130,13 @@ class StockERP(models.Model):
 
 
     #####  COMPUTE METHODS #####
+
+    @api.depends('product_id')
+    def _compute_product_info(self):
+        for record in self:
+            if record.product_id:
+                record.product_code = record.product_id.default_code
+                record.product_name = record.product_id.name
             
     @api.depends('move_lines')
     def _compute_move_lines_reserved(self):

@@ -12,7 +12,9 @@
                   <button name="update_uxb" type="object" string="Actualizar UXB"/>
                   <button name="set_to_zero" type="object" string="Borrar stock"/>
                 </header>
-                <field name="product_id"/>
+                <field name="product_id" invisible="1"/>
+                <field name="product_code"/>
+                <field name="product_name"/>
                 <field name="uxb"/>
                 <field name="fisico_unidades" optional="show"/>
                 <field name="enelagua_unidades" optional="show"/>
@@ -44,13 +46,23 @@
                   <group>
                     <notebook>
                       <page string="Comprometido En">
-                          <field name="move_lines" editable="bottom" mode="tree" readonly="1">
-                            <tree editable="bottom" string="Return Items">
+                          <field name="move_lines_reserved" mode="tree" readonly="1">
+                            <tree string="Return Items">
                                 <field name="sale_id"/>
                                 <field name="quantity"/>
                                 <field name="uxb"/>
                                 <field name="bultos"/>      
                                 <button name="unreserve_stock" type="object" string="Liberar"/>               
+                            </tree>
+                          </field>
+                      </page>
+                      <page string="Entregado En">
+                          <field name="move_lines_delivered" mode="tree" readonly="1">
+                            <tree editable="bottom" string="Delivered Items">
+                                <field name="sale_id"/>
+                                <field name="quantity"/>
+                                <field name="uxb"/>
+                                <field name="bultos"/>              
                             </tree>
                           </field>
                       </page>

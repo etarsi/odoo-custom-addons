@@ -8,6 +8,7 @@ class ClientPurchaseIntent(models.Model):
 
     sale_id = fields.Many2one('sale.order')
     sale_line_id = fields.Many2one('sale.order.line')
+    partner_id = fields.Many2one('res.partner')
     product_id = fields.Many2one('product.product')
     quantity = fields.Integer()
     uxb = fields.Integer()
