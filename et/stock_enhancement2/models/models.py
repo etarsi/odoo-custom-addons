@@ -189,7 +189,7 @@ class StockPickingInherit(models.Model):
                         raise UserError(f'El producto {move.product_id.name} no tiene definido un código interno (default_code).')
 
                     for stock_move in stock_erp.move_lines:
-                        if stock_move.move.sale_line_id.id == move.sale_line_id.id:
+                        if stock_move.sale_line_id.id == move.sale_line_id.id:
                             stock_move.quantity_delivered += move.quantity_done
 
 
