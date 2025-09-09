@@ -29,14 +29,17 @@ class StockERP(models.Model):
     total_unidades = fields.Integer('Total Unidades', compute="_compute_total", store=True)
     comprometido_unidades = fields.Integer('Comprometido Unidades', compute="_compute_comprometido_unidades", store=True)
     disponible_unidades = fields.Float('Disponible Unidades', digits=(99,0), compute="_compute_disponible_unidades", store=True)
+    entregable_unidades = fields.Integer('Entregable Unidades')
     comprado_unidades = fields.Integer('Comprado Unidades')
     entrante_unidades = fields.Integer('Entrante Unidades')
+    
 
     fisico_bultos = fields.Float('Físico Bultos', compute="_compute_fisico_bultos", store=True)
     enelagua_bultos = fields.Float('En el Agua Bultos', compute="_compute_enelagua_bultos", store=True)    
     total_bultos = fields.Float('Total Bultos', compute="_compute_total", store=True)
     comprometido_bultos = fields.Float('Comprometido Bultos', compute="_compute_comprometido_bultos", store=True)
     disponible_bultos = fields.Float('Disponible Bultos', compute="_compute_disponible_bultos", store=True)
+    entregable_bultos = fields.Float('Entregable Bultos', compute="_compute_entregable_bultos", store=True)
     comprado_bultos = fields.Float('Comprado Bultos', compute="_compute_comprado_bultos", store=True)
     entrante_bultos = fields.Float('Entrante Bultos', compute="_compute_entrante_bultos", store=True)
 
@@ -113,12 +116,17 @@ class StockERP(models.Model):
             record.comprometido_unidades += quantity
 
 
+    def increase_entregable_unidades(self, quantity):
+        for record in self:
+            record.entregable_unidades += quantity
+
+
     def decrease_fisico_unidades(self, quantity):
         for record in self:
             if quantity <= record.fisico_unidades:
                 record.fisico_unidades -= quantity
             else: 
-                raise UserError(f'Para el product: {record.product_id}, tiene {record.fisico_unidades} unidades y quiere entregar {quantity} unidades. El resultado no puede ser negativo')
+                raise UserError(f'Para el producto: {record.product_id}, tiene {record.fisico_unidades} unidades y quiere entregar {quantity} unidades. El resultado no puede ser negativo')
             
             
     def decrease_comprometido_unidades(self, quantity):
@@ -126,7 +134,15 @@ class StockERP(models.Model):
             if quantity <= record.comprometido_unidades:
                 record.comprometido_unidades -= quantity
             else: 
-                raise UserError(f'Para el product: {record.product_id}, tiene {record.comprometido_unidades} unidades y quiere liberar {quantity} unidades. El resultado no puede ser negativo')
+                raise UserError(f'Para el producto: {record.product_id}, tiene {record.comprometido_unidades} unidades comprometidas y quiere liberar {quantity} unidades. El resultado no puede ser negativo')
+
+
+    def decrease_entregable_unidades(self, quantity):
+        for record in self:
+            if quantity <= record.entregable_unidades:
+                record.entregable_unidades -= quantity
+            else: 
+                raise UserError(f'Para el producto: {record.product_id}, tiene {record.entregable_unidades} unidades entregable y quiere preparar {quantity} unidades. El resultado no puede ser negativo')
 
 
     #####  COMPUTE METHODS #####
@@ -159,12 +175,6 @@ class StockERP(models.Model):
                 record.name = record.product_id.name
             else: record.name = record.id
 
-    # @api.depends('move_lines')
-    # def _compute_comprometido_unidades(self):
-    #     for record in self:
-    #         record.comprometido_unidades = sum(
-    #             line.quantity for line in record.move_lines if line.type == 'reserve'
-    #         )
 
     @api.depends('fisico_unidades', 'enelagua_unidades', 'comprometido_unidades')
     def _compute_disponible_unidades(self):
@@ -219,13 +229,21 @@ class StockERP(models.Model):
                 record.disponible_bultos = record.disponible_unidades / record.uxb
             else: record.disponible_bultos = 0
     
-    
+
     @api.depends('comprado_unidades')
     def _compute_comprado_bultos(self):
         for record in self:
             if record.uxb:
                 record.comprado_bultos = record.comprado_unidades / record.uxb
             else: record.comprado_bultos = 0
+
+    
+    @api.depends('entregable_unidades')
+    def _compute_entregable_bultos(self):
+        for record in self:
+            if record.uxb:
+                record.entregable_bultos = record.entregable_unidades / record.uxb
+            else: record.entregable_bultos = 0
 
 
     @api.depends('entrante_unidades')

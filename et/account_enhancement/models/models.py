@@ -477,6 +477,16 @@ class AccountPaymentGroupInherit(models.Model):
         return True
     
 
+    @api.onchange('payment_ids')
+    def _onchange_payment_ids(self):
+        for record in self:
+            if record.payment_ids:
+                for payment in record.payment_ids:
+                    if payment.journal_id.code == 'CSH3':
+                        if payment.l10n_latam_check_id:
+                            payment.check_number = payment.l10n_latam_check_id.check_number or ''
+
+
 class SaleOrderInherit(models.Model):
     _inherit = 'sale.order'
 

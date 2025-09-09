@@ -423,6 +423,7 @@ class SaleOrderLineInherit(models.Model):
                 vals = {}
                 vals['sale_id'] = record.order_id.id
                 vals['sale_line_id'] = record.id
+                vals['partner_id'] = record.order_id.partner_id.id
                 vals['product_id'] = record.product_id.id
                 vals['quantity'] = record.product_uom_qty
                 vals['uxb'] = record.product_id.packaging_ids[0].qty
