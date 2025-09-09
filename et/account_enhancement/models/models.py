@@ -482,7 +482,7 @@ class AccountPaymentGroupInherit(models.Model):
         for record in self:
             if record.payment_ids:
                 for payment in record.payment_ids:
-                    if payment.journal_id.code == 'CSH3':
+                    if payment.journal_id.code in ('CSH3', 'CSH5', 'ECHEQ'):
                         if payment.l10n_latam_check_id:
                             payment.check_number = payment.l10n_latam_check_id.check_number or ''
 
