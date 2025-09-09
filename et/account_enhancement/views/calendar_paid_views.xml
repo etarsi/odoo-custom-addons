@@ -7,12 +7,11 @@
         <field name="arch" type="xml">
             <calendar string="Pagos programados"
                     date_start="date_paid"
+                    color="calendar_color_state"
                     quick_add="false"
                     create="false"
                     delete="false"
-                    mode="month"
-                    decoration-success="payment_state == 'paid'"
-                    decoration-danger="payment_state != 'paid'">
+                    mode="month">
                 <!-- Campos visibles en el popup del evento -->
                 <field name="name"/>
                 <field name="partner_id"/>
