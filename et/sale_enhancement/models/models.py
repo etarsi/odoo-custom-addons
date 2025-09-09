@@ -403,11 +403,29 @@ class SaleOrderLineInherit(models.Model):
         for record in self:
             if record.is_available:
                 vals = {}
+
+                default_code = record.product_id.default_code
+
+                if default_code:
+                    if default_code.startswith('9'):
+                        search_code = default_code[1:]
+                    else:
+                        search_code = default_code
+
+                    product_id = self.env['product.product'].search([
+                        ('default_code', '=', default_code)
+                    ], limit=1)
+
+                    stock_erp = self.env['stock.erp'].search([
+                        ('product_id.default_code', '=', search_code)
+                    ], limit=1)
+
                 
+                vals['stock_erp'] = stock_erp.id
                 vals['sale_id'] = record.order_id.id
                 vals['sale_line_id'] = record.id
                 vals['partner_id'] = record.order_id.partner_id.id
-                vals['product_id'] = record.product_id.id
+                vals['product_id'] = product_id.id
                 vals['quantity'] = record.product_uom_qty
                 vals['uxb'] = record.product_packaging_id.qty or ''
                 vals['bultos'] = record.product_packaging_qty
