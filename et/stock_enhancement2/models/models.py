@@ -196,6 +196,7 @@ class StockPickingInherit(models.Model):
                     vals['picking_id'] = record.id
                     vals['sale_id'] = record.sale_id.id
                     vals['sale_line_id'] = move.sale_line_id.id
+                    vals['partner_id'] = record.sale_id.partner_id.id
                     vals['product_id'] = move.product_id.id
                     vals['quantity'] = move.quantity_done
                     vals['uxb'] = move.product_packaging_id.qty or ''
