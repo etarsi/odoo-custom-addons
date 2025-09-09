@@ -16,8 +16,8 @@ class StockERP(models.Model):
 
     name = fields.Char(compute='_compute_name')
     move_lines = fields.One2many('stock.moves.erp', 'stock_erp')
-    move_lines_reserved = fields.One2many('stock.moves.erp', compute="_compute_move_lines_reserved", store=True)
-    move_lines_delivered = fields.One2many('stock.moves.erp', compute="_compute_move_lines_delivered", store=True)
+    move_lines_reserved = fields.One2many('stock.moves.erp', compute="_compute_move_lines_reserved", store=False)
+    move_lines_delivered = fields.One2many('stock.moves.erp', compute="_compute_move_lines_delivered", store=False)
     product_id = fields.Many2one('product.product', string='Producto', required=True)
     product_name = fields.Char(string='Producto')
     product_category = fields.Many2one('product.category', string="Categoría", compute="_compute_category_id", store=True)
