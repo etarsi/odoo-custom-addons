@@ -49,6 +49,7 @@
                           <field name="move_lines_reserved" mode="tree" readonly="1">
                             <tree string="Return Items">
                                 <field name="sale_id"/>
+                                <field name="partner_id"/>
                                 <field name="quantity"/>
                                 <field name="uxb"/>
                                 <field name="bultos"/>      
@@ -60,6 +61,7 @@
                           <field name="move_lines_delivered" mode="tree" readonly="1">
                             <tree editable="bottom" string="Delivered Items">
                                 <field name="sale_id"/>
+                                <field name="partner_id"/>
                                 <field name="quantity"/>
                                 <field name="uxb"/>
                                 <field name="bultos"/>              
