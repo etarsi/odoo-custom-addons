@@ -166,12 +166,10 @@ class SaleOrderInherit(models.Model):
 
             # STOCK ERP
 
-            up = record.comprometer_stock()
+            up = record.check_unavailable_products()
 
             if up:
                 record.clean_stock_moves(up)
-
-            # record.update_sales_stock()        
 
         return res
     
@@ -207,53 +205,15 @@ class SaleOrderInherit(models.Model):
                         
     #                     for move in picking.move_ids_without_package:
 
-    def comprometer_stock(self):
+    def check_unavailable_products(self):
         for record in self:
-            vals_list = []
-            unavailable_products = []
+            up = []
+            if record.order_line:
+                for line in record.order_line:
+                    if not line.is_available:
+                        up.append(line.product_id.id)
 
-            for line in record.order_line:
-                if line.is_available:
-                    vals = {}
-                    default_code = line.product_id.default_code
-
-                    if default_code:
-                        if default_code.startswith('9'):
-                            search_code = default_code[1:]
-                        else:
-                            search_code = default_code
-
-                        stock_erp = self.env['stock.erp'].search([
-                            ('product_id.default_code', '=', search_code)
-                        ], limit=1)
-
-                        if not stock_erp:
-                            raise UserError(f'El producto [{default_code}]{line.product_id.name} no se encuentra en el listado de Stock. Avise al administrador.')
-                        
-                        vals['stock_erp'] = stock_erp.id
-                    else:
-                        raise UserError(f'El producto {line.product_id.name} no tiene definido un código interno (default_code).')
-
-                    if record.picking_ids:
-                        vals['picking_id'] = record.picking_ids[0].id
-
-                    vals['sale_id'] = record.id
-                    vals['sale_line_id'] = line.id
-                    vals['partner_id'] = record.partner_id.id
-                    vals['product_id'] = line.product_id.id
-                    vals['quantity'] = line.product_uom_qty
-                    vals['uxb'] = line.product_packaging_id.qty or ''
-                    vals['bultos'] = line.product_packaging_qty
-                    vals['type'] = 'reserve'
-
-                    vals_list.append(vals)
-
-                else:
-                    unavailable_products.append(line.product_id.id)
-
-            self.env['stock.moves.erp'].create(vals_list)
-            return unavailable_products
-
+            return up
 
     def clean_stock_moves(self, up):
         for record in self:
@@ -390,6 +350,7 @@ class SaleOrderLineInherit(models.Model):
 
             rec.update_stock_erp()
             rec.check_client_purchase_intent()
+            rec.comprometer_stock()
              
         return res
 
@@ -420,17 +381,39 @@ class SaleOrderLineInherit(models.Model):
     def check_client_purchase_intent(self):
         for record in self:
             if not record.is_available:
+
+                client_purchase_intent = self.env['client.purchase.intent']
+                cpi = client_purchase_intent.search([('sale_line_id', '=', record.id)], limit=1)
+
+                if cpi:
+                    cpi.quantity = record.product_uom_qty
+                else:
+                    vals = {}
+                    vals['sale_id'] = record.order_id.id
+                    vals['sale_line_id'] = record.id
+                    vals['partner_id'] = record.order_id.partner_id.id
+                    vals['product_id'] = record.product_id.id
+                    vals['quantity'] = record.product_uom_qty
+                    vals['uxb'] = record.product_id.packaging_ids[0].qty
+
+                    client_purchase_intent.create(vals)
+
+
+    def comprometer_stock(self):
+        for record in self:
+            if record.is_available:
                 vals = {}
+                
                 vals['sale_id'] = record.order_id.id
                 vals['sale_line_id'] = record.id
-                vals['partner_id'] = record.order_id.partner_id.id
+                vals['partner_id'] = record.oreder_id.partner_id.id
                 vals['product_id'] = record.product_id.id
                 vals['quantity'] = record.product_uom_qty
-                vals['uxb'] = record.product_id.packaging_ids[0].qty
+                vals['uxb'] = record.product_packaging_id.qty or ''
+                vals['bultos'] = record.product_packaging_qty
+                vals['type'] = 'reserve'
 
-                self.env['client.purchase.intent'].create(vals)
-
-
+                self.env['stock.moves.erp'].create(vals)
 
     # COMPUTED
 
