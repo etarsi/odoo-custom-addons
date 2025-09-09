@@ -166,42 +166,43 @@ class StockPickingInherit(models.Model):
         for record in self:
             vals_list = []
 
-            for move in record.move_ids_without_pacakge:
-                vals = {}
-                default_code = move.product_id.default_code
+            if record.move_ids_without_package:
+                for move in record.move_ids_without_package:
+                    vals = {}
+                    default_code = move.product_id.default_code
 
-                if default_code:
-                    if default_code.startswith('9'):
-                        search_code = default_code[1:]
+                    if default_code:
+                        if default_code.startswith('9'):
+                            search_code = default_code[1:]
+                        else:
+                            search_code = default_code
+
+                        stock_erp = self.env['stock.erp'].search([
+                            ('product_id.default_code', '=', search_code)
+                        ], limit=1)
+
+                        if not stock_erp:
+                            raise UserError(f'El producto [{default_code}]{move.product_id.name} no se encuentra en el listado de Stock. Avise al administrador.')
+                        
+                        vals['stock_erp'] = stock_erp.id
                     else:
-                        search_code = default_code
+                        raise UserError(f'El producto {move.product_id.name} no tiene definido un código interno (default_code).')
 
-                    stock_erp = self.env['stock.erp'].search([
-                        ('product_id.default_code', '=', search_code)
-                    ], limit=1)
-
-                    if not stock_erp:
-                        raise UserError(f'El producto [{default_code}]{move.product_id.name} no se encuentra en el listado de Stock. Avise al administrador.')
-                    
-                    vals['stock_erp'] = stock_erp.id
-                else:
-                    raise UserError(f'El producto {move.product_id.name} no tiene definido un código interno (default_code).')
-
-                for stock_move in stock_erp.move_lines:
-                    if stock_move.move.sale_line_id.id == move.sale_line_id.id:
-                        stock_move.quantity_delivered += move.quantity_done
+                    for stock_move in stock_erp.move_lines:
+                        if stock_move.move.sale_line_id.id == move.sale_line_id.id:
+                            stock_move.quantity_delivered += move.quantity_done
 
 
-                vals['picking_id'] = record.id
-                vals['sale_id'] = record.sale_id.id
-                vals['sale_line_id'] = move.sale_line_id.id
-                vals['product_id'] = move.product_id.id
-                vals['quantity'] = move.quantity_done
-                vals['uxb'] = move.product_packaging_id.qty or ''
-                vals['bultos'] = move.product_packaging_qty
-                vals['type'] = 'delivery'
+                    vals['picking_id'] = record.id
+                    vals['sale_id'] = record.sale_id.id
+                    vals['sale_line_id'] = move.sale_line_id.id
+                    vals['product_id'] = move.product_id.id
+                    vals['quantity'] = move.quantity_done
+                    vals['uxb'] = move.product_packaging_id.qty or ''
+                    vals['bultos'] = move.product_packaging_qty
+                    vals['type'] = 'delivery'
 
-                vals_list.append(vals)
+                    vals_list.append(vals)
             self.env['stock.moves.erp'].create(vals_list)
 
             
