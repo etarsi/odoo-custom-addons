@@ -99,8 +99,7 @@ class HrAttendanceController(http.Controller):
                         # Limites del día (para agrupar por día local)
                         open_att = hr_attendance.search([
                             ('employee_id', '=', employee.id),
-                            ('check_out', '=', False),
-                            ('check_in', '<=', check_utc)], limit=1)
+                            ('check_out', '=', False)], limit=1, order='check_in desc')
                         if employee.type_shift == 'day':
                             if open_att:
                                 if open_att.check_in.date() == check_utc.date():

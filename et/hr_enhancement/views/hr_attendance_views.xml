@@ -6,6 +6,9 @@
         <field name="inherit_id" ref="hr_attendance.view_attendance_tree"/>
         <field name="arch" type="xml">
             <!-- Insertamos después de la columna worked_hours -->
+            <xpath expr="//field[@name='worked_hours']" position="attributes">
+                <attribute name="sum">Horas Laborales</attribute>
+            </xpath>
             <xpath expr="//field[@name='worked_hours']" position="after">
                 <field name="overtime" widget="float_time" sum="Horas Extras"/>
                 <field name="holiday_hours" widget="float_time" sum="Horas Feriado"/>

@@ -101,7 +101,7 @@ class HrAttendance(models.Model):
 
     def event_hours_employee_eventual(self, schedule):
         for att in self:
-            # ========================= DÍA =========================
+            # ======================== DÍA =========================
             if att.employee_id.type_shift == 'day':
                 start_t = self._float_to_time(schedule.hour_start + 3)
                 end_t   = self._float_to_time(schedule.hour_end + 3)
@@ -125,34 +125,26 @@ class HrAttendance(models.Model):
                     att.hours_late = 0.0
                     continue
 
-                scheduled_overlap_secs = self._overlap_seconds(
-                    eff_check_in, eff_check_out, start_dt, end_dt
-                )
-                base_hours_raw = scheduled_overlap_secs / 3600.0
-
                 if dow == 5:  # Sábado
                     start_t = self._float_to_time(schedule.hour_start + 4) #comienzan 1 hora más tarde
                     start_dt = datetime.combine(day, start_t)
                     sat_end_t  = self._float_to_time(15.0) # terminan a las 12:00 BA
                     sat_end_dt = datetime.combine(day, sat_end_t)
-                    base_secs_raw = self._overlap_seconds(
-                        eff_check_in, eff_check_out, start_dt, sat_end_dt
-                    )
-                    base_hours_raw = base_secs_raw / 3600.0
+                    base_secs_raw = self._overlap_seconds(eff_check_in, eff_check_out, start_dt, sat_end_dt)
                     holiday_base = 0.0
                     if eff_check_out > sat_end_dt:
                         holiday_base = max(0.0, (eff_check_out - max(eff_check_in, sat_end_dt)).total_seconds())
                     att.holiday_hours += float(self._round_30_up_to_int_hours(holiday_base))
-                    att.worked_hours = base_hours_raw
+                    att.worked_hours += float(self._round_30_up_to_int_hours(base_secs_raw))
                     att.overtime = 0.0
                 else:
                     # ===== Lunes a Viernes (tu lógica original) =====
-                    base_hours = base_hours_raw
+                    scheduled_overlap_labor = self._overlap_seconds(eff_check_in, eff_check_out, start_dt, end_dt)
                     over_time_base = 0.0
                     if eff_check_out > end_dt:
                         over_time_base = max(0.0, (eff_check_out - max(eff_check_in, end_dt)).total_seconds())
                     att.overtime += float(self._round_30_up_to_int_hours(over_time_base))
-                    att.worked_hours = base_hours
+                    att.worked_hours += float(self._round_30_up_to_int_hours(scheduled_overlap_labor))
             # ========================= NOCHE =========================
             elif att.employee_id.type_shift == 'night':
                 start_t = self._float_to_time(schedule.hour_start_night + 3)
