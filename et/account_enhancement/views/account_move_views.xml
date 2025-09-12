@@ -39,6 +39,7 @@
                 <field name="invoice_date" string="Fecha" optional="show"/>
                 <field name="invoice_date_due" string="Fecha Vencimiento" optional="show" />
                 <field name="payment_refs_html" widget="html" optional="show" />
+                <field name="payment_date_html" widget="html" optional="show" />
                 <field name="amount_total" widget="monetary" string="Debe" sum="Total Debe" optional="show" />
                 <field name="total_amount_paid" widget="monetary" sum="Total Haber" string="Haber" optional="show"/>
                 <field name="payment_amount_html" widget="html" optional="show" />
