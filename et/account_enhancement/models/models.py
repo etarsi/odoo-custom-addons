@@ -35,8 +35,33 @@ class AccountMoveInherit(models.Model):
         ('not_paid', 'No Pagado'),
     ], compute='_compute_calendar_color_state', store=False)
 
-    total_amount_paid = fields.Float(string="Monto Pagado", compute='_compute_payment_html', store=True)
+    total_amount_paid = fields.Float(string="Monto Pagado", compute="_compute_total_amount_paid")
 
+    @api.depends('invoice_payments_widget')
+    def _compute_total_amount_paid(self):
+        for move in self:
+            move.total_amount_paid = 0.0
+            data = move.invoice_payments_widget
+            if not data:
+                continue
+
+            try:
+                payload = json.loads(data)
+            except Exception:
+                payload = False
+
+            if not isinstance(payload, dict):
+                continue
+
+            content = payload.get('content') or []
+            if not content:
+                continue
+
+            for item in content:
+                amt = float(item.get('amount') or 0.0)
+                move.total_amount_paid += amt
+
+    
     def _compute_calendar_color_state(self):
         for move in self:
             if move.payment_state == 'paid':
