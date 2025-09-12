@@ -35,11 +35,12 @@
             <tree string="Facturas del cliente" create="false" delete="false">
                 <!-- campos base -->
                 <field name="name" string="Factura" optional="show"/>
-                <field name="partner_id" optional="show"/>
+                <field name="partner_id" optional="show" string="Cliente"/>
                 <field name="invoice_date" string="Fecha" optional="show"/>
                 <field name="amount_total" widget="monetary" string="Debe" sum="Total Debe" optional="show" />
                 <field name="total_amount_paid" widget="monetary" sum="Total Haber" string="Haber" optional="show"/>
                 <field name="amount_residual" widget="monetary" sum="Total Saldo" string="Saldo Restante" optional="show"/>
+                <field name="company_id" groups="base.group_multi_company" optional="hide"/>
                 <field name="payment_state" string="Estado de pago" optional="hide"/>
                 <field name="state" string="Estado" optional="hide"/>
             </tree>
