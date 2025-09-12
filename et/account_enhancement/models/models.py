@@ -35,6 +35,7 @@ class AccountMoveInherit(models.Model):
         ('not_paid', 'No Pagado'),
     ], compute='_compute_calendar_color_state', store=False)
 
+    total_amount_paid = fields.Float(string="Monto Pagado", compute='_compute_payment_html', store=True)
 
     def _compute_calendar_color_state(self):
         for move in self:
@@ -68,6 +69,7 @@ class AccountMoveInherit(models.Model):
             move.payment_refs_html = False
             move.payment_amount_html = False
             move.payment_date_html = False
+            move.total_amount_paid = 0.0
 
             data = move.invoice_payments_widget
             if not data:
@@ -110,7 +112,7 @@ class AccountMoveInherit(models.Model):
                 # formateos
                 amount_txt = format_amount(self.env, amt, move.currency_id or self.env.company.currency_id)
                 date_txt = format_date(self.env, dval) if dval else ''
-
+                move.total_amount_paid += amt
                 # tags
                 if ref:
                     refs_tags.append(f"<span style='{box_css}'>{ref}</span>")
@@ -603,3 +605,24 @@ class AccountMoveReversalInherit(models.TransientModel):
     #         # Ahora publicá (posteá) la NC, así se va a AFIP
     #         move.action_post()
     #     return res
+    
+class ResPartner(models.Model):
+    _inherit = 'res.partner'
+
+    def action_resumen_composicion(self):
+        """Abrir facturas del cliente (y contactos hijos) en vista tree personalizada."""
+        self.ensure_one()
+        action = self.env.ref('account_enhancement.action_partner_invoices_tree').read()[0]
+        # facturas cliente + NC cliente, solo publicadas; incluye partner y sus hijos
+        action['domain'] = [
+            ('move_type', 'in', ['out_invoice']),
+            ('state', '=', 'posted'),
+            ('partner_id', 'child_of', self.commercial_partner_id.id),
+        ]
+        # orden por fecha de factura (reciente primero)
+        action['context'] = {
+            'search_default_group_by_partner': 0,
+            'search_default_open': 0,
+            'default_move_type': 'out_invoice',
+        }
+        return action

@@ -26,4 +26,47 @@
             </xpath>
         </field>
     </record>
+
+    <!-- TREE de facturas del partner -->
+    <record id="view_partner_invoice_tree" model="ir.ui.view">
+        <field name="name">partner.invoice.tree</field>
+        <field name="model">account.move</field>
+        <field name="arch" type="xml">
+            <tree string="Facturas del cliente" create="false" delete="false">
+                <!-- campos base -->
+                <field name="name" string="Factura" optional="show"/>
+                <field name="partner_id" optional="show"/>
+                <field name="invoice_date" string="Fecha" optional="show"/>
+                <field name="amount_total" widget="monetary" string="Debe" sum="Total Debe" optional="show" />
+                <field name="total_amount_paid" widget="monetary" sum="Total Haber" string="Haber" optional="show"/>
+                <field name="amount_residual" widget="monetary" sum="Total Saldo" string="Saldo Restante" optional="show"/>
+                <field name="payment_state" string="Estado de pago" optional="hide"/>
+                <field name="state" string="Estado" optional="hide"/>
+            </tree>
+        </field>
+    </record>
+    <!-- SEARCH de la vista -->
+    <record id="view_partner_invoice_search" model="ir.ui.view">
+        <field name="name">partner.invoice.search</field>
+        <field name="model">account.move</field>
+        <field name="arch" type="xml">
+            <search string="Buscar facturas">
+                <field name="name" string="Número"/>
+                <field name="invoice_date" string="Fecha"/>
+                <filter name="posted" string="Publicadas" domain="[('state','=','posted')]" help="Solo publicadas"/>
+                <filter name="open" string="Con saldo" domain="[('payment_state','in',('not_paid','partial','in_payment'))]"/>
+                <separator/>
+                <filter name="group_state" string="Agrupar por estado de pago" context="{'group_by':'payment_state'}"/>
+            </search>
+        </field>
+    </record>
+    <!-- ACCIÓN llamada por el botón del partner -->
+    <record id="action_partner_invoices_tree" model="ir.actions.act_window">
+        <field name="name">Facturación del cliente</field>
+        <field name="res_model">account.move</field>
+        <field name="view_mode">tree,form</field>
+        <field name="view_id" ref="view_partner_invoice_tree"/>
+        <field name="search_view_id" ref="view_partner_invoice_search"/>
+        <!-- el dominio final lo setea el método Python según el partner -->
+    </record>
 </odoo>
