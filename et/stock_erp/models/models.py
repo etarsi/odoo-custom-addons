@@ -258,3 +258,22 @@ class StockERP(models.Model):
 
     def set_to_zero(self):
         self.fisico_unidades = 0
+
+
+    class StockPickingInherit(models.Model):
+        _inherit = 'stock.piciking'
+
+
+        def enviar(self):
+            for record in self:
+                
+                record.update_availability()
+
+                if record.move_ids_without_pacakge:
+                    for move in record.move_ids_without_package:
+                        if move.product_available_percent == 0:
+                            raise UserError(f'No se puede enviar a Digip. El producto: {move.product_id} no tiene disponibilidad')
+
+            res = super().enviar()
+
+            
