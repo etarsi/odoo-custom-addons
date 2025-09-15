@@ -39,7 +39,9 @@ class AccountMoveInherit(models.Model):
     ], compute='_compute_calendar_color_state', store=False)
 
     total_amount_paid = fields.Float(string="Monto Pagado", compute="_compute_total_amount_paid")
-
+   
+    
+    
     @api.depends('invoice_payments_widget')
     def _compute_total_amount_paid(self):
         for move in self:
@@ -384,7 +386,7 @@ class AccountPaymentInherit(models.Model):
                 elif journal_type == 'bank':
                     rec.check_state = 'Depositado'
             else:
-                rec.check_state = 'Entregado'
+                rec.check_state = 'Pendiente'
 
     def action_reject_check(self):
         for rec in self:
@@ -435,6 +437,18 @@ class AccountPaymentGroupInherit(models.Model):
     )
     is_paid_date_venc_text = fields.Boolean(default=False, copy=False)
     paid_date_venc_text = fields.Text(default='⚠️ EL PAGO A REGISTRAR ESTA FUERA DE FECHA ⚠️')
+
+
+    
+    #### ONCHANGE #####
+
+    @api.onchange('payment_ids')
+    def _onchange_payment_ids(self):
+        for record in self:
+            if record.payment_ids:
+                for payment in record.payment_ids:
+                    if payment.check_state == 'En Cartera':
+                        payment.check_state = 'Pendiente'
 
     @api.onchange('payment_date', 'to_pay_move_line_ids', 'to_pay_move_line_ids.date_maturity', 'to_pay_move_line_ids.move_id')
     def _compute_paid_date_venc_html(self):
@@ -555,6 +569,11 @@ class AccountPaymentGroupInherit(models.Model):
 
             if rec.receiptbook_id.mail_template_id:
                 rec.message_post_with_template(rec.receiptbook_id.mail_template_id.id)
+
+            
+            for payment in rec.payment_ids:
+                payment.check_state = 'Entregado'
+                
         return True
     
 
