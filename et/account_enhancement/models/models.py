@@ -589,7 +589,7 @@ class AccountPaymentGroupInherit(models.Model):
         for record in self:
             if record.payment_ids:
                 for payment in record.payment_ids:
-                    payment.state = 'Pendiente'
+                    payment.check_state = 'Pendiente'
 
             recs = super().action_draft()
 
