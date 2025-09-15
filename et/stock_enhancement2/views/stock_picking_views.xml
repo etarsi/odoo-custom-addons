@@ -28,7 +28,7 @@
         <field name="name">stock.picking.enhancement.tree</field>
         <field name="model">stock.picking</field>
         <field name="arch" type="xml">
-            <tree string="Transferencia Reporte" create="false" delete="false">
+            <tree string="Ruteo de Pedidos" create="false" delete="false">
                 <!-- campos base -->
                 <field name="date_done" optional="show" string="Fecha de Envio al WMS"/>
                 <field name="sale_id" string="Documento de Origen" optional="show"/>
@@ -62,10 +62,10 @@
     </record>
     <!-- ACCIÓN llamada por el botón del partner -->
     <record id="action_stock_picking_enhancement" model="ir.actions.act_window">
-        <field name="name">Facturación del cliente</field>
-        <field name="res_model">account.move</field>
+        <field name="name">Ruteo de Pedidos</field>
+        <field name="res_model">stock.picking</field>
         <field name="view_mode">tree,form</field>
-        <field name="view_id" ref="view_stock_picking_enhancement_search"/>
-        <field name="search_view_id" ref="view_stock_picking_enhancement_tree"/>
+        <field name="view_id" ref="view_stock_picking_enhancement_tree"/>
+        <field name="search_view_id" ref="view_stock_picking_enhancement_search"/>
     </record>
 </odoo>
