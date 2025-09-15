@@ -418,8 +418,6 @@ class AccountPaymentInherit(models.Model):
             else:
                 record.hide_issue_date = True
 
-
-
 class AccountPaymentGroupInherit(models.Model):
     _inherit = 'account.payment.group'
 
@@ -573,7 +571,7 @@ class AccountPaymentGroupInherit(models.Model):
             
             for payment in rec.payment_ids:
                 payment.check_state = 'Entregado'
-                
+
         return True
     
 
@@ -585,6 +583,17 @@ class AccountPaymentGroupInherit(models.Model):
                     if payment.journal_id.code in ('CSH3', 'CSH5', 'ECHEQ'):
                         if payment.l10n_latam_check_id:
                             payment.check_number = payment.l10n_latam_check_id.check_number or ''
+
+    
+    def action_draft(self):
+        for record in self:
+            if record.payment_ids:
+                for payment in record.payment_ids:
+                    payment.state = 'Pendiente'
+
+            recs = super().action_draft()
+
+            return recs
 
 
 class SaleOrderInherit(models.Model):
