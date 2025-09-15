@@ -111,6 +111,11 @@ class StockERP(models.Model):
         for record in self:
             record.fisico_unidades += quantity
 
+
+    def increase_enelagua_unidades(self, quantity):
+        for record in self:
+            record.enelagua_unidades += quantity
+    
     
     def increase_comprometido_unidades(self, quantity):
         for record in self:

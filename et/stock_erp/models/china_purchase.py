@@ -1,0 +1,44 @@
+from odoo import models, fields, api, _
+
+class ChinaPurchase(models.Model):
+    _name = 'china.purchase'
+
+    name = fields.Char()
+    partner_id = fields.Many2one('res.partner')
+    state = fields.Selection(selection=[('draft', 'Borrador'), ('confirmed', 'Confirmado'), ('closed', 'Cerrado')])
+    order_line = fields.One2many('china.purchase.line')
+
+
+    def action_confirm(self):
+        for record in self:
+            if record.state == 'draft':
+                record.state = 'confirmed'
+
+                for line in record.order_line:
+                    line.add_enelagua_stock()
+    
+
+
+class ChinaPurchaseLine(models.Model):
+    _name = 'china.purchase.line'
+
+    name = fields.Char()
+    china_purchase = fields.Many2one('china.purchase')
+    product_id = fields.Many2one('product.product')
+    quantity = fields.Integer('Cantidad')
+    uxb = fields.Integer('UxB')
+    bultos = fields.Float('Bultos', compute="_compute_bultos")
+
+
+
+    @api.depends('quantity')
+    def _compute_bultos(self):
+        for record in self:
+            record.bultos = record.quantity / record.uxb
+
+
+    def add_enelagua_stock(self):
+        for record in self:
+            stock_erp = self.env['stock.erp'].search([('product_id', '=', record.product_id.id)])
+
+            stock_erp.increase_enelagua_unidades(record.quantity)
