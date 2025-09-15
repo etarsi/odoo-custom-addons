@@ -316,7 +316,7 @@ class StockERP(models.Model):
                 
                 record.update_availability()
 
-                if record.move_ids_without_pacakge:
+                if record.move_ids_without_package:
                     for move in record.move_ids_without_package:
                         if move.product_available_percent == 0:
                             raise UserError(f'No se puede enviar a Digip. El producto: {move.product_id} no tiene disponibilidad')
