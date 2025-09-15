@@ -56,6 +56,28 @@ class SaleOrderInherit(models.Model):
         return super().unlink()
     
     
+    def cancel_order(self):
+        for record in self:
+            if record.picking_ids:
+                for picking in record.picking_ids:
+                    if picking.wms_state != 'no':
+                        raise UserError('No se puede cancelar el pedido de venta porque hay transferencias que están enviadas a Digip')
+                
+                record.cancel_pickings()
+                record.action_cancel()
+
+    
+    def cancel_pickings(self):
+        for record in self:
+            for picking in record.picking_ids:
+                for move in picking:
+                    move.state = 'draft'
+                    move.quantity_done = 0
+                    move.unlink()
+                picking.state = 'draft'
+                picking.unlink()
+
+
     ### ONCHANGE
 
     @api.onchange('partner_id')

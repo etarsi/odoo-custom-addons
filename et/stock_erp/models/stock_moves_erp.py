@@ -46,6 +46,13 @@ class StockMovesERP(models.Model):
 
         return records
 
+    def undo_preparation(self):
+        for record in self:
+            if record.type == 'preparation':
+                record.stock_erp.increase_entregable_unidades(record.quantity)
+                record.unlink()
+
+
     def unreserve_stock(self):
         for record in self:
             if record.type == 'reserve':

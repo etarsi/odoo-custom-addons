@@ -17,6 +17,7 @@ class StockERP(models.Model):
     name = fields.Char(compute='_compute_name')
     move_lines = fields.One2many('stock.moves.erp', 'stock_erp')
     move_lines_reserved = fields.One2many('stock.moves.erp', compute="_compute_move_lines_reserved", store=False)
+    move_lines_prepared = fields.One2many('stock.moves.erp', compute="_compute_move_lines_prepared", store=False)
     move_lines_delivered = fields.One2many('stock.moves.erp', compute="_compute_move_lines_delivered", store=False)
     product_id = fields.Many2one('product.product', string='Producto', required=True)
     product_code = fields.Char(string="Código", compute="_compute_product_info", store=True)
@@ -162,6 +163,13 @@ class StockERP(models.Model):
 
 
     @api.depends('move_lines')
+    def _compute_move_lines_prepared(self):
+        for record in self:
+            record.move_lines_prepared = record.move_lines.filtered(
+                lambda l: l.type == 'preparation')
+            
+    
+    @api.depends('move_lines')
     def _compute_move_lines_delivered(self):
         for record in self:
             record.move_lines_delivered = record.move_lines.filtered(
@@ -264,6 +272,40 @@ class StockERP(models.Model):
         _inherit = 'stock.picking'
 
 
+        def anular_envio(self):
+            for record in self:
+                record.wms_state = 'no'
+                record.codigo_wms = ''
+
+                record.cancel_preparation()
+
+
+        def cancel_preparation(self):
+            for record in self:
+                if record.wms_state == 'no':
+                    raise('No se puede cancelar la preparación de una transferencia que no está enviada a Digip.')
+                
+                if record.wms_state == 'closed':
+                    raise('No se puede cancelar la preparación de una transferencia que fué enviada y recibida de Digip.')
+                
+                if record.move_ids_without_package:
+                    for move in record.move_ids_without_package:
+                        default_code = move.product_id.default_code
+
+                        if default_code:
+                            if default_code.startswith('9'):
+                                search_code = default_code[1:]
+                            else:
+                                search_code = default_code
+
+                        product_id = self.env['product.product'].search([('default_code', '=', search_code)], limit=1)
+                        stock_moves_erp = self.env['stock.moves.erp'].search([('picking_id', '=', record.id), ('product_id', '=', product_id.id)])
+
+                        stock_moves_erp.undo_preparation()
+
+            
+
+
         def enviar(self):
             for record in self:
                 
@@ -298,6 +340,7 @@ class StockERP(models.Model):
 
                     
                     vals['stock_erp'] = stock_erp.id
+                    vals['picking_id'] = record.id
                     vals['sale_id'] = record.sale_id.id
                     vals['sale_line_id'] = move.sale_line_id.id
                     vals['partner_id'] = record.sale_id.partner_id.id

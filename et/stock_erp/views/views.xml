@@ -59,6 +59,17 @@
                             </tree>
                           </field>
                       </page>
+                      <page string="Preparado En">
+                          <field name="move_lines_prepared" mode="tree" readonly="1">
+                            <tree editable="bottom" string="Delivered Items">
+                                <field name="picking_id" string="Transferencia"/>
+                                <field name="partner_id" string="Cliente"/>
+                                <field name="quantity" string="Cantidad"/>
+                                <field name="uxb" string="UxB"/>
+                                <field name="bultos" string="Bultos"/>                
+                            </tree>
+                          </field>
+                      </page>
                       <page string="Entregado En">
                           <field name="move_lines_delivered" mode="tree" readonly="1">
                             <tree editable="bottom" string="Delivered Items">
