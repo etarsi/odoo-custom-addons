@@ -25,7 +25,7 @@
     -->
     <!-- VISTA TREE DE LOS INVENTARIOS -->
     <record id="stock_enhancement2.view_stock_picking_enhancement_tree" model="ir.ui.view">
-        <field name="name">stock.picking.enhancement.tree</field>
+        <field name="name">enhancement.stock.picking.tree</field>
         <field name="model">stock.picking</field>
         <field name="arch" type="xml">
             <tree string="Ruteo de Pedidos" create="false" delete="false">
