@@ -261,7 +261,7 @@ class StockERP(models.Model):
 
 
     class StockPickingInherit(models.Model):
-        _inherit = 'stock.piciking'
+        _inherit = 'stock.picking'
 
 
         def enviar(self):
