@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from odoo import models, api, fields, _
+from collections import OrderedDict
 from dateutil.relativedelta import relativedelta
 from odoo.exceptions import AccessError, UserError, ValidationError
 import logging, json
@@ -71,24 +72,8 @@ class AccountMoveInherit(models.Model):
 
     @api.depends('invoice_payments_widget')
     def _compute_payment_html(self):
-        # contenedor que permite varias líneas
-        wrap_css = (
-            "white-space: normal;"
-            "display: flex;"
-            "flex-wrap: wrap;"
-            "gap: 4px;"
-            "align-items: center;"
-        )
-        # estilo de cada “cuadrito”
-        box_css = (
-            "display: inline-block;"
-            "padding: 2px 6px;"
-            "border: 1px solid #dcdcdc;"
-            "border-radius: 6px;"
-            "background: #f7f7f7;"
-            "font-size: 12px;"
-            "line-height: 18px;"
-        )
+        wrap_css = "white-space:normal;display:flex;flex-wrap:wrap;gap:4px;align-items:center;"
+        box_css  = "display:inline-block;padding:2px 6px;border:1px solid #dcdcdc;border-radius:6px;background:#f7f7f7;font-size:12px;line-height:18px;"
 
         for move in self:
             move.payment_refs_html = False
@@ -97,59 +82,46 @@ class AccountMoveInherit(models.Model):
             move.total_amount_paid = 0.0
 
             data = move.invoice_payments_widget
-            if not data:
-                continue
-
             try:
-                payload = json.loads(data)
+                payload = json.loads(data) if data else None
             except Exception:
-                payload = False
-
+                payload = None
             if not isinstance(payload, dict):
                 continue
 
             content = payload.get('content') or []
-            if not content:
-                continue
-
-            # Ordenar por fecha (opcional)
+            # (opcional) ordenar por fecha para consistencia visual
             try:
                 content = sorted(content, key=lambda d: d.get('date') or '')
             except Exception:
                 pass
 
-            # Acumuladores y anti-duplicado
-            refs_tags, amts_tags, dates_tags = [], [], []
-            seen = set()
-
+            # Agrupar por ref y sumar montos
+            sums_by_ref = OrderedDict()
             for item in content:
-                ref = item.get('ref') or ''
-                amt = float(item.get('amount') or 0.0)
-                dstr = item.get('date') or ''
-                dval = fields.Date.from_string(dstr) if dstr else False
-
-                # clave para evitar duplicados del mismo pago
-                key = item.get('account_payment_id') or item.get('payment_id') or f"{ref}|{dstr}|{amt}"
-                if key in seen:
+                ref = (item.get('ref') or '').strip()
+                if not ref:
+                    # si querés incluir los sin ref, podés hacer: ref = _("Sin ref.")
                     continue
-                seen.add(key)
+                amt = float(item.get('amount') or 0.0)
+                sums_by_ref[ref] = sums_by_ref.get(ref, 0.0) + amt
 
-                # formateos
-                amount_txt = format_amount(self.env, amt, move.currency_id or self.env.company.currency_id)
-                date_txt = format_date(self.env, dval) if dval else ''
-                move.total_amount_paid += amt
-                # tags
-                if ref:
-                    refs_tags.append(f"<span style='{box_css}'>{ref}</span>")
-                amts_tags.append(f"<span style='{box_css}'>{amount_txt}</span>")
-                dates_tags.append(f"<span style='{box_css}'>{date_txt}</span>")
+            if not sums_by_ref:
+                continue
 
-            if refs_tags:
-                move.payment_refs_html = f"<div style='{wrap_css}'>{''.join(refs_tags)}</div>"
-            if amts_tags:
-                move.payment_amount_html = f"<div style='{wrap_css}'>{''.join(amts_tags)}</div>"
-            if dates_tags:
-                move.payment_date_html = f"<div style='{wrap_css}'>{''.join(dates_tags)}</div>"
+            # total cobrado (sobre lo agregado)
+            move.total_amount_paid = sum(sums_by_ref.values())
+
+            cur = move.currency_id or self.env.company.currency_id
+            ref_tags = []
+            amt_tags = []
+            for ref, total in sums_by_ref.items():
+                ref_tags.append(f"<span style='{box_css}'>{ref}</span>")
+                amt_tags.append(f"<span style='{box_css}'>{format_amount(self.env, total, cur)}</span>")
+
+            move.payment_refs_html   = f"<div style='{wrap_css}'>{''.join(ref_tags)}</div>"
+            move.payment_amount_html = f"<div style='{wrap_css}'>{''.join(amt_tags)}</div>"
+            move.payment_date_html   = False  # sin fechas, como pediste
 
     def _compute_amount_total_day(self):
         for record in self:

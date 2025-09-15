@@ -61,7 +61,7 @@
         </field>
     </record>
     <!-- ACCIÓN llamada por el botón del partner -->
-    <record id="action_partner_invoices_tree" model="ir.actions.act_window">
+    <record id="action_stock_picking_enhancement" model="ir.actions.act_window">
         <field name="name">Facturación del cliente</field>
         <field name="res_model">account.move</field>
         <field name="view_mode">tree,form</field>
