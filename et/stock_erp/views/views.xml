@@ -21,12 +21,14 @@
                 <field name="total_unidades" optional="hide"/>
                 <field name="comprometido_unidades" optional="hide"/>
                 <field name="disponible_unidades" optional="show"/>
+                <field name="entregable_unidades" optional="show"/>
 
                 <field name="fisico_bultos" optional="hide"/>
                 <field name="enelagua_bultos" optional="hide"/>
                 <field name="total_bultos" optional="hide"/>
                 <field name="comprometido_bultos" optional="hide"/>
                 <field name="disponible_bultos" optional="hide"/>
+                <field name="entregable_bultos" optional="hide"/>
             </tree>
         </field>
     </record>
