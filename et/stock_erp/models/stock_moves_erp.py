@@ -86,6 +86,7 @@ class StockMovesERP(models.Model):
                         move.unlink()
                         record.check_picking(pickings_to_check)
                     record.stock_erp.decrease_comprometido_unidades(record.quantity)
+                    record.stock_erp.increase_disponible_unidades(record.quantity)
                     record.update_sale_orders()
                     record.unlink()
 
