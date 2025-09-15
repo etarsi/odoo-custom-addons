@@ -24,8 +24,8 @@
         </record>
     -->
     <!-- VISTA TREE DE LOS INVENTARIOS -->
-    <record id="stock_enhancement2.view_stock_picking_enhancement_tree" model="ir.ui.view">
-        <field name="name">enhancement.stock.picking.tree</field>
+    <record id="stock_enhancement2.view_stock_picking_enhancement_v2_tree" model="ir.ui.view">
+        <field name="name">enhancement.stock.picking.v2.tree</field>
         <field name="model">stock.picking</field>
         <field name="arch" type="xml">
             <tree string="Ruteo de Pedidos" create="false" delete="false">
@@ -63,7 +63,7 @@
         <field name="name">Ruteo de Pedidos</field>
         <field name="res_model">stock.picking</field>
         <field name="view_mode">tree,form</field>
-        <field name="view_id" ref="stock_enhancement2.view_stock_picking_enhancement_tree"/>
+        <field name="view_id" ref="stock_enhancement2.view_stock_picking_enhancement_v2_tree"/>
         <field name="search_view_id" ref="stock_enhancement2.view_stock_picking_enhancement_search"/>
     </record>
 </odoo>
