@@ -31,6 +31,8 @@ class AccountMoveInherit(models.Model):
     payment_refs_html = fields.Html(string="Ref de Pagos", compute="_compute_payment_html", sanitize=True)
     payment_amount_html = fields.Html(string="Montos de Cobro", compute="_compute_payment_html", sanitize=True)
     payment_date_html = fields.Html(string="Fecha de Pagos", compute="_compute_payment_html", sanitize=True)
+    payment_refs_html_rp = fields.Html(string="Ref de Pagos", compute="_compute_payment_html_rp", sanitize=True)
+    payment_amount_html_rp = fields.Html(string="Montos de Cobro", compute="_compute_payment_html_rp", sanitize=True)
     calendar_color_state = fields.Selection([
         ('paid', 'Pagado'),
         ('not_paid', 'No Pagado'),
@@ -72,13 +74,94 @@ class AccountMoveInherit(models.Model):
 
     @api.depends('invoice_payments_widget')
     def _compute_payment_html(self):
-        wrap_css = "white-space:normal;display:flex;flex-wrap:wrap;gap:4px;align-items:center;"
-        box_css  = "display:inline-block;padding:2px 6px;border:1px solid #dcdcdc;border-radius:6px;background:#f7f7f7;font-size:12px;line-height:18px;"
+        # contenedor que permite varias líneas
+        wrap_css = (
+            "white-space: normal;"
+            "display: flex;"
+            "flex-wrap: wrap;"
+            "gap: 4px;"
+            "align-items: center;"
+        )
+        # estilo de cada “cuadrito”
+        box_css = (
+            "display: inline-block;"
+            "padding: 2px 6px;"
+            "border: 1px solid #dcdcdc;"
+            "border-radius: 6px;"
+            "background: #f7f7f7;"
+            "font-size: 12px;"
+            "line-height: 18px;"
+        )
 
         for move in self:
             move.payment_refs_html = False
             move.payment_amount_html = False
             move.payment_date_html = False
+            move.total_amount_paid = 0.0
+
+            data = move.invoice_payments_widget
+            if not data:
+                continue
+
+            try:
+                payload = json.loads(data)
+            except Exception:
+                payload = False
+
+            if not isinstance(payload, dict):
+                continue
+
+            content = payload.get('content') or []
+            if not content:
+                continue
+
+            # Ordenar por fecha (opcional)
+            try:
+                content = sorted(content, key=lambda d: d.get('date') or '')
+            except Exception:
+                pass
+
+            # Acumuladores y anti-duplicado
+            refs_tags, amts_tags, dates_tags = [], [], []
+            seen = set()
+
+            for item in content:
+                ref = item.get('ref') or ''
+                amt = float(item.get('amount') or 0.0)
+                dstr = item.get('date') or ''
+                dval = fields.Date.from_string(dstr) if dstr else False
+
+                # clave para evitar duplicados del mismo pago
+                key = item.get('account_payment_id') or item.get('payment_id') or f"{ref}|{dstr}|{amt}"
+                if key in seen:
+                    continue
+                seen.add(key)
+
+                # formateos
+                amount_txt = format_amount(self.env, amt, move.currency_id or self.env.company.currency_id)
+                date_txt = format_date(self.env, dval) if dval else ''
+                move.total_amount_paid += amt
+                # tags
+                if ref:
+                    refs_tags.append(f"<span style='{box_css}'>{ref}</span>")
+                amts_tags.append(f"<span style='{box_css}'>{amount_txt}</span>")
+                dates_tags.append(f"<span style='{box_css}'>{date_txt}</span>")
+
+            if refs_tags:
+                move.payment_refs_html = f"<div style='{wrap_css}'>{''.join(refs_tags)}</div>"
+            if amts_tags:
+                move.payment_amount_html = f"<div style='{wrap_css}'>{''.join(amts_tags)}</div>"
+            if dates_tags:
+                move.payment_date_html = f"<div style='{wrap_css}'>{''.join(dates_tags)}</div>"
+
+    @api.depends('invoice_payments_widget')
+    def _compute_payment_html_rp(self):
+        wrap_css = "white-space:normal;display:flex;flex-wrap:wrap;gap:4px;align-items:center;"
+        box_css  = "display:inline-block;padding:2px 6px;border:1px solid #dcdcdc;border-radius:6px;background:#f7f7f7;font-size:12px;line-height:18px;"
+
+        for move in self:
+            move.payment_refs_html_rp = False
+            move.payment_amount_html_rp = False
             move.total_amount_paid = 0.0
 
             data = move.invoice_payments_widget
@@ -119,9 +202,8 @@ class AccountMoveInherit(models.Model):
                 ref_tags.append(f"<span style='{box_css}'>{ref}</span>")
                 amt_tags.append(f"<span style='{box_css}'>{format_amount(self.env, total, cur)}</span>")
 
-            move.payment_refs_html   = f"<div style='{wrap_css}'>{''.join(ref_tags)}</div>"
-            move.payment_amount_html = f"<div style='{wrap_css}'>{''.join(amt_tags)}</div>"
-            move.payment_date_html   = False  # sin fechas, como pediste
+            move.payment_refs_html_rp = f"<div style='{wrap_css}'>{''.join(ref_tags)}</div>"
+            move.payment_amount_html_rp = f"<div style='{wrap_css}'>{''.join(amt_tags)}</div>"
 
     def _compute_amount_total_day(self):
         for record in self:
