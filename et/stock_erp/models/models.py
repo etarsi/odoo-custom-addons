@@ -324,7 +324,7 @@ class StockERP(models.Model):
                 res = super().enviar()
                 
 
-                for move in record.move_ids_with_out_package:
+                for move in record.move_ids_without_package:
                     vals = {}
 
                     default_code = move.product_id.default_code
