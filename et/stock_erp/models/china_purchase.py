@@ -6,7 +6,7 @@ class ChinaPurchase(models.Model):
     name = fields.Char()
     partner_id = fields.Many2one('res.partner')
     state = fields.Selection(selection=[('draft', 'Borrador'), ('confirmed', 'Confirmado'), ('closed', 'Cerrado')])
-    order_line = fields.One2many('china.purchase.line')
+    order_line = fields.One2many('china.purchase.line', 'china_purchase', string="Líneas de Compra")
 
 
     def action_confirm(self):
