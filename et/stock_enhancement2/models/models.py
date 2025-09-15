@@ -168,7 +168,7 @@ class StockPickingInherit(models.Model):
     def update_availability(self):
         for record in self:
             if record.move_ids_without_package:
-                for move in record.move_ids_with_package:
+                for move in record.move_ids_without_package:
 
                     default_code = move.product_id.default_code
                     if default_code:

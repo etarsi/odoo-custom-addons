@@ -5,7 +5,7 @@ class ChinaPurchase(models.Model):
 
     name = fields.Char()
     partner_id = fields.Many2one('res.partner', string='Proveedor')
-    state = fields.Selection(selection=[('draft', 'Borrador'), ('confirmed', 'Confirmado'), ('closed', 'Cerrado')])
+    state = fields.Selection(selection=[('draft', 'Borrador'), ('confirmed', 'Confirmado'), ('closed', 'Cerrado')], default="draft")
     order_line = fields.One2many('china.purchase.line', 'china_purchase', string="Líneas de Compra")
 
 
