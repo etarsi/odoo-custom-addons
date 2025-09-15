@@ -31,7 +31,7 @@
             <tree string="Transferencia Reporte" create="false" delete="false">
                 <!-- campos base -->
                 <field name="date_done" optional="show" string="Fecha de Envio al WMS"/>
-                <field name="wms_code" string="Código WMS" optional="show"/>
+                <field name="codigo_wms" string="Código WMS" optional="show"/>
                 <field name="sale_id" string="Documento de Origen" optional="show"/>
                 <field name="name" string="Referencia" optional="show" />
                 <field name="partner_id" string="Cliente" optional="show" />
