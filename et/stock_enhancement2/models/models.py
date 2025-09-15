@@ -162,6 +162,61 @@ class StockPickingInherit(models.Model):
                 record.consume_stock()
 
 
+    def update_availability(self):
+        for record in self:
+            if record.move_ids_without_package:
+                for move in record.move_ids_with_package:
+
+                    default_code = move.product_id.default_code
+                    if default_code:
+                        if default_code.startswith('9'):
+                            search_code = default_code[1:]
+                        else:
+                            search_code = default_code
+
+                    stock_erp = self.env['stock.erp'].search([
+                            ('product_id.default_code', '=', search_code)
+                        ], limit=1)
+                    
+                    if not stock_erp:
+                            raise UserError(f'El producto [{default_code}]{move.product_id.name} no se encuentra en el listado de Stock. Avise al administrador.')
+              
+
+                    if move.product_uom_qty == 0:
+                        available_percent = 0
+                    
+                    elif stock_erp.entregable_unidades >= move.product_uom_qty:
+                        available_percent = 100
+                        move.quantity_done = move.product_uom_qty
+                    elif stock_erp.entregable_unidades == 0:
+                        available_percent = 0
+                        move.quantity_done = 0
+                    else:
+                        move.quantity_done = stock_erp.entregable_unidades
+                        available_percent = (stock_erp.entregable_unidades * 100) / move.product_uom_qty
+
+                    move.product_available_percent = available_percent
+
+
+                pkg_qty = record.move_ids_without_package.mapped('product_packaging_qty')
+                u_values = record.move_ids_without_package.mapped('product_available_percent')
+                u_avg = (sum(u_values) / len(u_values)) if u_values else 0
+                pkg_qty_sum = sum(pkg_qty)
+
+                record.packaging_qty = pkg_qty_sum
+                record.available_percent = round(u_avg, 2)
+                
+                record.update_bultos()
+
+
+    def update_bultos(self):
+        for record in self:
+            bultos = 0
+            for move in record.move_ids_without_package:
+                move.product_packaging_qty = move.product_uom_qty / move.product_packaging_id.qty
+                bultos += move.product_packaging_qty
+            record.packaging_qty = bultos
+
     def consume_stock(self):
         for record in self:
             vals_list = []

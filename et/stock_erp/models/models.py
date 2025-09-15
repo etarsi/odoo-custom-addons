@@ -274,6 +274,38 @@ class StockERP(models.Model):
                         if move.product_available_percent == 0:
                             raise UserError(f'No se puede enviar a Digip. El producto: {move.product_id} no tiene disponibilidad')
 
-            res = super().enviar()
+                res = super().enviar()
+                
 
+                for move in record.move_ids_with_out_package:
+                    vals = {}
+
+                    default_code = move.product_id.default_code
+
+                    if default_code:
+                        if default_code.startswith('9'):
+                            search_code = default_code[1:]
+                        else:
+                            search_code = default_code
+
+                        product_id = self.env['product.product'].search([
+                            ('default_code', '=', default_code)
+                        ], limit=1)
+
+                        stock_erp = self.env['stock.erp'].search([
+                            ('product_id.default_code', '=', search_code)
+                        ], limit=1)
+
+                    
+                    vals['stock_erp'] = stock_erp.id
+                    vals['sale_id'] = record.sale_id.id
+                    vals['sale_line_id'] = move.sale_line_id.id
+                    vals['partner_id'] = record.sale_id.partner_id.id
+                    vals['product_id'] = product_id.id
+                    vals['quantity'] = move.product_uom_qty
+                    vals['uxb'] = move.product_packaging_id.qty or ''
+                    vals['bultos'] = move.product_packaging_qty
+                    vals['type'] = 'preparation'
+
+                    self.env['stock.moves.erp'].create(vals)
             

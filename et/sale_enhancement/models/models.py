@@ -41,6 +41,21 @@ class SaleOrderInherit(models.Model):
         help="Rubros de los productos en la orden de venta. Se usa para filtrar productos en la vista de formulario."
     )
 
+    def unlink(self):
+        for order in self:
+            if order.state not in ['draft', 'cancel']:
+                raise UserError(_(
+                    "No se puede borrar el pedido %s porque ya fue confirmado o procesado.") % order.name)
+
+            stock_moves_erp = self.env['stock.moves.erp'].search([('sale_id', '=', order.id)])
+
+            if stock_moves_erp:
+                for stock in stock_moves_erp:
+                    stock.unreserve_stock()
+
+        return super().unlink()
+    
+    
     ### ONCHANGE
 
     @api.onchange('partner_id')
