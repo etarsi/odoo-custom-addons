@@ -4,7 +4,7 @@ class ChinaPurchase(models.Model):
     _name = 'china.purchase'
 
     name = fields.Char()
-    partner_id = fields.Many2one('res.partner')
+    partner_id = fields.Many2one('res.partner', string='Proveedor')
     state = fields.Selection(selection=[('draft', 'Borrador'), ('confirmed', 'Confirmado'), ('closed', 'Cerrado')])
     order_line = fields.One2many('china.purchase.line', 'china_purchase', string="Líneas de Compra")
 
@@ -23,8 +23,8 @@ class ChinaPurchaseLine(models.Model):
     _name = 'china.purchase.line'
 
     name = fields.Char()
-    china_purchase = fields.Many2one('china.purchase')
-    product_id = fields.Many2one('product.product')
+    china_purchase = fields.Many2one('china.purchase', string='Compra China')
+    product_id = fields.Many2one('product.product', string='Producto')
     quantity = fields.Integer('Cantidad')
     uxb = fields.Integer('UxB')
     bultos = fields.Float('Bultos', compute="_compute_bultos")
