@@ -1,27 +1,28 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <odoo>
-    <!-- Vista de formulario de picking herencia-->
-    <record id="view_stock_picking_form_inherit" model="ir.ui.view">
-        <field name="name">stock.picking.form.inherit</field>
-        <field name="model">stock.picking</field>
-        <field name="inherit_id" ref="stock.view_picking_form"/>
-        <field name="arch" type="xml">
-            <xpath expr="//page[@name='extra']" position="after">
-                <page string="Configuración Remitos" name="conf_remitos">
-                    <group>
-                        <group string="Secuencia de Remitos" name="seq_remitos">
-                            <field name="wesend_ids" widget="many2many_tags" options="{'no_create': True}" />
-                            <button name="action_correction_secuence"
-                                    type="object"
-                                    string="Corregir Secuencia Remitos"
-                                    icon="fa-plus-circle"
-                                    class="btn-primary" />
+    <!-- Vista de formulario de picking herencia
+        <record id="view_stock_picking_form_inherit" model="ir.ui.view">
+            <field name="name">stock.picking.form.inherit</field>
+            <field name="model">stock.picking</field>
+            <field name="inherit_id" ref="stock.view_picking_form"/>
+            <field name="arch" type="xml">
+                <xpath expr="//page[@name='extra']" position="after">
+                    <page string="Configuración Remitos" name="conf_remitos">
+                        <group>
+                            <group string="Secuencia de Remitos" name="seq_remitos">
+                                <field name="wesend_ids" widget="many2many_tags" options="{'no_create': True}" />
+                                <button name="action_correction_secuence"
+                                        type="object"
+                                        string="Corregir Secuencia Remitos"
+                                        icon="fa-plus-circle"
+                                        class="btn-primary" />
+                            </group>
                         </group>
-                    </group>
-                </page>
-            </xpath>
-        </field>
-    </record>
+                    </page>
+                </xpath>
+            </field>
+        </record>
+    -->
     <!-- VISTA TREE DE LOS INVENTARIOS -->
     <record id="view_stock_picking_enhancement_tree" model="ir.ui.view">
         <field name="name">stock.picking.enhancement.tree</field>
