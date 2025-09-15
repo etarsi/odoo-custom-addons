@@ -22,4 +22,50 @@
             </xpath>
         </field>
     </record>
+    <!-- VISTA TREE DE LOS INVENTARIOS -->
+    <record id="view_stock_picking_enhancement_tree" model="ir.ui.view">
+        <field name="name">stock.picking.enhancement.tree</field>
+        <field name="model">stock.picking</field>
+        <field name="arch" type="xml">
+            <tree string="Transferencia Reporte" create="false" delete="false">
+                <!-- campos base -->
+                <field name="date_done" optional="show" string="Fecha de Envio al WMS"/>
+                <field name="wms_code" string="Código WMS" optional="show"/>
+                <field name="sale_id" string="Documento de Origen" optional="show"/>
+                <field name="name" string="Referencia" optional="show" />
+                <field name="partner_id" string="Cliente" optional="show" />
+                <field name="carrier_id" string="Transportista/Método de entrega" optional="show" />
+                <field name="r_contact_call" optional="show"/>
+                <field name="r_contact_cp" optional="show" />
+                <field name="r_contact_city" optional="show" />
+                <field name="r_address" optional="show"/>
+                <field name="state" widget="badge" decoration-success="state == 'done'" 
+                                    decoration-info="state == 'confirmed'" decoration-warning="state == 'assigned'" 
+                                    decoration-secondary="state == 'waiting'" decoration-dark="state == 'draft'" optional="hide"/>
+                <field name="company_id" optional="show"/>
+            </tree>
+        </field>
+    </record>
+    <!-- SEARCH de la vista -->
+    <record id="view_stock_picking_enhancement_search" model="ir.ui.view">
+        <field name="name">stock.picking.enhancement.search</field>
+        <field name="model">stock.picking</field>
+        <field name="arch" type="xml">
+            <search string="Buscar facturas">
+                <field name="name" string="Referencia"/>
+                <field name="date_done" string="Fecha de Envio al WMS"/>
+                <filter name="posted" string="Publicadas" domain="[('state','=','posted')]" help="Solo publicadas"/>
+                <separator/>
+                <filter name="group_partner" string="Agrupar por Cliente" context="{'group_by':'partner_id'}"/>
+            </search>
+        </field>
+    </record>
+    <!-- ACCIÓN llamada por el botón del partner -->
+    <record id="action_partner_invoices_tree" model="ir.actions.act_window">
+        <field name="name">Facturación del cliente</field>
+        <field name="res_model">account.move</field>
+        <field name="view_mode">tree,form</field>
+        <field name="view_id" ref="view_stock_picking_enhancement_search"/>
+        <field name="search_view_id" ref="view_stock_picking_enhancement_tree"/>
+    </record>
 </odoo>
