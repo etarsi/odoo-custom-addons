@@ -24,7 +24,7 @@
         </record>
     -->
     <!-- VISTA TREE DE LOS INVENTARIOS -->
-    <record id="view_stock_picking_enhancement_tree" model="ir.ui.view">
+    <record id="stock_enhancement2.view_stock_picking_enhancement_tree" model="ir.ui.view">
         <field name="name">stock.picking.enhancement.tree</field>
         <field name="model">stock.picking</field>
         <field name="arch" type="xml">
@@ -47,14 +47,12 @@
         </field>
     </record>
     <!-- SEARCH de la vista -->
-    <record id="view_stock_picking_enhancement_search" model="ir.ui.view">
+    <record id="stock_enhancement2.view_stock_picking_enhancement_search" model="ir.ui.view">
         <field name="name">stock.picking.enhancement.search</field>
         <field name="model">stock.picking</field>
         <field name="arch" type="xml">
-            <search string="Buscar facturas">
+            <search string="Buscar Ruteo de Pedidos">
                 <field name="name" string="Referencia"/>
-                <field name="date_done" string="Fecha de Envio al WMS"/>
-                <filter name="posted" string="Publicadas" domain="[('state','=','posted')]" help="Solo publicadas"/>
                 <separator/>
                 <filter name="group_partner" string="Agrupar por Cliente" context="{'group_by':'partner_id'}"/>
             </search>
@@ -65,7 +63,7 @@
         <field name="name">Ruteo de Pedidos</field>
         <field name="res_model">stock.picking</field>
         <field name="view_mode">tree,form</field>
-        <field name="view_id" ref="view_stock_picking_enhancement_tree"/>
-        <field name="search_view_id" ref="view_stock_picking_enhancement_search"/>
+        <field name="view_id" ref="stock_enhancement2.view_stock_picking_enhancement_tree"/>
+        <field name="search_view_id" ref="stock_enhancement2.view_stock_picking_enhancement_search"/>
     </record>
 </odoo>
