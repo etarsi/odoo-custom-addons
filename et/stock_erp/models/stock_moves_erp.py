@@ -49,8 +49,15 @@ class StockMovesERP(models.Model):
     def unreserve_stock(self):
         for record in self:
             if record.type == 'reserve':
-                if not record.sale_id.picking_ids:
-                    continue
+                record.cancel_sale_line()
+                record.stock_erp.decrease_comprometido_unidades(record.quantity)
+                record.update_sale_orders()
+                record.unlink()
+
+
+    def unreserve_stock2(self):
+        for record in self:
+            if record.type == 'reserve':
 
                 partial_quantity = 0
                 total_qty_to_unlink = record.quantity
@@ -103,6 +110,14 @@ class StockMovesERP(models.Model):
                 raise UserError(f"No se puede borrar la línea de venta {sale_line.name} porque ya fue facturada.")            
             sale_line.product_uom_qty = 0
             sale_line.is_cancelled = True
+
+    def cancel_sale_line(self):
+        for record in self:
+            if record.sale_line_id:
+                if record.sale_line_id.invoice_lines:
+                    raise UserError(f"No se puede borrar la línea de venta {record.sale_line_id.name} porque ya fue facturada.")            
+                record.sale_line_id.product_uom_qty = 0
+                record.sale_line_id.is_cancelled = True
 
     
     @api.onchange('quantity_delivered')
