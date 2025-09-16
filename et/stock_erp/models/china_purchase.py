@@ -41,4 +41,17 @@ class ChinaPurchaseLine(models.Model):
         for record in self:
             stock_erp = self.env['stock.erp'].search([('product_id', '=', record.product_id.id)])
 
-            stock_erp.increase_enelagua_unidades(record.quantity)
+            if stock_erp:
+                stock_erp.enelagua_unidades = record.quantity
+                stock_erp.comprado_unidades = record.quantity
+            
+            if not stock_erp:
+                vals = {}
+                vals['product_id'] = record.product_id.id
+                vals['uxb'] = record.uxb
+                vals['fisico_unidades'] = 0
+                vals['enelaguaunidades'] = record.quantity
+                vals['entregable_unidades'] = 0
+                vals['comprado_unidades'] = record.quantity
+
+                self.vals['stock.erp'].create(vals)
