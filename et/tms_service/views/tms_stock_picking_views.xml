@@ -4,29 +4,29 @@
         <field name="model">tms.stock.picking</field>
         <field name="arch" type="xml">
             <tree create="false" edit="true" delete="false">
-                <field name="ref"/>
-                <field name="fecha_envio_wms"/>
-                <field name="codigo_wms"/>
-                <field name="sale_id"/>
-                <field name="picking_id"/>
-                <field name="partner_id"/>
-                <field name="carrier_id"/>
-                <field name="cantidad_bultos"/>
-                <field name="cantidad_lineas"/>
-                <field name="observaciones"/>
-                <field name="industry_id"/>
-                <field name="ubicacion"/>
-                <field name="estado_digip"/>
-                <field name="estado_despacho"/>
-                <field name="fecha_despacho"/>
-                <field name="observacion_despacho"/>
-                <field name="contacto_calle"/>
-                <field name="direccion_entrega"/>
-                <field name="contacto_cp"/>
-                <field name="contacto_ciudad"/>
-                <field name="carrier_address"/>
-                <field name="company_id"/>
-                <field name="user_id"/>
+                <field name="fecha_entrega" optional="show"/>
+                <field name="fecha_creacion" optional="show"/>
+                <field name="codigo_wms" optional="show"/>
+                <field name="sale_id" optional="show"/>
+                <field name="picking_id" optional="show"/>
+                <field name="partner_id" optional="show"/>
+                <field name="carrier_id" optional="show"/>
+                <field name="cantidad_bultos" optional="show"/>
+                <field name="cantidad_lineas" optional="show"/>
+                <field name="observaciones" optional="show"/>
+                <field name="industry_id" optional="show"/>
+                <field name="ubicacion" optional="show"/>
+                <field name="estado_digip" optional="show"/>
+                <field name="estado_despacho" optional="show"/>
+                <field name="fecha_despacho" optional="show"/>
+                <field name="observacion_despacho" optional="show"/>
+                <field name="contacto_calle" optional="show"/>
+                <field name="direccion_entrega" optional="show"/>
+                <field name="contacto_cp" optional="show"/>
+                <field name="contacto_ciudad" optional="show"/>
+                <field name="carrier_address" optional="show"/>
+                <field name="company_id" optional="show"/>
+                <field name="user_id" optional="show"/>
             </tree>
         </field>
     </record>
@@ -38,7 +38,6 @@
             <form>
                 <sheet>
                     <group>
-                        <field name="ref"/>
                         <field name="fecha_envio_wms"/>
                         <field name="codigo_wms"/>
                         <field name="sale_id"/>
