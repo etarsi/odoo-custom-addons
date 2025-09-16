@@ -50,7 +50,7 @@ class ChinaPurchaseLine(models.Model):
                 vals['product_id'] = record.product_id.id
                 vals['uxb'] = record.uxb
                 vals['fisico_unidades'] = 0
-                vals['enelaguaunidades'] = record.quantity
+                vals['enelagua_unidades'] = record.quantity
                 vals['entregable_unidades'] = 0
                 vals['comprado_unidades'] = record.quantity
 
