@@ -2,9 +2,9 @@
     <data>
         <menuitem 
             id="tms_logo" 
-            name="ATM"
+            name="TMS"
             sequence="5"
-            web_icon="ruteo_service,static/description/icon.png"
+            web_icon="tms_service,static/description/icon.png"
         />
     </data>
 </odoo>

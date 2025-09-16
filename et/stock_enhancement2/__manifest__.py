@@ -33,7 +33,6 @@
         # 'security/ir.model.access.csv',
         'views/views.xml',
         'views/delivery_carrier_views.xml',
-        #'views/stock_picking_ruteo_views.xml',
         'views/menu.xml',
         'views/templates.xml',
     ],

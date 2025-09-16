@@ -48,10 +48,6 @@ class StockPickingInherit(models.Model):
     delivery_state = fields.Selection(selection=[('no', 'No entregado'), ('delivered', 'Entregado'), ('returned', 'Devuelto')], default='no', copy=False, string='Estado Delivery')
     china_purchase = fields.Boolean(default=False, copy=True)
     wesend_ids = fields.Char(string="Remitos")
-    r_contact_call = fields.Char(string="Contacto Calle", related='partner_id.street', store=False)
-    r_contact_cp = fields.Char(string="Contacto/C.P", related='partner_id.zip', store=False)
-    r_contact_city = fields.Char(string="Contacto Ciudad", related='partner_id.city', store=False)
-    r_address = fields.Char(string="Transportista/Dirección", related='carrier_id.address', store=False)
 
     def action_correction_secuence(self):
         return True
