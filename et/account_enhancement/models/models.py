@@ -569,9 +569,9 @@ class AccountPaymentGroupInherit(models.Model):
             if rec.receiptbook_id.mail_template_id:
                 rec.message_post_with_template(rec.receiptbook_id.mail_template_id.id)
 
-            
-            for payment in rec.payment_ids:
-                payment.check_state = 'Entregado'
+            if payment.payment_type == 'outbound':
+                for payment in rec.payment_ids:
+                    payment.check_state = 'Entregado'
 
         return True
     
