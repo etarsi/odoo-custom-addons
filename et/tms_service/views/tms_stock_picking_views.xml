@@ -14,7 +14,7 @@
                 <field name="cantidad_bultos"/>
                 <field name="cantidad_lineas"/>
                 <field name="observaciones"/>
-                <field name="despacho"/>
+                <field name="industry_id"/>
                 <field name="ubicacion"/>
                 <field name="estado_digip"/>
                 <field name="estado_despacho"/>
