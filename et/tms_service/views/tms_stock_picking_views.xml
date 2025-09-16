@@ -5,7 +5,7 @@
         <field name="arch" type="xml">
             <tree create="false" edit="true" delete="false">
                 <field name="fecha_entrega" optional="show"/>
-                <field name="fecha_creacion" optional="show"/>
+                <field name="fecha_envio_wms" optional="show"/>
                 <field name="codigo_wms" optional="show"/>
                 <field name="sale_id" optional="show"/>
                 <field name="picking_id" optional="show"/>
