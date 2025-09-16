@@ -54,4 +54,4 @@ class ChinaPurchaseLine(models.Model):
                 vals['entregable_unidades'] = 0
                 vals['comprado_unidades'] = record.quantity
 
-                self.vals['stock.erp'].create(vals)
+                self.env['stock.erp'].create(vals)
