@@ -569,7 +569,7 @@ class AccountPaymentGroupInherit(models.Model):
             if rec.receiptbook_id.mail_template_id:
                 rec.message_post_with_template(rec.receiptbook_id.mail_template_id.id)
 
-            if payment.partner_type == 'supplier':
+            if rec.payment_type == 'outbound':
                 for payment in rec.payment_ids:
                     payment.check_state = 'Entregado'
 
