@@ -279,6 +279,7 @@ class AccountMoveInherit(models.Model):
             ("date_paid", "=", target),
             ("move_type", "=", "in_invoice"),
             ("state", "in", ["draft", "posted"]),
+            ("state_paid", "!=", "paid"),
         ])
 
         group = self.env.ref("account_enhancement.group_recordatorio_pago", raise_if_not_found=False)

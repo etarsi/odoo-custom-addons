@@ -1,0 +1,10 @@
+<odoo>
+    <data>
+        <menuitem 
+            id="tms_logo" 
+            name="ATM"
+            sequence="5"
+            web_icon="ruteo_service,static/description/icon.png"
+        />
+    </data>
+</odoo>

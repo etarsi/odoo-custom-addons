@@ -1,0 +1,77 @@
+<odoo>
+    <record id="view_tms_stock_picking_tree" model="ir.ui.view">
+        <field name="name">tms.stock.picking.tree</field>
+        <field name="model">tms.stock.picking</field>
+        <field name="arch" type="xml">
+            <tree create="false" edit="true" delete="false">
+                <field name="ref"/>
+                <field name="fecha_envio_wms"/>
+                <field name="codigo_wms"/>
+                <field name="sale_id"/>
+                <field name="picking_id"/>
+                <field name="partner_id"/>
+                <field name="carrier_id"/>
+                <field name="cantidad_bultos"/>
+                <field name="cantidad_lineas"/>
+                <field name="observaciones"/>
+                <field name="despacho"/>
+                <field name="ubicacion"/>
+                <field name="estado_digip"/>
+                <field name="estado_despacho"/>
+                <field name="fecha_despacho"/>
+                <field name="observacion_despacho"/>
+                <field name="contacto_calle"/>
+                <field name="direccion_entrega"/>
+                <field name="contacto_cp"/>
+                <field name="contacto_ciudad"/>
+                <field name="carrier_address"/>
+                <field name="company_id"/>
+                <field name="user_id"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_tms_stock_picking_form" model="ir.ui.view">
+        <field name="name">tms.stock.picking.form</field>
+        <field name="model">tms.stock.picking</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group>
+                        <field name="ref"/>
+                        <field name="fecha_envio_wms"/>
+                        <field name="codigo_wms"/>
+                        <field name="sale_id"/>
+                        <field name="picking_id"/>
+                        <field name="partner_id"/>
+                        <field name="carrier_id"/>
+                    </group>
+                    <group>
+                        <field name="cantidad_bultos"/>
+                        <field name="cantidad_lineas"/>
+                        <field name="observaciones"/>
+                        <field name="despacho"/>
+                        <field name="ubicacion"/>
+                        <field name="estado_digip"/>
+                        <field name="estado_despacho"/>
+                        <field name="fecha_despacho"/>
+                        <field name="observacion_despacho"/>
+                        <field name="contacto_calle"/>
+                        <field name="direccion_entrega"/>
+                        <field name="contacto_cp"/>
+                        <field name="contacto_ciudad"/>
+                        <field name="carrier_address"/>
+                        <field name="company_id"/>
+                        <field name="user_id"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_tms_stock_picking" model="ir.actions.act_window">
+        <field name="name">Ruteo de Inventario</field>
+        <field name="res_model">tms.stock.picking</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+</odoo>
