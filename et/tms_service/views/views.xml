@@ -1,5 +1,0 @@
-<odoo>
-    <data>
-        <menuitem id="tms_logo" name="TMS" sequence="5" web_icon="tms_service,static/description/icon.png"/>
-    </data>
-</odoo>

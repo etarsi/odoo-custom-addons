@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
     <!-- Menú raíz -->
-    <menuitem id="menu_tms_root" name="TMS" sequence="30" />
-    <menuitem id="menu_tms_inventario" name="Ruteo de Inventario" parent="menu_tms_root"
+    <menuitem id="tms_root_logo" name="TMS" sequence="5" web_icon="tms_service,static/description/icon.png"/>
+    <menuitem id="menu_tms_inventario" name="Ruteo de Inventario" parent="tms_root_logo"
               action="action_tms_stock_picking" sequence="10"/>
 </odoo>

@@ -28,7 +28,6 @@
         'security/ir.model.access.csv',
         'views/tms_stock_picking_views.xml',
         'views/menu.xml',
-        'views/views.xml',
     ],
     # only loaded in demonstration mode
     'demo': [
