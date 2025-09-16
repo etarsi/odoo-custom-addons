@@ -8,20 +8,10 @@
         <field name="sequence" eval="1"/>
     </record>
 
-    <!--HEREDAR EL stock.menu_stock_root -->
-<<<<<<< HEAD
-    <!-- <record id="stock_picking_enhancement_menu" model="ir.ui.menu">
+    <record id="stock_picking_ruteo_menu" model="ir.ui.menu">
         <field name="name">Ruteo de Pedidos</field>
         <field name="parent_id" ref="stock.menu_warehouse_report"/>
-        <field name="action" ref="action_stock_picking_enhancement"/>
+        <field name="action" ref="action_stock_picking_ruteo"/>
         <field name="sequence" eval="150"/>
-    </record> -->
-=======
-    <!--     <record id="stock_picking_enhancement_menu" model="ir.ui.menu">
-            <field name="name">Ruteo de Pedidos</field>
-            <field name="parent_id" ref="stock.menu_warehouse_report"/>
-            <field name="action" ref="action_stock_picking_enhancement"/>
-            <field name="sequence" eval="150"/>
-        </record> -->
->>>>>>> 43850d517d7e796c5ad56f316a836bf02f03dfb3
+    </record>
 </odoo>

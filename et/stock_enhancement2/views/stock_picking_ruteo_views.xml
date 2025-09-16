@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <odoo>
-    <record id="view_stock_picking_enhancement_v2_tree" model="ir.ui.view">
-        <field name="name">enhancement.stock.picking.v2.tree</field>
+    <record id="view_stock_picking_ruteo_tree" model="ir.ui.view">
+        <field name="name">ruteo.stock.picking.tree</field>
         <field name="model">stock.picking</field>
         <field name="arch" type="xml">
             <tree string="Ruteo de Pedidos" create="false" delete="false">
@@ -23,8 +23,8 @@
         </field>
     </record>
     <!-- SEARCH de la vista -->
-    <record id="view_stock_picking_enhancement_search" model="ir.ui.view">
-        <field name="name">stock.picking.enhancement.search</field>
+    <record id="view_stock_picking_ruteo_search" model="ir.ui.view">
+        <field name="name">stock.picking.ruteo.search</field>
         <field name="model">stock.picking</field>
         <field name="arch" type="xml">
             <search string="Buscar Ruteo de Pedidos">
@@ -35,11 +35,11 @@
         </field>
     </record>
     <!-- ACCIÓN llamada por el botón del partner -->
-    <record id="action_stock_picking_enhancement" model="ir.actions.act_window">
+    <record id="action_stock_picking_ruteo" model="ir.actions.act_window">
         <field name="name">Ruteo de Pedidos</field>
         <field name="res_model">stock.picking</field>
         <field name="view_mode">tree,form</field>
-        <field name="view_id" ref="view_stock_picking_enhancement_v2_tree"/>
-        <field name="search_view_id" ref="view_stock_picking_enhancement_search"/>
+        <field name="view_id" ref="view_stock_picking_ruteo_tree"/>
+        <field name="search_view_id" ref="view_stock_picking_ruteo_search"/>
     </record>
 </odoo>
