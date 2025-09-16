@@ -25,8 +25,9 @@
     # always loaded
     'data': [
         'security/ir.model.access.csv',
-        'data/tms_stock_picking_views.xml',
+        'views/tms_stock_picking_views.xml',
         'views/menu.xml',
+        'views/views.xml',
     ],
     # only loaded in demonstration mode
     'demo': [
