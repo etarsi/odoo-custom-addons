@@ -512,12 +512,6 @@ class SaleOrderLineInherit(models.Model):
     
 
     # ONCHANGE
-
-    @api.onchange('product_uom_qty')
-    def _onchange_stock_comprometido(self):
-        for record in self:
-            raise UserError("1")       
-            
                             # else:
                             #     capturar intencion de compra?
 
