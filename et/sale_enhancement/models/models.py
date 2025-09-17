@@ -519,21 +519,20 @@ class SaleOrderLineInherit(models.Model):
             if record.id:
                 if record.order_id.state == 'draft':                
                     if record.product_id:
-
+                        raise UserError('1')
                         stock_moves_erp = self.env['stock.moves.erp'].search([('sale_line_id', '=', record.id), ('type', '=', 'reserve')], limit=1)
-                        _logger.info(f"--------------- STOCK_MOVES_ERP.QUANTITY: {stock_moves_erp.quantity}")
                         if stock_moves_erp:
+                            raise UserError('2')
                             disponible_real = stock_moves_erp.quantity + record.disponible_unidades
-                            _logger.info(f"--------------- disponible_real: {disponible_real}")
                             if record.product_uom_qty <= disponible_real:
                                 diferencia = record.product_uom_qty - stock_moves_erp.quantity
-                                _logger.info(f"--------------- diferencia: {diferencia}")
                                 stock_moves_erp.stock_erp.decrease_comprometido_unidades(diferencia)
                                 stock_moves_erp.update_sale_orders()
                             else:
                                 raise UserError(f'No puede comprometer más cantidades de las disponibles. Actualmente tiene comprometidas: {stock_moves_erp.quantity} y quedan disponibles para agregar: {record.disponible_unidades}')
 
                         else:
+                            raise UserError('3')
                             if record.product_uom_qty <= record.disponible_unidades:
                                 record.comprometer_stock()
                             # else:
