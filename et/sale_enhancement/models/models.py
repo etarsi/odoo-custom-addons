@@ -426,7 +426,7 @@ class SaleOrderLineInherit(models.Model):
             if not record.is_available:
 
                 client_purchase_intent = self.env['client.purchase.intent']
-                cpi = client_purchase_intent.search([('sale_line_id', '=', record.id), ('type', '=', 'reserve')], limit=1)
+                cpi = client_purchase_intent.search([('sale_line_id', '=', record.id)], limit=1)
 
                 if cpi:
                     cpi.quantity = record.product_uom_qty
