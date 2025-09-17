@@ -288,10 +288,10 @@ class StockERP(models.Model):
         def cancel_preparation(self):
             for record in self:
                 if record.state_wms == 'no':
-                    raise('No se puede cancelar la preparación de una transferencia que no está enviada a Digip.')
+                    raise UserError('No se puede cancelar la preparación de una transferencia que no está enviada a Digip.')
                 
                 if record.state_wms == 'closed':
-                    raise('No se puede cancelar la preparación de una transferencia que fué enviada y recibida de Digip.')
+                    raise UserError('No se puede cancelar la preparación de una transferencia que fué enviada y recibida de Digip.')
                 
                 if record.move_ids_without_package:
                     for move in record.move_ids_without_package:
