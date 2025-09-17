@@ -43,19 +43,24 @@ class SaleOrderInherit(models.Model):
 
     def unlink(self):
         for order in self:
-            if order.state not in ['draft', 'cancel']:
+            if order.state not in ['draft']:
                 raise UserError(_(
                     "No se puede borrar el pedido %s porque ya fue confirmado o procesado.") % order.name)
 
-            stock_moves_erp = self.env['stock.moves.erp'].search([('sale_id', '=', order.id)])
+            order.unreserve_stock_sale_order()
+
+        return super().unlink()
+    
+
+    def unreserve_stock_sale_order(self):
+        for record in self:
+            stock_moves_erp = self.env['stock.moves.erp'].search([('sale_id', '=', record.id)])
 
             if stock_moves_erp:
                 for stock in stock_moves_erp:
                     stock.unreserve_stock()
 
-        return super().unlink()
-    
-    
+
     def cancel_order(self):
         for record in self:
             if record.picking_ids:
@@ -64,6 +69,7 @@ class SaleOrderInherit(models.Model):
                         raise UserError('No se puede cancelar el pedido de venta porque hay transferencias que están enviadas a Digip')
                 
                 record.cancel_pickings()
+                record.unreserve_stock_sale_order()
                 record.action_cancel()
 
     
@@ -369,7 +375,7 @@ class SaleOrderLineInherit(models.Model):
     is_available = fields.Boolean(string='Disponible', compute="_compute_is_available", store=True)
     is_cancelled = fields.Boolean(default=False)
     disponible_unidades = fields.Integer('Disponible')
-    comprometido_unidades = fields.Integer('Comprometido')
+    is_compromised = fields.Boolean(default=False)
     
     def create(self, vals):
         res = super().create(vals)
@@ -470,18 +476,66 @@ class SaleOrderLineInherit(models.Model):
 
                 self.env['stock.moves.erp'].create(vals)
 
+                record.is_compromised = True
+
     # COMPUTED
 
     @api.depends('disponible_unidades', 'product_uom_qty')
     def _compute_is_available(self):
         for record in self:
-            if record.product_uom_qty <= record.disponible_unidades:
-                record.is_available = True
-            else:
-                record.is_available = False
+            if record.order_id.state == 'draft':
+
+                stock_moves_erp = self.env['stock.moves.erp'].search([('sale_line_id', '=', record.id), ('type', '=', 'reserve')], limit=1)
+
+                if stock_moves_erp: # esta comprometido
+                    disponible_real = stock_moves_erp.quantity + record.disponible_unidades
+                    if record.product_uom_qty <= disponible_real:
+                        record.is_available = True
+                    else:
+                        record.is_available = False
+
+
+                else: # no esta comprometido
+                    if record.product_uom_qty <= record.disponible_unidades:
+                        record.is_available = True
+                    else:
+                        record.is_available = False
+
+
+
+                    stock_moves_erp = self.env['stock.moves.erp'].search([('sale_line_id', '=', record.id), ('type', '=', 'reserve')], limit=1)
+                    if stock_moves_erp:
+                        disponible_real = stock_moves_erp.quantity + record.disponible_unidades
+                        if record.product_uom_qty <= disponible_real:
+                            record.is_available = True
+
     
 
     # ONCHANGE
+
+    @api.onchange('product_uom_qty')
+    def _onchange_stock_comprometido(self):
+        for record in self:
+            if record.order_id.state == 'draft':
+                if record.product_id:
+
+                    stock_moves_erp = self.env['stock.moves.erp'].search([('sale_line_id', '=', record.id), ('type', '=', 'reserve')], limit=1)
+
+                    if stock_moves_erp:
+                        disponible_real = stock_moves_erp.quantity + record.disponible_unidades
+                        if record.product_uom_qty <= disponible_real:
+                            diferencia = record.product_uom_qty - stock_moves_erp.quantity
+                            stock_moves_erp.stock_erp.decrease_comprometido_unidades(diferencia)
+                            stock_moves_erp.update_sale_orders()
+                        else:
+                            raise UserError(f'No puede comprometer más cantidades de las disponibles. Actualmente tiene comprometidas: {stock_moves_erp.quantity} y quedan disponibles para agregar: {record.disponible_unidades}')
+
+                    else:
+                        if record.product_uom_qty <= record.disponible_unidades:
+                            record.comprometer_stock()
+                        # else:
+                        #     capturar intencion de compra?
+
 
     @api.onchange('product_uom_qty')
     def _onchange_client_purchase_intent(self):
