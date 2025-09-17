@@ -517,22 +517,7 @@ class SaleOrderLineInherit(models.Model):
     def _onchange_stock_comprometido(self):
         for record in self:
             raise UserError("1")       
-            if record.id:
-                if record.order_id.state == 'draft':                
-                    if record.product_id:
-                        stock_moves_erp = self.env['stock.moves.erp'].search([('sale_line_id', '=', record.id), ('type', '=', 'reserve')], limit=1)
-                        if stock_moves_erp:
-                            disponible_real = stock_moves_erp.quantity + record.disponible_unidades
-                            if record.product_uom_qty <= disponible_real:
-                                diferencia = record.product_uom_qty - stock_moves_erp.quantity
-                                stock_moves_erp.stock_erp.decrease_comprometido_unidades(diferencia)
-                                stock_moves_erp.update_sale_orders()
-                            else:
-                                raise UserError(f'No puede comprometer más cantidades de las disponibles. Actualmente tiene comprometidas: {stock_moves_erp.quantity} y quedan disponibles para agregar: {record.disponible_unidades}')
-
-                        else:
-                            if record.product_uom_qty <= record.disponible_unidades:
-                                record.comprometer_stock()
+            
                             # else:
                             #     capturar intencion de compra?
 
@@ -606,6 +591,27 @@ class SaleOrderLineInherit(models.Model):
                 line.product_packaging_qty = False
             else:
                 line.product_packaging_qty = line.product_uom_qty / line.product_packaging_id.qty
+
+
+            if line.id and line.order_id.state == 'draft' and line.product_id:
+                stock_moves_erp = line.env['stock.moves.erp'].search([
+                    ('sale_line_id', '=', line.id), ('type', '=', 'reserve')
+                ], limit=1)
+
+                if stock_moves_erp:
+                    disponible_real = stock_moves_erp.quantity + line.disponible_unidades
+                    if line.product_uom_qty <= disponible_real:
+                        diferencia = line.product_uom_qty - stock_moves_erp.quantity
+                        stock_moves_erp.stock_erp.decrease_comprometido_unidades(diferencia)
+                        stock_moves_erp.update_sale_orders()
+                    else:
+                        raise UserError(f'No puede comprometer más cantidades de las disponibles. Actualmente tiene comprometidas: {stock_moves_erp.quantity} y quedan disponibles para agregar: {line.disponible_unidades}')
+                else:
+                    if line.product_uom_qty <= line.disponible_unidades:
+                        line.comprometer_stock()
+
+
+        
 
     @api.onchange('product_packaging_qty')
     def _onchange_product_packaging_qty(self):
