@@ -65,7 +65,7 @@ class SaleOrderInherit(models.Model):
         for record in self:
             if record.picking_ids:
                 for picking in record.picking_ids:
-                    if picking.wms_state != 'no':
+                    if picking.state_wms != 'no':
                         raise UserError('No se puede cancelar el pedido de venta porque hay transferencias que están enviadas a Digip')
                 
                 record.cancel_pickings()
