@@ -587,7 +587,7 @@ class SaleOrderLineInherit(models.Model):
                 line.product_packaging_qty = line.product_uom_qty / line.product_packaging_id.qty
 
 
-            if isinstance(line.id, int) and line.order_id.state == 'draft' and line.product_id:
+            if line._origin and line._origin.id and line.order_id.state == 'draft' and line.product_id:
                 raise UserError("2")
                 stock_moves_erp = line.env['stock.moves.erp'].search([('sale_line_id', '=', line.id), ('type', '=', 'reserve')], limit=1)
 
