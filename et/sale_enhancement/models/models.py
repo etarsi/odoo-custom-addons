@@ -595,7 +595,10 @@ class SaleOrderLineInherit(models.Model):
                         stock_moves_erp.quantity = line.product_uom_qty
 
                         diferencia = stock_moves_erp.quantity - line.product_uom_qty
-                        stock_moves_erp.stock_erp.comprometido_unidades -= diferencia
+                        stock_erp = stock_moves_erp.stock_erp
+                        stock_erp.write({
+                            'comprometido_unidades': stock_erp.comprometido_unidades - diferencia
+                        })
                         stock_moves_erp.update_sale_orders()
 
                     else:
@@ -604,7 +607,10 @@ class SaleOrderLineInherit(models.Model):
 
                             stock_moves_erp.quantity = line.product_uom_qty
                             diferencia = line.product_uom_qty - stock_moves_erp.quantity
-                            stock_moves_erp.stock_erp.comprometido_unidades += diferencia
+                            stock_erp = stock_moves_erp.stock_erp
+                            stock_erp.write({
+                                'comprometido_unidades': stock_erp.comprometido_unidades + diferencia
+                            })
                             stock_moves_erp.update_sale_orders()
                             
                         else:
