@@ -591,14 +591,25 @@ class SaleOrderLineInherit(models.Model):
                 stock_moves_erp = self.env['stock.moves.erp'].search([('sale_line_id', '=', line._origin.id), ('type', '=', 'reserve')], limit=1)
 
                 if stock_moves_erp:
-                    disponible_real = stock_moves_erp.quantity + line.disponible_unidades
-                    if line.product_uom_qty <= disponible_real:
-                        diferencia = line.product_uom_qty - stock_moves_erp.quantity
+                    
+                    if line.product_uom_qty < stock_moves_erp.quantity:
+
                         stock_moves_erp.quantity = line.product_uom_qty
-                        stock_moves_erp.stock_erp.increase_comprometido_unidades(diferencia)
-                        stock_moves_erp.update_sale_orders()
+
+                        diferencia = stock_moves_erp.quantity - line.product_uom_qty
+                        stock_moves_erp.stock_erp.decrease_comprometido_unidades(diferencia)
+
                     else:
-                        raise UserError(f'No puede comprometer más cantidades de las disponibles. Actualmente tiene comprometidas: {stock_moves_erp.quantity} y quedan disponibles para agregar: {line.disponible_unidades}')
+                        disponible_real = stock_moves_erp.quantity + line.disponible_unidades                    
+                        if line.product_uom_qty <= disponible_real:                          
+
+                            stock_moves_erp.quantity = line.product_uom_qty
+                            diferencia = line.product_uom_qty - stock_moves_erp.quantity
+                            stock_moves_erp.stock_erp.increase_comprometido_unidades(diferencia)
+                            
+                        else:
+                            raise UserError(f'No puede comprometer más cantidades de las disponibles. Actualmente tiene comprometidas: {stock_moves_erp.quantity} y quedan disponibles para agregar: {line.disponible_unidades}')
+                    stock_moves_erp.update_sale_orders()
                 else:
                     if line.product_uom_qty <= line.disponible_unidades:
                         line.comprometer_stock()
