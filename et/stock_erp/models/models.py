@@ -301,7 +301,10 @@ class StockERP(models.Model):
                         product_id = self.env['product.product'].search([('default_code', '=', search_code)], limit=1)
                         stock_moves_erp = self.env['stock.moves.erp'].search([('picking_id', '=', record.id), ('product_id', '=', product_id.id), ('type', '=', 'preparation')], limit=1)
 
-                        stock_moves_erp.undo_preparation()
+                        if stock_moves_erp:
+                            stock_moves_erp.undo_preparation()
+                        else:
+                            raise UserError('No se encontró movimiento de stock para anular')
 
             
 
