@@ -600,6 +600,7 @@ class SaleOrderLineInherit(models.Model):
                         })
                         
                         stock_moves_erp.update_sale_orders()
+                        line.update_stock_erp()
 
                     else:
                         disponible_real = stock_moves_erp.quantity + line.disponible_unidades                    
@@ -612,6 +613,7 @@ class SaleOrderLineInherit(models.Model):
                                 'comprometido_unidades': stock_erp.comprometido_unidades + diferencia
                             })
                             stock_moves_erp.update_sale_orders()
+                            line.update_stock_erp()
                             
                         else:
                             raise UserError(f'No puede comprometer más cantidades de las disponibles. Actualmente tiene comprometidas: {stock_moves_erp.quantity} y quedan disponibles para agregar: {line.disponible_unidades}')
