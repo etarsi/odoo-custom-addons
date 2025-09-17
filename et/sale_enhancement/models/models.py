@@ -588,7 +588,7 @@ class SaleOrderLineInherit(models.Model):
 
 
             if line._origin and line._origin.id and line.order_id.state == 'draft' and line.product_id:
-                stock_moves_erp = line.env['stock.moves.erp'].search([('sale_line_id', '=', line.id), ('type', '=', 'reserve')], limit=1)
+                stock_moves_erp = self.env['stock.moves.erp'].search([('sale_line_id', '=', line._origin.id), ('type', '=', 'reserve')], limit=1)
 
                 if stock_moves_erp:
                     disponible_real = stock_moves_erp.quantity + line.disponible_unidades
