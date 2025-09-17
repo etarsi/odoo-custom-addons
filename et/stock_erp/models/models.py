@@ -279,7 +279,7 @@ class StockERP(models.Model):
 
         def anular_envio(self):
             for record in self:
-                record.wms_state = 'no'
+                record.state_wms = 'no'
                 record.codigo_wms = ''
 
                 record.cancel_preparation()
@@ -287,10 +287,10 @@ class StockERP(models.Model):
 
         def cancel_preparation(self):
             for record in self:
-                if record.wms_state == 'no':
+                if record.state_wms == 'no':
                     raise('No se puede cancelar la preparación de una transferencia que no está enviada a Digip.')
                 
-                if record.wms_state == 'closed':
+                if record.state_wms == 'closed':
                     raise('No se puede cancelar la preparación de una transferencia que fué enviada y recibida de Digip.')
                 
                 if record.move_ids_without_package:
