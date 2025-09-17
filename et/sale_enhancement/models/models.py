@@ -515,26 +515,27 @@ class SaleOrderLineInherit(models.Model):
 
     @api.onchange('product_uom_qty')
     def _onchange_stock_comprometido(self):
-        for record in self:
-            if record.order_id.state == 'draft':
-                if record.product_id:
+        for record in self:            
+            if record.id:
+                if record.order_id.state == 'draft':                
+                    if record.product_id:
 
-                    stock_moves_erp = self.env['stock.moves.erp'].search([('sale_line_id', '=', record.id), ('type', '=', 'reserve')], limit=1)
+                        stock_moves_erp = self.env['stock.moves.erp'].search([('sale_line_id', '=', record.id), ('type', '=', 'reserve')], limit=1)
 
-                    if stock_moves_erp:
-                        disponible_real = stock_moves_erp.quantity + record.disponible_unidades
-                        if record.product_uom_qty <= disponible_real:
-                            diferencia = record.product_uom_qty - stock_moves_erp.quantity
-                            stock_moves_erp.stock_erp.decrease_comprometido_unidades(diferencia)
-                            stock_moves_erp.update_sale_orders()
+                        if stock_moves_erp:
+                            disponible_real = stock_moves_erp.quantity + record.disponible_unidades
+                            if record.product_uom_qty <= disponible_real:
+                                diferencia = record.product_uom_qty - stock_moves_erp.quantity
+                                stock_moves_erp.stock_erp.decrease_comprometido_unidades(diferencia)
+                                stock_moves_erp.update_sale_orders()
+                            else:
+                                raise UserError(f'No puede comprometer más cantidades de las disponibles. Actualmente tiene comprometidas: {stock_moves_erp.quantity} y quedan disponibles para agregar: {record.disponible_unidades}')
+
                         else:
-                            raise UserError(f'No puede comprometer más cantidades de las disponibles. Actualmente tiene comprometidas: {stock_moves_erp.quantity} y quedan disponibles para agregar: {record.disponible_unidades}')
-
-                    else:
-                        if record.product_uom_qty <= record.disponible_unidades:
-                            record.comprometer_stock()
-                        # else:
-                        #     capturar intencion de compra?
+                            if record.product_uom_qty <= record.disponible_unidades:
+                                record.comprometer_stock()
+                            # else:
+                            #     capturar intencion de compra?
 
 
     @api.onchange('product_uom_qty')
