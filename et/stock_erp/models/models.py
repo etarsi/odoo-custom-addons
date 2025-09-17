@@ -287,7 +287,7 @@ class StockERP(models.Model):
 
         def cancel_preparation(self):
             for record in self:
-                                
+
                 if record.move_ids_without_package:
                     for move in record.move_ids_without_package:
                         default_code = move.product_id.default_code
@@ -299,7 +299,7 @@ class StockERP(models.Model):
                                 search_code = default_code
 
                         product_id = self.env['product.product'].search([('default_code', '=', search_code)], limit=1)
-                        stock_moves_erp = self.env['stock.moves.erp'].search([('picking_id', '=', record.id), ('product_id', '=', product_id.id)])
+                        stock_moves_erp = self.env['stock.moves.erp'].search([('picking_id', '=', record.id), ('product_id', '=', product_id.id), ('type', '=', 'preparation')], limit=1)
 
                         stock_moves_erp.undo_preparation()
 
