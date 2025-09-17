@@ -591,15 +591,16 @@ class SaleOrderLineInherit(models.Model):
                 stock_moves_erp = self.env['stock.moves.erp'].search([('sale_line_id', '=', line._origin.id), ('type', '=', 'reserve')], limit=1)
 
                 if stock_moves_erp:
-                    
+                    raise UserError("1")
                     if line.product_uom_qty < stock_moves_erp.quantity:
-
+                        raise UserError("2")
                         stock_moves_erp.quantity = line.product_uom_qty
 
                         diferencia = stock_moves_erp.quantity - line.product_uom_qty
                         stock_moves_erp.stock_erp.decrease_comprometido_unidades(diferencia)
 
                     else:
+                        raise UserError("3")
                         disponible_real = stock_moves_erp.quantity + line.disponible_unidades                    
                         if line.product_uom_qty <= disponible_real:                          
 
