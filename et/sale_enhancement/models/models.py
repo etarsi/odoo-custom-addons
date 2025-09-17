@@ -573,6 +573,7 @@ class SaleOrderLineInherit(models.Model):
 
     @api.onchange('product_packaging_id', 'product_uom', 'product_uom_qty')
     def _onchange_update_product_packaging_qty(self):
+        raise UserError("1")
         # Solo recalcula bultos si NO venimos del onchange de bultos
         if self._context.get('from_packaging_qty'):
             return
@@ -588,9 +589,8 @@ class SaleOrderLineInherit(models.Model):
 
 
             if line.id and line.order_id.state == 'draft' and line.product_id:
-                stock_moves_erp = line.env['stock.moves.erp'].search([
-                    ('sale_line_id', '=', line.id), ('type', '=', 'reserve')
-                ], limit=1)
+                raise UserError("2")
+                stock_moves_erp = line.env['stock.moves.erp'].search([('sale_line_id', '=', line.id), ('type', '=', 'reserve')], limit=1)
 
                 if stock_moves_erp:
                     disponible_real = stock_moves_erp.quantity + line.disponible_unidades
