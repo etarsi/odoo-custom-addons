@@ -515,7 +515,8 @@ class SaleOrderLineInherit(models.Model):
 
     @api.onchange('product_uom_qty')
     def _onchange_stock_comprometido(self):
-        for record in self:            
+        for record in self:
+            raise UserError("1")       
             if record.id:
                 if record.order_id.state == 'draft':                
                     if record.product_id:
