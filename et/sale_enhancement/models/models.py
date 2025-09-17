@@ -588,7 +588,6 @@ class SaleOrderLineInherit(models.Model):
 
 
             if line._origin and line._origin.id and line.order_id.state == 'draft' and line.product_id:
-                raise UserError("2")
                 stock_moves_erp = line.env['stock.moves.erp'].search([('sale_line_id', '=', line.id), ('type', '=', 'reserve')], limit=1)
 
                 if stock_moves_erp:
