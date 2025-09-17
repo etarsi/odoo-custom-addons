@@ -594,6 +594,7 @@ class SaleOrderLineInherit(models.Model):
                     disponible_real = stock_moves_erp.quantity + line.disponible_unidades
                     if line.product_uom_qty <= disponible_real:
                         diferencia = line.product_uom_qty - stock_moves_erp.quantity
+                        stock_moves_erp.quantity = line.product_uom_qty
                         stock_moves_erp.stock_erp.increase_comprometido_unidades(diferencia)
                         stock_moves_erp.update_sale_orders()
                     else:
