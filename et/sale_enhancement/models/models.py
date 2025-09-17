@@ -573,7 +573,6 @@ class SaleOrderLineInherit(models.Model):
 
     @api.onchange('product_packaging_id', 'product_uom', 'product_uom_qty')
     def _onchange_update_product_packaging_qty(self):
-        raise UserError("1")
         # Solo recalcula bultos si NO venimos del onchange de bultos
         if self._context.get('from_packaging_qty'):
             return
