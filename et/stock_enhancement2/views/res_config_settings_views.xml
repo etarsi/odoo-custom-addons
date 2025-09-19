@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <record id="res_config_settings_view_enhancement2" model="ir.ui.view">
+            <field name="name">res.config.settings.view.form.inherit.stock</field>
+            <field name="model">res.config.settings</field>
+            <field name="inherit_id" ref="stock.res_config_settings_view_form"/>
+            <field name="arch" type="xml">
+                <xpath expr="//div[@name='operations_setting_container']" position="after">
+                    <h2>Configuración de Drive para Modificar archivos compartidos</h2>
+                    <div class="row mt16 o_settings_container" name="config_limits_work_schedule">
+                        <div class="col-12 col-lg-6 o_setting_box">
+                            <div class="o_setting_left_pane"/>
+                            <div class="o_setting_right_pane">
+                                <span class="o_form_label"> Habilitar Hoja </span>
+                                <div class="text-muted">
+                                    Aca se habilita el envio de la transferencia a la hoja de cálculo del compartido.
+                                </div>
+                                <div class="text-muted">
+                                    <field name="sheet_enable" widget="boolean"/>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-12 col-lg-6 o_setting_box">
+                            <div class="o_setting_left_pane"/>
+                            <div class="o_setting_right_pane">
+                                <span class="o_form_label"> ID de Hoja de Cálculo excel</span>
+                                <div class="text-muted">
+                                    Aca se define la ID de la hoja de cálculo que se saca de la url del link del archivo compartido ejemplo="1A2B3C4D5E".
+                                </div>
+                                <div class="text-muted">
+                                    <field name="sheet_spreadsheet_id" widget="char"/>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-12 col-lg-6 o_setting_box">
+                            <div class="o_setting_left_pane"/>
+                            <div class="o_setting_right_pane">
+                                <span class="o_form_label"> ID de Grupo de Hoja excel </span>
+                                <div class="text-muted">
+                                    Aca se define el ID del grupo de la hoja que se saca de la url del link del archivo compartido ejemplo="123456789".
+                                </div>
+                                <div class="text-muted">
+                                    <field name="sheet_gid" widget="char"/>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </xpath>
+            </field>
+        </record>
+    </data>
+</odoo>
