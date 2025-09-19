@@ -26,14 +26,14 @@
     },
 
     # any module necessary for this one to work correctly
-    'depends': ['stock', 'delivery', 'stock-packaging', 'sale', 'digipwms-mainv2', 'stock_picking_invoicing', 'merge_deliveries_bs', 'contacts', 'stock_voucher'],
+    'depends': ['stock', 'delivery', 'stock-packaging', 'sale', 'stock_picking_invoicing', 'merge_deliveries_bs', 'contacts', 'stock_voucher'],
 
     # always loaded
     'data': [
         # 'security/ir.model.access.csv',
         'views/views.xml',
         'views/delivery_carrier_views.xml',
-        'views/stock_picking_views.xml',
+        #'views/stock_picking_views.xml',
         'views/res_config_settings_views.xml',
         'views/menu.xml',
         'views/templates.xml',
