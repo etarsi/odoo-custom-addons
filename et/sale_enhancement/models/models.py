@@ -587,40 +587,43 @@ class SaleOrderLineInherit(models.Model):
                 line.product_packaging_qty = line.product_uom_qty / line.product_packaging_id.qty
 
 
-            if line._origin and line._origin.id and line.order_id.state == 'draft' and line.product_id:
-                stock_moves_erp = self.env['stock.moves.erp'].search([('sale_line_id', '=', line._origin.id), ('type', '=', 'reserve')], limit=1)
+            if line.product_uom_qty > 0:
+                if line._origin and line._origin.id and line.order_id.state == 'draft' and line.product_id:
+                    stock_moves_erp = self.env['stock.moves.erp'].search([('sale_line_id', '=', line._origin.id), ('type', '=', 'reserve')], limit=1)
 
-                if stock_moves_erp:
-                    if line.product_uom_qty < stock_moves_erp.quantity:
-                        diferencia = stock_moves_erp.quantity - line.product_uom_qty
-                        stock_moves_erp.quantity = line.product_uom_qty
-                        stock_erp = stock_moves_erp.stock_erp
-                        stock_erp.write({
-                            'comprometido_unidades': stock_erp.comprometido_unidades - diferencia
-                        })
-                        
-                        stock_moves_erp.update_sale_orders()
-                        line.update_stock_erp()
-
-                    else:
-                        disponible_real = stock_moves_erp.quantity + line.disponible_unidades                    
-                        if line.product_uom_qty <= disponible_real:                 
-                            diferencia = line.product_uom_qty - stock_moves_erp.quantity
-                            
+                    if stock_moves_erp:
+                        if line.product_uom_qty < stock_moves_erp.quantity:
+                            diferencia = stock_moves_erp.quantity - line.product_uom_qty
                             stock_moves_erp.quantity = line.product_uom_qty
                             stock_erp = stock_moves_erp.stock_erp
                             stock_erp.write({
-                                'comprometido_unidades': stock_erp.comprometido_unidades + diferencia
+                                'comprometido_unidades': stock_erp.comprometido_unidades - diferencia
                             })
+                            
                             stock_moves_erp.update_sale_orders()
                             line.update_stock_erp()
-                            
+
                         else:
-                            raise UserError(f'No puede comprometer más cantidades de las disponibles. Actualmente tiene comprometidas: {stock_moves_erp.quantity} y quedan disponibles para agregar: {line.disponible_unidades}')
-                    
-                else:
-                    if line.product_uom_qty <= line.disponible_unidades:
-                        line.comprometer_stock()
+                            disponible_real = stock_moves_erp.quantity + line.disponible_unidades                    
+                            if line.product_uom_qty <= disponible_real:                 
+                                diferencia = line.product_uom_qty - stock_moves_erp.quantity
+                                
+                                stock_moves_erp.quantity = line.product_uom_qty
+                                stock_erp = stock_moves_erp.stock_erp
+                                stock_erp.write({
+                                    'comprometido_unidades': stock_erp.comprometido_unidades + diferencia
+                                })
+                                stock_moves_erp.update_sale_orders()
+                                line.update_stock_erp()
+                                
+                            else:
+                                raise UserError(f'No puede comprometer más cantidades de las disponibles. Actualmente tiene comprometidas: {stock_moves_erp.quantity} y quedan disponibles para agregar: {line.disponible_unidades}')
+                        
+                    else:
+                        if line.product_uom_qty <= line.disponible_unidades:
+                            line.comprometer_stock()
+                            stock_moves_erp.update_sale_orders()
+                            line.update_stock_erp()
 
 
         
