@@ -501,14 +501,6 @@ class SaleOrderLineInherit(models.Model):
                     else:
                         record.is_available = False
 
-
-
-                    stock_moves_erp = self.env['stock.moves.erp'].search([('sale_line_id', '=', record.id), ('type', '=', 'reserve')], limit=1)
-                    if stock_moves_erp:
-                        disponible_real = stock_moves_erp.quantity + record.disponible_unidades
-                        if record.product_uom_qty <= disponible_real:
-                            record.is_available = True
-
     
 
     # ONCHANGE
@@ -622,7 +614,6 @@ class SaleOrderLineInherit(models.Model):
                     else:
                         if line.product_uom_qty <= line.disponible_unidades:
                             line.comprometer_stock()
-                            stock_moves_erp.update_sale_orders()
                             line.update_stock_erp()
 
 
