@@ -737,14 +737,34 @@ class StockPickingInherit(models.Model):
     #         record.wms_date = fields.Date.today()
     
     def action_enviar_compartido(self):
-        self.ensure_one()
-        try:
-            values = self._sheets_build_row()
-            self.env["google.sheets.client"].append_row(values)
-        except Exception as e:
-            # Si preferís no romper el flujo, logueá y no levantes error
-            _logger.exception("Fallo enviando a Google Sheets para %s", self.name)
-            raise ValidationError(_("Fallo enviando a Google Sheets para picking %s: %s") % (self.name, e))
+        for record in self:
+            try:
+                values = [
+                    "",  # A
+                    self._fmt_dt_local(record.scheduled_date),   # B
+                    record.codigo_wms or "",                     # C
+                    record.origin or "",                         # D
+                    record.name or "",                           # E
+                    record.partner_id.name or "",                # F
+                    (record.packaging_qty or ""),                # G
+                    len(record.move_ids_without_package) or 0,   # H
+                    "",                                        # I
+                    record.partner_id.industry_id.name or "",    # J
+                    "", "", "", "",                            # K L M N
+                    "",                                        # O
+                    record.partner_id.industry_id.name or "",    # P
+                    record.carrier_id.name or "",                # Q
+                    record.partner_id.street or "",              # R
+                    record.partner_id.zip or "",                 # S
+                    record.partner_id.city or "",                # T
+                    "0",                                         # U
+                    record.company_id.name or "",                # V
+                ]
+                record.env["google.sheets.client"].append_row(values)
+            except Exception as e:
+                # Si preferís no romper el flujo, logueá y no levantes error
+                _logger.exception("Fallo enviando a Google Sheets para %s", record.name)
+                raise ValidationError(_("Fallo enviando a Google Sheets para picking %s: %s") % (record.name, e))
 
     def _fmt_dt_local(self, dt):
         """datetime -> string en zona del usuario."""
@@ -752,31 +772,6 @@ class StockPickingInherit(models.Model):
             return ""
         dt_local = fields.Datetime.context_timestamp(self, dt)  # tz del usuario
         return dt_local.strftime('%d/%m/%Y')
-
-    def _sheets_build_row(self):
-        self.ensure_one()
-        row = [
-            "",  # A
-            self._fmt_dt_local(self.scheduled_date),   # B
-            self.codigo_wms or "",                     # C
-            self.origin or "",                         # D
-            self.name or "",                           # E
-            self.partner_id.name or "",                # F
-            (self.packaging_qty or ""),                # G
-            len(self.move_ids_without_package) or 0,   # H
-            "",                                        # I
-            self.partner_id.industry_id.name or "",    # J
-            "", "", "", "",                            # K L M N
-            "",                                        # O
-            self.partner_id.industry_id.name or "",    # P
-            self.carrier_id.name or "",                # Q
-            self.partner_id.street or "",              # R
-            self.partner_id.zip or "",                 # S
-            self.partner_id.city or "",                # T
-            "0",                                       # U
-            self.company_id.name or "",                # V
-        ]
-        return row
 
     def split_auto(self):
         for picking in self:

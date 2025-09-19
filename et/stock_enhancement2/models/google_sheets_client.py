@@ -51,29 +51,11 @@ class GoogleSheetsClient(models.AbstractModel):
     # helpers.py o al tope del mismo .py
     def normalize_row(values, width=26):
         """Devuelve exactamente `width` columnas, solo tipos primitivos."""
-        # --- saneo de width ---
-        try:
-            width = int(width)
-        except Exception:
-            width = 26
-        if width < 0:
-            width = 0
-
         # --- normalizo cada valor ---
         out = []
-        for v in values or []:
+        for v in values:
             if v in (None, False):
                 out.append("")
-            elif isinstance(v, (list, tuple, dict)):
-                out.append(json.dumps(v, ensure_ascii=False))
             else:
                 out.append(v)
-
-        # --- rellenar / recortar de forma segura ---
-        pad = max(0, width - len(out))     # evita negativos
-        if pad:
-            out.extend([""] * pad)
-        if len(out) > width:
-            del out[width:]                 # recorte seguro
-
         return out
