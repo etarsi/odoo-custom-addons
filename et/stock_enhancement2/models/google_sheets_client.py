@@ -34,9 +34,10 @@ class GoogleSheetsClient(models.AbstractModel):
             return False
         svc = self._svc(sa_path)
         title = self._title_from_gid(svc, sheet_spreadsheet_id, sheet_gid)
-        values = self.normalize_row(values)
         rng = f"{title}!A:Z"  # empieza siempre en A
-        body = {"values": [values], "majorDimension": "ROWS"}
+        body = {"values": [values]}
+        _logger.info("Appending to Sheets %s %s", sheet_spreadsheet_id, rng)
+        _logger.debug("Values: %s", json.dumps(values))
         resp = svc.spreadsheets().values().append(
             spreadsheetId=sheet_spreadsheet_id,
             range=rng,
@@ -47,15 +48,3 @@ class GoogleSheetsClient(models.AbstractModel):
         updated = resp.get("updates", {}).get("updatedRange")
         _logger.info("Sheets append OK: %s", updated)
         return updated
-
-    # helpers.py o al tope del mismo .py
-    def normalize_row(values, width=26):
-        """Devuelve exactamente `width` columnas, solo tipos primitivos."""
-        # --- normalizo cada valor ---
-        out = []
-        for v in values:
-            if v in (None, False):
-                out.append("")
-            else:
-                out.append(v)
-        return out
