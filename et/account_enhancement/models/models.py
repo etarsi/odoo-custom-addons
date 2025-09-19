@@ -387,7 +387,9 @@ class AccountPaymentInherit(models.Model):
                 elif journal_type == 'bank':
                     rec.check_state = 'Depositado'
             else:
-                rec.check_state = 'Pendiente'
+                if rec.payment_group_id:
+                    if rec.payment_type == 'outbound':
+                        rec.check_state = 'Entregado'
 
     def action_reject_check(self):
         for rec in self:
