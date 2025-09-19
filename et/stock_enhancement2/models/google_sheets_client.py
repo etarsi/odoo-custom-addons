@@ -34,7 +34,7 @@ class GoogleSheetsClient(models.AbstractModel):
             return False
         svc = self._svc(sa_path)
         title = self._title_from_gid(svc, sheet_spreadsheet_id, sheet_gid)
-        rng = f"{title}!A:Z"  # empieza siempre en A
+        rng = f"{title}!B:Z"  # empieza siempre en B
         body = {"values": [values]}
         _logger.info("Appending to Sheets %s %s", sheet_spreadsheet_id, rng)
         _logger.debug("Values: %s", json.dumps(values))

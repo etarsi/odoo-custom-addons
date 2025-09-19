@@ -740,7 +740,6 @@ class StockPickingInherit(models.Model):
         for record in self:
             try:
                 values = [
-                    "",  # A
                     self._fmt_dt_local(record.scheduled_date),   # B
                     record.codigo_wms or "",                     # C
                     record.origin or "",                         # D
