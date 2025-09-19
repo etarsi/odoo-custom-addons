@@ -746,33 +746,47 @@ class StockPickingInherit(models.Model):
         dt_local = fields.Datetime.context_timestamp(self, dt)  # tz del usuario
         return dt_local.strftime('%Y-%m-%d %H:%M')
 
+    def _normalize_row(values, width=26):
+        out = []
+        for v in values:
+            if v is None or v is False:
+                out.append("")
+            elif hasattr(v, 'isoformat'):  # date/datetime
+                # por si algo se te escapó sin formatear
+                out.append(str(v))
+            else:
+                out.append(v)
+        # pad/truncate a A..Z
+        if len(out) < width:
+            out.extend([""] * (width - len(out)))
+        elif len(out) > width:
+            out = out[:width]
+        return out
+
     def _sheets_build_row(self):
-        """Devuelve una lista (A..Z) con los datos relevantes del picking."""
         self.ensure_one()
-        return [
-            "",                                                         # A: DIA DE CARGA
-            self._fmt_dt_local(self.scheduled_date),                                        # B: FECHA WMS
-            self.codigo_wms,                                            # C: Código WMS
-            self.origin or "",                                          # D: DOCUMENTO DE ORIGEN
-            self.name or "",                                            # E: REFERENCIA
-            self.partner_id.name or "",                                 # F: CLIENTE
-            self.packaging_qty or "",                                   # G: CANTIDAD DE BULTOS
-            len(self.move_ids_without_package) or "0",                  # H: LINEAS DE PEDIDOS
-            "",                                                         # I: OBSERVACIONES DE OPERACIONES
-            self.partner_id.industry_id.name or "",                     # J: DESPACHO
-            "",                                                         # K: X
-            "",                                                         # L: ESTADO
-            "",                                                         # M: X
-            "",                                                         # N: ESTADO DIGIP
-            "",                                                         # O: FECHA DESPACHO
-            self.partner_id.industry_id.name or "",                     # P: CONTACTO/SECTOR
-            self.carrier_id.name or "",                                 # Q: TRANSPORTISTA/METODO ENTREGA
-            self.partner_id.street or "",                               # R: CONTACTO/CALLE
-            self.partner_id.zip or "",                                  # S: CONTACTO/C.P.
-            self.partner_id.city or "",                                 # T: CONTACTO/CIUDAD
-            "0",                                                        # U: TRANSPORTISTA/ADDRESS
-            self.company_id.name or "",                                 # V: COMPAÑIA
+        row = [
+            "",  # A
+            self._fmt_dt_local(self.scheduled_date),   # B
+            self.codigo_wms or "",                     # C
+            self.origin or "",                         # D
+            self.name or "",                           # E
+            self.partner_id.name or "",                # F
+            (self.packaging_qty or ""),                # G
+            len(self.move_ids_without_package) or 0,   # H
+            "",                                        # I
+            self.partner_id.industry_id.name or "",    # J
+            "", "", "", "",                            # K L M N
+            "",                                        # O
+            self.partner_id.industry_id.name or "",    # P
+            self.carrier_id.name or "",                # Q
+            self.partner_id.street or "",              # R
+            self.partner_id.zip or "",                 # S
+            self.partner_id.city or "",                # T
+            "0",                                       # U
+            self.company_id.name or "",                # V
         ]
+        return self._normalize_row(row, width=26)  # A..Z
 
     def split_auto(self):
         for picking in self:
