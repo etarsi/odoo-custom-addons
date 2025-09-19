@@ -746,7 +746,7 @@ class StockPickingInherit(models.Model):
                 if record.carrier_id.name == 'Reparto Propio':
                     direccion_entrega = f"{record.carrier_id.street or '-'}, {record.carrier_id.zip or '-'}, {record.carrier_id.city or '-' }"
                 else:
-                    direccion_entrega = f"{record.carrier_id.street or '-'}, {record.carrier_id.zip or '-'}, {record.carrier_id.city or '-'}"
+                    direccion_entrega = record.carrier_id.address
             try:
                 values = [
                     "",                                          # A
