@@ -132,7 +132,7 @@ class StockERP(models.Model):
             if quantity <= record.fisico_unidades:
                 record.fisico_unidades -= quantity
             else: 
-                raise UserError(f'Para el producto: {record.product_id}, tiene {record.fisico_unidades} unidades y quiere entregar {quantity} unidades. El resultado no puede ser negativo')
+                raise UserError(f'Para el producto: [{record.product_id.default_code}] {record.product_id.name}, tiene {record.fisico_unidades} unidades y quiere entregar {quantity} unidades. El resultado no puede ser negativo')
             
             
     def decrease_comprometido_unidades(self, quantity):
@@ -140,7 +140,7 @@ class StockERP(models.Model):
             if quantity <= record.comprometido_unidades:
                 record.comprometido_unidades -= quantity
             else: 
-                raise UserError(f'Para el producto: {record.product_id}, tiene {record.comprometido_unidades} unidades comprometidas y quiere liberar {quantity} unidades. El resultado no puede ser negativo')
+                raise UserError(f'Para el producto: [{record.product_id.default_code}] {record.product_id.name}, tiene {record.comprometido_unidades} unidades comprometidas y quiere liberar {quantity} unidades. El resultado no puede ser negativo')
 
 
     def decrease_entregable_unidades(self, quantity):
@@ -148,7 +148,7 @@ class StockERP(models.Model):
             if quantity <= record.entregable_unidades:
                 record.entregable_unidades -= quantity
             else: 
-                raise UserError(f'Para el producto: {record.product_id}, tiene {record.entregable_unidades} unidades entregable y quiere preparar {quantity} unidades. El resultado no puede ser negativo')
+                raise UserError(f'Para el producto: [{record.product_id.default_code}] {record.product_id.name}, tiene {record.entregable_unidades} unidades entregable y quiere preparar {quantity} unidades. El resultado no puede ser negativo')
 
 
     #####  COMPUTE METHODS #####
