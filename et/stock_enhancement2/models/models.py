@@ -757,10 +757,10 @@ class StockPickingInherit(models.Model):
                     record.partner_id.name or "",                # F
                     (record.packaging_qty or ""),                # G
                     len(record.move_ids_without_package) or 0,   # H
-                    "",                                        # I
-                    record.partner_id.industry_id.name or "",    # J
-                    "", "", "", "",                            # K L M N
-                    "", "",                                        # O P
+                    "",                                          # I
+                    "",                                          # J
+                    "", "", "", "",                              # K L M N
+                    "", "",                                      # O P
                     record.partner_id.industry_id.name or "",    # Q
                     record.carrier_id.name or "",                # R
                     direccion_entrega,                           # S
