@@ -48,6 +48,7 @@ class StockPickingInherit(models.Model):
     delivery_state = fields.Selection(selection=[('no', 'No entregado'), ('delivered', 'Entregado'), ('returned', 'Devuelto')], default='no', copy=False, string='Estado Delivery')
     china_purchase = fields.Boolean(default=False, copy=True)
     wesend_ids = fields.Char(string="Remitos")
+    remito_compartido = fields.Boolean(string="Remito Compartido", default=False)
 
     def action_correction_secuence(self):
         return True
@@ -738,6 +739,14 @@ class StockPickingInherit(models.Model):
     
     def action_enviar_compartido(self):
         for record in self:
+            if record.remito_compartido:
+                raise ValidationError(_("El remito ya fue enviado al compartido anteriormente."))
+            direccion_entrega = ""
+            if record.carrier_id:
+                if record.carrier_id.name == 'Reparto Propio':
+                    direccion_entrega = f"{record.carrier_id.street or '-'}, {record.carrier_id.zip or '-'}, {record.carrier_id.city or '-' }"
+                else:
+                    direccion_entrega = f"{record.carrier_id.street or '-'}, {record.carrier_id.zip or '-'}, {record.carrier_id.city or '-'}"
             try:
                 values = [
                     "",                                          # A
@@ -751,16 +760,19 @@ class StockPickingInherit(models.Model):
                     "",                                        # I
                     record.partner_id.industry_id.name or "",    # J
                     "", "", "", "",                            # K L M N
-                    "",                                        # O
-                    record.partner_id.industry_id.name or "",    # P
-                    record.carrier_id.name or "",                # Q
-                    record.partner_id.street or "",              # R
-                    record.partner_id.zip or "",                 # S
-                    record.partner_id.city or "",                # T
-                    "0",                                         # U
-                    record.company_id.name or "",                # V
+                    "", "",                                        # O P
+                    record.partner_id.industry_id.name or "",    # Q
+                    record.carrier_id.name or "",                # R
+                    direccion_entrega,                           # S
+                    record.partner_id.street or "",              # T
+                    record.partner_id.zip or "",                 # U
+                    record.partner_id.city or "",                # V
+                    "0",                                         # W
+                    record.company_id.name or "",                # X
                 ]
-                record.env["google.sheets.client"].append_row(values)
+                enviado = record.env["google.sheets.client"].append_row(values)
+                if enviado == 200:
+                    record.remito_compartido = True
             except Exception as e:
                 # Si preferís no romper el flujo, logueá y no levantes error
                 _logger.exception("Fallo enviando a Google Sheets para %s", record.name)

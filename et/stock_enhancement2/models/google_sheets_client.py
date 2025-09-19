@@ -36,8 +36,6 @@ class GoogleSheetsClient(models.AbstractModel):
         title = self._title_from_gid(svc, sheet_spreadsheet_id, sheet_gid)
         rng = f"{title}!A:Z"  # empieza siempre en B
         body = {"values": [values]}
-        _logger.info("Appending to Sheets %s %s", sheet_spreadsheet_id, rng)
-        _logger.debug("Values: %s", json.dumps(values))
         resp = svc.spreadsheets().values().append(
             spreadsheetId=sheet_spreadsheet_id,
             range=rng,
@@ -47,4 +45,4 @@ class GoogleSheetsClient(models.AbstractModel):
         ).execute()
         updated = resp.get("updates", {}).get("updatedRange")
         _logger.info("Sheets append OK: %s", updated)
-        return updated
+        return 200 if updated else 0
