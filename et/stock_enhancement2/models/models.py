@@ -744,7 +744,7 @@ class StockPickingInherit(models.Model):
         if not dt:
             return ""
         dt_local = fields.Datetime.context_timestamp(self, dt)  # tz del usuario
-        return dt_local.strftime('%Y-%m-%d %H:%M')
+        return dt_local.strftime('%d/%m/%Y')
 
     def _sheets_build_row(self):
         self.ensure_one()

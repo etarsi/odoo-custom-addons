@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-import logging
+import logging, json
 from odoo import models, _
 from google.oauth2 import service_account
 from googleapiclient.discovery import build
@@ -50,14 +50,21 @@ class GoogleSheetsClient(models.AbstractModel):
 
     # helpers.py o al tope del mismo .py
     def normalize_row(values, width=26):
+        """Asegura que la fila tenga exactamente 'width' columnas (rellena con "" o recorta).
+        Convierte fechas a strings, y estructuras a JSON strings.
+        """
         out = []
         for v in values:
             if v in (None, False):
                 out.append("")
+            elif isinstance(v, (list, tuple, dict)):
+                # nunca mandes estructuras a Sheets: convertir a texto
+                out.append(json.dumps(v, ensure_ascii=False))
             else:
                 out.append(v)
+        # rellenar o recortar a A..Z
         if len(out) < width:
             out.extend([""] * (width - len(out)))
-        else:
+        elif len(out) > width:
             out = out[:width]
         return out
