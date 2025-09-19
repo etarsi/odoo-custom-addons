@@ -832,11 +832,11 @@ class StockPickingInherit(models.Model):
                 new_picking = picking._split_off_moves(selected_moves)
                 all_new_pickings |= new_picking
 
-            picking.update_available_percent()
+            picking.update_availability()
             all_new_pickings |= picking
         
 
-        all_new_pickings.update_available_percent()
+        all_new_pickings.update_availability()
         if all_new_pickings:
             return {
                 'name': 'Facturas Divididas',
