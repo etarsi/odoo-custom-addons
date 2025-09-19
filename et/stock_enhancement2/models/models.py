@@ -739,12 +739,19 @@ class StockPickingInherit(models.Model):
             _logger.exception("Fallo enviando a Google Sheets para %s", self.name)
             raise ValidationError(_("Fallo enviando a Google Sheets para picking %s: %s") % (self.name, e))
 
+    def _fmt_dt_local(self, dt):
+        """datetime -> string en zona del usuario."""
+        if not dt:
+            return ""
+        dt_local = fields.Datetime.context_timestamp(self, dt)  # tz del usuario
+        return dt_local.strftime('%Y-%m-%d %H:%M')
+
     def _sheets_build_row(self):
         """Devuelve una lista (A..Z) con los datos relevantes del picking."""
         self.ensure_one()
         return [
             "",                                                         # A: DIA DE CARGA
-            self.scheduled_date,                                        # B: FECHA WMS
+            self._fmt_dt_local(self.scheduled_date),                                        # B: FECHA WMS
             self.codigo_wms,                                            # C: Código WMS
             self.origin or "",                                          # D: DOCUMENTO DE ORIGEN
             self.name or "",                                            # E: REFERENCIA
