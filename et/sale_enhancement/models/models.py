@@ -525,8 +525,6 @@ class SaleOrderLineInherit(models.Model):
 
                 if stock_moves_erp: # esta comprometido
                     disponible_real = stock_moves_erp.quantity + record.disponible_unidades
-                    if record.product_id.default_code == '42124':
-                        raise UserError(f'disponible_real: {disponible_real} --- product_uom_qty: {record.product_uom_qty}')
                     if record.product_uom_qty <= disponible_real:
                         record.is_available = True
                     else:
