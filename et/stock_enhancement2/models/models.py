@@ -186,7 +186,7 @@ class StockPickingInherit(models.Model):
                     
                     elif stock_erp.entregable_unidades >= move.product_uom_qty:
                         available_percent = 100
-                        move.product_available_pkg_qty = stock_erp.product_packaging_qty
+                        move.product_available_pkg_qty = move.product_packaging_qty
                         move.quantity_done = move.product_uom_qty
 
                     elif stock_erp.entregable_unidades == 0:
