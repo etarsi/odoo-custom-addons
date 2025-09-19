@@ -26,7 +26,7 @@
     },
 
     # any module necessary for this one to work correctly
-    'depends': ['stock', 'delivery', 'stock-packaging', 'sale', 'stock_picking_invoicing', 'merge_deliveries_bs', 'contacts', 'stock_voucher'],
+    'depends': ['stock', 'delivery', 'stock-packaging', 'sale', 'digipwms-mainv2', 'stock_picking_invoicing', 'merge_deliveries_bs', 'contacts', 'stock_voucher'],
 
     # always loaded
     'data': [

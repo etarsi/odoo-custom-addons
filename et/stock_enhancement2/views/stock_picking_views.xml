@@ -8,7 +8,6 @@
             <field name="inherit_id" ref="stock.view_picking_form" />
             <field name="arch" type="xml">
                 <xpath expr="//header" position="inside">
-                    <field name="state_wms" invisible="1"/>
                     <button name="split_auto_multiple" string="Dividir Auto Multiple" type="object" attrs="{'invisible': [('state_wms', '!=', 'no')]}"/>
                     <button type="object" name="action_enviar_compartido" string="Enviar al Compartido" />
                 </xpath>
