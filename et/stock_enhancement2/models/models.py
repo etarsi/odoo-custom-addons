@@ -746,23 +746,6 @@ class StockPickingInherit(models.Model):
         dt_local = fields.Datetime.context_timestamp(self, dt)  # tz del usuario
         return dt_local.strftime('%Y-%m-%d %H:%M')
 
-    def _normalize_row(values, width=26):
-        out = []
-        for v in values:
-            if v is None or v is False:
-                out.append("")
-            elif hasattr(v, 'isoformat'):  # date/datetime
-                # por si algo se te escapó sin formatear
-                out.append(str(v))
-            else:
-                out.append(v)
-        # pad/truncate a A..Z
-        if len(out) < width:
-            out.extend([""] * (width - len(out)))
-        elif len(out) > width:
-            out = out[:width]
-        return out
-
     def _sheets_build_row(self):
         self.ensure_one()
         row = [
@@ -786,7 +769,7 @@ class StockPickingInherit(models.Model):
             "0",                                       # U
             self.company_id.name or "",                # V
         ]
-        return self._normalize_row(row, width=26)  # A..Z
+        return row
 
     def split_auto(self):
         for picking in self:
