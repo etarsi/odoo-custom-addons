@@ -50,21 +50,30 @@ class GoogleSheetsClient(models.AbstractModel):
 
     # helpers.py o al tope del mismo .py
     def normalize_row(values, width=26):
-        """Asegura que la fila tenga exactamente 'width' columnas (rellena con "" o recorta).
-        Convierte fechas a strings, y estructuras a JSON strings.
-        """
+        """Devuelve exactamente `width` columnas, solo tipos primitivos."""
+        # --- saneo de width ---
+        try:
+            width = int(width)
+        except Exception:
+            width = 26
+        if width < 0:
+            width = 0
+
+        # --- normalizo cada valor ---
         out = []
-        for v in values:
+        for v in values or []:
             if v in (None, False):
                 out.append("")
             elif isinstance(v, (list, tuple, dict)):
-                # nunca mandes estructuras a Sheets: convertir a texto
                 out.append(json.dumps(v, ensure_ascii=False))
             else:
                 out.append(v)
-        # rellenar o recortar a A..Z
-        if len(out) < width:
-            out.extend([""] * (width - len(out)))
-        elif len(out) > width:
-            out = out[:width]
+
+        # --- rellenar / recortar de forma segura ---
+        pad = max(0, width - len(out))     # evita negativos
+        if pad:
+            out.extend([""] * pad)
+        if len(out) > width:
+            del out[width:]                 # recorte seguro
+
         return out
