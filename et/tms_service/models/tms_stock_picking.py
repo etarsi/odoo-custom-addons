@@ -6,7 +6,14 @@ class TmsStockPicking(models.Model):
     _name = 'tms.stock.picking'
     _description = 'Ruteo Stock Picking'
 
-    picking_id = fields.Many2one('stock.picking', string='Referencia')
+    picking_ids = fields.Many2many(
+        'stock.picking',
+        'tms_stock_picking_rel',   
+        'tms_id',
+        'picking_id',
+        string='Referencias',
+        help='Referencias de transferencias relacionadas'
+    )
     fecha_entrega = fields.Datetime(string='Fecha de Carga')
     fecha_envio_wms = fields.Datetime(string='Fecha de Envío WMS')
     codigo_wms = fields.Char(string='Código WMS')
