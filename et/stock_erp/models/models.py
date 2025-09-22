@@ -359,7 +359,7 @@ class StockERP(models.Model):
                     self.env['stock.moves.erp'].create(vals)
             
 
-        def enviar(self):
+        def enviar_recepcion(self):
             for record in self:
                 if not record.container:
                     raise UserError('No se puede enviar a Digip porque el campo "Contenedor" está vacío.')
