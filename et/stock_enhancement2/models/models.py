@@ -777,7 +777,7 @@ class StockPickingInherit(models.Model):
                 enviado = record.env["google.sheets.client"].append_row(values)
                 if enviado == 200:
                     record._crear_tms_stock_picking()
-                    record.ruteo_compartido = 'si'
+                    record.write({'ruteo_compartido': 'si'})
             except Exception as e:
                 # Si preferís no romper el flujo, logueá y no levantes error
                 _logger.exception("Fallo enviando a Google Sheets para %s", record.name)

@@ -14,7 +14,7 @@ class TmsStockPicking(models.Model):
     partner_id = fields.Many2one('res.partner', string='Cliente')
     cantidad_bultos = fields.Float(string='Cantidad de Bultos')
     cantidad_lineas = fields.Integer(string='Linea de Pedido')
-    carrier_id = fields.Many2one('res.partner', string='Transportista')
+    carrier_id = fields.Many2one('delivery.carrier', string='Transportista')
     observaciones = fields.Text(string='Obs. de Operaciones')
     industry_id = fields.Many2one('res.partner.industry', string='Despacho')
     ubicacion = fields.Char(string='Ubicación')
