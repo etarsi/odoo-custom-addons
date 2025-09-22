@@ -48,7 +48,7 @@ class StockPickingInherit(models.Model):
     delivery_state = fields.Selection(selection=[('no', 'No entregado'), ('delivered', 'Entregado'), ('returned', 'Devuelto')], default='no', copy=False, string='Estado Delivery')
     china_purchase = fields.Boolean(default=False, copy=True)
     wesend_ids = fields.Char(string="Remitos")
-    ruteo_compartido = fields.Selection([('no', 'NoEnviado HDR'), ('si', 'HDR Enviado')], default='no', string='Ruteo HDR', copy=False)
+    ruteo_compartido = fields.Selection([('no', 'No Enviado HDR'), ('si', 'Enviado HDR')], default='no', string='Ruteo HDR', copy=False)
 
     def action_correction_secuence(self):
         return True
