@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="action_forzar_envio_compartido_srv" model="ir.actions.server">
+        <field name="name">Forzar envío de HDR</field>
+        <field name="model_id" ref="stock.model_stock_picking"/>
+        <field name="binding_model_id" ref="stock.model_stock_picking"/>
+        <field name="binding_type">action</field>
+        <field name="state">code</field>
+        <field name="code">action = records.action_forzar_envio_compartido()</field>
+    </record>
+</odoo>

@@ -36,6 +36,13 @@
             ('move_type','=','in_invoice'),
             ('state','=','posted')
         ]</field>
-        <field name="context"> {'calendar_view': 1} </field>
+        <field name="search_view_id" ref="account.view_account_invoice_filter"/>
+        <field name="context">
+            {
+                'calendar_view': 1,
+                'search_default_open': 1,
+                'default_move_type': 'in_invoice',
+            }
+        </field>
     </record>
 </odoo>

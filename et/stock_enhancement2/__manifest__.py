@@ -31,6 +31,7 @@
     # always loaded
     'data': [
         # 'security/ir.model.access.csv',
+        'data/stock_picking_server_actions.xml',
         'views/views.xml',
         'views/delivery_carrier_views.xml',
         #'views/stock_picking_views.xml',

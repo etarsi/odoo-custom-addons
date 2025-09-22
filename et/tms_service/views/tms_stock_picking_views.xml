@@ -72,5 +72,6 @@
         <field name="name">Ruteo de Inventario</field>
         <field name="res_model">tms.stock.picking</field>
         <field name="view_mode">tree,form</field>
+        <field name="context">{'import_file': 1}</field>
     </record>
 </odoo>
