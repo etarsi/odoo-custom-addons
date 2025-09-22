@@ -7,7 +7,7 @@
                 <field name="fecha_entrega" optional="show"/>
                 <field name="fecha_envio_wms" optional="show"/>
                 <field name="codigo_wms" optional="show"/>
-                <field name="sale_id" optional="show"/>
+                <field name="doc_origen" optional="show"/>
                 <field name="picking_id" optional="show"/>
                 <field name="partner_id" optional="show"/>
                 <field name="carrier_id" optional="show"/>
@@ -40,7 +40,7 @@
                     <group>
                         <field name="fecha_envio_wms"/>
                         <field name="codigo_wms"/>
-                        <field name="sale_id"/>
+                        <field name="doc_origen"/>
                         <field name="picking_id"/>
                         <field name="partner_id"/>
                         <field name="carrier_id"/>
