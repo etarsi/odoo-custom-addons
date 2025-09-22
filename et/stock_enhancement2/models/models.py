@@ -48,7 +48,7 @@ class StockPickingInherit(models.Model):
     delivery_state = fields.Selection(selection=[('no', 'No entregado'), ('delivered', 'Entregado'), ('returned', 'Devuelto')], default='no', copy=False, string='Estado Delivery')
     china_purchase = fields.Boolean(default=False, copy=True)
     wesend_ids = fields.Char(string="Remitos")
-    remito_compartido = fields.Boolean(string="Remito Compartido", default=False)
+    ruteo_compartido = fields.Selection([('no', 'NoEnviado HDR'), ('si', 'HDR Enviado')], default='no', string='Ruteo HDR', copy=False)
 
     def action_correction_secuence(self):
         return True
@@ -737,10 +737,14 @@ class StockPickingInherit(models.Model):
     #     for record in self:
     #         record.wms_date = fields.Date.today()
     
-    def action_enviar_compartido(self):
+    def action_forzar_envio_compartido(self):
         for record in self:
-            if record.remito_compartido:
-                raise ValidationError(_("El remito ya fue enviado al compartido anteriormente."))
+            record.action_enviar_compartido(envio_forzar=True)
+    
+    def action_enviar_compartido(self, envio_forzar=False):
+        for record in self:
+            if record.ruteo_compartido == 'si' and not envio_forzar:
+                raise ValidationError(_("El remito con el Código WMS %s, ya fue enviado al compartido anteriormente.") % record.codigo_wms)
             direccion_entrega = ""
             if record.carrier_id:
                 if record.carrier_id.name == 'Reparto Propio':
@@ -772,11 +776,49 @@ class StockPickingInherit(models.Model):
                 ]
                 enviado = record.env["google.sheets.client"].append_row(values)
                 if enviado == 200:
-                    record.remito_compartido = True
+                    record._crear_tms_stock_picking()
+                    record.ruteo_compartido = 'si'
             except Exception as e:
                 # Si preferís no romper el flujo, logueá y no levantes error
                 _logger.exception("Fallo enviando a Google Sheets para %s", record.name)
                 raise ValidationError(_("Fallo enviando a Google Sheets para picking %s: %s") % (record.name, e))
+
+    def _crear_tms_stock_picking(self):
+        self.ensure_one()
+        tms = self.env['tms.stock.picking'].search([('picking_id', '=', self.id)], limit=1)
+        if not tms:
+            direccion_entrega = ""
+            if self.carrier_id:
+                if self.carrier_id.name == 'Reparto Propio':
+                    direccion_entrega = f"{self.partner_id.street or '-'}, {self.partner_id.zip or '-'}, {self.partner_id.city or '-' }"
+                else:
+                    direccion_entrega = self.carrier_id.address
+            vals = {
+                'picking_id': self.id,
+                'fecha_entrega': False,
+                'fecha_envio_wms': fields.Date.today(),
+                'codigo_wms': self.codigo_wms,
+                'sale_id': self.sale_id.id,
+                'partner_id': self.partner_id.id,
+                'cantidad_bultos': self.packaging_qty,
+                'cantidad_lineas': len(self.move_ids_without_package) or 0,
+                'carrier_id': self.carrier_id.id,
+                'observaciones': '',
+                'industry_id': self.partner_id.industry_id.id,
+                'ubicacion': '',
+                'estado_digip': self.state_wms,
+                'estado_despacho': False,
+                'fecha_despacho': False,
+                'observacion_despacho': False,
+                'contacto_calle': self.partner_id.street or False,
+                'direccion_entrega': direccion_entrega,
+                'contacto_cp': self.partner_id.zip or False,
+                'contacto_ciudad': self.partner_id.city or False,
+                'carrier_address': self.carrier_id.address or False,
+                'company_id': self.company_id.id,
+                'user_id': self.env.user.id,
+            }
+            tms = self.env['tms.stock.picking'].create(vals)
 
     def _fmt_dt_local(self, dt):
         """datetime -> string en zona del usuario."""

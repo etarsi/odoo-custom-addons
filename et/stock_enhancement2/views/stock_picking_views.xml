@@ -1,15 +1,25 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
     <data>
-        <record id="stock_pricking_form_delivery_wms" model="ir.ui.view">
+        <record id="stock_pricking_form_inherit_wms" model="ir.ui.view">
             <field name="name">stock.picking.form.delivery</field>
             <field name="model">stock.picking</field>
             <!--<field name="inherit_id" ref="stock.view_picking_form" />-->
             <field name="inherit_id" ref="stock.view_picking_form" />
             <field name="arch" type="xml">
-                <xpath expr="//header" position="inside">
-                    <button name="split_auto_multiple" string="Dividir Auto Multiple" type="object" attrs="{'invisible': [('state_wms', '!=', 'no')]}"/>
-                    <button type="object" name="action_enviar_compartido" string="Enviar al Compartido" />
+                <xpath expr="//field[@name='origin']" position="after">
+                    <field name="ruteo_compartido"  widget="badge" decoration-warning="ruteo_compartido == 'no'" decoration-success="ruteo_compartido == 'si'" />
+                </xpath>
+            </field>
+        </record>
+
+        <record id="view_stock_picking_tree_inherit_wms" model="ir.ui.view">
+            <field name="name">stock.picking.tree.inherit</field>
+            <field name="model">stock.picking</field>
+            <field name="inherit_id" ref="stock.vpicktree"/>
+            <field name="arch" type="xml">
+                <xpath expr="//field[@name='origin']" position="after">
+                    <field name="ruteo_compartido"  widget="badge" decoration-warning="ruteo_compartido == 'no'" decoration-success="ruteo_compartido == 'si'" optional="hide" />
                 </xpath>
             </field>
         </record>
