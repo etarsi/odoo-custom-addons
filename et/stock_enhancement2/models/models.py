@@ -798,7 +798,7 @@ class StockPickingInherit(models.Model):
                 'fecha_entrega': False,
                 'fecha_envio_wms': fields.Date.today(),
                 'codigo_wms': self.codigo_wms,
-                'sale_id': self.sale_id.id,
+                'doc_origen': self.origin,
                 'partner_id': self.partner_id.id,
                 'cantidad_bultos': self.packaging_qty,
                 'cantidad_lineas': len(self.move_ids_without_package) or 0,
