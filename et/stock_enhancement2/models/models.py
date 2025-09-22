@@ -794,7 +794,7 @@ class StockPickingInherit(models.Model):
                 else:
                     direccion_entrega = self.carrier_id.address
             vals = {
-                'picking_id': self.id,
+                'picking_ids': self.id,
                 'fecha_entrega': False,
                 'fecha_envio_wms': fields.Date.today(),
                 'codigo_wms': self.codigo_wms,
