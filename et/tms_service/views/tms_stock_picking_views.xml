@@ -3,7 +3,7 @@
         <field name="name">tms.stock.picking.tree</field>
         <field name="model">tms.stock.picking</field>
         <field name="arch" type="xml">
-            <tree create="false" edit="true" delete="false">
+            <tree edit="true" delete="false">
                 <field name="fecha_entrega" optional="show"/>
                 <field name="fecha_envio_wms" optional="show"/>
                 <field name="codigo_wms" optional="show"/>
