@@ -84,17 +84,17 @@
                 <filter name="filter_by_partner" string="Agrupar por Cliente"
                         context="{'group_by': 'partner_id'}" />
                 <!-- Filtro por estado  agrupado-->
-                <filter name="filter_by_state_digip" string="Agrupar por Estado WMS"
+                <filter name="filter_by_state_digip" string="Estado WMS"
                         context="{'group_by': 'estado_digip'}" />
-                <filter name="filter_by_carrier_id" string="Agrupar por Transportista"
+                <filter name="filter_by_carrier_id" string="Transportista"
                         context="{'group_by': 'carrier_id'}" />
-                <filter name="filter_by_state_despacho" string="Agrupar por Estado Despacho"
+                <filter name="filter_by_state_despacho" string="Estado Despacho"
                         context="{'group_by': 'estado_despacho'}" />
-                <filter name="filter_by_picking_id" string="Agrupar por referencia"
+                <filter name="filter_by_picking_id" string="Referencia"
                         context="{'group_by': 'picking_id'}" />
-                <filter name="filter_by_doc_origen" string="Agrupar por Doc. Origen"
+                <filter name="filter_by_doc_origen" string="Doc. Origen"
                         context="{'group_by': 'doc_origen'}" />
-                <filter name="filter_by_company" string="Agrupar por Compañía"
+                <filter name="filter_by_company" string="Compañía"
                         context="{'group_by': 'company_id'}" />
             </search>
         </field>
