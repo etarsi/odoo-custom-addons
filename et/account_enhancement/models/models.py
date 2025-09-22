@@ -377,19 +377,29 @@ class AccountPaymentInherit(models.Model):
     @api.depends('l10n_latam_check_current_journal_id')
     def _compute_check_state(self):
         for rec in self:
-            if rec.rejected:
-                rec.check_state = 'Rechazado'
-            elif rec.l10n_latam_check_current_journal_id:
-                journal_code = rec.l10n_latam_check_current_journal_id.code
-                journal_type = rec.l10n_latam_check_current_journal_id.type
-                if journal_code in ('CSH3', 'CSH5', 'ECHEQ'):
-                    rec.check_state = 'En Cartera'
-                elif journal_type == 'bank':
-                    rec.check_state = 'Depositado'
-            else:
-                if rec.payment_group_id:
-                    if rec.payment_type == 'outbound':
-                        rec.check_state = 'Entregado'
+            if rec.payment_type == 'inbound':
+                if rec.rejected:
+                    rec.check_state = 'Rechazado'
+                elif rec.l10n_latam_check_current_journal_id:
+                    journal_code = rec.l10n_latam_check_current_journal_id.code
+                    journal_type = rec.l10n_latam_check_current_journal_id.type
+                    if journal_code in ('CSH3', 'CSH5', 'ECHEQ'):
+                        rec.check_state = 'En Cartera'
+                    elif journal_type == 'bank':
+                        rec.check_state = 'Depositado'
+                else:
+                    rec.check_state = 'Entregado'
+
+            elif rec.paymet_type == 'outbound':
+                if rec.state == 'draft':
+                    rec.check_state = 'Pendiente'
+
+                    if rec.journal_id.code in ('CSH3', 'CSH5', 'ECHEQ'):
+                        if rec.l10n_latam_check_id:
+                            rec.check_number = rec.l10n_latam_check_id.check_number or ''
+
+                            rec.l10n_latam_check_id.check_state = 'Pendiente'
+
 
     def action_reject_check(self):
         for rec in self:
@@ -443,13 +453,6 @@ class AccountPaymentGroupInherit(models.Model):
     
     #### ONCHANGE #####
 
-    @api.onchange('payment_ids')
-    def _onchange_payment_ids(self):
-        for record in self:
-            if record.payment_ids:
-                for payment in record.payment_ids:
-                    if payment.check_state == 'En Cartera':
-                        payment.check_state = 'Pendiente'
 
     @api.onchange('payment_date', 'to_pay_move_line_ids', 'to_pay_move_line_ids.date_maturity', 'to_pay_move_line_ids.move_id')
     def _compute_paid_date_venc_html(self):
@@ -566,15 +569,15 @@ class AccountPaymentGroupInherit(models.Model):
                 if payment_line.id in check_numbers:
                     payment_line.check_number = check_numbers[payment_line.id]
 
+
+
+        
+
             rec.state = 'posted'
 
             if rec.receiptbook_id.mail_template_id:
                 rec.message_post_with_template(rec.receiptbook_id.mail_template_id.id)
 
-            
-            for payment in rec.payment_ids:
-                if payment.payment_type == 'outbound':
-                    payment.check_state = 'Entregado'
 
         return True
     
