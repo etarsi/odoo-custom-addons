@@ -785,7 +785,7 @@ class StockPickingInherit(models.Model):
 
     def _crear_tms_stock_picking(self):
         self.ensure_one()
-        tms = self.env['tms.stock.picking'].search([('picking_id', '=', self.id)], limit=1)
+        tms = self.env['tms.stock.picking'].search([('picking_ids', 'in', self.id)], limit=1)
         if not tms:
             direccion_entrega = ""
             if self.carrier_id:
