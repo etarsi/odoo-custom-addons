@@ -1447,7 +1447,37 @@ class StockSequenceWesend(models.Model):
 class ProductTemplateInherit(models.Model):
     _inherit = "product.template"
 
+    def _extract_m2m_ids(self, value):
+        """Convierte taxes_id (comandos M2M o lista de ints) en un set de IDs."""
+        ids_set = set()
+        if not value:
+            return ids_set
+
+        if isinstance(value, (list, tuple)):
+            for item in value:
+                # Puede ser comando M2M o un int suelto
+                if isinstance(item, (list, tuple)) and item:
+                    cmd = item[0]
+                    if cmd == 6:      # (6, 0, [ids]) -> setear
+                        ids_set |= set(item[2] or [])
+                    elif cmd == 4:    # (4, id) -> agregar
+                        ids_set.add(item[1])
+                    elif cmd == 3:    # (3, id) -> quitar
+                        ids_set.discard(item[1])
+                    elif cmd == 5:    # (5) -> clear
+                        ids_set.clear()
+                    # cmd == 0 (create) no se puede resolver a id acá
+                elif isinstance(item, int):
+                    ids_set.add(item)
+        return ids_set
+
+    @api.model_create_multi
     def create(self, vals):
-        # impuesto fijo con ID 5
-        vals['taxes_id'] = [(6, 0, [62,99,185,223,309,347,433,557,681])] #IDS FIJOS DE IMPUESTOS
+        taxes_ids = {62, 99, 185, 223, 309, 347, 433, 557, 681}
+        if vals.get('taxes_id'):
+            existing = self._extract_m2m_ids(vals['taxes_id'])
+            union_ids = sorted(existing | taxes_ids)
+            vals['taxes_id'] = [(6, 0, union_ids)]
+        else:
+            vals['taxes_id'] = [(6, 0, sorted(taxes_ids))]
         return super().create(vals)
