@@ -1443,3 +1443,11 @@ class StockSequenceWesend(models.Model):
     picking_id = fields.Many2one('stock.picking', string="Transferencia", required=True)
     sequence = fields.Integer(string="Secuencia", required=True)
     sequence_id = fields.Many2one('ir.sequence', string="Secuencia", required=True)
+    
+class ProductTemplateInherit(models.Model):
+    _inherit = "product.template"
+
+    def create(self, vals):
+        # impuesto fijo con ID 5
+        vals['taxes_id'] = [(6, 0, [62,99,185,223,309,347,433,557,681])] #IDS FIJOS DE IMPUESTOS
+        return super().create(vals)
