@@ -1471,13 +1471,13 @@ class ProductTemplateInherit(models.Model):
                     ids_set.add(item)
         return ids_set
 
-    @api.model_create_multi
-    def create(self, vals):
-        taxes_ids = {62, 99, 185, 223, 309, 347, 433, 557, 681}
-        if vals.get('taxes_id'):
-            existing = self._extract_m2m_ids(vals['taxes_id'])
-            union_ids = sorted(existing | taxes_ids)
-            vals['taxes_id'] = [(6, 0, union_ids)]
-        else:
-            vals['taxes_id'] = [(6, 0, sorted(taxes_ids))]
-        return super().create(vals)
+    #@api.model_create_multi
+    #def create(self, vals):
+    #    taxes_ids = {62, 99, 185, 223, 309, 347, 433, 557, 681}
+    #    if vals.get('taxes_id'):
+    #        existing = self._extract_m2m_ids(vals['taxes_id'])
+    #        union_ids = sorted(existing | taxes_ids)
+    #        vals['taxes_id'] = [(6, 0, union_ids)]
+    #    else:
+    #        vals['taxes_id'] = [(6, 0, sorted(taxes_ids))]
+    #    return super().create(vals)
