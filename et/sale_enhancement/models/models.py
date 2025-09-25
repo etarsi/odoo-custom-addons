@@ -214,7 +214,6 @@ class SaleOrderInherit(models.Model):
             if up:
                 record.clean_stock_moves(up)
 
-            record.update_picking_id()
 
         return res
     
