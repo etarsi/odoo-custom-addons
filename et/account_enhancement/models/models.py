@@ -390,7 +390,7 @@ class AccountPaymentInherit(models.Model):
                 else:
                     rec.check_state = 'Entregado'
 
-            elif rec.paymet_type == 'outbound':
+            elif rec.payment_type == 'outbound':
                 if rec.state == 'draft':
                     rec.check_state = 'Pendiente'
 
