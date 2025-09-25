@@ -55,8 +55,18 @@ class StockMovesERP(models.Model):
 
     def unreserve_stock(self):
         for record in self:
-            if record.type == 'reserve':
+            stock_in_preparation = self.env['stock.moves.erp'].search([
+                ('sale_line_id', '=', record.sale_line_id.id), 
+                ('product_id', '=', record.product_id.id), 
+                ('type', '=', 'preparation')
+            ], limit=1)
+
+            if stock_in_preparation:
+                raise UserError(f'No se puede liberar el stock del pedido {record.sale_id.name} porque se está preparando en la transferencia {stock_in_preparation.picking_id.name}')
+            
+            else:
                 record.cancel_sale_line()
+                record.cancel_picking_line()
                 record.stock_erp.decrease_comprometido_unidades(record.quantity)
                 record.update_sale_orders()
                 record.unlink()
@@ -128,6 +138,15 @@ class StockMovesERP(models.Model):
                 record.sale_line_id.is_cancelled = True
 
     
+    def cancel_picking_line(self):
+        for record in self:
+            if record.sale_line_id.move_ids:
+                for move in record.sale_line_id.move_ids:
+                    move.state = 'draft'
+                    move.quantity_done = 0
+                    move.unlink()
+
+
     @api.onchange('quantity_delivered')
     def _onchange_auto_delete_if_fulfilled(self):
         for record in self:

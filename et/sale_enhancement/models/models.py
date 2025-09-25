@@ -214,19 +214,10 @@ class SaleOrderInherit(models.Model):
             if up:
                 record.clean_stock_moves(up)
 
+            record.update_picking_id()
+
         return res
     
-    # def update_sales_stock(self):
-    #     for record in self:
-    #         product_to_update = []
-    #         for line in record.order_line:
-    #             if line.is_available:
-    #                 product_to_update.append(line.product_id)
-
-    #         sales_lines_to_update = record.stock_erp.move_lines.mapped('sale_line_id')
-    #         if sales_lines_to_update:
-    #             for line in sales_lines_to_update:
-    #                 line.update_stock_erp()
 
     def update_prices(self):
         self.ensure_one()
@@ -237,16 +228,6 @@ class SaleOrderInherit(models.Model):
         self.show_update_pricelist = False
 
 
-    ### CUSTOM
-
-    # def cancel_stock(self):
-    #     for record in self:
-
-    #         if record.picking_ids:
-    #             for picking in record.picking_ids:
-    #                 if picking.wms_state == 'no':
-                        
-    #                     for move in picking.move_ids_without_package:
 
     def check_unavailable_products(self):
         for record in self:
@@ -376,6 +357,8 @@ class SaleOrderLineInherit(models.Model):
     is_cancelled = fields.Boolean(default=False)
     disponible_unidades = fields.Integer('Disponible')
     is_compromised = fields.Boolean(default=False)
+    stock_erp = fields.Many2one('stock.erp')
+    stock_moves_erp = fields.Many2one('stock.moves.erp')
     
     def create(self, vals):
         res = super().create(vals)
@@ -474,8 +457,9 @@ class SaleOrderLineInherit(models.Model):
                 vals['bultos'] = record.product_packaging_qty
                 vals['type'] = 'reserve'
 
-                self.env['stock.moves.erp'].create(vals)
+                stock_moves_erp = self.env['stock.moves.erp'].create(vals)
 
+                record.stock_moves_erp = stock_moves_erp
                 record.is_compromised = True
 
     def comprometer_stock2(self):
