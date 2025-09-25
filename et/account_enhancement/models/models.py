@@ -339,6 +339,21 @@ class AccountPaymentInherit(models.Model):
     is_effectiveness_text = fields.Boolean(default=False)
     check_effectiveness_text = fields.Text(compute="_compute_check_effectiveness", store=False)
 
+
+
+    def unlink(self):
+        for payment in self:                                
+            if payment.payment_group_id:                
+                if payment.payment_group_id.partner_type == 'supplier':
+                    if payment.l10n_latam_check_current_journal_id:
+                        journal_code = payment.l10n_latam_check_current_journal_id.code
+                        if journal_code in ('CSH3', 'CSH5', 'ECHEQ'):
+                            if payment.l10n_latam_check_id:                       
+                                payment.l10n_latam_check_id.check_state = 'En Cartera'
+
+        return super(AccountPaymentInherit, self).unlink()
+
+
     @api.onchange('l10n_latam_check_issuer_vat', 'payment_method_line_id', 'journal_id')
     def _compute_check_effectiveness(self):
         Payment = self.env['account.payment'].sudo()
