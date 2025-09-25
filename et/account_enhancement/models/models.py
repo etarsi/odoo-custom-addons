@@ -351,7 +351,7 @@ class AccountPaymentInherit(models.Model):
                             if payment.l10n_latam_check_id:                       
                                 payment.l10n_latam_check_id.check_state = 'En Cartera'
 
-        return super(AccountPaymentInherit, self).unlink()
+        return super().unlink()
 
 
     @api.onchange('l10n_latam_check_issuer_vat', 'payment_method_line_id', 'journal_id')
