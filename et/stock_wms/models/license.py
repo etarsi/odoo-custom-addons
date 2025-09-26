@@ -19,3 +19,14 @@ class License(models.Model):
     _description = 'Licencia'
 
     name = fields.Char()
+    containers = fields.One2many('license.container', 'license', string="Contenedores")
+    dispatch_number = fields.Char()
+
+
+
+class LicenseContainer(models.Model):
+    _name = 'license.container'
+
+
+    name = fields.Char()
+    license = fields.Many2one('license')
