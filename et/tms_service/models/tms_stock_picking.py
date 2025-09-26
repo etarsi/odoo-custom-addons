@@ -32,7 +32,7 @@ class TmsStockPicking(models.Model):
                                         ('pending','Pendiente')
                                     ], string='Estado WMS', default='no')
     estado_despacho = fields.Selection([('void', 'Anulado'),
-                                        ('pending', 'Pendiente')
+                                        ('pending', 'Pendiente'),
                                         ('in_preparation', 'En Preparación'),
                                         ('prepared', 'Preparado'),
                                         ('delivered', 'Entregado'),
