@@ -100,6 +100,18 @@
         <field name="model">tms.stock.picking</field>
         <field name="arch" type="xml">
             <search string="Ruteo de Inventario">
+                <field name="doc_origen"
+                    string="Buscar por Doc. Origen"
+                    filter_domain="[('doc_origen','ilike', self)]"/>
+
+                <field name="codigo_wms"
+                    string="Buscar por Código WMS"
+                    filter_domain="[('codigo_wms','ilike', self)]"/>
+
+                <field name="picking_ids"
+                    string="Buscar por Picking"
+                    filter_domain="[('picking_ids.name','ilike', self)]"/>
+                <separator/>
                 <filter name="filter_digip_closed" string="WMS Cerrados" domain="[('estado_digip', '=', 'closed')]"
                         help="Filtrar las licencias que están enviado y recibido." />
                 <filter name="filter_digip_done" string="WMS Enviados" domain="[('estado_digip', '=', 'done')]"
