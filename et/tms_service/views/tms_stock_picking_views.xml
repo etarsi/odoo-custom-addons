@@ -109,8 +109,16 @@
                     filter_domain="[('codigo_wms','ilike', self)]"/>
 
                 <field name="picking_ids"
-                    string="Buscar por Picking"
+                    string="Buscar por Referencia"
                     filter_domain="[('picking_ids.name','ilike', self)]"/>
+
+                <field name="carrier_id"
+                    string="Buscar por Transportista"
+                    filter_domain="[('carrier_id.name','ilike', self)]"/>
+
+                <field name="partner_id"
+                    string="Buscar por Cliente"
+                    filter_domain="[('partner_id.name','ilike', self)]"/>
                 <separator/>
                 <filter name="filter_digip_closed" string="WMS Cerrados" domain="[('estado_digip', '=', 'closed')]"
                         help="Filtrar las licencias que están enviado y recibido." />
@@ -132,6 +140,8 @@
                         context="{'group_by': 'doc_origen'}" />
                 <filter name="filter_by_company" string="Compañía"
                         context="{'group_by': 'company_id'}" />
+                <filter name="filter_by_company" string="Cliente"
+                        context="{'group_by': 'partner_id'}" />
             </search>
         </field>
     </record>
