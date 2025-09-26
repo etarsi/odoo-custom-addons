@@ -705,7 +705,7 @@ class ProductPricelist(models.Model):
     _inherit = "product.pricelist"
     
     is_default = fields.Boolean(
-        string="Principal",
+        string="Lista B por defecto",
         default=False,
         copy=False,
         index=True,
