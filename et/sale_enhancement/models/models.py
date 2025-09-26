@@ -298,6 +298,7 @@ class SaleOrderInherit(models.Model):
                 pricelist = self.env['product.pricelist'].search([('is_default','=', True)])
                 if pricelist:
                     record.pricelist_id = pricelist.id
+                    raise UserError(f"ENCONTRO EL PRECIO DE LA LISTA {pricelist.name}")
 
 
     def update_lines_prices(self):
