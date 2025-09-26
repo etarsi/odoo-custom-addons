@@ -353,8 +353,8 @@ class AccountPaymentInherit(models.Model):
         return super().unlink()
 
 
-    @api.onchange('state')
-    def _onchange_state(self):
+    @api.depends('state')
+    def _compute_state(self):
         for record in self:
             if record.payment_group_id:
                 if record.payment_type == 'outbound':
