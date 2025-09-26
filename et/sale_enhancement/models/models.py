@@ -109,8 +109,7 @@ class SaleOrderInherit(models.Model):
     def _onchange_condicion_m2m(self):
         for record in self:
             if record.condicion_m2m.name == 'TIPO 3':
-                pricelist = self.env['product.pricelist'].search([('id','=',46)])
-
+                pricelist = self.env['product.pricelist'].search([('is_default','=', True)])
                 if pricelist:
                     record.pricelist_id = pricelist
                     discounts = {}
@@ -190,8 +189,7 @@ class SaleOrderInherit(models.Model):
                 picking.origin = record.name
 
             if company_letter == 'P':               
-                pricelist = self.env['product.pricelist'].search([('id','=',46)])
-
+                pricelist = self.env['product.pricelist'].search([('is_default','=', True)])
                 if pricelist:
                     record.pricelist_id = pricelist
                     discounts = {}
@@ -204,7 +202,7 @@ class SaleOrderInherit(models.Model):
                         if line.id in discounts:
                             line.discount = discounts[line.id]
                 else: 
-                    raise UserError("No se encontró precio de lista con ID 46")
+                    raise UserError(f"No se encontró precio de lista por defecto")
             
 
             # STOCK ERP
@@ -297,7 +295,7 @@ class SaleOrderInherit(models.Model):
     def check_price_list(self):
         for record in self:
             if record.condicion_m2m.name == 'TIPO 3':
-                pricelist = self.env['product.pricelist'].browse(35)
+                pricelist = self.env['product.pricelist'].search([('is_default','=', True)])
                 if pricelist:
                     record.pricelist_id = pricelist
 
