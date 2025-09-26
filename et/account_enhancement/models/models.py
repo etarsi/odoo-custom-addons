@@ -354,6 +354,25 @@ class AccountPaymentInherit(models.Model):
         return super().unlink()
 
 
+    @api.onchange('state')
+    def _onchange_state(self):
+        for record in self:
+            if record.payment_group_id and record.payment_type == 'outbound':
+                if record.state == 'draft':
+                    record.check_state = 'Pendiente'
+
+                    if record.journal_id.code in ('CSH3', 'CSH5', 'ECHEQ'):
+                        if record.l10n_latam_check_id:                             
+                            record.check_number = record.l10n_latam_check_id.check_number or ''
+                            record.l10n_latam_check_id.check_state = 'Pendiente'
+                            
+                elif record.state == 'posted':
+                    record.check_state = 'Entregado'
+            
+
+
+
+
     @api.onchange('l10n_latam_check_issuer_vat', 'payment_method_line_id', 'journal_id')
     def _compute_check_effectiveness(self):
         Payment = self.env['account.payment'].sudo()
