@@ -326,7 +326,6 @@ class AccountPaymentInherit(models.Model):
         string="Estado del Cheque",
         compute='_compute_check_state',
         store=True,
-        readonly=True
     )
     journal_code = fields.Char(related='journal_id.code', store=True)
     #hereadado
@@ -365,7 +364,7 @@ class AccountPaymentInherit(models.Model):
                         if record.l10n_latam_check_id:                             
                             record.check_number = record.l10n_latam_check_id.check_number or ''
                             record.l10n_latam_check_id.check_state = 'Pendiente'
-                            
+
                 elif record.state == 'posted':
                     record.check_state = 'Entregado'
             
