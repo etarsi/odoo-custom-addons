@@ -1,6 +1,7 @@
 from odoo import models, fields, api
 from odoo.exceptions import ValidationError
-from datetime import date
+import base64, xlsxwriter, io
+from datetime import date, datetime
 
 class HrPayrollSalary(models.Model):
     _name = 'hr.payroll.salary'
@@ -125,6 +126,164 @@ class HrPayrollSalary(models.Model):
                         'overtime': total_overtime,
                         'holiday_hours': total_holiday_hours,
                     })
+
+    def action_generar_excel(self):
+        self.ensure_one()
+        # Validaciones básicas
+        if not self.line_ids:
+            raise ValidationError("La planilla no tiene líneas para exportar.")
+
+        # Buffer memoria
+        output = io.BytesIO()
+        wb = xlsxwriter.Workbook(output, {'in_memory': True})
+        ws = wb.add_worksheet('Planilla')
+
+        # ==== formatos ====
+        fmt_header = wb.add_format({
+            'bold': True, 'align': 'center', 'valign': 'vcenter',
+            'bg_color': '#D9E1F2', 'border': 1
+        })
+        fmt_left = wb.add_format({'align': 'left', 'valign': 'vcenter', 'border': 1})
+        fmt_right = wb.add_format({'align': 'right', 'valign': 'vcenter', 'border': 1})
+        fmt_float2 = wb.add_format({'num_format': '0.00', 'align': 'right', 'valign': 'vcenter', 'border': 1})
+        fmt_money = wb.add_format({'num_format': '#,##0.00', 'align': 'right', 'valign': 'vcenter', 'border': 1,})
+        fmt_title = wb.add_format({'bold': True, 'font_size': 14})
+
+        # ==== título / cabecera de planilla ====
+        ws.write(0, 0, 'Planilla', fmt_title)
+        ws.write(1, 0, 'Nombre')
+        ws.write(1, 1, self.name or '')
+        ws.write(2, 0, 'Tipo Pago')
+        ws.write(2, 1, dict(self._fields['type_paid'].selection).get(self.type_paid, ''))
+        ws.write(3, 0, 'Tipo Empleado')
+        ws.write(3, 1, dict(self._fields['employee_type'].selection).get(self.employee_type, ''))
+        ws.write(4, 0, 'Período')
+        periodo = ""
+        if self.type_paid == 'mensual':
+            periodo = f"{self.pay_month}/{self.pay_year}"
+        else:
+            periodo = f"{self.date_start or ''} al {self.date_end or ''}"
+        ws.write(4, 1, periodo)
+        ws.write(5, 0, 'Estado')
+        ws.write(5, 1, dict(self._fields['state'].selection).get(self.state, ''))
+
+        start_row = 7
+
+        # ==== anchos de columna ====
+        ws.set_column(0, 0, 6)    # #
+        ws.set_column(1, 1, 25)   # Empleado
+        ws.set_column(2, 2, 18)   # Puesto
+        ws.set_column(3, 6, 12)   # Horas
+        ws.set_column(7, 7, 12)   # Básico
+        ws.set_column(8, 8, 12)   # Bono
+        ws.set_column(9, 9, 12)   # Descuento
+        ws.set_column(10, 10, 14) # Bruto
+        ws.set_column(11, 11, 14) # Neto
+        ws.set_column(12, 12, 18) # Costo Laboral
+        ws.set_column(13, 13, 18) # Pagado?
+        ws.set_column(14, 14, 18) # Usuario pago
+        ws.set_column(15, 15, 14) # Fecha pago
+        ws.set_column(16, 16, 30) # Nota
+
+        # ==== encabezados ====
+        headers = [
+            '#', 'Empleado', 'Puesto',
+            'H. Trab', 'H. 50%', 'H. 100%', 'Días Lic.',
+            'Básico', 'Bono', 'Descuento',
+            'Bruto', 'Neto',
+            'Costo Laboral (Temporada)', '¿Pagado?', 'Usuario Pago', 'Fecha Pago',
+            'Nota',
+        ]
+        for c, h in enumerate(headers):
+            ws.write(start_row, c, h, fmt_header)
+
+        row = start_row + 1
+        i = 1
+
+        # Totales
+        tot_worked = tot_overtime = tot_holiday = tot_days = 0.0
+        tot_basic = tot_bonus = tot_discount = tot_gross = tot_net = 0.0
+
+        # Moneda (para etiqueta)
+        currency_symbol = self.currency_id.symbol or ''
+
+        for line in self.line_ids:
+            ws.write_number(row, 0, i, fmt_right)
+            ws.write(row, 1, line.employee_id.name or '', fmt_left)
+            ws.write(row, 2, line.job_id.name or '', fmt_left)
+
+            ws.write_number(row, 3, line.worked_hours or 0.0, fmt_float2)
+            ws.write_number(row, 4, line.overtime or 0.0, fmt_float2)
+            ws.write_number(row, 5, line.holiday_hours or 0.0, fmt_float2)
+            ws.write_number(row, 6, line.worked_days or 0.0, fmt_float2)
+
+            ws.write_number(row, 7, line.basic_amount or 0.0, fmt_money)
+            ws.write_number(row, 8, line.bonus or 0.0, fmt_money)
+            ws.write_number(row, 9, line.discount or 0.0, fmt_money)
+            ws.write_number(row,10, line.gross_amount or 0.0, fmt_money)
+            ws.write_number(row,11, line.net_amount or 0.0, fmt_money)
+
+            ws.write(row, 12, line.labor_cost_id.name or '', fmt_left)
+            ws.write(row, 13, 'Sí' if line.is_paid else 'No', fmt_left)
+            ws.write(row, 14, line.user_paid.name if line.user_paid else '', fmt_left)
+            ws.write(row, 15, (line.date_paid or '') if line.date_paid else '', fmt_left)
+            ws.write(row, 16, line.note or '', fmt_left)
+
+            # acumula totales
+            tot_worked += (line.worked_hours or 0.0)
+            tot_overtime += (line.overtime or 0.0)
+            tot_holiday += (line.holiday_hours or 0.0)
+            tot_days += (line.worked_days or 0.0)
+
+            tot_basic += (line.basic_amount or 0.0)
+            tot_bonus += (line.bonus or 0.0)
+            tot_discount += (line.discount or 0.0)
+            tot_gross += (line.gross_amount or 0.0)
+            tot_net += (line.net_amount or 0.0)
+
+            row += 1
+            i += 1
+
+        # ==== fila de totales ====
+        ws.write(row, 0, 'Totales', fmt_header)
+        ws.write(row, 1, '', fmt_header)
+        ws.write(row, 2, '', fmt_header)
+        ws.write_number(row, 3, tot_worked, fmt_float2)
+        ws.write_number(row, 4, tot_overtime, fmt_float2)
+        ws.write_number(row, 5, tot_holiday, fmt_float2)
+        ws.write_number(row, 6, tot_days, fmt_float2)
+
+        ws.write_number(row, 7, tot_basic, fmt_money)
+        ws.write_number(row, 8, tot_bonus, fmt_money)
+        ws.write_number(row, 9, tot_discount, fmt_money)
+        ws.write_number(row,10, tot_gross, fmt_money)
+        ws.write_number(row,11, tot_net, fmt_money)
+
+        # celdas restantes de totales vacías
+        for c in range(12, 17):
+            ws.write(row, c, '', fmt_header)
+
+        wb.close()
+        output.seek(0)
+
+        # adjunto
+        filename = f'Planilla_{self.name or "sin_nombre"}_{datetime.today().strftime("%Y%m%d")}.xlsx'
+        attachment = self.env['ir.attachment'].create({
+            'name': filename,
+            'type': 'binary',
+            'datas': base64.b64encode(output.read()),
+            'mimetype': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            'res_model': self._name,
+            'res_id': self.id,
+        })
+
+        # descarga
+        return {
+            'type': 'ir.actions.act_url',
+            'url': f'/web/content/{attachment.id}?download=true',
+            'target': 'self',
+        }
+
 
     
 class HrPayrollSalaryLine(models.Model):

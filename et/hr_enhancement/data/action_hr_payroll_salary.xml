@@ -1,0 +1,13 @@
+<odoo>
+    <record id="action_export_payroll_excel" model="ir.actions.server">
+        <field name="name">Exportar a Excel</field>
+        <!-- Modelo destino -->
+        <field name="model_id" ref="model_hr_payroll_salary"/>
+        <!-- Llamamos a tu método Python -->
+        <field name="state">code</field>
+        <field name="code">action = records.action_generar_excel()</field>
+        <!-- Enlazar a Action menu del modelo -->
+        <field name="binding_model_id" ref="model_hr_payroll_salary"/>
+        <field name="binding_type">action</field>
+    </record>
+</odoo>

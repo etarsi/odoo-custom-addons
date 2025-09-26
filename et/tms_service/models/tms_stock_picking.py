@@ -25,8 +25,18 @@ class TmsStockPicking(models.Model):
     observaciones = fields.Text(string='Obs. de Operaciones')
     industry_id = fields.Many2one('res.partner.industry', string='Despacho')
     ubicacion = fields.Char(string='Ubicación')
-    estado_digip = fields.Selection([('closed','Enviado y recibido'),('done','Enviado'),('no','No enviado'),('error','Error envio'), ('pending','Pendiente')],string='Estado WMS',default='no')
-    estado_despacho = fields.Selection([('pending','Pendiente'),('in_progress','En Progreso'),('done','Finalizado')],string='Estado Despacho',default='pending')
+    estado_digip = fields.Selection([('closed','Enviado y recibido'),
+                                        ('done','Enviado'),
+                                        ('no','No enviado'),
+                                        ('error','Error envio'),
+                                        ('pending','Pendiente')
+                                    ], string='Estado WMS', default='no')
+    estado_despacho = fields.Selection([('void', 'Anulado'),
+                                        ('pending', 'Pendiente')
+                                        ('in_preparation', 'En Preparación'),
+                                        ('prepared', 'Preparado'),
+                                        ('delivered', 'Entregado'),
+                                    ], string='Estado Despacho', default='pending')
     fecha_despacho = fields.Datetime(string='Fecha Despacho')
     observacion_despacho = fields.Text(string='Observaciones Despacho')
     contacto_calle = fields.Char(string='Contacto Calle')
@@ -36,9 +46,35 @@ class TmsStockPicking(models.Model):
     carrier_address = fields.Char(string='Transportista/Carrier Address')
     company_id = fields.Many2one('res.company', string='Compañia', default=lambda self: self.env.company)
     user_id = fields.Many2one('res.users', string='Usuario', default=lambda self: self.env.user)
+    sale_id = fields.Many2one('sale.order', string='Pedido de Venta')
+    
+    #contador
+    picking_count = fields.Integer(compute="_compute_counts", string="Transferencias")
+    sale_count = fields.Integer(compute="_compute_counts", string="Venta")
     
     
-    
-    
-    
+    def _compute_counts(self):
+        for rec in self:
+            rec.picking_count = len(rec.picking_ids)
+            rec.sale_count = 1 if rec.sale_id else 0
+
+    def action_open_pickings(self):
+        self.ensure_one()
+        action = self.env.ref('stock.action_picking_tree_all').read()[0]
+        action['domain'] = [('id', 'in', self.picking_ids.ids)]
+        action['context'] = {'search_default_group_by_picking_type': 0}
+        return action
+
+    def action_open_sale(self):
+        self.ensure_one()
+        if not self.sale_id:
+            return False
+        # Si hay sale_id, abrir directo su formulario
+        action = self.env.ref('sale.action_orders').read()[0]
+        action.update({
+            'views': [(self.env.ref('sale.view_order_form').id, 'form')],
+            'res_id': self.sale_id.id,
+            'domain': [('id', '=', self.sale_id.id)],
+        })
+        return action
     

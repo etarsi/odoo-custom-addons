@@ -681,9 +681,6 @@ class ResPartnerInherit(models.Model):
     # heredado
     property_delivery_carrier_id = fields.Many2one('delivery.carrier', company_dependent=False, string="Delivery Method", help="Default delivery method used in sales orders.")
 
-
-
-
     
 class SaleOrderSettings(models.Model):
     _name = 'sale.order.settings'
@@ -704,3 +701,40 @@ class SaleOrderSettings(models.Model):
         for record in self:
             if record.carga_unidades:
                 record.carga_bultos = False
+
+
+class ProductPricelist(models.Model):
+    _inherit = "product.pricelist"
+    
+    is_default = fields.Boolean(
+        string="Principal",
+        default=False,
+        copy=False,
+        index=True,
+        help="Si está marcada, será la lista de precios por defecto."
+    )
+
+    @api.model_create_multi
+    def create(self, vals_list):
+        records = super().create(vals_list)
+        to_enforce = records.filtered('is_default')
+        if to_enforce:
+            to_enforce._clear_others_default()
+        return records
+
+    def write(self, vals):
+        res = super().write(vals)
+        if vals.get('is_default'):
+            self.filtered('is_default')._clear_others_default()
+        return res
+
+    def _clear_others_default(self):
+        """Desmarca todas las listas Principal excepto estas."""
+        if self.env.context.get('pricelist_toggle_guard'):
+            return
+        others = self.sudo().search([
+            ('is_default', '=', True),
+            ('id', 'not in', self.ids),
+        ])
+        if others:
+            others.with_context(pricelist_toggle_guard=True).write({'is_default': False})

@@ -28,6 +28,7 @@
         #Ingreso de datos por defecto
         'data/res_groups_data.xml',
         'data/hr_license_type_data.xml',
+        'data/action_hr_payroll_salary.xml',
         #Vista
         'views/hr_license_views.xml',
         'views/hr_location_views.xml',
