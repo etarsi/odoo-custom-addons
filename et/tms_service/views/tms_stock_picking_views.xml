@@ -1,61 +1,64 @@
-<record id="view_tms_stock_picking_form" model="ir.ui.view">
-    <field name="name">tms.stock.picking.form</field>
-    <field name="model">tms.stock.picking</field>
-    <field name="arch" type="xml">
-        <form>
-            <sheet>
-                <!-- SOLO 2 SMART BUTTONS -->
-                <div class="oe_button_box" name="button_box">
-                    <!-- Pickings relacionados -->
-                    <button type="object"
-                            name="action_open_pickings"
-                            class="oe_stat_button"
-                            icon="fa-truck"
-                            attrs="{'invisible': [('picking_count', '=', 0)]}">
-                        <field name="picking_count" widget="statinfo" string="Pickings"/>
-                    </button>
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_tms_stock_picking_form" model="ir.ui.view">
+        <field name="name">tms.stock.picking.form</field>
+        <field name="model">tms.stock.picking</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <!-- SOLO 2 SMART BUTTONS -->
+                    <div class="oe_button_box" name="button_box">
+                        <!-- Pickings relacionados -->
+                        <button type="object"
+                                name="action_open_pickings"
+                                class="oe_stat_button"
+                                icon="fa-truck"
+                                attrs="{'invisible': [('picking_count', '=', 0)]}">
+                            <field name="picking_count" widget="statinfo" string="Pickings"/>
+                        </button>
 
-                    <!-- Pedido de Venta -->
-                    <button type="object"
-                            name="action_open_sale"
-                            class="oe_stat_button"
-                            icon="fa-shopping-cart"
-                            attrs="{'invisible': [('sale_count', '=', 0)]}">
-                        <field name="sale_count" widget="statinfo" string="Venta"/>
-                    </button>
-                </div>
+                        <!-- Pedido de Venta -->
+                        <button type="object"
+                                name="action_open_sale"
+                                class="oe_stat_button"
+                                icon="fa-shopping-cart"
+                                attrs="{'invisible': [('sale_count', '=', 0)]}">
+                            <field name="sale_count" widget="statinfo" string="Venta"/>
+                        </button>
+                    </div>
 
-                <!-- tu layout existente -->
-                <group>
+                    <!-- tu layout existente -->
                     <group>
-                        <field name="fecha_envio_wms"/>
-                        <field name="codigo_wms"/>
-                        <field name="doc_origen"/>
-                        <field name="picking_ids" widget="many2many_tags"/>
-                        <field name="partner_id"/>
-                        <field name="carrier_id"/>
+                        <group>
+                            <field name="fecha_envio_wms"/>
+                            <field name="codigo_wms"/>
+                            <field name="doc_origen"/>
+                            <field name="picking_ids" widget="many2many_tags"/>
+                            <field name="partner_id"/>
+                            <field name="carrier_id"/>
+                        </group>
+                        <group>
+                            <field name="cantidad_bultos"/>
+                            <field name="cantidad_lineas"/>
+                            <field name="observaciones"/>
+                            <field name="industry_id"/>
+                            <field name="ubicacion"/>
+                            <field name="estado_digip"/>
+                            <field name="estado_despacho"/>
+                            <field name="fecha_despacho"/>
+                            <field name="observacion_despacho"/>
+                            <field name="contacto_calle"/>
+                            <field name="direccion_entrega"/>
+                            <field name="contacto_cp"/>
+                            <field name="contacto_ciudad"/>
+                            <field name="carrier_address"/>
+                            <field name="company_id"/>
+                            <field name="user_id"/>
+                            <field name="sale_id"/>
+                        </group>
                     </group>
-                    <group>
-                        <field name="cantidad_bultos"/>
-                        <field name="cantidad_lineas"/>
-                        <field name="observaciones"/>
-                        <field name="industry_id"/>
-                        <field name="ubicacion"/>
-                        <field name="estado_digip"/>
-                        <field name="estado_despacho"/>
-                        <field name="fecha_despacho"/>
-                        <field name="observacion_despacho"/>
-                        <field name="contacto_calle"/>
-                        <field name="direccion_entrega"/>
-                        <field name="contacto_cp"/>
-                        <field name="contacto_ciudad"/>
-                        <field name="carrier_address"/>
-                        <field name="company_id"/>
-                        <field name="user_id"/>
-                        <field name="sale_id"/>
-                    </group>
-                </group>
-            </sheet>
-        </form>
-    </field>
-</record>
+                </sheet>
+            </form>
+        </field>
+    </record>
+</odoo>
