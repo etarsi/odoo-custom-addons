@@ -411,7 +411,7 @@ class AccountPaymentInherit(models.Model):
 
                     if rec.journal_id.code in ('CSH3', 'CSH5', 'ECHEQ'):
                         if rec.l10n_latam_check_id:
-                            rec.check_number = rec.l10n_latam_check_id.check_number or ''
+                            # rec.check_number = rec.l10n_latam_check_id.check_number or ''
 
                             rec.l10n_latam_check_id.check_state = 'Pendiente'
 

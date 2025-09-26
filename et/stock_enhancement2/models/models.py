@@ -1473,7 +1473,7 @@ class ProductTemplateInherit(models.Model):
 
     #@api.model_create_multi
     #def create(self, vals):
-    #    taxes_ids = {62, 99, 185, 223, 309, 347, 433, 557, 681}
+    #    taxes_ids = {99, 185, 223, 309, 347, 433}
     #    for v in vals: 
     #        if v['taxes_id']:
     #            existing = self._extract_m2m_ids(v['taxes_id'])
