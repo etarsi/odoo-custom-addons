@@ -405,15 +405,15 @@ class AccountPaymentInherit(models.Model):
                 else:
                     rec.check_state = 'Entregado'
 
-            # elif rec.payment_type == 'outbound':
-            #     if rec.state == 'draft':
-            #         rec.check_state = 'Pendiente'
+            elif rec.payment_type == 'outbound':
+                if rec.state == 'draft':
+                    rec.check_state = 'Pendiente'
 
-            #         if rec.journal_id.code in ('CSH3', 'CSH5', 'ECHEQ'):
-            #             if rec.l10n_latam_check_id:
-            #                 rec.check_number = rec.l10n_latam_check_id.check_number or ''
+                    if rec.journal_id.code in ('CSH3', 'CSH5', 'ECHEQ'):
+                        if rec.l10n_latam_check_id:
+                            # rec.check_number = rec.l10n_latam_check_id.check_number or ''
 
-            #                 rec.l10n_latam_check_id.check_state = 'Pendiente'
+                            rec.l10n_latam_check_id.check_state = 'Pendiente'
 
 
     def action_reject_check(self):
