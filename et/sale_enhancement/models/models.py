@@ -111,7 +111,7 @@ class SaleOrderInherit(models.Model):
             if record.condicion_m2m.name == 'TIPO 3':
                 pricelist = self.env['product.pricelist'].search([('is_default','=', True)])
                 if pricelist:
-                    record.pricelist_id = pricelist
+                    record.pricelist_id = pricelist.id
                     discounts = {}
 
                     for line in record.order_line:
@@ -191,7 +191,7 @@ class SaleOrderInherit(models.Model):
             if company_letter == 'P':               
                 pricelist = self.env['product.pricelist'].search([('is_default','=', True)])
                 if pricelist:
-                    record.pricelist_id = pricelist
+                    record.pricelist_id = pricelist.id
                     discounts = {}
                     for line in record.order_line:
                         discounts[line.id] = line.discount
@@ -297,7 +297,7 @@ class SaleOrderInherit(models.Model):
             if record.condicion_m2m.name == 'TIPO 3':
                 pricelist = self.env['product.pricelist'].search([('is_default','=', True)])
                 if pricelist:
-                    record.pricelist_id = pricelist
+                    record.pricelist_id = pricelist.id
 
 
     def update_lines_prices(self):

@@ -26,12 +26,13 @@
     },
 
     # any module necessary for this one to work correctly
-    'depends': ['stock', 'delivery', 'stock-packaging', 'sale', 'stock_picking_invoicing', 'merge_deliveries_bs', 'contacts', 'stock_voucher', 'tms_service'],
+    'depends': ['stock', 'delivery', 'stock-packaging', 'sale', 'stock_picking_invoicing', 'merge_deliveries_bs', 'contacts', 'stock_voucher', 'tms_service', 'website', 'product'],
 
     # always loaded
     'data': [
         # 'security/ir.model.access.csv',
         'data/stock_picking_server_actions.xml',
+        'views/product_website_template.xml'
         'views/views.xml',
         'views/delivery_carrier_views.xml',
         #'views/stock_picking_views.xml',
