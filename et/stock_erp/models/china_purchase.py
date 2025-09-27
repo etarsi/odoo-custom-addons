@@ -25,7 +25,8 @@ class ChinaPurchaseLine(models.Model):
     name = fields.Char()
     china_purchase = fields.Many2one('china.purchase', string='Compra China')
     product_id = fields.Many2one('product.product', string='Producto')
-    quantity = fields.Integer('Cantidad')
+    quantity = fields.Integer('Cantidad Comprada')
+    quantity_received = fields.Integer('Cantidad Recibida')
     uxb = fields.Integer('UxB')
     bultos = fields.Float('Bultos', compute="_compute_bultos")
 
