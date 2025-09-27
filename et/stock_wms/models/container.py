@@ -49,19 +49,19 @@ class Container(models.Model):
                 china_purchase_line = self.env['china.purchase.line'].search([('product_id', '=', line.product_id.id)], limit=1)
 
                 if china_purchase_line:
-                    china_purchase_line.quantity_received += line.quantity_receive
+                    china_purchase_line.quantity_received += line.quantity_picked
 
                 stock_erp = self.env['stock.erp'].search([('product_id', '=', line.product_id.id)], limit=1)
 
                 if stock_erp:
 
-                    if line.quantity_received >= stock_erp.enelagua_unidades:
+                    if line.quantity_picked >= stock_erp.enelagua_unidades:
                         stock_erp.enelagua_unidades = 0
                     else:
-                        stock_erp.enelagua_unidades -= line.quantity_received
+                        stock_erp.enelagua_unidades -= line.quantity_picked
 
-                    stock_erp.fisico_unidades += line.quantity_received
-                    stock_erp.entregable_unidades += line.quantity_received
+                    stock_erp.fisico_unidades += line.quantity_picked
+                    stock_erp.entregable_unidades += line.quantity_picked
                 else:
                     raise UserError(f'No se encuentra el producto [{line.product_id.default_code}]{line.product_id.name} en el Stock')
                 
@@ -103,7 +103,7 @@ class ContainerLine(models.Model):
     product_code = fields.Char(string="Código", compute="_compute_product_code", store=True)
     product_name = fields.Char(string="Nombre", compute="_compute_product_name", store=True)
     quantity_send = fields.Integer()
-    quantity_receive = fields.Integer()
+    quantity_picked = fields.Integer()
     uxb = fields.Integer(string="Uxb", compute="_compute_uxb", store=True)
     bultos = fields.Float(string="Bultos", compute="_compute_bultos", store=True)
 
@@ -144,12 +144,12 @@ class ContainerLine(models.Model):
                 record.uxb = None
     
 
-    @api.depends('quantity_send', 'quantity_receive')
+    @api.depends('quantity_send', 'quantity_picked')
     def _compute_bultos(self):
         for record in self:
             if record.uxb:
-                if record.quantity_receive > 0:
-                    record.bultos = record.quantity_receive / record.uxb
+                if record.quantity_picked > 0:
+                    record.bultos = record.quantity_picked / record.uxb
                 else:
                     record.bultos = record.quantity_send / record.uxb
             else:
