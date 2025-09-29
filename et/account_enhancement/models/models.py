@@ -338,7 +338,9 @@ class AccountPaymentInherit(models.Model):
     is_effectiveness_text = fields.Boolean(default=False)
     check_effectiveness_text = fields.Text(compute="_compute_check_effectiveness", store=False)
 
-
+    @api.constrains('check_number', 'journal_id')
+    def _constrains_check_number(self):
+        return
 
     def unlink(self):
         for payment in self:                                
@@ -605,6 +607,7 @@ class AccountPaymentGroupInherit(models.Model):
 
                 if payment_line.payment_type == 'outbound':
                     payment_line.check_state = "Entregado"
+                    payment_line.check_number = payment_line.l10n_latam_check_id.check_number or ''
 
 
         
