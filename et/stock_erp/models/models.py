@@ -48,6 +48,19 @@ class StockERP(models.Model):
     entrante_licencia = fields.Char('Licencia')
 
 
+    digip_uniadades = fields.Integer('Digip Unidades')
+
+    def update_digip_stock(self):
+
+        stock_digip = self.get_digip_stock()        
+        
+        for record in stock_digip:
+            stock_erp = self.env['stock_erp'].search([('product_id.default_code', '=', record['codigo'])], limit=1)
+            if stock_erp:
+                stock_erp.digip_unidades = record['stock']['disponible']
+
+
+
     def create_initial_products(self):
 
         stock_digip = self.get_digip_stock()
