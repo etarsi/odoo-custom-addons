@@ -25,12 +25,47 @@ class Container(models.Model):
     dispatch_number = fields.Char()
     eta = fields.Date()
     state = fields.Selection(selection=[('draft', 'Borrador'), ('sent', 'Enviado'), ('received', 'Recibido'), ('confirmed', 'Confirmado')], default='draft')
+    wms_code = fields.Char()
 
-    def enviar(self):
-        for record in self:
-            record.state = 'sent'
-        return
     
+    def enviar(self):        
+        for record in self:
+            
+            next_number = self.env['ir.sequence'].sudo().next_by_code('DIGIP_C')
+            headers = {
+                "Content-Type": "application/json",
+                "Accept": "application/json",
+            }
+
+
+            payload = {
+                "Numero": f'C{next_number}',
+                "Factura": "",
+                "Fecha": str(record.date),
+                "CodigoProveedor": "16571",
+                "Proveedor": "ZHEJIANG YUFUN ELEC TECH CO., LTD",
+                "Observacion": record.name,
+                "DocumentoRecepcionTipo": "remito",
+                "RecepcionTipo": "recepcion",
+                "DocumentoRecepcionDetalleRequest": [
+                ]
+            }          
+            
+            
+            headers["x-api-key"] = self.env['ir.config_parameter'].sudo().get_param('digipwms.key')
+            response = requests.post('http://api.patagoniawms.com/v1/DocumentoRecepcion', headers=headers, json=payload)
+
+            if response.status_code == 200:
+                record.wms_code = f'C{next_number}'
+                record.state = 'sent'
+            else:
+                raise UserError(f'Error code: {response.status_code} - Error Msg: {response.text}')
+
+
+
+
+
+
     def recibir(self):
         for record in self:
             record.state = 'received'
