@@ -295,7 +295,7 @@ class StockERP(models.Model):
                 record.state_wms = 'no'
                 record.codigo_wms = ''
 
-                if record.picking_type_code == 'outgoin':
+                if record.picking_type_code == 'outgoing':
                     record.cancel_preparation()
 
 
