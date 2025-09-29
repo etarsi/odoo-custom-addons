@@ -603,7 +603,8 @@ class AccountPaymentGroupInherit(models.Model):
                 if payment_line.id in check_numbers:
                     payment_line.check_number = check_numbers[payment_line.id]
 
-                payment_line.check_state = "Entregado"
+                if payment_line.payment_type == 'outbound':
+                    payment_line.check_state = "Entregado"
 
 
         
