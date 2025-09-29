@@ -20,11 +20,12 @@
     'version': '0.1',
 
     # any module necessary for this one to work correctly
-    'depends': ['base', 'web'],
+    'depends': ['base', 'web', 'website', 'product'],
 
     # always loaded
     'data': [
         # 'security/ir.model.access.csv',
+        'views/web_product_templates.xml',
         'views/views.xml',
         'views/templates.xml',
     ],
