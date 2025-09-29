@@ -40,4 +40,4 @@ class ProductWebsiteController(http.Controller):
             'total': total,
             'keep': QueryURL('/productos', search=search),
         }
-        return request.render("stock_enhancement2.product_list_page", values)
+        return request.render("web_enhancement.product_list_page", values)
