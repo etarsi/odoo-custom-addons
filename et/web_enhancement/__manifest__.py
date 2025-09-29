@@ -19,12 +19,10 @@
     # always loaded
     'data': [
         # 'security/ir.model.access.csv',
+        'views/web_product_templates.xml',
         'views/web_menu.xml',
         'views/views.xml',
         'views/templates.xml',
-    ],
-    'qweb': [
-        'views/web_product_templates.xml',
     ],
     'demo': [
         'demo/demo.xml',
