@@ -48,7 +48,7 @@ class StockERP(models.Model):
     entrante_licencia = fields.Char('Licencia')
 
 
-    digip_uniadades = fields.Integer('Digip Unidades')
+    digip_unidades = fields.Integer('Digip Unidades')
 
     def update_digip_stock(self):
 
