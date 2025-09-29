@@ -638,9 +638,9 @@ class AccountPaymentGroupInherit(models.Model):
                     for payment in record.payment_ids:
                         payment.check_state = 'Pendiente'
 
-                recs = super().action_draft()
+            recs = super().action_draft()
 
-                return recs
+            return recs
 
 
 class SaleOrderInherit(models.Model):
