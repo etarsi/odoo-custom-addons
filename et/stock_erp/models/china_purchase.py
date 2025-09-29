@@ -30,6 +30,7 @@ class ChinaPurchaseLine(models.Model):
     uxb = fields.Integer('UxB')
     bultos = fields.Float('Bultos', compute="_compute_bultos")
 
+    quantity_to_add = fields.Integer('Cantidad a Aumentar')
 
 
     @api.depends('quantity')
@@ -56,3 +57,14 @@ class ChinaPurchaseLine(models.Model):
                 vals['comprado_unidades'] = record.quantity
 
                 self.env['stock.erp'].create(vals)
+
+    def add_quantity_to_stock(self):
+        for record in self:
+            stock_erp = self.env['stock.erp'].search([('product_id', '=', record.product_id.id)])
+
+            if stock_erp:
+                stock_erp.enelagua_unidades += record.quantity_to_add
+
+                record.quantity += record.quantity_to_add
+
+                record.quantity_to_add = 0
