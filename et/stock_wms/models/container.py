@@ -41,7 +41,7 @@ class Container(models.Model):
             payload = {
                 "Numero": f'C{next_number}',
                 "Factura": "",
-                "Fecha": str(record.date),
+                "Fecha": fields.Date.context_today(self),
                 "CodigoProveedor": "16571",
                 "Proveedor": "ZHEJIANG YUFUN ELEC TECH CO., LTD",
                 "Observacion": record.name,

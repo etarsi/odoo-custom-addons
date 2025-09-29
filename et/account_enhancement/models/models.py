@@ -633,13 +633,14 @@ class AccountPaymentGroupInherit(models.Model):
     
     def action_draft(self):
         for record in self:
-            if record.payment_ids:
-                for payment in record.payment_ids:
-                    payment.check_state = 'Pendiente'
+            if record.partner_type == 'supplier':
+                if record.payment_ids:
+                    for payment in record.payment_ids:
+                        payment.check_state = 'Pendiente'
 
-            recs = super().action_draft()
+                recs = super().action_draft()
 
-            return recs
+                return recs
 
 
 class SaleOrderInherit(models.Model):
