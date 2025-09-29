@@ -55,7 +55,7 @@ class StockERP(models.Model):
         stock_digip = self.get_digip_stock()        
         
         for record in stock_digip:
-            stock_erp = self.env['stock_erp'].search([('product_id.default_code', '=', record['codigo'])], limit=1)
+            stock_erp = self.env['stock.erp'].search([('product_id.default_code', '=', record['codigo'])], limit=1)
             if stock_erp:
                 stock_erp.digip_unidades = record['stock']['disponible']
 
