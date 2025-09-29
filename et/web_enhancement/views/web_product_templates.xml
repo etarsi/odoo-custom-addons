@@ -94,8 +94,6 @@
         </t>
       </div>
     </t>
-
-    <t t-set="assets_bundle" t-name="stock_enhancement2.assets" position="inside"/>
   </template>
 
   <!-- (Opcional) Ítem de menú -->
