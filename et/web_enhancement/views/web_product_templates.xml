@@ -71,15 +71,22 @@
         <t t-if="pager">
           <div class="d-flex justify-content-center mt-4">
             <ul class="pagination">
-              <li class="page-item" t-att-class="'disabled' if pager['page'] <= 1 else ''">
+              <li class="page-item"
+                  t-att-class="'disabled' if pager['page'] &lt;= 1 else ''">
                 <a class="page-link" t-att-href="keep({'page': pager['page'] - 1})">Anterior</a>
               </li>
+
+              <!-- Páginas -->
               <t t-foreach="pager['pages']" t-as="pp">
-                <li class="page-item" t-att-class="'active' if pp['page'] == pager['page'] else ''">
+                <li class="page-item"
+                    t-att-class="'active' if pp['page'] == pager['page'] else ''">
                   <a class="page-link" t-att-href="keep({'page': pp['page']})" t-esc="pp['title']"/>
                 </li>
               </t>
-              <li class="page-item" t-att-class="'disabled' if pager['page'] >= pager['page_count'] else ''">
+
+              <!-- Siguiente -->
+              <li class="page-item"
+                  t-att-class="'disabled' if pager['page'] &gt;= pager['page_count'] else ''">
                 <a class="page-link" t-att-href="keep({'page': pager['page'] + 1})">Siguiente</a>
               </li>
             </ul>
