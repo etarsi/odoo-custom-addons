@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
 <odoo>
   <template id="product_list_page" name="Listado de Productos" page="True">
     <t t-call="website.layout">
