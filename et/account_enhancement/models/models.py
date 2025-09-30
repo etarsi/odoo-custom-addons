@@ -553,15 +553,6 @@ class AccountPaymentGroupInherit(models.Model):
             raise ValidationError(_(
                 "You can't post and already posted payment group. Payment group ids: %s") % posted_payment_groups.ids)
         for rec in self:
-            check_numbers = {}
-
-            for payment_line in rec.payment_ids:
-                if payment_line.check_number:
-                    check_numbers[payment_line.id] = payment_line.check_number
-
-
-            _logger.info(check_numbers.items)
-
             if not rec.document_number:
                 if rec.receiptbook_id and not rec.receiptbook_id.sequence_id:
                     raise ValidationError(_(
@@ -602,11 +593,13 @@ class AccountPaymentGroupInherit(models.Model):
                     (counterpart_aml + (rec.to_pay_move_line_ids)).reconcile()
 
             for payment_line in rec.payment_ids:
-                if payment_line.id in check_numbers:
-                    payment_line.check_number = check_numbers[payment_line.id]
 
                 if payment_line.payment_type == 'outbound':
                     payment_line.check_state = "Entregado"
+                    payment_line.check_number = payment_line.l10n_latam_check_id.check_number or ''
+                
+                if payment_line.payment_type == 'inbound':
+                    payment_line.check_state = "En Cartera"
                     payment_line.check_number = payment_line.l10n_latam_check_id.check_number or ''
 
 
