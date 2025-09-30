@@ -375,9 +375,9 @@ class SaleOrderLineInherit(models.Model):
                     if rec.product_id.packaging_ids:
                         rec.product_packaging_id = rec.product_id.packaging_ids[0]
                         rec.product_packaging_qty = rec.product_uom_qty / rec.product_packaging_id.qty
-                rec.update_stock_erp()
-                rec.check_client_purchase_intent()
-                rec.comprometer_stock()
+            rec.update_stock_erp()
+            rec.check_client_purchase_intent()
+            rec.comprometer_stock()
                 
         return res
 

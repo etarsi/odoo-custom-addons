@@ -1447,7 +1447,7 @@ class StockSequenceWesend(models.Model):
 class ProductTemplateInherit(models.Model):
     _inherit = "product.template"
 
-    display = fields.Integer(string="Display", deafult=0, help="Sive para cantidades contenidas en el CAJA/PAQUETE")
+    display = fields.Integer(string="Cantidades Display", deafult=0, help="Sive para cantidades contenidas en el CAJA/PAQUETE")
 
     def _extract_m2m_ids(self, value):
         """Convierte taxes_id (comandos M2M o lista de ints) en un set de IDs."""
