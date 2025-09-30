@@ -292,6 +292,9 @@ class StockERP(models.Model):
 
         def anular_envio(self):
             for record in self:
+                if record.state == 'done':
+                    raise UserError('No se puede anular el envío a Digip porque la trasnferencia está validada.')
+                
                 record.state_wms = 'no'
                 record.codigo_wms = ''
 
@@ -376,3 +379,21 @@ class StockERP(models.Model):
                     raise UserError('No se puede enviar a Digip porque el campo "Contenedor" está vacío.')
                 
                 res = super().enviar_recepcion()
+
+        
+        def action_cancel(self):
+            for record in self:
+                if record.state_wms != 'no':
+                    raise UserError('No se puede cancelar la transferencia porque el pedido está enviado a Digip.')
+                
+                if record.move_ids_without_package:
+                    for move in record.move_ids_without_package:
+                        
+                        stock_moves_erp = self.env['stock.moves.erp'].search([('sale_line_id', '=', move.sale_line_id.id), ('move_type', '=', 'reserve')], limit=1)
+
+                        if stock_moves_erp:
+                            stock_moves_erp.unreserve_stock()
+                
+                    record.state = 'cancel'
+                else:
+                    raise UserError('No se puede cancelar una transferencia que no tiene movimientos de stock')
