@@ -360,21 +360,25 @@ class SaleOrderLineInherit(models.Model):
     def create(self, vals):
         res = super().create(vals)
         for rec in res:
-            rec.alert_decimal_qty()
-            # Validar si el producto tiene el sale_ok true
-            if not rec.product_id.sale_ok:
-                raise ValidationError(_("Este producto no esta habilitado para la venta con este código: %s", rec.product_id.default_code))
-            # Si no hay un producto_packaging_id definido, asigna el primero del producto
-            if not rec.product_packaging_id:
-                if rec.product_id.packaging_ids:
-                    rec.product_packaging_id = rec.product_id.packaging_ids[0]
-                    rec.product_packaging_qty = rec.product_uom_qty / rec.product_packaging_id.qty
-
-
-            rec.update_stock_erp()
-            rec.check_client_purchase_intent()
-            rec.comprometer_stock()
-             
+            if rec.product_id:
+                if rec.product_id.display:
+                    amount_display = rec.product_uom_qty/rec.product_id.display
+                    has_decimals = abs(amount_display - round(amount_display)) > 1e-9
+                    if has_decimals:
+                        raise ValidationError(f"La cantidad del producto {rec.product_id.name} a ingresar, no corresponde con las cantidades del display {rec.product_id.display}")
+                rec.alert_decimal_qty()
+                # Validar si el producto tiene el sale_ok true
+                if not rec.product_id.sale_ok:
+                    raise ValidationError(_("Este producto no esta habilitado para la venta con este código: %s", rec.product_id.default_code))
+                # Si no hay un producto_packaging_id definido, asigna el primero del producto
+                if not rec.product_packaging_id:
+                    if rec.product_id.packaging_ids:
+                        rec.product_packaging_id = rec.product_id.packaging_ids[0]
+                        rec.product_packaging_qty = rec.product_uom_qty / rec.product_packaging_id.qty
+                rec.update_stock_erp()
+                rec.check_client_purchase_intent()
+                rec.comprometer_stock()
+                
         return res
 
 

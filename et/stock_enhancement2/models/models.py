@@ -49,6 +49,7 @@ class StockPickingInherit(models.Model):
     china_purchase = fields.Boolean(default=False, copy=True)
     wesend_ids = fields.Char(string="Remitos")
     ruteo_compartido = fields.Selection([('no', 'No Enviado HDR'), ('si', 'Enviado HDR')], default='no', string='Ruteo HDR', copy=False)
+    display = fields.Integer(string="Display", deafult=0, help="Sive para cantidades contenidas en el CAJA/PAQUETE")
 
     def action_correction_secuence(self):
         return True
