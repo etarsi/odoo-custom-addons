@@ -389,7 +389,7 @@ class StockERP(models.Model):
                 if record.move_ids_without_package:
                     for move in record.move_ids_without_package:
                         
-                        stock_moves_erp = self.env['stock.moves.erp'].search([('sale_line_id', '=', move.sale_line_id.id), ('move_type', '=', 'reserve')], limit=1)
+                        stock_moves_erp = self.env['stock.moves.erp'].search([('sale_line_id', '=', move.sale_line_id.id), ('type', '=', 'reserve')], limit=1)
 
                         if stock_moves_erp:
                             stock_moves_erp.unreserve_stock()
