@@ -76,8 +76,8 @@
                 <field name="cantidad_bultos" optional="show"/>
                 <field name="cantidad_lineas" optional="show"/>
                 <field name="observaciones" optional="show"/>
-                <field name="estado_digip" optional="show"/>
-                <field name="estado_despacho" optional="show"/>
+                <field name="estado_digip" optional="show" widget="badge" decoration-warning="estado_digip == 'done'" decoration-success="estado_digip == 'closed'" decoration-danger="estado_digip == 'error'" />
+                <field name="estado_despacho" />
                 <field name="fecha_despacho" optional="show"/>
                 <field name="observacion_despacho" optional="show"/>
                 <field name="industry_id" optional="show"/>

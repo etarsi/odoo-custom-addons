@@ -746,11 +746,17 @@ class StockPickingInherit(models.Model):
             if record.ruteo_compartido == 'si' and not envio_forzar:
                 raise ValidationError(_("El remito con el Código WMS %s, ya fue enviado al compartido anteriormente.") % record.codigo_wms)
             direccion_entrega = ""
+            cliente = ""
             if record.carrier_id:
                 if record.carrier_id.name == 'Reparto Propio':
                     direccion_entrega = f"{record.partner_id.street or '-'}, {record.partner_id.zip or '-'}, {record.partner_id.city or '-' }"
                 else:
                     direccion_entrega = record.carrier_id.address
+            if record.partner_id:
+                if record.partner_id.parent_id:
+                    cliente = f"{record.partner_id.parent_id.name}, {record.partner_id.name}"
+                else:
+                    cliente = record.partner_id.name
             try:
                 values = [
                     "",                                          # A
@@ -758,7 +764,7 @@ class StockPickingInherit(models.Model):
                     record.codigo_wms or "",                     # C
                     record.origin or "",                         # D
                     record.name or "",                           # E
-                    record.partner_id.name or "",                # F
+                    cliente,                                    # F
                     (round(record.packaging_qty, 2) or ""),     # G
                     len(record.move_ids_without_package) or 0,   # H
                     "",                                          # I
@@ -1446,6 +1452,8 @@ class StockSequenceWesend(models.Model):
     
 class ProductTemplateInherit(models.Model):
     _inherit = "product.template"
+
+    display = fields.Integer(string="Cantidades Display", deafult=0, help="Sive para cantidades contenidas en el CAJA/PAQUETE")
 
     def _extract_m2m_ids(self, value):
         """Convierte taxes_id (comandos M2M o lista de ints) en un set de IDs."""
