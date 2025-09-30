@@ -456,7 +456,6 @@ class SaleOrderLineInherit(models.Model):
 
                 stock_moves_erp = self.env['stock.moves.erp'].create(vals)
 
-                record.stock_moves_erp = stock_moves_erp
                 record.is_compromised = True
 
     def comprometer_stock2(self):
