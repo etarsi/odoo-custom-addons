@@ -40,7 +40,18 @@ class AccountMoveInherit(models.Model):
 
     total_amount_paid = fields.Float(string="Monto Pagado", compute="_compute_total_amount_paid")
    
-    
+
+
+    def _reverse_moves(self, default_values_list=None, cancel=False):
+        reversed_moves = super()._reverse_moves(default_values_list=default_values_list, cancel=cancel)
+
+        for new_move, origin in zip(reversed_moves, self):
+            if origin.move_type in ('out_invoice', 'out_refund', 'out_receipt'):
+                if 'invoice_user_id' in new_move._fields:
+                    new_move.invoice_user_id = origin.invoice_user_id.id
+                if 'team_id' in new_move._fields:
+                    new_move.team_id = origin.team_id.id
+        return reversed_moves
     
     @api.depends('invoice_payments_widget')
     def _compute_total_amount_paid(self):

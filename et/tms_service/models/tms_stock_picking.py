@@ -47,6 +47,7 @@ class TmsStockPicking(models.Model):
     company_id = fields.Many2one('res.company', string='Compañia', default=lambda self: self.env.company)
     user_id = fields.Many2one('res.users', string='Usuario', default=lambda self: self.env.user)
     sale_id = fields.Many2one('sale.order', string='Pedido de Venta')
+    delivery_state= fields.Selection([('no', 'No entregado'), ('delivered', 'Entregado'), ('returned', 'Devuelto')], default='no', copy=False, string='Estado de Entrega')
     
     #contador
     picking_count = fields.Integer(compute="_compute_counts", string="Transferencias")

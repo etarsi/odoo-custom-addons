@@ -77,8 +77,9 @@
                 <field name="cantidad_lineas" optional="show"/>
                 <field name="observaciones" optional="show"/>
                 <field name="estado_digip" optional="show" widget="badge" decoration-warning="estado_digip == 'done'" decoration-success="estado_digip == 'closed'" decoration-danger="estado_digip == 'error'" />
-                <field name="estado_despacho" />
-                <field name="fecha_despacho" optional="show"/>
+                <field name="estado_despacho" optional="show" widget="badge" decoration-info="estado_despacho in ('in_preparation', 'pending')" decoration-warning="estado_despacho == 'prepared'" decoration-success="estado_despacho == 'delivered'" decoration-danger="estado_despacho == 'void'" />
+                <field name="delivery_state" optional="show" widget="badge" decoration-success="delivery_state == 'delivered'" decoration-warning="delivery_state == 'no'" decoration-danger="delivery_state == 'returned'" />
+                <field name="fecha_despacho" optional="show" />
                 <field name="observacion_despacho" optional="show"/>
                 <field name="industry_id" optional="show"/>
                 <field name="ubicacion" optional="show"/>
