@@ -141,6 +141,8 @@ class Container(models.Model):
 
                     product_list.append(product_info)
 
+            return product_list
+
 
 
 
