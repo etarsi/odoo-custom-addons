@@ -24,7 +24,7 @@ class StockMovesERP(models.Model):
     product_id = fields.Many2one('product.product')
     quantity = fields.Integer()
     quantity_delivered = fields.Integer()
-    bultos = fields.Float()
+    bultos = fields.Float(compute="_compute_bultos")
     uxb = fields.Integer()
     type = fields.Selection(selection=[('reserve', 'Reserva'), ('delivery', 'Entrega'), ('preparation', 'Preparación')])
 
@@ -152,3 +152,12 @@ class StockMovesERP(models.Model):
         for record in self:
             if record.quantity == record.quantity_delivered:
                 record.unlink()
+
+
+    @api.depends('quantity')
+    def _compute_bultos(self):
+        for record in self:
+            if record.uxb:
+                record.bultos = record.quantity / record.uxb
+            else:
+                record.bultos = 0
