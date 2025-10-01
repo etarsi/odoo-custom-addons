@@ -46,7 +46,7 @@ class Container(models.Model):
                 "Proveedor": "ZHEJIANG YUFUN ELEC TECH CO., LTD",
                 "Observacion": record.name,
                 "DocumentoRecepcionTipo": "remito",
-                "RecepcionTipo": "recepcion",
+                "RecepcionTipo": "abastecimiento",
                 "DocumentoRecepcionDetalleRequest": [
                 ]
             }          
