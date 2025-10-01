@@ -65,6 +65,7 @@ class Container(models.Model):
     def anular_envio(self):
         for record in self:
             record.state = 'draft'
+            record.wms_code = ''
 
 
 
@@ -136,7 +137,7 @@ class Container(models.Model):
                 for line in record.lines:
                     product_info = {}
                     product_info['CodigoArticulo'] = line.product_id.default_code
-                    product_info['Unidades'] = line.quantity
+                    product_info['Unidades'] = line.quantity_send
 
                     product_list.append(product_info)
 
