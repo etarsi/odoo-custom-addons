@@ -781,7 +781,7 @@ class StockPickingInherit(models.Model):
                     record.company_id.name or "",                # X
                 ]
                 enviado = record.env["google.sheets.client"].append_row(values)
-                if enviado == 200 and not record.ruteo_compartido:
+                if enviado == 200 and record.ruteo_compartido == 'no':
                     record._crear_tms_stock_picking()
                     record.write({'ruteo_compartido': 'si'})
             except Exception as e:

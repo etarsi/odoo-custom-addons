@@ -2,6 +2,10 @@
 <odoo>
     <!-- Menú raíz -->
     <menuitem id="tms_root_logo" name="TMS" sequence="5" web_icon="tms_service,static/description/icon.png"/>
+    <!-- Submenu de Ruteo de Inventario-->
     <menuitem id="menu_tms_inventario" name="Ruteo de Inventario" parent="tms_root_logo"
               action="action_tms_stock_picking" sequence="10"/>
+    <!-- Submenu de Transporte-->
+    <menuitem id="menu_tms_transporte" name="Transportes" parent="tms_root_logo"
+              action="delivery.action_delivery_carrier_form" sequence="20"/>
 </odoo>
