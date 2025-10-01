@@ -37,6 +37,7 @@ class Container(models.Model):
                 "Accept": "application/json",
             }
 
+            product_list = record.get_product_list()
 
             payload = {
                 "Numero": f'{next_number}',
@@ -47,8 +48,7 @@ class Container(models.Model):
                 "Observacion": record.name,
                 "DocumentoRecepcionTipo": "remito",
                 "RecepcionTipo": "abastecimiento",
-                "DocumentoRecepcionDetalleRequest": [
-                ]
+                "DocumentoRecepcionDetalleRequest": product_list
             }          
             
             
@@ -127,6 +127,19 @@ class Container(models.Model):
                                 stock_erp.entrante_licencia = record.license
                         else:
                             raise UserError(f'No se encuentra el producto [{line.product_id.default_code}]{line.product_id.name} en el Stock')
+
+
+    def get_product_list(self):
+        for record in self:
+            product_list = []
+            if record.lines:
+                for line in record.lines:
+                    product_info = {}
+                    product_info['CodigoArticulo'] = line.product_id.default_code
+                    product_info['Unidades'] = line.quantity
+
+                    product_list.append(product_info)
+
 
 
 
