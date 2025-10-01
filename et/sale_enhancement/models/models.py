@@ -376,7 +376,7 @@ class SaleOrderLineInherit(models.Model):
                         rec.product_packaging_id = rec.product_id.packaging_ids[0]
                         rec.product_packaging_qty = rec.product_uom_qty / rec.product_packaging_id.qty
                 rec.update_stock_erp()
-                rec.check_client_purchase_intent()
+                # rec.check_client_purchase_intent()
                 rec.comprometer_stock()
                 
         return res
@@ -600,7 +600,12 @@ class SaleOrderLineInherit(models.Model):
 
 
             if line.product_uom_qty > 0:
-                if line._origin and line._origin.id and line.order_id.state == 'draft' and line.product_id:
+                if line._origin and line._origin.id and line.product_id:
+                    in_preparation = self.env['stock.moves.erp'].serach([('sale_line_id', '=', line._origin.id), ('type', '=', 'preparation')], limit=1)
+
+                    if in_preparation:
+                        raise UserError('No se puede actualizar las cantidades porque ya están siendo preparadas o ya fueron entregadas')
+
                     stock_moves_erp = self.env['stock.moves.erp'].search([('sale_line_id', '=', line._origin.id), ('type', '=', 'reserve')], limit=1)
 
                     if stock_moves_erp:
