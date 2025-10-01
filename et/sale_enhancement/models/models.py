@@ -601,7 +601,7 @@ class SaleOrderLineInherit(models.Model):
 
             if line.product_uom_qty > 0:
                 if line._origin and line._origin.id and line.product_id:
-                    in_preparation = self.env['stock.moves.erp'].serach([('sale_line_id', '=', line._origin.id), ('type', '=', 'preparation')], limit=1)
+                    in_preparation = self.env['stock.moves.erp'].search([('sale_line_id', '=', line._origin.id), ('type', '=', 'preparation')], limit=1)
 
                     if in_preparation:
                         raise UserError('No se puede actualizar las cantidades porque ya están siendo preparadas o ya fueron entregadas')
