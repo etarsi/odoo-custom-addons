@@ -39,7 +39,7 @@ class Container(models.Model):
 
 
             payload = {
-                "Numero": f'C{next_number}',
+                "Numero": f'{next_number}',
                 "Factura": "",
                 "Fecha": str(fields.Date.context_today(self)),
                 "CodigoProveedor": "16571",
@@ -56,12 +56,15 @@ class Container(models.Model):
             response = requests.post('http://api.patagoniawms.com/v1/DocumentoRecepcion', headers=headers, json=payload)
 
             if response.status_code == 200:
-                record.wms_code = f'C{next_number}'
+                record.wms_code = f'{next_number}'
                 record.state = 'sent'
             else:
                 raise UserError(f'Error code: {response.status_code} - Error Msg: {response.text}')
 
 
+    def anular_envio(self):
+        for record in self:
+            record.state = 'draft'
 
 
 
@@ -69,7 +72,6 @@ class Container(models.Model):
     def recibir(self):
         for record in self:
             record.state = 'received'
-        return
     
     def confirmar(self):
         for record in self:
