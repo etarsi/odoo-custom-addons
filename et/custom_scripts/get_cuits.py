@@ -26,7 +26,8 @@ try:
     cursor.execute("""
         SELECT id, name, vat
         FROM res_partner
-        WHERE vat IS NOT NULL AND vat != '';
+        WHERE vat IS NOT NULL AND vat != ''
+          AND (type IS NULL OR type = 'contact');
     """)
 
     resultados = cursor.fetchall()
