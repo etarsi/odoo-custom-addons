@@ -26,7 +26,12 @@ class Container(models.Model):
     eta = fields.Date()
     state = fields.Selection(selection=[('draft', 'Borrador'), ('sent', 'Enviado'), ('received', 'Recibido'), ('confirmed', 'Confirmado')], default='draft')
     wms_code = fields.Char()
+    product_ids = fields.Many2many('product.product', compute='_compute_product_ids', string='Productos')
 
+    @api.depends('lines.product_id')
+    def _compute_product_ids(self):
+        for record in self:
+            record.product_ids = record.lines.mapped('product_id')
     
     def enviar(self):        
         for record in self:
