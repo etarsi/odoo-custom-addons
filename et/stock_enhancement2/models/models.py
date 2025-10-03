@@ -160,7 +160,7 @@ class StockPickingInherit(models.Model):
                 record.action_create_product_moves(move_type)
 
                 record.consume_stock()
-
+            record.action_write_tms_stock_picking()
 
     def update_availability(self):
         for record in self:
@@ -273,6 +273,7 @@ class StockPickingInherit(models.Model):
     def mark_as_returned(self):
         for record in self:
             record.delivery_state = 'returned'
+            record.action_write_tms_stock_picking(True)
 
     def button_validate(self):
         res = super().button_validate()
@@ -439,7 +440,7 @@ class StockPickingInherit(models.Model):
         for move in self.move_ids_without_package.filtered(lambda m: m.sale_line_id):
             move.sale_line_id.qty_invoiced += move.quantity_done
             move.invoice_state = 'invoiced'
-
+            
         if len(self.invoice_ids) == 1:
             return {
                 'name': "Factura generada",
@@ -457,6 +458,28 @@ class StockPickingInherit(models.Model):
                 'domain': [('id', 'in', self.invoice_ids.ids)],
             }
     
+    def action_write_tms_stock_picking(self, devolucion=False):
+        for record in self:
+            tms_stock = record.env['tms.stock.picking'].search([('codigo_wms', '=', record.codigo_wms)], limit=1)
+            if tms_stock and not devolucion:
+                tms_stock.write({'estado_digip': 'closed',
+                                'delivery_state': record.delivery_state,
+                                'estado_despacho': 'delivered'})
+            elif tms_stock and devolucion:
+                tms_stock.write({'estado_digip': 'no',
+                                'delivery_state': record.delivery_state,
+                                'estado_despacho': 'void'})
+
+    def recibir(self):
+        res = super().recibir()
+        for rec in self:
+            tms_stock = rec.env['tms.stock.picking'].search([('codigo_wms', '=', rec.codigo_wms)], limit=1)
+            if tms_stock:
+                tms_stock.write({'estado_digip': 'closed',
+                                'delivery_state': rec.delivery_state,
+                                'estado_despacho': 'prepared'})
+        return res
+
     def action_create_invoice_from_picking2(self):
         self.ensure_one()
 
@@ -813,7 +836,9 @@ class StockPickingInherit(models.Model):
                 'industry_id': self.partner_id.industry_id.id,
                 'ubicacion': '',
                 'estado_digip': self.state_wms,
-                'estado_despacho': False,
+                'estado_despacho': 'in_preparation',
+                'delivery_state': self.delivery_state,
+                'sale_id': self.sale_id.id if self.sale_id else False,
                 'fecha_despacho': False,
                 'observacion_despacho': False,
                 'contacto_calle': self.partner_id.street or False,
