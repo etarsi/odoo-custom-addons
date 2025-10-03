@@ -32,7 +32,7 @@ class HrEnhancementApi(models.AbstractModel):
     def attendance_webhook(self, data):
         # Para ver lo que llega siempre
         reg = odoo.registry('one')
-        env = self.env.sudo()
+        env = self.env
         with reg.cursor() as cr:
             try:
                 employee_dni = data.get('dni')
