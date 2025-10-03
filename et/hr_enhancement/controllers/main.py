@@ -26,8 +26,8 @@ def _get_json():
 
 class HrAttendanceController(http.Controller):
     
-    @http.route('/hr_enhancement/attendance/nodb/<string:dbname>', type='json', auth='public', csrf=False, methods=['POST'])
-    def attendance_webhook(self, dbname, **kw):
+    @http.route('/hr_enhancement/attendance', type='json', auth='public', csrf=False, methods=['POST'])
+    def attendance_webhook(self, **kw):
         # Para ver lo que llega siempre
         reg = odoo.registry("one")
         with reg.cursor() as cr:
