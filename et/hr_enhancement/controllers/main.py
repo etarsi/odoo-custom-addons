@@ -26,10 +26,10 @@ def _get_json():
 
 class HrAttendanceController(http.Controller):
     
-    @http.route('/hr_enhancement/attendance', type='json', auth='public', csrf=False, methods=['POST'])
+    @http.route('/hr_enhancement/attendance/nodb/force_one', type='json', auth='none', csrf=False, methods=['POST'])
     def attendance_webhook(self, **kw):
         # Para ver lo que llega siempre
-        reg = odoo.registry("one")
+        reg = odoo.registry('one')
         with reg.cursor() as cr:
             env = odoo.api.Environment(cr, SUPERUSER_ID, {})
             try:
