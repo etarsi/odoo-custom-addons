@@ -1,4 +1,4 @@
-from odoo import http, api, SUPERUSER_ID
+from odoo import http, api, SUPERUSER_ID, models
 from odoo.http import request
 from odoo.exceptions import ValidationError
 from datetime import datetime, timedelta, time
@@ -24,16 +24,17 @@ def _get_json():
         data = data['params']
     return data
 
-class HrAttendanceController(http.Controller):
+class HrEnhancementApi(models.AbstractModel):
+    _name = 'hr.enhancement.api'
+    _description = 'API hr_enhancement sin http.route'
     
-    @http.route('/hr_enhancement/attendance', type='json', auth='none', csrf=False, methods=['POST'])
-    def attendance_webhook(self, **kw):
+    @api.model
+    def attendance_webhook(self, data):
         # Para ver lo que llega siempre
         reg = odoo.registry('one')
+        env = self.env.sudo()
         with reg.cursor() as cr:
-            env = odoo.api.Environment(cr, SUPERUSER_ID, {})
             try:
-                data = _get_json()
                 employee_dni = data.get('dni')
                 employee_name = data.get('name')
                 check_time = data.get('check_time')
