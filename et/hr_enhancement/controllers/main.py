@@ -29,10 +29,9 @@ class HrAttendanceController(http.Controller):
     @http.route('/hr_enhancement/attendance/nodb/<string:dbname>', type='json', auth='public', csrf=False, methods=['POST'])
     def attendance_webhook(self, dbname, **kw):
         # Para ver lo que llega siempre
-        data = request.jsonrequest or {}
-        reg = odoo.registry(dbname)
+        reg = odoo.registry("one")
         with reg.cursor() as cr:
-            env = api.Environment(cr, SUPERUSER_ID, {})
+            env = odoo.api.Environment(cr, SUPERUSER_ID, {})
             try:
                 data = _get_json()
                 employee_dni = data.get('dni')
