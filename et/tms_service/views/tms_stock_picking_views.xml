@@ -140,8 +140,10 @@
                         context="{'group_by': 'doc_origen'}" />
                 <filter name="filter_by_company" string="Compañía"
                         context="{'group_by': 'company_id'}" />
-                <filter name="filter_by_company" string="Cliente"
+                <filter name="filter_by_partner" string="Cliente"
                         context="{'group_by': 'partner_id'}" />
+                <filter name="filter_by_delivery_date" string="Estado de Entrega"
+                        context="{'group_by': 'delivery_date'}" />
             </search>
         </field>
     </record>
