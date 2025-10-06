@@ -97,7 +97,7 @@ class Container(models.Model):
                 if data['Estado'] == 'Verificado' and data['Modo'] == 'Completo':
                     if data['ControlCiegoDetalle']:
                         for element in data['ControlCiegoDetalle']:
-                            raise UserError(f"Producto {element['ControlCiegoDetalle']['Articulo']} - Cantidad {element['ControlCiegoDetalle']['Unidades']}")
+                            raise UserError(f"Producto {element['CodigoArticulo']} - Cantidad {element['Unidades']}")
 
             else:
                 raise UserError(f'Error code: {response.status_code} - Error Msg: {response.text}')
