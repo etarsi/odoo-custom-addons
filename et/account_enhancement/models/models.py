@@ -615,7 +615,8 @@ class AccountPaymentGroupInherit(models.Model):
 
                 if payment_line.payment_type == 'outbound':
                     payment_line.check_state = "Entregado"
-                    payment_line.check_number = payment_line.l10n_latam_check_id.check_number or ''
+                    if payment_line.l10n_latam_check_id:
+                        payment_line.check_number = payment_line.l10n_latam_check_id.check_number
                 
                 if payment_line.payment_type == 'inbound':
                     payment_line.check_state = "En Cartera"
