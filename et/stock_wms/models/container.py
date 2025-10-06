@@ -88,7 +88,7 @@ class Container(models.Model):
             }
 
             headers["x-api-key"] = self.env['ir.config_parameter'].sudo().get_param('digipwms.key')
-            response = requests.get('http://api.patagoniawms.com/v1/ControlCiego', headers=headers, json=params)
+            response = requests.get("http://api.patagoniawms.com/v1/ControlCiego", headers=headers, json=params)
 
             if response.status_code == 200:
                 # record.state = 'received'
