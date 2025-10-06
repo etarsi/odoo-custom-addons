@@ -80,23 +80,58 @@ class TmsStockPicking(models.Model):
         return action
     
     def action_forzar_actualizacion_tms(self):
+        # Recolecto códigos válidos (no vacíos)
+        codigos = [c for c in self.mapped('codigo_wms') if c]
+
+        # Busco todos los pickings de una
+        pickings = self.env['stock.picking'].sudo().search([('codigo_wms', 'in', codigos)])
+        sp_by_code = {p.codigo_wms: p for p in pickings}
+
+        updated = 0
+        skipped_no_code = 0
+        skipped_not_found = 0
+
         for rec in self:
-            if rec.codigo_wms:
-                stock_picking = self.env['stock.picking'].search([('codigo_wms', '=', rec.codigo_wms)], limit=1)
-                if stock_picking:
-                    estado_despacho = 'pending'
-                    if stock_picking.state_wms == 'done':
-                        estado_despacho = 'in_preparation'
-                    elif stock_picking.state_wms == 'closed' and stock_picking.delivery_state == 'no':
-                        estado_despacho = 'prepared'
-                    elif stock_picking.state_wms == 'closed' and stock_picking.delivery_state == 'delivered':
-                        estado_despacho = 'delivered'
-                    elif stock_picking.state_wms == 'error':
-                        estado_despacho = 'void'
-                    rec.write({
-                        'estado_digip': stock_picking.state_wms,
-                        'estado_despacho': estado_despacho,
-                        'fecha_entrega': stock_picking.date_done,
-                        'delivery_state': stock_picking.delivery_state,
-                    })
-        return True
+            if not rec.codigo_wms:
+                skipped_no_code += 1
+                continue
+
+            stock_picking = sp_by_code.get(rec.codigo_wms)
+            if not stock_picking:
+                skipped_not_found += 1
+                continue
+
+            # Mapeo de estado
+            estado_despacho = 'pending'
+            if stock_picking.state_wms == 'done':
+                estado_despacho = 'in_preparation'
+            elif stock_picking.state_wms == 'closed' and stock_picking.delivery_state == 'no':
+                estado_despacho = 'prepared'
+            elif stock_picking.state_wms == 'closed' and stock_picking.delivery_state == 'delivered':
+                estado_despacho = 'delivered'
+            elif stock_picking.state_wms == 'error':
+                estado_despacho = 'void'
+
+            rec.write({
+                'estado_digip': stock_picking.state_wms,
+                'estado_despacho': estado_despacho,
+                'fecha_entrega': stock_picking.date_done,
+                'delivery_state': stock_picking.delivery_state,
+            })
+            updated += 1
+
+        # Notificación (no interrumpe aunque no haya códigos)
+        return {
+            'type': 'ir.actions.client',
+            'tag': 'display_notification',
+            'params': {
+                'title': 'Actualización TMS',
+                'message': (
+                    f'Actualizados: {updated} | '
+                    f'Sin código: {skipped_no_code} | '
+                    f'Código sin picking: {skipped_not_found}'
+                ),
+                'type': 'success',
+                'sticky': False,
+            }
+        }

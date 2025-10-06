@@ -6,6 +6,8 @@
         <field name="binding_model_id" ref="tms_service.model_tms_stock_picking"/>
         <field name="binding_type">action</field>
         <field name="state">code</field>
-        <field name="code">action = records.action_forzar_actualizacion_tms()</field>
+        <field name="code">
+            action = records.action_forzar_actualizacion_tms() or {'type': 'ir.actions.client', 'tag': 'reload'}
+        </field>
     </record>
 </odoo>
