@@ -40,6 +40,14 @@ class AccountMoveInherit(models.Model):
 
     total_amount_paid = fields.Float(string="Monto Pagado", compute="_compute_total_amount_paid")
    
+    @api.model
+    def create(self, vals):
+        partner = self.env['res.partner'].browse(vals['partner_id'])
+        if partner.user_id:
+            vals['user_id'] = partner.user_id.id
+
+        return super().create(vals)
+        
 
 
     def _reverse_moves(self, default_values_list=None, cancel=False):
