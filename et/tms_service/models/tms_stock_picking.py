@@ -35,7 +35,7 @@ class TmsStockPicking(models.Model):
                                         ('pending', 'Pendiente'),
                                         ('in_preparation', 'En Preparación'),
                                         ('prepared', 'Preparado'),
-                                        ('delivered', 'Entregado'),
+                                        ('delivered', 'Despachado'),
                                     ], string='Estado Despacho', default='pending')
     fecha_despacho = fields.Datetime(string='Fecha Despacho')
     observacion_despacho = fields.Text(string='Observaciones Despacho')

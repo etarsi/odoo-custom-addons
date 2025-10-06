@@ -765,6 +765,8 @@ class StockPickingInherit(models.Model):
     
     def action_enviar_compartido(self, envio_forzar=False):
         for record in self:
+            if self.state_wms == 'no' and not self.codigo_wms:
+                raise ValidationError(_("El remito %s, debe estar validado y tener Código WMS para enviarlo al compartido.") % record.name)
             if record.ruteo_compartido == 'si' and not envio_forzar:
                 raise ValidationError(_("El remito con el Código WMS %s, ya fue enviado al compartido anteriormente.") % record.codigo_wms)
             direccion_entrega = ""
@@ -824,7 +826,7 @@ class StockPickingInherit(models.Model):
             vals = {
                 'picking_ids': [(4, self.id)],
                 'fecha_entrega': False,
-                'fecha_envio_wms': fields.Date.today(),
+                'fecha_envio_wms': self.scheduled_date,
                 'codigo_wms': self.codigo_wms,
                 'doc_origen': self.origin,
                 'partner_id': self.partner_id.id,

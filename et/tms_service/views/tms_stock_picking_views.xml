@@ -68,7 +68,7 @@
         <field name="arch" type="xml">
             <tree edit="true" default_order="fecha_envio_wms desc">
                 <field name="fecha_entrega" optional="show"/>
-                <field name="fecha_envio_wms" optional="show"/>
+                <field name="fecha_envio_wms" widget="date" optional="show"/>
                 <field name="codigo_wms" optional="show"/>
                 <field name="doc_origen" optional="show"/>
                 <field name="picking_ids" widget="many2many_tags" optional="show"/>
