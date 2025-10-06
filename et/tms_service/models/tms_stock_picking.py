@@ -80,16 +80,20 @@ class TmsStockPicking(models.Model):
         return action
     
     def action_forzar_actualizacion_tms(self):
-        self.ensure_one()
-        tms_stocks = self.env['tms.stock.picking'].search([])
-        for tms_stock in tms_stocks:
-            if tms_stock.codigo_wms:
-                stock_picking = self.env['stock.picking'].search([('codigo_wms', '=', tms_stock.codigo_wms)], limit=1)
+        for rec in self:
+            if rec.codigo_wms:
+                stock_picking = self.env['stock.picking'].search([('codigo_wms', '=', rec.codigo_wms)], limit=1)
                 if stock_picking:
-                    estado_despacho = 'prepared'
-                    if stock_picking.state == 'done':
+                    estado_despacho = 'pending'
+                    if stock_picking.state_wms == 'done':
+                        estado_despacho = 'in_preparation'
+                    elif stock_picking.state_wms == 'closed' and stock_picking.delivery_state == 'no':
+                        estado_despacho = 'prepared'
+                    elif stock_picking.state_wms == 'closed' and stock_picking.delivery_state == 'delivered':
                         estado_despacho = 'delivered'
-                    tms_stock.write({
+                    elif stock_picking.state_wms == 'error':
+                        estado_despacho = 'void'
+                    rec.write({
                         'estado_digip': stock_picking.state_wms,
                         'estado_despacho': estado_despacho,
                         'fecha_entrega': stock_picking.date_done,
