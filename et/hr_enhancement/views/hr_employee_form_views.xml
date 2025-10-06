@@ -127,9 +127,6 @@
             <xpath expr="//field[@name='job_title']" position="attributes">
                 <attribute name="attrs">{'readonly': [('state', '!=', 'draft')], 'required': [('employee_type', '=', 'employee')]}</attribute>
             </xpath>
-            <xpath expr="//field[@name='category_ids']" position="attributes">
-                <attribute name="attrs">{'readonly': [('state', '!=', 'draft')], 'required': [('employee_type', '=', 'employee')]}</attribute>
-            </xpath>
             <xpath expr="//field[@name='mobile_phone']" position="attributes">
                 <attribute name="attrs">{'readonly': [('state', '!=', 'draft')], 'required': [('employee_type', '=', 'employee')]}</attribute>
             </xpath>
@@ -275,17 +272,17 @@
         </field>
     </record>
 
-    <!--     <record id="view_kanban_hr_employee_inherit" model="ir.ui.view">
-            <field name="name">hr.employee.kanban.inherit</field>
-            <field name="model">hr.employee</field>
-            <field name="inherit_id" ref="hr.hr_kanban_view_employees"/>
-            <field name="arch" type="xml">
-                <xpath expr="//li[@class='o_kanban_details']" position="inside">
-                    <field name="job_title"/>
-                    <field name="department_id"/>
-                </xpath>
-            </field>
-        </record> -->
+    <record id="view_kanban_hr_employee_inherit" model="ir.ui.view">
+        <field name="name">hr.employee.kanban.inherit</field>
+        <field name="model">hr.employee</field>
+        <field name="inherit_id" ref="hr.hr_kanban_view_employees"/>
+        <field name="arch" type="xml">
+            <xpath expr="//templates" position="before">
+                <field name="employee_type"/>
+                <field name="type_shift"/>
+            </xpath>
+        </field>
+    </record>
 
     <!-- Agregar filtros personalizado employee -->
     <record id="hr_employee_search_inherit_custom" model="ir.ui.view">

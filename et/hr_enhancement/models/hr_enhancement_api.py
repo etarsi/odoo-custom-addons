@@ -188,11 +188,21 @@ class HrEnhancementApi(models.AbstractModel):
                                             'check_date': check_utc,
                                             'employee_type': employee.employee_type,
                                         })
-                                        message += f'--asistencia fuera de rango nocturno ({end_limit_night.strftime("%H:%M")})'
+                                        message += f'--asistencia fuera de rango de salida del horario nocturno ({end_limit_night.strftime("%H:%M")})'
                                         return {'success': False, 'error': message, 'received': data}
-                                    # Cerrar asistencia abierta
+                                    # permitir mismo día o día siguiente como máximo
+                                    delta_days = (check_utc.date() - open_att.check_in.date()).days
+                                    if delta_days < 0:
+                                        message += ' --la salida no puede ser anterior al día de la entrada'
+                                        return {'success': False, 'error': message, 'received': data}
+                                    if delta_days > 1:
+                                        message += ' --la salida nocturna debe ser el mismo día o el día siguiente (máx. 1 día de diferencia)'
+                                        return {'success': False, 'error': message, 'received': data}
+                                    if check_utc <= open_att.check_in:
+                                        message += ' --la salida no puede ser anterior/igual a la entrada'
+                                        return {'success': False, 'error': message, 'received': data}
                                     open_att.write({'check_out': check_utc})
-                                    message += f' (asistencia cerrada: {open_att.id})'
+                                    message += f' (asistencia nocturna cerrada: {open_att.id})'
                                 else:
                                     if check_utc > start_limit_night:
                                         env['hr.temp.attendance'].sudo().create({
