@@ -100,7 +100,6 @@ class Container(models.Model):
             response = requests.get("http://api.patagoniawms.com/v1/ControlCiego", headers=headers, params=params)
 
             if response.status_code == 200:
-                # record.state = 'received'
 
                 data = response.json()
                 if data['Estado'] in ('Guardado','Verificado') and data['Modo'] == 'Completo':
@@ -129,6 +128,8 @@ class Container(models.Model):
                             for line in record.lines:
                                 if v['p_code'] == line.product_id.default_code:
                                     line.quantity_picked = v['q_picked']
+                    
+                    record.state = 'received'
             else:
                 raise UserError(f'Error code: {response.status_code} - Error Msg: {response.text}')
             
