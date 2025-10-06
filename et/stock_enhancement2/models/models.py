@@ -476,7 +476,8 @@ class StockPickingInherit(models.Model):
             if tms_stock:
                 tms_stock.write({'estado_digip': 'closed',
                                 'delivery_state': rec.delivery_state,
-                                'estado_despacho': 'prepared'})
+                                'estado_despacho': 'prepared',
+                                'fecha_entrega': rec.date_done})
         return res
 
     def action_create_invoice_from_picking2(self):
@@ -846,7 +847,6 @@ class StockPickingInherit(models.Model):
                 'direccion_entrega': direccion_entrega,
                 'contacto_cp': self.partner_id.zip or False,
                 'contacto_ciudad': self.partner_id.city or False,
-                'carrier_address': self.carrier_id.address or False,
                 'company_id': self.company_id.id,
                 'user_id': self.env.user.id,
             }
