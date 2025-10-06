@@ -144,6 +144,8 @@
                         context="{'group_by': 'partner_id'}" />
                 <filter name="filter_by_delivery_state" string="Estado de Entrega"
                         context="{'group_by': 'delivery_state'}" />
+                <filter name="filter_by_industry_id" string="Despacho-Zona"
+                        context="{'group_by': 'industry_id'}" />
             </search>
         </field>
     </record>
