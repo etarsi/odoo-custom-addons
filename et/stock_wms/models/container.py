@@ -103,7 +103,7 @@ class Container(models.Model):
                 # record.state = 'received'
 
                 data = response.json()
-                if data['Estado'] == 'Verificado' and data['Modo'] == 'Completo':
+                if data['Estado'] in ('Guaraddo','Verificado') and data['Modo'] == 'Completo':
                     if data['ControlCiegoDetalle']:
                         for element in data['ControlCiegoDetalle']:   
                             if element['CodigoArticulo'] in product_codes:              
