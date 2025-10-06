@@ -77,7 +77,39 @@ class Container(models.Model):
 
     def recibir(self):
         for record in self:
-            record.state = 'received'
+
+            headers = {
+                "Content-Type": "application/json",
+            }
+
+            
+            params = {
+                'DocumentoNumero': record.wms_code,
+            }
+
+            headers["x-api-key"] = self.env['ir.config_parameter'].sudo().get_param('digipwms.key')
+            response = requests.get('http://api.patagoniawms.com/v1/ControlCiego', headers=headers, json=params)
+
+            if response.status_code == 200:
+                # record.state = 'received'
+
+                data = response.json()
+                if data['Estado'] == 'Verificado' and data['Modo'] == 'Completo':
+                    if data['ControlCiegoDetalle']:
+                        for element in data['ControlCiegoDetalle']:
+                            raise UserError(f'Producto {element['Articulo']} - Cantidad {element['Unidades']}')
+
+            else:
+                raise UserError(f'Error code: {response.status_code} - Error Msg: {response.text}')
+
+
+
+
+
+
+
+
+
     
     def confirmar(self):
         for record in self:
