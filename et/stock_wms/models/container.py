@@ -97,19 +97,11 @@ class Container(models.Model):
                 if data['Estado'] == 'Verificado' and data['Modo'] == 'Completo':
                     if data['ControlCiegoDetalle']:
                         for element in data['ControlCiegoDetalle']:
-                            raise UserError(f'Producto {element['Articulo']} - Cantidad {element['Unidades']}')
+                            raise UserError(f"Producto {element['Articulo']} - Cantidad {element['Unidades']}")
 
             else:
                 raise UserError(f'Error code: {response.status_code} - Error Msg: {response.text}')
-
-
-
-
-
-
-
-
-
+            
     
     def confirmar(self):
         for record in self:
