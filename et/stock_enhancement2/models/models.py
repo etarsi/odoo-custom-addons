@@ -465,7 +465,8 @@ class StockPickingInherit(models.Model):
             if tms_stock and not devolucion:
                 tms_stock.write({'estado_digip': 'closed',
                                 'delivery_state': record.delivery_state,
-                                'estado_despacho': 'delivered'})
+                                'estado_despacho': 'delivered',
+                                'fecha_despacho': fields.Date.context_today(self) - timedelta(days=1)})
             elif tms_stock and devolucion:
                 tms_stock.write({'estado_digip': 'no',
                                 'delivery_state': record.delivery_state,
@@ -817,7 +818,6 @@ class StockPickingInherit(models.Model):
                 raise ValidationError(_("Fallo enviando a Google Sheets para picking %s: %s") % (record.name, e))
 
     def _crear_tms_stock_picking(self):
-        self.ensure_one()
         tms = self.env['tms.stock.picking'].search([('picking_ids', 'in', self.id)], limit=1)
         if not tms:
             direccion_entrega = ""

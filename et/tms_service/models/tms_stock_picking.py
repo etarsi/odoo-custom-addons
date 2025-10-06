@@ -111,12 +111,15 @@ class TmsStockPicking(models.Model):
                 estado_despacho = 'delivered'
             elif stock_picking.state_wms == 'error':
                 estado_despacho = 'void'
+            elif stock_picking.state == 'cancel':
+                estado_despacho = 'void'
 
             rec.write({
                 'estado_digip': stock_picking.state_wms,
                 'estado_despacho': estado_despacho,
                 'fecha_entrega': stock_picking.date_done,
                 'delivery_state': stock_picking.delivery_state,
+                'fecha_despacho': stock_picking.date_done,
             })
             updated += 1
 
