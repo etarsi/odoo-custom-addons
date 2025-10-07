@@ -9,7 +9,7 @@ headers = {
     "Content-Type": "application/json"
 }
 
-response = requests.get(f'{url}/R1', headers=headers)
+response = requests.get(f'{url}/C14', headers=headers)
 
 if response.status_code == 200:
     data = response.json()

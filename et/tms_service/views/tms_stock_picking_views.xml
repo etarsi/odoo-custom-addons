@@ -68,7 +68,7 @@
         <field name="arch" type="xml">
             <tree edit="true" default_order="fecha_envio_wms desc">
                 <field name="fecha_entrega" optional="show"/>
-                <field name="fecha_envio_wms" optional="show"/>
+                <field name="fecha_envio_wms" widget="date" optional="show"/>
                 <field name="codigo_wms" optional="show"/>
                 <field name="doc_origen" optional="show"/>
                 <field name="picking_ids" widget="many2many_tags" optional="show"/>
@@ -88,7 +88,6 @@
                 <field name="contacto_calle" optional="show"/>
                 <field name="contacto_cp" optional="show"/>
                 <field name="contacto_ciudad" optional="show"/>
-                <field name="carrier_address" optional="show"/>
                 <field name="company_id" optional="show"/>
                 <field name="user_id" optional="show"/>
             </tree>
@@ -128,21 +127,23 @@
                 <filter name="filter_digip_no" string="WMS No Enviados" domain="[('estado_digip', '=', 'no')]"
                         help="Filtrar las licencias que están No enviados." />
                 <separator/>
-                <filter name="filter_by_partner" string="Agrupar por Cliente"
-                        context="{'group_by': 'partner_id'}" />
                 <!-- Filtro por estado  agrupado-->
                 <filter name="filter_by_state_digip" string="Estado WMS"
                         context="{'group_by': 'estado_digip'}" />
-                <filter name="filter_by_carrier_id" string="Transportista"
-                        context="{'group_by': 'carrier_id'}" />
+                <filter name="filter_by_partner" string="Clientes"
+                        context="{'group_by': 'partner_id'}" />
                 <filter name="filter_by_state_despacho" string="Estado Despacho"
                         context="{'group_by': 'estado_despacho'}" />
+                <filter name="filter_by_delivery_state" string="Estado de Entrega"
+                        context="{'group_by': 'delivery_state'}" />
                 <filter name="filter_by_doc_origen" string="Doc. Origen"
                         context="{'group_by': 'doc_origen'}" />
+                <filter name="filter_by_carrier_id" string="Transportista"
+                        context="{'group_by': 'carrier_id'}" />
                 <filter name="filter_by_company" string="Compañía"
                         context="{'group_by': 'company_id'}" />
-                <filter name="filter_by_company" string="Cliente"
-                        context="{'group_by': 'partner_id'}" />
+                <filter name="filter_by_industry_id" string="Despacho-Zona"
+                        context="{'group_by': 'industry_id'}" />
             </search>
         </field>
     </record>

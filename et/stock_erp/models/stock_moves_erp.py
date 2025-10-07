@@ -147,12 +147,12 @@ class StockMovesERP(models.Model):
                     move.unlink()
 
 
-    @api.onchange('quantity_delivered')
-    def _onchange_auto_delete_if_fulfilled(self):
+    def write(self, vals):
+        res = super().write(vals)
         for record in self:
             if record.quantity == record.quantity_delivered:
                 record.unlink()
-
+        return res
 
     @api.depends('quantity')
     def _compute_bultos(self):

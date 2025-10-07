@@ -249,9 +249,11 @@ class StockPickingInherit(models.Model):
                     else:
                         raise UserError(f'El producto {move.product_id.name} no tiene definido un código interno (default_code).')
 
-                    for stock_move in stock_erp.move_lines:
-                        if stock_move.sale_line_id.id == move.sale_line_id.id:
-                            stock_move.quantity_delivered += move.quantity_done
+                    stock_move_erp_RESERV = self.env['stock.moves.erp'].search([('product_id.default_code', '=', search_code), ('type', '=', 'reserve')], limit=1)
+                    stock_move_erp_PREPAR = self.env['stock.moves.erp'].search([('product_id.default_code', '=', search_code), ('picking_id', '=', record.id), ('type', '=', 'preparation')], limit=1)
+
+                    stock_move_erp_RESERV.quantity_delivered += move.quantity_done
+                    stock_move_erp_PREPAR.quantity_delivered += move.quantity_done
 
 
                     vals['picking_id'] = record.id
@@ -463,7 +465,8 @@ class StockPickingInherit(models.Model):
             if tms_stock and not devolucion:
                 tms_stock.write({'estado_digip': 'closed',
                                 'delivery_state': record.delivery_state,
-                                'estado_despacho': 'delivered'})
+                                'estado_despacho': 'delivered',
+                                'fecha_despacho': fields.Date.context_today(self) - timedelta(days=1)})
             elif tms_stock and devolucion:
                 tms_stock.write({'estado_digip': 'no',
                                 'delivery_state': record.delivery_state,
@@ -476,7 +479,8 @@ class StockPickingInherit(models.Model):
             if tms_stock:
                 tms_stock.write({'estado_digip': 'closed',
                                 'delivery_state': rec.delivery_state,
-                                'estado_despacho': 'prepared'})
+                                'estado_despacho': 'prepared',
+                                'fecha_entrega': rec.date_done})
         return res
 
     def action_create_invoice_from_picking2(self):
@@ -765,6 +769,8 @@ class StockPickingInherit(models.Model):
     
     def action_enviar_compartido(self, envio_forzar=False):
         for record in self:
+            if record.state_wms == 'no' and not record.codigo_wms:
+                raise ValidationError(_("El remito %s, debe estar validado y tener Código WMS para enviarlo al compartido.") % record.name)
             if record.ruteo_compartido == 'si' and not envio_forzar:
                 raise ValidationError(_("El remito con el Código WMS %s, ya fue enviado al compartido anteriormente.") % record.codigo_wms)
             direccion_entrega = ""
@@ -782,7 +788,7 @@ class StockPickingInherit(models.Model):
             try:
                 values = [
                     "",                                          # A
-                    self._fmt_dt_local(record.scheduled_date),   # B
+                    record._fmt_dt_local(record.scheduled_date),   # B
                     record.codigo_wms or "",                     # C
                     record.origin or "",                         # D
                     record.name or "",                           # E
@@ -812,7 +818,6 @@ class StockPickingInherit(models.Model):
                 raise ValidationError(_("Fallo enviando a Google Sheets para picking %s: %s") % (record.name, e))
 
     def _crear_tms_stock_picking(self):
-        self.ensure_one()
         tms = self.env['tms.stock.picking'].search([('picking_ids', 'in', self.id)], limit=1)
         if not tms:
             direccion_entrega = ""
@@ -824,7 +829,7 @@ class StockPickingInherit(models.Model):
             vals = {
                 'picking_ids': [(4, self.id)],
                 'fecha_entrega': False,
-                'fecha_envio_wms': fields.Date.today(),
+                'fecha_envio_wms': self.scheduled_date,
                 'codigo_wms': self.codigo_wms,
                 'doc_origen': self.origin,
                 'partner_id': self.partner_id.id,
@@ -844,7 +849,6 @@ class StockPickingInherit(models.Model):
                 'direccion_entrega': direccion_entrega,
                 'contacto_cp': self.partner_id.zip or False,
                 'contacto_ciudad': self.partner_id.city or False,
-                'carrier_address': self.carrier_id.address or False,
                 'company_id': self.company_id.id,
                 'user_id': self.env.user.id,
             }

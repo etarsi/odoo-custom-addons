@@ -9,7 +9,7 @@ headers = {
     "Content-Type": "application/json"
 }
 params = {
-    'DocumentoNumero': 'R00033',
+    'DocumentoNumero': 'C14',
 }
 
 response = requests.get(url, headers=headers, params=params)

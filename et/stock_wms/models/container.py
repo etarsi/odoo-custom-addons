@@ -77,7 +77,62 @@ class Container(models.Model):
 
     def recibir(self):
         for record in self:
-            record.state = 'received'
+            vals_list = []
+            product_codes = record.lines.mapped('product_id.default_code')
+            for line in record.lines:
+                vals = {
+                    'p_code': line.product_id.default_code,
+                    'q_picked': 0,
+                }
+                vals_list.append(vals)
+
+
+            headers = {
+                "Content-Type": "application/json",
+            }
+
+            
+            params = {
+                'DocumentoNumero': record.wms_code,
+            }
+
+            headers["x-api-key"] = self.env['ir.config_parameter'].sudo().get_param('digipwms.key')
+            response = requests.get("http://api.patagoniawms.com/v1/ControlCiego", headers=headers, params=params)
+
+            if response.status_code == 200:
+
+                data = response.json()
+                if data['Estado'] in ('Guardado','Verificado') and data['Modo'] == 'Completo':
+                    if data['ControlCiegoDetalle']:
+                        for element in data['ControlCiegoDetalle']:   
+                            if element['CodigoArticulo'] in product_codes:              
+                                for product in vals_list:
+                                    if product['p_code'] == element['CodigoArticulo']:
+                                        product['q_picked'] += element['Unidades']
+                            else:
+                                vals = {}
+                                product_id = self.env['product.product'].search([('default_code', '=', element['CodigoArticulo'])], limit=1)
+                                if product_id:
+                                    vals['product_id'] = product_id.id
+                                    vals['quantity_send'] = 0
+                                    vals['quantity_picked'] = element['Unidades']
+                                    self.env['container.line'].create(vals)
+                                    product_codes.append(product_id.default_code)
+                                    vals2 = {
+                                        'p_code': product_id.default_code,
+                                        'q_picked': element['Unidades'],
+                                    }
+                                    vals_list.append(vals2)
+
+                        for v in vals_list:
+                            for line in record.lines:
+                                if v['p_code'] == line.product_id.default_code:
+                                    line.quantity_picked = v['q_picked']
+                    
+                    record.state = 'received'
+            else:
+                raise UserError(f'Error code: {response.status_code} - Error Msg: {response.text}')
+            
     
     def confirmar(self):
         for record in self:
