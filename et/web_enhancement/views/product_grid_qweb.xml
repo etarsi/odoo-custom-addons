@@ -1,108 +1,107 @@
 <?xml version="1.0" encoding="utf-8"?>
-<odoo>
-    <templates id="web_enhancement.product_list_page">
-        <t t-call="website.layout">
-        <div class="container mt-4 mb-5">
+<templates>
+  <!-- t-name que usará el controlador -->
+  <t t-name="web_enhancement.product_list_page">
+    <t t-call="website.layout">
+      <div class="container mt-4 mb-5">
 
-            <!-- Barra superior: título + buscador -->
-            <div class="row align-items-center mb-3">
-            <div class="col">
-                <h1 class="mb-0">Producto</h1>
-                <small class="text-muted">
-                <span t-esc="total"/> resultados
-                <t t-if="search"> para <strong t-esc="search"/></t>
-                </small>
-            </div>
-            <div class="col-auto">
-                <form t-attf-action="/productos" method="get" class="d-flex" role="search">
-                <input class="form-control me-2" type="search"
-                        placeholder="Buscar por nombre o código"
-                        name="search" t-att-value="search or ''"/>
-                <button class="btn btn-primary" type="submit">Buscar</button>
-                </form>
-            </div>
-            </div>
-
-            <!-- Grilla de tarjetas -->
-            <div class="row row-cols-1 row-cols-sm-2 row-cols-lg-3 g-4">
-            <t t-foreach="products" t-as="p">
-                <div class="col">
-                <div class="card h-100">
-
-                    <!-- Imagen principal -->
-                    <a t-if="getattr(p, 'website_url', False)" t-att-href="p.website_url">
-                    <img class="card-img-top"
-                        t-att-src="'/web/image/product.template/%s/image_1920' % p.id"
-                        t-att-alt="p.name or ''"
-                        loading="lazy"
-                        style="object-fit:contain;height:220px;background:#f8f9fa"/>
-                    </a>
-                    <img t-if="not getattr(p, 'website_url', False)" class="card-img-top"
-                        t-att-src="'/web/image/product.template/%s/image_1920' % p.id"
-                        t-att-alt="p.name or ''"
-                        loading="lazy"
-                        style="object-fit:contain;height:220px;background:#f8f9fa"/>
-
-                    <div class="card-body d-flex flex-column">
-                    <!-- Nombre + default_code -->
-                    <h5 class="card-title mb-1">
-                        <a t-if="getattr(p, 'website_url', False)" t-att-href="p.website_url" t-esc="p.name"/>
-                        <span t-if="not getattr(p, 'website_url', False)" t-esc="p.name"/>
-                    </h5>
-                    <div class="text-muted mb-3">
-                        Código: <span t-esc="p.default_code or '-'"/>
-                    </div>
-
-                    <!-- Galería agrupada por producto -->
-                    <t t-if="p.product_template_image_ids">
-                        <div class="product-gallery">
-                        <div class="d-flex flex-wrap gap-2">
-                            <t t-foreach="p.product_template_image_ids.sorted(key=lambda im: im.sequence)" t-as="img">
-                            <a t-att-href="'/web/image/product.image/%s/image_1920' % img.id"
-                                target="_blank" class="thumb-link" title="Abrir">
-                                <img class="rounded border"
-                                    t-att-src="'/web/image/product.image/%s/image_1920' % img.id"
-                                    loading="lazy"
-                                    t-att-alt="img.name or p.name"
-                                    style="width:78px;height:78px;object-fit:cover;background:#fff"/>
-                            </a>
-                            </t>
-                        </div>
-                        </div>
-                    </t>
-
-                    <div class="mt-auto"></div>
-                    </div>
-                </div>
-                </div>
-            </t>
-            </div>
-
-            <!-- Paginación -->
-            <t t-if="pager">
-            <div class="d-flex justify-content-center mt-4">
-                <ul class="pagination">
-                <li class="page-item"
-                    t-att-class="'disabled' if pager['page'] &lt;= 1 else ''">
-                    <a class="page-link" t-att-href="keep({'page': pager['page'] - 1})">Anterior</a>
-                </li>
-
-                <t t-foreach="pager['pages']" t-as="pp">
-                    <li class="page-item"
-                        t-att-class="'active' if pp['page'] == pager['page'] else ''">
-                    <a class="page-link" t-att-href="keep({'page': pp['page']})" t-esc="pp['title']"/>
-                    </li>
-                </t>
-
-                <li class="page-item"
-                    t-att-class="'disabled' if pager['page'] &gt;= pager['page_count'] else ''">
-                    <a class="page-link" t-att-href="keep({'page': pager['page'] + 1})">Siguiente</a>
-                </li>
-                </ul>
-            </div>
-            </t>
+        <!-- Buscador y contador -->
+        <div class="row align-items-center mb-3">
+          <div class="col">
+            <h1 class="mb-0">Productos</h1>
+            <small class="text-muted">
+              <span t-esc="total"/> resultados
+              <t t-if="search"> para <strong t-esc="search"/></t>
+            </small>
+          </div>
+          <div class="col-auto">
+            <form t-attf-action="/productos" method="get" class="d-flex" role="search">
+              <input class="form-control me-2" type="search"
+                     placeholder="Buscar por nombre o código"
+                     name="search" t-att-value="search or ''"/>
+              <button class="btn btn-primary" type="submit">Buscar</button>
+            </form>
+          </div>
         </div>
-        </t>
-    </templates>
-</odoo>
 
+        <!-- Grilla de tarjetas -->
+        <div class="row row-cols-1 row-cols-sm-2 row-cols-lg-3 g-4">
+          <t t-foreach="products" t-as="p">
+            <div class="col">
+              <div class="card h-100">
+
+                <!-- Imagen principal -->
+                <a t-if="getattr(p, 'website_url', False)" t-att-href="p.website_url">
+                  <img class="card-img-top"
+                       t-att-src="'/web/image/product.template/%s/image_1920' % p.id"
+                       t-att-alt="p.name or ''"
+                       loading="lazy"
+                       style="object-fit:contain;height:220px;background:#f8f9fa"/>
+                </a>
+                <img t-if="not getattr(p, 'website_url', False)" class="card-img-top"
+                     t-att-src="'/web/image/product.template/%s/image_1920' % p.id"
+                     t-att-alt="p.name or ''"
+                     loading="lazy"
+                     style="object-fit:contain;height:220px;background:#f8f9fa"/>
+
+                <div class="card-body d-flex flex-column">
+                  <!-- Nombre + código -->
+                  <h5 class="card-title mb-1">
+                    <a t-if="getattr(p, 'website_url', False)" t-att-href="p.website_url" t-esc="p.name"/>
+                    <span t-if="not getattr(p, 'website_url', False)" t-esc="p.name"/>
+                  </h5>
+                  <div class="text-muted mb-3">
+                    Código: <span t-esc="p.default_code or '-'"/>
+                  </div>
+
+                  <!-- Galería de imágenes adicionales (agrupadas por producto) -->
+                  <t t-if="p.product_template_image_ids">
+                    <div class="d-flex flex-wrap gap-2">
+                      <t t-foreach="p.product_template_image_ids.sorted(key=lambda im: im.sequence)" t-as="img">
+                        <a t-att-href="'/web/image/product.image/%s/image_1920' % img.id"
+                           target="_blank" class="thumb-link" title="Abrir">
+                          <img class="rounded border"
+                               t-att-src="'/web/image/product.image/%s/image_1920' % img.id"
+                               loading="lazy"
+                               t-att-alt="img.name or p.name"
+                               style="width:78px;height:78px;object-fit:cover;background:#fff"/>
+                        </a>
+                      </t>
+                    </div>
+                  </t>
+
+                  <div class="mt-auto"></div>
+                </div>
+              </div>
+            </div>
+          </t>
+        </div>
+
+        <!-- Paginación -->
+        <t t-if="pager">
+          <div class="d-flex justify-content-center mt-4">
+            <ul class="pagination">
+              <li class="page-item"
+                  t-att-class="'disabled' if pager['page'] &lt;= 1 else ''">
+                <a class="page-link" t-att-href="keep({'page': pager['page'] - 1})">Anterior</a>
+              </li>
+
+              <t t-foreach="pager['pages']" t-as="pp">
+                <li class="page-item"
+                    t-att-class="'active' if pp['page'] == pager['page'] else ''">
+                  <a class="page-link" t-att-href="keep({'page': pp['page']})" t-esc="pp['title']"/>
+                </li>
+              </t>
+
+              <li class="page-item"
+                  t-att-class="'disabled' if pager['page'] &gt;= pager['page_count'] else ''">
+                <a class="page-link" t-att-href="keep({'page': pager['page'] + 1})">Siguiente</a>
+              </li>
+            </ul>
+          </div>
+        </t>
+
+      </div>
+    </t>
+  </t>
+</templates>

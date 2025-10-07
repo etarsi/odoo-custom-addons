@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from odoo import http
 from odoo.http import request
 from odoo.addons.website.controllers.main import QueryURL
@@ -7,13 +8,15 @@ class ProductWebsiteController(http.Controller):
     @http.route(['/productos'], type='http', auth='public', website=True, sitemap=True)
     def productos(self, page=1, search='', **kw):
         Product = request.env['product.template'].sudo()
+
         domain = []
-        # Si querés solo publicados:
-        # domain += [('website_published', '=', True)]
+        # Si querés mostrar solo productos publicados en website, descomenta:
+        # domain.append(('website_published', '=', True))
 
         if search:
             domain += ['|', ('name', 'ilike', search), ('default_code', 'ilike', search)]
 
+        # paginación
         page = int(page) if str(page).isdigit() else 1
         page_size = 12
 
@@ -28,7 +31,8 @@ class ProductWebsiteController(http.Controller):
         )
 
         products = Product.search(domain, limit=page_size, offset=pager['offset'], order="name asc")
-        # prefetch galería para evitar N+1
+
+        # prefetch de galería para evitar N+1
         products.mapped('product_template_image_ids').ids
 
         values = {
@@ -38,5 +42,7 @@ class ProductWebsiteController(http.Controller):
             'total': total,
             'keep': QueryURL('/productos', search=search),
         }
-        # IMPORTANTE: render por t-name del QWeb
-        return request.render('web_enhancement.product_list_page', values)
+
+        # Render por t-name (QWeb puro)
+        html = request.env['ir.qweb']._render('web_enhancement.product_list_page', values)
+        return request.make_response(html)
