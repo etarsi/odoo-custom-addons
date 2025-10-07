@@ -637,10 +637,13 @@ class SaleOrderLineInherit(models.Model):
                                 raise UserError(f'No puede comprometer más cantidades de las disponibles. Actualmente tiene comprometidas: {stock_moves_erp.quantity} y quedan disponibles para agregar: {line.disponible_unidades}')
                         
                     else:
+                        line.update_stock_erp()
                         if line.product_uom_qty <= line.disponible_unidades:
                             line.comprometer_stock2()
                             line.update_stock_erp()
                             line._compute_is_available()
+                        else:
+                            raise UserError('No se puede comprometer más unidades de las disponibles.')
 
 
         
