@@ -39,4 +39,5 @@ class ProductWebsiteController(http.Controller):
             'keep': QueryURL('/productos', search=search),
         }
         # IMPORTANTE: render por t-name del QWeb
-        return request.render("web_enhancement.product_list_page", values)
+        html = request.env['ir.qweb'].render('web_enhancement.product_list_page', values)
+        return request.make_response(html)
