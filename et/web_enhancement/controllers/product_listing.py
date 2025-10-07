@@ -7,9 +7,8 @@ class ProductWebsiteController(http.Controller):
     @http.route(['/productos'], type='http', auth='public', website=True, sitemap=True)
     def productos(self, page=1, search='', **kw):
         Product = request.env['product.template'].sudo()
-
         domain = []
-        # Si querés solo los publicables en web, descomentá:
+        # Si querés solo publicados:
         # domain += [('website_published', '=', True)]
 
         if search:
@@ -29,8 +28,7 @@ class ProductWebsiteController(http.Controller):
         )
 
         products = Product.search(domain, limit=page_size, offset=pager['offset'], order="name asc")
-
-        # Prefetch de imágenes (opcional, pero ayuda a evitar N+1)
+        # prefetch galería para evitar N+1
         products.mapped('product_template_image_ids').ids
 
         values = {
@@ -40,4 +38,5 @@ class ProductWebsiteController(http.Controller):
             'total': total,
             'keep': QueryURL('/productos', search=search),
         }
+        # IMPORTANTE: render por t-name del QWeb
         return request.render("web_enhancement.product_list_page", values)

@@ -19,12 +19,12 @@
     # always loaded
     'data': [
         # 'security/ir.model.access.csv',
-        'views/web_menu.xml',
+        'views/website_menu.xml',
         'views/views.xml',
         'views/templates.xml',
     ],
     'qweb': [
-        'views/web_product_templates.xml',
+        'views/product_grid_qweb.xml',
     ],
     'demo': [
         'demo/demo.xml',
@@ -34,4 +34,5 @@
             'hr_enhancement/static/src/js/handle_service.js',
         ],
     },
+    'application': False,
 }

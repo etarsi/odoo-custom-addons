@@ -25,6 +25,7 @@ class HrAttendance(models.Model):
         help='Horas de retraso contra la hora límite de entrada configurada.'
     )
     employee_type = fields.Selection(related='employee_id.employee_type', string='Tipo de Empleado', store=True)
+    blocked = fields.Boolean(string='Bloqueado', default=False)
 
     @api.depends('check_in', 'check_out', 'employee_id')
     def _compute_worked_hours(self):

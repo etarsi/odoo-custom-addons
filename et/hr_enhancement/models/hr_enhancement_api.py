@@ -108,7 +108,8 @@ class HrEnhancementApi(models.AbstractModel):
                             # Limites del día (para agrupar por día local)
                             open_att = hr_attendance.search([
                                 ('employee_id', '=', employee.id),
-                                ('check_out', '=', False)], limit=1, order='check_in desc')
+                                ('check_out', '=', False),
+                                ('blocked', '=', False)], limit=1, order='check_in desc')
                             if employee.type_shift == 'day':
                                 if open_att:
                                     if open_att.check_in.date() == check_utc.date():
@@ -139,6 +140,8 @@ class HrEnhancementApi(models.AbstractModel):
                                         open_att.write({'check_out': check_utc})
                                         message += f' (asistencia cerrada: {open_att.id})'
                                     else:
+                                        #bloquear la asistencia abierta anterior
+                                        open_att.write({'blocked': True})
                                         if dow in [0,1,2,3,4]:  # Lunes a Viernes
                                             if check_utc > start_limit_day:
                                                 env['hr.temp.attendance'].sudo().create({
@@ -192,6 +195,7 @@ class HrEnhancementApi(models.AbstractModel):
                                     message += f' (asistencia abierta: {open_att.id})'
                             elif employee.type_shift == 'night':
                                 if open_att:
+                                    # Validar el rango de la salida nocturna
                                     min_minutes = 60
                                     delta_minutes = (check_utc - open_att.check_in).total_seconds() / 60.0
                                     if delta_minutes < min_minutes:
@@ -212,14 +216,6 @@ class HrEnhancementApi(models.AbstractModel):
                                         return {'success': False, 'error': message, 'received': data}
                                     # permitir mismo día o día siguiente como máximo
                                     delta_days = (check_utc.date() - open_att.check_in.date()).days
-                                    if delta_days < 0:
-                                        env['hr.temp.attendance'].sudo().create({
-                                            'employee_id': employee.id,
-                                            'check_date': check_utc,
-                                            'employee_type': employee.employee_type,
-                                        })
-                                        message += ' --la salida no puede ser anterior al día de la entrada'
-                                        return {'success': False, 'error': message, 'received': data}
                                     if delta_days > 1:
                                         env['hr.temp.attendance'].sudo().create({
                                             'employee_id': employee.id,
