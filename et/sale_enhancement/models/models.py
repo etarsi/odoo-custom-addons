@@ -503,8 +503,6 @@ class SaleOrderLineInherit(models.Model):
     @api.depends('disponible_unidades', 'product_uom_qty')
     def _compute_is_available(self):
         for record in self:
-            if record.order_id.state == 'draft':
-
                 stock_moves_erp = self.env['stock.moves.erp'].search([('sale_line_id', '=', record.id), ('type', '=', 'reserve')], limit=1)
 
                 if stock_moves_erp: # esta comprometido
