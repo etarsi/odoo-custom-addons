@@ -1,7 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<templates>
-  <!-- t-name = nombre que usamos en request.render(...) -->
-  <t t-name="web_enhancement.product_list_page">
+<templates id="web_enhancement.product_list_page">
     <t t-call="website.layout">
       <div class="container mt-4 mb-5">
 
@@ -104,5 +102,4 @@
         </t>
       </div>
     </t>
-  </t>
 </templates>
