@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <data>
-        <templates id="web_enhancement.product_list_page" name="Product List Page">
+    <templates id="web_enhancement.product_list_page" name="Product List Page">
             <t t-call="website.layout">
                 <div class="container mt-4 mb-5">
                     <!-- Buscador y contador -->
@@ -102,7 +101,6 @@
 
                 </div>
             </t>
-        </templates>
-    </data>
+    </templates>
 </odoo>
 
