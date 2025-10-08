@@ -1,10 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
-<templates>
-  <!-- t-name que usará el controlador -->
-  <t t-name="web_enhancement.product_list_page">
+<templates id="web_enhancement.product_list_page" name="Product List Page">
     <t t-call="website.layout">
       <div class="container mt-4 mb-5">
-
         <!-- Buscador y contador -->
         <div class="row align-items-center mb-3">
           <div class="col">
@@ -103,5 +100,4 @@
 
       </div>
     </t>
-  </t>
 </templates>

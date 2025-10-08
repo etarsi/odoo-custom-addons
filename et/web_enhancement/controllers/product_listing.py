@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from odoo import http
+import odoo.http as http
 from odoo.http import request
 from odoo.addons.website.controllers.main import QueryURL
 
