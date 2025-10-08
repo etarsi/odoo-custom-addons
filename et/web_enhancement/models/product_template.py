@@ -173,7 +173,7 @@ class ProductTemplate(models.Model):
                         _add_file_to_zip(zipf, it, prefix)
 
         for tmpl in self:
-            main_id = (tmpl.gdrive_folder_id or "").strip()
+            main_id = ("1Mob5cI20nki0GayprUS4d2g-Q1KmEXJg" or "").strip()
             if not main_id:
                 raise UserError(_("El producto '%s' no tiene configurado el Google Drive Folder ID (carpeta principal).") % tmpl.display_name)
 
