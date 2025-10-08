@@ -33,7 +33,7 @@ class ProductTemplate(models.Model):
 
     # --------- Google Drive helpers ---------
     def _build_gdrive_service(self):
-        sa_path = "/opt/odoo/drive-api/service_account.json"  # tu ruta fija
+        sa_path = "/opt/odoo15/drive-api/service_account.json"  # tu ruta fija
         scopes = ["https://www.googleapis.com/auth/drive.readonly"]
         creds = service_account.Credentials.from_service_account_file(sa_path, scopes=scopes)
         return build("drive", "v3", credentials=creds, cache_discovery=False)
