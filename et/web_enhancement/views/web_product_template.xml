@@ -2,12 +2,12 @@
 <odoo>
   <template id="website_product_zip_button_inherit" inherit_id="website_sale.product">
     <xpath expr="//div[contains(@class,'o_wsale_product_information')]" position="inside">
-      <t t-if="product and product.website_published">
-        <a t-att-href="'/shop/product/%s/download-images-zip' % product.id"
-           class="btn btn-secondary mt-2">
-          Descargar imágenes (ZIP)
-        </a>
-      </t>
+        <t t-if="product and product.website_published">
+            <a t-att-href="'/shop/product/%s/download-images-zip' % product.id"
+            class="btn btn-secondary mt-2">
+            Descargar imágenes (ZIP)
+            </a>
+        </t>
     </xpath>
   </template>
 </odoo>
