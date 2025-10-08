@@ -87,10 +87,9 @@
                         </li>
 
                         <t t-foreach="pager['pages']" t-as="pp">
-                        <li class="page-item"
-                            t-att-class="'active' if pp['page'] == page_cur else ''">
+                            <li class="page-item" t-att-class="'active' if pp['page'] == page_cur else ''">
                             <a class="page-link" t-att-href="keep({'page': pp['page']})" t-esc="pp['title']"/>
-                        </li>
+                            </li>
                         </t>
 
                         <li class="page-item"

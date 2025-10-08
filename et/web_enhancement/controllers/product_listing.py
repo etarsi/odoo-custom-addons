@@ -24,7 +24,7 @@ class ProductWebsiteController(http.Controller):
 
         total = Product.search_count(domain)
         pager = request.website.pager(
-            url="/productos",
+            url="/listado_productos",
             total=total,
             page=page,
             step=page_size,
@@ -45,17 +45,30 @@ class ProductWebsiteController(http.Controller):
             'keep': QueryURL('/listado_productos', search=search),
         }
         
-        page_val = pager.get('page', 1)
-        if isinstance(page_val, dict):
-            page_cur = page_val.get('page', 1)
-        else:
-            page_cur = int(page_val or 1)
+        def to_int_page(x, default=1):
+            if isinstance(x, dict):
+                x = x.get('page', default)
+            try:
+                return int(x)
+            except Exception:
+                return default
+
+        page_cur = to_int_page(pager.get('page'), 1)
+        page_count = to_int_page(pager.get('page_count'), page_cur)
+
+        norm_pages = []
+        for it in pager.get('pages', []):
+            norm_pages.append({
+                'page': to_int_page(it.get('page'), 1),
+                'title': it.get('title'),
+            })
+        pager['pages'] = norm_pages
 
         values.update({
             'pager': pager,
             'page_cur': page_cur,
             'is_first_page': page_cur <= 1,
-            'is_last_page': page_cur >= pager.get('page_count', page_cur),
+            'is_last_page': page_cur >= page_count,
         })
         _logger.info("PAGER PAGE = %r", pager.get('page'))
         # Render por t-name (QWeb puro)
