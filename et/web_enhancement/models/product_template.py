@@ -76,21 +76,26 @@ class ProductTemplate(models.Model):
     def _find_subfolder_for_code(self, service, main_folder_id, code):
         """
         Busca una subcarpeta bajo 'main_folder_id' cuyo nombre:
-          1) sea exactamente 'code', o
-          2) empiece con 'code ' / 'code-' / 'code_', o
-          3) contenga 'code'.
+        1) sea exactamente 'code', o
+        2) empiece con 'code ' / 'code-' / 'code_', o
+        3) contenga 'code'.
         Devuelve el dict del folder elegido o None.
         """
         code_str = (code or "").strip()
         if not code_str:
             return None
 
-        # Traemos SOLO carpetas hijas directas
-        q = (f"{main_folder_id} in parents and trashed=false "
-            f"{main_folder_id} in parents and trashed=false "
-            f"and mimeType='application/vnd.google-apps.folder'"
-            f" and name contains '{code_str}'"
+        # ESCAPAR comillas simples en el nombre para la query de Drive
+        code_escaped = code_str.replace("'", r"\'")
+
+        # IMPORTANTE: el folder_id debe ir ENTRE COMILLAS en la query
+        q = (
+            f"'{main_folder_id}' in parents and trashed=false "
+            f"and mimeType='application/vnd.google-apps.folder' "
+            f"and name contains '{code_escaped}'"
         )
+        _logger.debug("Drive list (buscando subcarpeta por código) q=%s", q)
+
         folders = []
         page_token = None
         while True:
@@ -116,8 +121,8 @@ class ProductTemplate(models.Model):
             if name == code_str:
                 return (3, -len(name))
             if name.lower().startswith((code_str + " ").lower()) \
-               or name.lower().startswith((code_str + "-").lower()) \
-               or name.lower().startswith((code_str + "_").lower()):
+            or name.lower().startswith((code_str + "-").lower()) \
+            or name.lower().startswith((code_str + "_").lower()):
                 return (2, -len(name))
             return (1, -len(name))
 
