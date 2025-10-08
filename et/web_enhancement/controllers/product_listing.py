@@ -44,5 +44,4 @@ class ProductWebsiteController(http.Controller):
         }
 
         # Render por t-name (QWeb puro)
-        html = request.env['ir.qweb']._render('web_enhancement.product_list_page', values)
-        return request.make_response(html)
+        return http.request.render('web_enhancement.product_list_page', values)
