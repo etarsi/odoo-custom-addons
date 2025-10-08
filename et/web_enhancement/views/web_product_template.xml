@@ -31,14 +31,14 @@
                     <div class="card h-100">
 
                         <!-- Imagen principal -->
-                        <a t-if="getattr(p, 'website_url', False)" t-att-href="p.website_url">
+                        <a t-if="p.website_url" t-att-href="p.website_url">
                         <img class="card-img-top"
                             t-att-src="'/web/image/product.template/%s/image_1920' % p.id"
                             t-att-alt="p.name or ''"
                             loading="lazy"
                             style="object-fit:contain;height:220px;background:#f8f9fa"/>
                         </a>
-                        <img t-if="not getattr(p, 'website_url', False)" class="card-img-top"
+                        <img t-if="not p.website_url" class="card-img-top"
                             t-att-src="'/web/image/product.template/%s/image_1920' % p.id"
                             t-att-alt="p.name or ''"
                             loading="lazy"
@@ -47,8 +47,8 @@
                         <div class="card-body d-flex flex-column">
                         <!-- Nombre + código -->
                         <h5 class="card-title mb-1">
-                            <a t-if="getattr(p, 'website_url', False)" t-att-href="p.website_url" t-esc="p.name"/>
-                            <span t-if="not getattr(p, 'website_url', False)" t-esc="p.name"/>
+                            <a t-if="p.website_url" t-att-href="p.website_url" t-esc="p.name"/>
+                            <span t-if="not p.website_url" t-esc="p.name"/>
                         </h5>
                         <div class="text-muted mb-3">
                             Código: <span t-esc="p.default_code or '-'"/>
