@@ -192,7 +192,13 @@ class ReturnMoveLine(models.Model):
     company_id = fields.Many2one('res.company')
 
     # @api.model
-    # def create(self, vals):   
+    # def create(self, vals): 
+
+    @api.onchange('product_id')
+    def _onchang_product_id(self):
+        for record in self:
+            if record.product_id:
+                record.update_product()
     
 
     def update_product(self):
