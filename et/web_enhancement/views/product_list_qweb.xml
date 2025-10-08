@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <template id="product_list_page" xml:space="preserve" name="Listado de Productos">
+    <template id="product_list_qweb" xml:space="preserve" name="Listado de Productos">
         <t t-call="website.layout">
             <div class="container mt-4 mb-5">
 
