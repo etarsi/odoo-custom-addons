@@ -212,6 +212,8 @@ class ProductTemplate(models.Model):
             _logger.info("ZIP creado para '%s' (subcarpeta '%s') -> attachment id %s",
                          tmpl.display_name, sub.get("name"), attach.id)
 
+        _logger.info("Total productos procesados: %d", len(self))
+        _logger.info("Total attachments creados: %d", len(attachments))
         # Si es un solo producto, devuelvo descarga directa
         if len(self) == 1 and attachments:
             att_id = attachments[-1]
