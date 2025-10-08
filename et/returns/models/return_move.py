@@ -232,7 +232,7 @@ class ReturnMoveLine(models.Model):
 
             if last_invoice_line:
                 record.invoice_id = last_invoice_line.move_id.id
-                
+
                 if last_invoice_line.company_id.id == 1:
                     record.price_unit = last_invoice_line.price_unit / 1.21
                     record.company_id = 2
@@ -244,13 +244,14 @@ class ReturnMoveLine(models.Model):
 
 
     def get_last_invoice_line(self):
-        last_invoice_line = self.env['account.move.line'].search([
-            ('product_id', '=', self.product_id),
-            ('parent_state', '=', 'posted'),
-        ], order='date desc', limit=1)
+        for record in self:
+            last_invoice_line = self.env['account.move.line'].search([
+                ('product_id', '=', record.product_id.id),
+                ('parent_state', '=', 'posted'),
+            ], order='date desc', limit=1)
 
-        if last_invoice_line:
-            return last_invoice_line
+            if last_invoice_line:
+                return last_invoice_line
             
 
     def get_product_uxb(self):
