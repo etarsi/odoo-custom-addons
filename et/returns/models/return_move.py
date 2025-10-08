@@ -196,20 +196,21 @@ class ReturnMoveLine(models.Model):
     
 
     def update_product(self):
-        uxb = self.get_product_uxb()
-        self.uxb = uxb
+        for record in self:
+            uxb = record.get_product_uxb()
+            record.uxb = uxb
 
-        last_invoice_line = self.get_last_invoice_line()
+            last_invoice_line = record.get_last_invoice_line()
 
-        if last_invoice_line:
-            if last_invoice_line.company_id.id == 1:
-                self.price_unit = last_invoice_line.price_unit / 1.21
-                self.company_id = 2
-                self.discount = last_invoice_line.discount
-            else:
-                self.price_unit = last_invoice_line.price_unit
-                self.company_id = last_invoice_line.company_id.id
-                self.discount = last_invoice_line.discount
+            if last_invoice_line:
+                if last_invoice_line.company_id.id == 1:
+                    record.price_unit = last_invoice_line.price_unit / 1.21
+                    record.company_id = 2
+                    record.discount = last_invoice_line.discount
+                else:
+                    record.price_unit = last_invoice_line.price_unit
+                    record.company_id = last_invoice_line.company_id.id
+                    record.discount = last_invoice_line.discount
 
 
     def get_last_invoice_line(self):
@@ -223,13 +224,15 @@ class ReturnMoveLine(models.Model):
             
 
     def get_product_uxb(self):
-        if self.product_id.packaging_ids:
-            return self.product_id.packaging_ids[0].qty
+        for record in self:
+            if record.product_id.packaging_ids:
+                return record.product_id.packaging_ids[0].qty
         
 
     @api.depends('quantity')
     def _compute_bultos(self):
-        if self.uxb != 0:
-            self.bultos = self.quantity / self.uxb
-        else:
-            self.bultos = 0
+        for record in self:
+            if record.uxb != 0:
+                record.bultos = record.quantity / record.uxb
+            else:
+                record.bultos = 0
