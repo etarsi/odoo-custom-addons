@@ -1,154 +1,217 @@
 # -*- coding: utf-8 -*-
-import base64
 import io
+import os
+import base64
 import logging
+import zipfile
+from datetime import datetime
+
+from google.oauth2 import service_account
+from googleapiclient.discovery import build
+from googleapiclient.http import MediaIoBaseDownload
+
 from odoo import api, fields, models, _
 from odoo.exceptions import UserError
 
 _logger = logging.getLogger(__name__)
 
-GOOGLE_IMPORT_HINT = _(
-    "Faltan dependencias de Google API. Instalá en el servidor:\n"
-    "  pip install google-api-python-client google-auth google-auth-httplib2 google-auth-oauthlib\n"
-)
+ALLOWED_IMAGE_MIMES = ("image/jpeg", "image/png")
+ALLOWED_IMAGE_EXTS = (".jpg", ".jpeg", ".png")
 
-class ProductImage(models.Model):
-    _inherit = "product.image"
-
-    # Guardamos el fileId de Drive para evitar duplicados
-    gdrive_file_id = fields.Char(index=True)
-
-    _sql_constraints = [
-        # Evita duplicar la misma imagen de Drive para el mismo template
-        ("gdrive_unique_per_tmpl", "unique(gdrive_file_id, product_tmpl_id)",
-         "Esta imagen de Google Drive ya está asociada a este producto."),
-    ]
-
+def _is_image(file_obj):
+    mime = (file_obj.get("mimeType") or "").lower()
+    name = (file_obj.get("name") or "").lower()
+    return (mime in ALLOWED_IMAGE_MIMES) or name.endswith(ALLOWED_IMAGE_EXTS)
 
 class ProductTemplate(models.Model):
     _inherit = "product.template"
 
     gdrive_folder_id = fields.Char(
         string="Google Drive Folder ID",
-        help="ID de la carpeta en Drive con las imágenes del producto."
+        help="ID de la carpeta PRINCIPAL en Drive. Dentro habrá subcarpetas por default_code.",
     )
 
-    def action_open_gallery(self):
-        """Abre la galería (product.image) filtrada por este producto."""
-        self.ensure_one()
-        return {
-            "type": "ir.actions.act_window",
-            "name": _("Galería de Imágenes"),
-            "res_model": "product.image",
-            "view_mode": "kanban,tree,form",
-            "domain": [("product_tmpl_id", "=", self.id)],
-            "context": {"default_product_tmpl_id": self.id},
-            "target": "current",
-        }
-
-    def action_download_images_from_drive(self):
-        """Descarga imágenes desde la carpeta de Drive gdrive_folder_id a product.image."""
-        try:
-            from google.oauth2 import service_account
-            from googleapiclient.discovery import build
-            from googleapiclient.http import MediaIoBaseDownload
-        except Exception as e:
-            raise UserError(GOOGLE_IMPORT_HINT + "\n\n" + str(e))
-
-        params = self.env["ir.config_parameter"].sudo()
-
-        # Ruta al JSON del service account (guardalo como parámetro del sistema)
-        sa_path = params.get_param("gdrive.service_account_file")  # ej: /opt/keys/service_account.json
-        if not sa_path:
-            raise UserError(
-                _("Configurá el parámetro del sistema 'gdrive.service_account_file' con la ruta al JSON del Service Account.")
-            )
-
-        # Opcional: impersonación (si compartís la carpeta con el SA y necesitás actuar como un usuario)
-        delegated_user = params.get_param("gdrive.delegated_user") or None
-
+    # --------- Google Drive helpers ---------
+    def _build_gdrive_service(self):
+        sa_path = "/opt/odoo/drive-api/service_account.json"  # tu ruta fija
         scopes = ["https://www.googleapis.com/auth/drive.readonly"]
+        creds = service_account.Credentials.from_service_account_file(sa_path, scopes=scopes)
+        return build("drive", "v3", credentials=creds, cache_discovery=False)
 
-        try:
-            if delegated_user:
-                creds = service_account.Credentials.from_service_account_file(sa_path, scopes=scopes)
-                creds = creds.with_subject(delegated_user)
-            else:
-                creds = service_account.Credentials.from_service_account_file(sa_path, scopes=scopes)
-        except Exception as e:
-            raise UserError(_("No se pudo cargar el Service Account.\n%s") % e)
+    def _gdrive_list_folder_items(self, service, folder_id):
+        items = []
+        q = f"'{folder_id}' in parents and trashed=false"
+        page_token = None
+        while True:
+            resp = service.files().list(
+                q=q,
+                fields="nextPageToken, files(id, name, mimeType)",
+                pageSize=1000,
+                pageToken=page_token,
+                supportsAllDrives=True,
+                includeItemsFromAllDrives=True,
+            ).execute()
+            items.extend(resp.get("files", []))
+            page_token = resp.get("nextPageToken")
+            if not page_token:
+                break
+        return items
 
-        service = build("drive", "v3", credentials=creds, cache_discovery=False)
+    def _gdrive_resolve_shortcut(self, service, file_obj):
+        if file_obj.get("mimeType") == "application/vnd.google-apps.shortcut":
+            real = service.files().get(
+                fileId=file_obj["id"],
+                fields="shortcutDetails,targetId",
+                supportsAllDrives=True,
+            ).execute()
+            target_id = real.get("shortcutDetails", {}).get("targetId")
+            if target_id:
+                return service.files().get(
+                    fileId=target_id,
+                    fields="id,name,mimeType",
+                    supportsAllDrives=True,
+                ).execute()
+        return file_obj
+
+    def _find_subfolder_for_code(self, service, main_folder_id, code):
+        """
+        Busca una subcarpeta bajo 'main_folder_id' cuyo nombre:
+          1) sea exactamente 'code', o
+          2) empiece con 'code ' / 'code-' / 'code_', o
+          3) contenga 'code'.
+        Devuelve el dict del folder elegido o None.
+        """
+        code_str = (code or "").strip()
+        if not code_str:
+            return None
+
+        # Traemos SOLO carpetas hijas directas
+        q = (f"{main_folder_id} in parents and trashed=false "
+            f"{main_folder_id} in parents and trashed=false "
+            f"and mimeType='application/vnd.google-apps.folder'"
+            f" and name contains '{code_str}'"
+        )
+        folders = []
+        page_token = None
+        while True:
+            resp = service.files().list(
+                q=q,
+                fields="nextPageToken, files(id, name, mimeType)",
+                pageSize=100,
+                pageToken=page_token,
+                supportsAllDrives=True,
+                includeItemsFromAllDrives=True,
+            ).execute()
+            folders.extend(resp.get("files", []))
+            page_token = resp.get("nextPageToken")
+            if not page_token:
+                break
+
+        if not folders:
+            return None
+
+        # Scoring: exact == 3, startswith == 2, contains == 1; luego por nombre más corto
+        def score(f):
+            name = (f.get("name") or "").strip()
+            if name == code_str:
+                return (3, -len(name))
+            if name.lower().startswith((code_str + " ").lower()) \
+               or name.lower().startswith((code_str + "-").lower()) \
+               or name.lower().startswith((code_str + "_").lower()):
+                return (2, -len(name))
+            return (1, -len(name))
+
+        folders.sort(key=score, reverse=True)
+        best = folders[0]
+        if best and (best.get("name") or "").strip() != code_str:
+            _logger.info("Subcarpeta elegida por coincidencia parcial: %s (code=%s)", best.get("name"), code_str)
+        return best
+
+    # --------- Acción: ZIP por default_code ---------
+    def action_zip_by_default_code_from_main_folder(self):
+        """
+        Para cada producto:
+          - Usa gdrive_folder_id como CARPETA PRINCIPAL.
+          - Busca subcarpeta cuyo nombre coincida con default_code (exacto/empieza/contiene).
+          - Zipea SOLO esa subcarpeta (recursivo), guardando solo imágenes (.jpg/.jpeg/.png).
+          - Crea ir.attachment y devuelve descarga directa (si es un producto).
+        """
+        service = self._build_gdrive_service()
+        attachments = []
+
+        def _add_file_to_zip(zipf, file_obj, arc_prefix):
+            file_id = file_obj["id"]
+            file_name = file_obj.get("name") or file_id
+            buf = io.BytesIO()
+            req = service.files().get_media(fileId=file_id)
+            downloader = MediaIoBaseDownload(buf, req)
+            done = False
+            while not done:
+                status, done = downloader.next_chunk()
+            data = buf.getvalue()
+            if not data:
+                _logger.warning("Archivo vacío: %s (%s)", file_name, file_id)
+                return
+            arc = os.path.join(arc_prefix, file_name) if arc_prefix else file_name
+            arc = "/".join(arc.split(os.sep))
+            zipf.writestr(arc, data)
+
+        def _walk_and_zip(zipf, folder_id, prefix):
+            items = self._gdrive_list_folder_items(service, folder_id)
+            for it in items:
+                it = self._gdrive_resolve_shortcut(service, it)
+                mime = it.get("mimeType")
+                name = it.get("name") or it["id"]
+                if mime == "application/vnd.google-apps.folder":
+                    sub_prefix = f"{prefix}/{name}" if prefix else name
+                    # entrada de directorio (opcional)
+                    zinfo = zipfile.ZipInfo(f"{sub_prefix}/")
+                    zipf.writestr(zinfo, b"")
+                    _walk_and_zip(zipf, it["id"], sub_prefix)
+                else:
+                    if _is_image(it):
+                        _add_file_to_zip(zipf, it, prefix)
 
         for tmpl in self:
-            folder_id = (tmpl.gdrive_folder_id or "").strip()
-            if not folder_id:
-                raise UserError(_("El producto '%s' no tiene configurado el Google Drive Folder ID.") % tmpl.display_name)
+            main_id = (tmpl.gdrive_folder_id or "").strip()
+            if not main_id:
+                raise UserError(_("El producto '%s' no tiene configurado el Google Drive Folder ID (carpeta principal).") % tmpl.display_name)
 
-            # Listamos imágenes dentro de la carpeta
-            q = (
-                f"'{folder_id}' in parents and trashed=false and "
-                f"(mimeType contains 'image/' or mimeType='application/octet-stream')"
-            )
+            code = (tmpl.default_code or "").strip()
+            if not code:
+                raise UserError(_("El producto '%s' no tiene default_code (Referencia interna).") % tmpl.display_name)
 
-            page_token = None
-            created = 0
-            skipped = 0
+            # Buscar subcarpeta por código
+            sub = self._find_subfolder_for_code(service, main_id, code)
+            if not sub:
+                raise UserError(_("No se encontró subcarpeta para el código '%s' dentro de la carpeta principal.") % code)
 
-            while True:
-                resp = service.files().list(
-                    q=q,
-                    pageSize=1000,
-                    pageToken=page_token,
-                    fields="nextPageToken, files(id, name, mimeType, size, modifiedTime)"
-                ).execute()
+            # Armar ZIP SOLO de esa subcarpeta
+            mem = io.BytesIO()
+            with zipfile.ZipFile(mem, mode="w", compression=zipfile.ZIP_DEFLATED) as zipf:
+                root_prefix = (sub.get("name") or code).strip().replace("/", "_")
+                _walk_and_zip(zipf, sub["id"], root_prefix)
 
-                for f in resp.get("files", []):
-                    file_id = f["id"]
-                    name = f.get("name") or file_id
+            mem.seek(0)
+            data_b64 = base64.b64encode(mem.read())
+            zip_name = f"{(tmpl.name or code).strip().replace('/', '_')}_{code}_imagenes.zip"
 
-                    # Si ya existe por gdrive_file_id + product_tmpl_id, saltamos
-                    exists = self.env["product.image"].search_count([
-                        ("gdrive_file_id", "=", file_id),
-                        ("product_tmpl_id", "=", tmpl.id),
-                    ])
-                    if exists:
-                        skipped += 1
-                        continue
+            attach = self.env["ir.attachment"].create({
+                "name": zip_name,
+                "datas": data_b64,
+                "res_model": tmpl._name,
+                "res_id": tmpl.id,
+                "mimetype": "application/zip",
+            })
+            attachments.append(attach.id)
+            _logger.info("ZIP creado para '%s' (subcarpeta '%s') -> attachment id %s",
+                         tmpl.display_name, sub.get("name"), attach.id)
 
-                    # Descargar binario
-                    request = service.files().get_media(fileId=file_id)
-                    fh = io.BytesIO()
-                    downloader = MediaIoBaseDownload(fh, request)
-                    done = False
-                    try:
-                        while not done:
-                            status, done = downloader.next_chunk()
-                    except Exception as e:
-                        _logger.exception("Error descargando %s (%s): %s", name, file_id, e)
-                        continue
-
-                    data = fh.getvalue()
-                    if not data:
-                        _logger.warning("Archivo vacío: %s (%s)", name, file_id)
-                        continue
-
-                    # Crear product.image
-                    self.env["product.image"].create({
-                        "name": name,
-                        "product_tmpl_id": tmpl.id,
-                        "image_1920": base64.b64encode(data),
-                        "gdrive_file_id": file_id,
-                    })
-                    created += 1
-
-                page_token = resp.get("nextPageToken")
-                if not page_token:
-                    break
-
-            msg = _("Descarga de Drive completada para '%s': %s creadas, %s omitidas (duplicadas).") % (
-                tmpl.display_name, created, skipped
-            )
-            _logger.info(msg)
-
-        return True
+        # Si es un solo producto, devuelvo descarga directa
+        if len(self) == 1 and attachments:
+            att_id = attachments[-1]
+            return {
+                "type": "ir.actions.act_url",
+                "url": f"/web/content/{att_id}?download=true",
+                "target": "self",
+            }
