@@ -213,8 +213,14 @@ class ReturnMoveLine(models.Model):
 
     invoice_id = fields.Many2one('account.move', string="Factura")
 
-    # @api.model
-    # def create(self, vals): 
+    @api.model
+    def create(self, vals):
+        res = super().create(vals)
+
+        for r in res:
+            r.update_product()
+
+
 
     @api.onchange('product_id')
     def _onchang_product_id(self):
