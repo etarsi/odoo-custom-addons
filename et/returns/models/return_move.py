@@ -220,6 +220,7 @@ class ReturnMoveLine(models.Model):
         for r in res:
             r.update_product()
 
+        return res
 
 
     @api.onchange('product_id')
