@@ -18,7 +18,6 @@ class ReturnMove(models.Model):
     name = fields.Char(string="Nombre", required=True, default="/")
     partner_id = fields.Many2one('res.partner', string="Cliente")
     sale_id = fields.Many2one('sale.order', string="Pedido de Venta")
-    invoice_id = fields.Many2one('account.move', string="Factura")
     cause = fields.Selection(string="Motivo", default=False, selection=[
         ('error', 'Producto Erróneo'),
         ('broken','Producto Roto'),
@@ -29,15 +28,36 @@ class ReturnMove(models.Model):
     date = fields.Date(string="Fecha de Recepción", default=fields.Date.today)
     state = fields.Selection(string="Estado", default='draft', selection=[('draft','Borrador'), ('pending', 'Pendiente'), ('inprogress', 'En Proceso'), ('confirmed', 'Confirmado'), ('done', 'Hecho')])
     move_lines = fields.One2many('return.move.line', 'return_move', string="Devoluciones Sanas")
-    return_move_lines = fields.One2many('return.move.line', 'return_move', string="Devoluciones rotas")
+    move_lines_not_broken = fields.One2many('return.move.line', 'return_move', compute="_compute_not_broken",string="Devoluciones Sanas")
+    move_lines_broken = fields.One2many('return.move.line', 'return_move', compute="_compute_broken",string="Devoluciones Rotas")
     price_total = fields.Float(string="Total", compute="_compute_price_total")
     company_id = fields.Many2one('res.company', string="Compañía")
     wms_code = fields.Char("Código WMS")
 
-    
+
+    ### COMPUTED ###
+
+    @api.depends('move_lines.price_subtotal')
     def _compute_price_total(self):
         for record in self:
-            record.price_total = sum(record.move_lines.mapped('price_subtotal'))
+            if record.move_lines:
+                record.price_total = sum(record.move_lines.mapped('price_subtotal'))
+
+
+    @api.depends('move_lines')
+    def _compute_not_broken(self):
+        for record in self:
+            record.move_lines_not_broken= record.move_lines.filtered(
+                lambda l: l.is_broken == False)
+            
+
+    @api.depends('move_lines')
+    def _compute_broken(self):
+        for record in self:
+            record.move_lines_broken= record.move_lines.filtered(
+                lambda l: l.is_broken == True)
+
+    ### ONCHANGE ###
 
     @api.onchange('partner_id')
     def _onchange_partner_id(self):
@@ -191,6 +211,8 @@ class ReturnMoveLine(models.Model):
     state = fields.Selection(string='State', selection=[('draft','Borrador'), ('confirmed','Confirmado'), ('done', 'Hecho')])
     company_id = fields.Many2one('res.company')
 
+    invoice_id = fields.Many2one('account.move', string="Factura")
+
     # @api.model
     # def create(self, vals): 
 
@@ -209,6 +231,8 @@ class ReturnMoveLine(models.Model):
             last_invoice_line = record.get_last_invoice_line()
 
             if last_invoice_line:
+                record.invoice_id = last_invoice_line.move_id.id
+                
                 if last_invoice_line.company_id.id == 1:
                     record.price_unit = last_invoice_line.price_unit / 1.21
                     record.company_id = 2
