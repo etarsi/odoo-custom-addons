@@ -2,8 +2,8 @@
 <odoo>
   <data>
     <record id="website_menu_productos" model="website.menu">
-      <field name="name">Producto</field>
-      <field name="url">/productos</field>
+      <field name="name">Listado de Productos</field>
+      <field name="url">/listado_productos</field>
       <field name="parent_id" ref="website.main_menu"/>
       <field name="sequence">30</field>
     </record>
