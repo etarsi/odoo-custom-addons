@@ -222,7 +222,7 @@ class ProductTemplate(models.Model):
             att = self.env["ir.attachment"].browse(attachments[-1])
             if not att.access_token:
                 att._generate_access_token()
-            url = f"/web/content/{att.id}?download=true&access_token={att.access_token}"
+            url = f"/web/content/{att.id}?download=true"
             return {
                 "type": "ir.actions.act_url",
                 "url": url,
