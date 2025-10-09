@@ -245,6 +245,13 @@ class ProductImageDownloadController(http.Controller):
             _logger.exception("Error creando adjunto")
             return request.render('website.404', {'error_message': _("Error creando adjunto: %s") % e})
 
-        # Redirigir a descarga con token
-        url = f"/web/content/{att.id}?download=1"
+        # Redirigir a descarga con token        
+        url = f"/web/content/{att.id}?download=1&access_token={att.access_token}"
+        _logger.info("Redirigiendo a descarga de ZIP: %s", url)
+        _logger.debug("  (producto %s - %s)", product.id, product.name)
+        _logger.debug("  (subcarpeta %s - %s)", sub.get("id"), sub.get("name"))
+        _logger.debug("  (adjunto %s - %s)", att.id, att.name)
+        _logger.info("  (tamaño ZIP: %.2f MB)", len(zip_bytes) / (1024 * 1024))
+        _logger.info("  (descarga: %s)", url)
+        _logger.info("  (access_token: %s)", att.access_token)
         return request.redirect(url)
