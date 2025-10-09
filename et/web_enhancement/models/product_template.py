@@ -208,6 +208,9 @@ class ProductTemplate(models.Model):
                 "res_id": tmpl.id,
                 "mimetype": "application/zip",
             })
+            #generar token si no tiene
+            if not attach.access_token:
+                attach._generate_access_token()
             attachments.append(attach.id)
             _logger.info("ZIP creado para '%s' (subcarpeta '%s') -> attachment id %s",
                          tmpl.display_name, sub.get("name"), attach.id)
@@ -216,9 +219,12 @@ class ProductTemplate(models.Model):
         _logger.info("Total attachments creados: %d", len(attachments))
         # Si es un solo producto, devuelvo descarga directa
         if len(self) == 1 and attachments:
-            att_id = attachments[-1]
+            att = self.env["ir.attachment"].browse(attachments[-1])
+            if not att.access_token:
+                att._generate_access_token()
+            url = f"/web/content/{att.id}?download=true&access_token={att.access_token}"
             return {
                 "type": "ir.actions.act_url",
-                "url": f"/web/content/{att_id}?download=true",
+                "url": url,
                 "target": "self",
             }
