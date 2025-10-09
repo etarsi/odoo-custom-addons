@@ -249,9 +249,9 @@ class ProductImageDownloadController(http.Controller):
         db = request.env.cr.dbname
         url = f"/web/content/{att.id}?download=1&access_token={att.access_token}&d={db}"
         _logger.info("Redirigiendo a descarga de ZIP: %s", url)
-        _logger.debug("  (producto %s - %s)", product.id, product.name)
-        _logger.debug("  (subcarpeta %s - %s)", sub.get("id"), sub.get("name"))
-        _logger.debug("  (adjunto %s - %s)", att.id, att.name)
+        _logger.info("  (producto %s - %s)", product.id, product.name)
+        _logger.info("  (subcarpeta %s - %s)", sub.get("id"), sub.get("name"))
+        _logger.info("  (adjunto %s - %s)", att.id, att.name)
         _logger.info("  (tamaño ZIP: %.2f MB)", len(zip_bytes) / (1024 * 1024))
         _logger.info("  (descarga: %s)", url)
         _logger.info("  (access_token: %s)", att.access_token)

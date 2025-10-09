@@ -23,6 +23,7 @@
         'views/product_template_views.xml',
         #'views/website_menu.xml',
         'views/views.xml',
+        'views/res_config_views.xml',
         'views/templates.xml',
     ],
     'demo': [

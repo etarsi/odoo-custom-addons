@@ -143,7 +143,9 @@ class ProductTemplate(models.Model):
         """
         service = self._build_gdrive_service()
         attachments = []
-
+        sheet_drive_folder_path = self.env['ir.config_parameter'].get_param('web_enhancement.sheet_drive_folder_path')
+        if not sheet_drive_folder_path:
+            raise UserError(_("No está configurado el ID de la carpeta principal en Drive (Settings > Configuración de Google Drive)."))
         def _add_file_to_zip(zipf, file_obj, arc_prefix):
             file_id = file_obj["id"]
             file_name = file_obj.get("name") or file_id
@@ -178,25 +180,50 @@ class ProductTemplate(models.Model):
                         _add_file_to_zip(zipf, it, prefix)
 
         for tmpl in self:
-            main_id = ("1Mob5cI20nki0GayprUS4d2g-Q1KmEXJg" or "").strip()
-            if not main_id:
-                raise UserError(_("El producto '%s' no tiene configurado el Google Drive Folder ID (carpeta principal).") % tmpl.display_name)
+            # ---- Determinar carpeta objetivo y nombre raíz del ZIP ----
+            if (tmpl.gdrive_folder_id or "").strip():
+                # Caso 1: usar la carpeta del producto directamente
+                target_folder_id = tmpl.gdrive_folder_id.strip()
+                # Obtener nombre legible de esa carpeta para el prefijo del ZIP
+                meta = service.files().get(
+                    fileId=target_folder_id,
+                    fields="id,name",
+                    supportsAllDrives=True
+                ).execute()
+                root_prefix = (meta.get("name") or tmpl.default_code or f"product_{tmpl.id}").strip().replace("/", "_")
+                #si no encuentra la carpeta, que vuelva a buscar con la carpeta padre
+                if not meta:
+                    main_id = (sheet_drive_folder_path or "").strip()
+                    if not main_id:
+                        raise UserError(_("No está configurado el ID de la carpeta principal en Drive (Settings > Configuración de Google Drive)."))
+                    code = (tmpl.default_code or "").strip()
+                    if not code:
+                        raise UserError(_("El producto '%s' no tiene default_code (Referencia interna).") % tmpl.display_name)
 
-            code = (tmpl.default_code or "").strip()
-            if not code:
-                raise UserError(_("El producto '%s' no tiene default_code (Referencia interna).") % tmpl.display_name)
+                    sub = self._find_subfolder_for_code(service, main_id, code)
+                    if not sub:
+                        raise UserError(_("No se encontró subcarpeta para el código '%s' dentro de la carpeta principal.") % code)
+                    target_folder_id = sub["id"]
+                    root_prefix = (sub.get("name") or code).strip().replace("/", "_")
+            else:
+                # Caso 2: usar carpeta principal global y buscar subcarpeta por default_code
+                main_id = (sheet_drive_folder_path or "").strip()
+                if not main_id:
+                    raise UserError(_("No está configurado el ID de la carpeta principal en Drive (Settings > Configuración de Google Drive)."))
+                code = (tmpl.default_code or "").strip()
+                if not code:
+                    raise UserError(_("El producto '%s' no tiene default_code (Referencia interna).") % tmpl.display_name)
 
-            # Buscar subcarpeta por código
-            sub = self._find_subfolder_for_code(service, main_id, code)
-            if not sub:
-                raise UserError(_("No se encontró subcarpeta para el código '%s' dentro de la carpeta principal.") % code)
-
+                sub = self._find_subfolder_for_code(service, main_id, code)
+                if not sub:
+                    raise UserError(_("No se encontró subcarpeta para el código '%s' dentro de la carpeta principal.") % code)
+                target_folder_id = sub["id"]
+                root_prefix = (sub.get("name") or code).strip().replace("/", "_")   
             # Armar ZIP SOLO de esa subcarpeta
             mem = io.BytesIO()
             with zipfile.ZipFile(mem, mode="w", compression=zipfile.ZIP_DEFLATED) as zipf:
                 root_prefix = (sub.get("name") or code).strip().replace("/", "_")
                 _walk_and_zip(zipf, sub["id"], root_prefix)
-
             mem.seek(0)
             data_b64 = base64.b64encode(mem.read())
             zip_name = f"{(tmpl.name or code).strip().replace('/', '_')}_{code}_imagenes.zip"
@@ -214,7 +241,8 @@ class ProductTemplate(models.Model):
             attachments.append(attach.id)
             _logger.info("ZIP creado para '%s' (subcarpeta '%s') -> attachment id %s",
                          tmpl.display_name, sub.get("name"), attach.id)
-
+            #guardar el id en el campo del producto
+            tmpl.write({'gdrive_folder_id': target_folder_id})
         _logger.info("Total productos procesados: %d", len(self))
         _logger.info("Total attachments creados: %d", len(attachments))
         # Si es un solo producto, devuelvo descarga directa
