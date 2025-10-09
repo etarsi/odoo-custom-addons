@@ -205,6 +205,7 @@ class ProductTemplate(models.Model):
                     target_folder_id = sub["id"]
                     root_prefix = (sub.get("name") or code).strip().replace("/", "_")
                 else:
+                    target_folder_id = sub["id"]
                     root_prefix = (sub.get("name") or tmpl.default_code or f"product_{tmpl.id}").strip().replace("/", "_")
             else:
                 # Caso 2: usar carpeta principal global y buscar subcarpeta por default_code
