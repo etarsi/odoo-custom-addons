@@ -246,7 +246,8 @@ class ProductImageDownloadController(http.Controller):
             return request.render('website.404', {'error_message': _("Error creando adjunto: %s") % e})
 
         # Redirigir a descarga con token        
-        url = f"/web/content/{att.id}?download=1&access_token={att.access_token}"
+        db = request.env.cr.dbname
+        url = f"/web/content/{att.id}?download=1&access_token={att.access_token}&d={db}"
         _logger.info("Redirigiendo a descarga de ZIP: %s", url)
         _logger.debug("  (producto %s - %s)", product.id, product.name)
         _logger.debug("  (subcarpeta %s - %s)", sub.get("id"), sub.get("name"))
