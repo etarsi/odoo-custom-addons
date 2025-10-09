@@ -936,7 +936,7 @@ class StockPickingInherit(models.Model):
         return {
             'type': 'ir.actions.act_url',
             'url': f'/backend/remito/pdf/{self.id}',
-            'target': 'new',
+            'target': 'self',
         }
     
     def action_print_remito3(self):

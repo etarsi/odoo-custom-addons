@@ -146,6 +146,7 @@ class ProductTemplate(models.Model):
         sheet_drive_folder_path = self.env['ir.config_parameter'].get_param('web_enhancement.sheet_drive_folder_path')
         if not sheet_drive_folder_path:
             raise UserError(_("No está configurado el ID de la carpeta principal en Drive (Settings > Configuración de Google Drive)."))
+        
         def _add_file_to_zip(zipf, file_obj, arc_prefix):
             file_id = file_obj["id"]
             file_name = file_obj.get("name") or file_id
