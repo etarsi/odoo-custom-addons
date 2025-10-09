@@ -185,13 +185,13 @@ class ProductTemplate(models.Model):
                 # Caso 1: usar la carpeta del producto directamente
                 target_folder_id = tmpl.gdrive_folder_id.strip()
                 # Obtener nombre legible de esa carpeta para el prefijo del ZIP
-                meta = service.files().get(
+                sub = service.files().get(
                     fileId=target_folder_id,
                     fields="id,name",
                     supportsAllDrives=True
                 ).execute()
                 #si no encuentra la carpeta, que vuelva a buscar con la carpeta padre
-                if not meta:
+                if not sub:
                     main_id = (sheet_drive_folder_path or "").strip()
                     if not main_id:
                         raise UserError(_("No está configurado el ID de la carpeta principal en Drive (Settings > Configuración de Google Drive)."))
@@ -205,7 +205,7 @@ class ProductTemplate(models.Model):
                     target_folder_id = sub["id"]
                     root_prefix = (sub.get("name") or code).strip().replace("/", "_")
                 else:
-                    root_prefix = (meta.get("name") or tmpl.default_code or f"product_{tmpl.id}").strip().replace("/", "_")
+                    root_prefix = (sub.get("name") or tmpl.default_code or f"product_{tmpl.id}").strip().replace("/", "_")
             else:
                 # Caso 2: usar carpeta principal global y buscar subcarpeta por default_code
                 main_id = (sheet_drive_folder_path or "").strip()
