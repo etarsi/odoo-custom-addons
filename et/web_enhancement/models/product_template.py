@@ -204,7 +204,8 @@ class ProductTemplate(models.Model):
                         raise UserError(_("No se encontró subcarpeta para el código '%s' dentro de la carpeta principal.") % code)
                     target_folder_id = sub["id"]
                     root_prefix = (sub.get("name") or code).strip().replace("/", "_")
-                root_prefix = (meta.get("name") or tmpl.default_code or f"product_{tmpl.id}").strip().replace("/", "_")
+                else:
+                    root_prefix = (meta.get("name") or tmpl.default_code or f"product_{tmpl.id}").strip().replace("/", "_")
             else:
                 # Caso 2: usar carpeta principal global y buscar subcarpeta por default_code
                 main_id = (sheet_drive_folder_path or "").strip()
