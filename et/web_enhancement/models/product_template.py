@@ -183,10 +183,10 @@ class ProductTemplate(models.Model):
             # ---- Determinar carpeta objetivo y nombre raíz del ZIP ----
             if (tmpl.gdrive_folder_id or "").strip():
                 # Caso 1: usar la carpeta del producto directamente
-                target_folder_id = tmpl.gdrive_folder_id.strip()
+                code = tmpl.gdrive_folder_id.strip()
                 # Obtener nombre legible de esa carpeta para el prefijo del ZIP
                 sub = service.files().get(
-                    fileId=target_folder_id,
+                    fileId=code,
                     fields="id,name",
                     supportsAllDrives=True
                 ).execute()
