@@ -111,7 +111,6 @@ class Container(models.Model):
                                     if product['p_code'] == element['CodigoArticulo']:
                                         product['q_picked'] += element['Unidades']
                             else:
-                                raise UserError(f'El producto {cod_art} no fué encontrado.')
                                 vals = {}
                                 product_id = self.env['product.product'].search([('default_code', '=', element['CodigoArticulo'])], limit=1)
                                 if product_id:
