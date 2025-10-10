@@ -104,13 +104,14 @@ class Container(models.Model):
                 data = response.json()
                 if data['Estado'] in ('Guardado','Verificado') and data['Modo'] == 'Completo':
                     if data['ControlCiegoDetalle']:
-                        for element in data['ControlCiegoDetalle']:   
-                            if element['CodigoArticulo'] in product_codes:              
+                        for element in data['ControlCiegoDetalle']:
+                            cod_art = element['CodigoArticulo']
+                            if element['CodigoArticulo'] in product_codes:            
                                 for product in vals_list:
                                     if product['p_code'] == element['CodigoArticulo']:
                                         product['q_picked'] += element['Unidades']
                             else:
-                                raise UserError(f'El producto {element['CodigoArticulo']} no fué encontrado.')
+                                raise UserError(f'El producto {cod_art} no fué encontrado.')
                                 vals = {}
                                 product_id = self.env['product.product'].search([('default_code', '=', element['CodigoArticulo'])], limit=1)
                                 if product_id:
