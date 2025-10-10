@@ -123,7 +123,8 @@ class Container(models.Model):
                                         'q_picked': element['Unidades'],
                                     }
                                     vals_list.append(vals2)
-
+                                else:
+                                    raise UserError(f'El producto {element['CodigoArticulo']} no fué encontrado.')
                         for v in vals_list:
                             for line in record.lines:
                                 if v['p_code'] == line.product_id.default_code:
