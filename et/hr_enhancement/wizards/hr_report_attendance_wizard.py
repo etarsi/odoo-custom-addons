@@ -110,7 +110,7 @@ class HrReportAttendanceWizard(models.TransientModel):
         for attendance in attendances:
             emp = attendance.employee_id
             # 2) cuando cambia de empleado, escribo la "cabecera" con los totales
-            if not current_emp_id or emp.id != current_emp_id:
+            if current_emp_id or emp.id != current_emp_id:
                 tot_prev = totales_por_emp[current_emp_id]
                 worksheet.merge_range(row, 0, row, 2, " ", fmt_total)
                 worksheet.write(row, 3, tot_prev['wh'], fmt_total)
