@@ -77,7 +77,36 @@ class HrEnhancementApi(models.AbstractModel):
                             'employee_type': 'employee',
                             'state': 'active',
                         })
-
+                        open_att = hr_attendance.create({
+                            'employee_id': employee.id,
+                            'check_in': check_utc,  # naive UTC
+                        })
+                        message += f'--asistencia abierta: {open_att.id} (empleado en borrador)'
+                    else:
+                        # Limites del día (para agrupar por día local)
+                        open_att = hr_attendance.search([
+                            ('employee_id', '=', employee.id),
+                            ('check_out', '=', False),
+                            ('blocked', '=', False)], limit=1, order='check_in desc')
+                        if open_att:
+                            min_minutes = 60
+                            delta_minutes = (check_utc - open_att.check_in).total_seconds() / 60.0
+                            if delta_minutes < min_minutes:
+                                env['hr.temp.attendance'].sudo().create({
+                                    'employee_id': employee.id,
+                                    'check_date': check_utc,
+                                    'employee_type': employee.employee_type,
+                                })
+                                message += f'--la salida debe ser al menos {min_minutes} minutos después de la entrada ({open_att.check_in.strftime("%Y-%m-%d %H:%M")})'
+                                return {'success': False, 'error': message, 'received': data}
+                            open_att.write({'check_out': check_utc})
+                            message += f' (asistencia cerrada: {open_att.id})'
+                        else:
+                            open_att = hr_attendance.create({
+                                'employee_id': employee.id,
+                                'check_in': check_utc,
+                            })
+                            message += f' (asistencia abierta: {open_att.id})'
                 elif open_method == 'FINGERPRINT':
                     if not employee:
                         employee = hr_employee.create({
