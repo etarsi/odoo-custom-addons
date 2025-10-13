@@ -43,9 +43,9 @@ class HrReportAttendanceWizard(models.TransientModel):
         worksheet.set_column(0, 0, 30)   # Empleado
         worksheet.set_column(1, 1, 20)   # Fecha Ingreso
         worksheet.set_column(2, 2, 20)   # Fecha Salida
-        worksheet.set_column(3, 3, 10)   # Horas Trabajadas
-        worksheet.set_column(4, 4, 10)   # Horas Extras
-        worksheet.set_column(5, 5, 10)   # Horas Feriado
+        worksheet.set_column(3, 3, 15)   # Horas Trabajadas
+        worksheet.set_column(4, 4, 15)   # Horas Extras
+        worksheet.set_column(5, 5, 15)   # Horas Feriado
         worksheet.set_column(6, 6, 20)   # Tipo de Empleado
         worksheet.set_column(7, 7, 20)   # Turno Asignado
         
@@ -55,7 +55,7 @@ class HrReportAttendanceWizard(models.TransientModel):
         formato_celdas_derecha = excel.formato_celda_derecha(workbook)
         formato_celdas_decimal = excel.formato_celda_decimal(workbook)
         fmt_emp = workbook.add_format({'bold': True, 'bg_color': "#5384AF", 'border': 1, 'align': 'left'})
-        fmt_total = workbook.add_format({'bold': True, 'bg_color': '#DDEBF7', 'border': 1, 'align': 'left'})
+        fmt_total = workbook.add_format({'bold': True, 'bg_color': '#DDEBF7', 'border': 1, 'align': 'ringht'})
             
         # Escribir datos
         rango_start = self.date_start.strftime('%Y/%m/%d')
@@ -72,8 +72,8 @@ class HrReportAttendanceWizard(models.TransientModel):
         worksheet.write(header_row, 1, 'INGRESO', formato_encabezado)
         worksheet.write(header_row, 2, 'SALIDA', formato_encabezado)
         worksheet.write(header_row, 3, 'H. TRABAJADAS', formato_encabezado)
-        worksheet.write(header_row, 4, 'H. 50%/EXTRA', formato_encabezado)
-        worksheet.write(header_row, 5, 'H. 100%/FERIADOS/SABADOS', formato_encabezado)
+        worksheet.write(header_row, 4, 'H. 50%', formato_encabezado)
+        worksheet.write(header_row, 5, 'H. 100%', formato_encabezado)
         worksheet.write(header_row, 6, 'TIPO DE EMPLEADO', formato_encabezado)
         worksheet.write(header_row, 7, 'TURNO ASIGNADO', formato_encabezado)
         # Buscar facturas en el rango de fechas
