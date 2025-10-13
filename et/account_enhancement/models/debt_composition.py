@@ -7,6 +7,7 @@ class ResPartnerDebtCompositionReport(models.Model):
     _auto = False
     _order = 'partner_id, fecha'
 
+    name = fields.Char(string='Nombre', related='partner_id.name', store=False)
     partner_id = fields.Many2one('res.partner', string='Cliente')
     partner_name = fields.Char(string='Nombre del Cliente')
     fecha = fields.Date(string='Fecha del Comprobante')
@@ -23,6 +24,11 @@ class ResPartnerDebtCompositionReport(models.Model):
     saldo_acumulado = fields.Monetary(string='Saldo Acumulado')
     company_id = fields.Many2one('res.company', string='Compañía')
     currency_id = fields.Many2one('res.currency', string='Moneda')
+
+    create_date = fields.Datetime(readonly=True)
+    write_date = fields.Datetime(readonly=True)
+    create_uid = fields.Many2one('res.users', readonly=True)
+    write_uid = fields.Many2one('res.users', readonly=True)
 
 
     def init(self):
@@ -80,6 +86,10 @@ class ResPartnerDebtCompositionReport(models.Model):
 
                 SELECT
                     ROW_NUMBER() OVER() AS id,
+                    NULL::timestamp without time zone AS create_date,
+                    NULL::integer AS create_uid,
+                    NULL::timestamp without time zone AS write_date,
+                    NULL::integer AS write_uid,
                     partner_id,
                     partner_name,
                     fecha,
