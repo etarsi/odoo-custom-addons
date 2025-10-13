@@ -29,7 +29,7 @@ class ReportDebtCompositionClient(models.Model):
                     -- FACTURAS
                     SELECT
                         am.id AS id,
-                        am.partner,
+                        am.partner_id as partner,
                         am.invoice_date AS fecha,
                         am.invoice_date_due AS fecha_vencimiento,
                         am.name AS nombre,
@@ -49,7 +49,7 @@ class ReportDebtCompositionClient(models.Model):
                     -- NOTAS DE CRÉDITO
                     SELECT
                         am.id + 1000000 AS id,
-                        am.partner,
+                        am.partner_id as partner,
                         am.invoice_date AS fecha,
                         am.invoice_date_due AS fecha_vencimiento,
                         am.name AS nombre,
@@ -69,7 +69,7 @@ class ReportDebtCompositionClient(models.Model):
                     -- RECIBOS
                     SELECT
                         apg.id + 2000000 AS id,
-                        apg.partner,
+                        apg.partner_id as partner,
                         apg.payment_date AS fecha,
                         NULL AS fecha_vencimiento,
                         apg.name AS nombre,
@@ -92,7 +92,7 @@ class ReportDebtCompositionClient(models.Model):
                     importe_original,
                     importe_aplicado,
                     importe_residual,
-                    SUM(importe_residual) OVER (PARTITION BY partner_id ORDER BY fecha, nombre) AS saldo_acumulado,
+                    SUM(importe_residual) OVER (PARTITION BY partner ORDER BY fecha, nombre) AS saldo_acumulado,
                     origen,
                     company_id,
                     currency_id
