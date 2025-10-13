@@ -26,26 +26,33 @@ class ResPartnerDebtCompositionReport(models.Model):
             CREATE OR REPLACE VIEW res_partner_debt_composition_report AS (
 
                 WITH combined AS (
-                    -- FACTURAS Y NOTAS DE DÉBITO
+                    -- FACTURAS / ND / NC
                     SELECT
                         am.partner_id,
                         am.invoice_date AS fecha,
                         am.invoice_date_due AS vencimiento,
                         am.name AS comprobante,
-                        'factura' AS tipo,
+                        CASE
+                            WHEN am.move_type = 'out_invoice' THEN 'factura'
+                            WHEN am.move_type = 'out_refund' THEN 'nota_credito'
+                            ELSE 'otros'
+                        END AS tipo,
                         am.amount_total AS importe_original,
                         (am.amount_total - am.amount_residual) AS importe_aplicado,
-                        am.amount_residual AS importe_residual,
+                        CASE
+                            WHEN am.move_type = 'out_refund' THEN -am.amount_residual  -- 🔹 NC restan
+                            ELSE am.amount_residual
+                        END AS importe_residual,
                         am.company_id,
                         am.currency_id
                     FROM account_move am
                     WHERE am.move_type IN ('out_invoice', 'out_refund')
-                      AND am.state = 'posted'
-                      AND am.amount_residual > 0
+                    AND am.state = 'posted'
+                    AND am.amount_residual > 0
 
                     UNION ALL
 
-                    -- RECIBOS NO IMPUTADOS
+                    -- RECIBOS NO IMPUTADOS (restan deuda)
                     SELECT
                         apg.partner_id,
                         apg.payment_date AS fecha,
@@ -54,12 +61,12 @@ class ResPartnerDebtCompositionReport(models.Model):
                         'recibo' AS tipo,
                         apg.x_payments_amount AS importe_original,
                         COALESCE(apg.x_amount_applied, 0) AS importe_aplicado,
-                        apg.unreconciled_amount AS importe_residual,
+                        -apg.unreconciled_amount AS importe_residual,  -- 🔹 signo negativo
                         apg.company_id,
                         apg.currency_id
                     FROM account_payment_group apg
                     WHERE apg.state = 'posted'
-                      AND apg.unreconciled_amount > 0
+                    AND apg.unreconciled_amount > 0
                 )
 
                 SELECT
@@ -80,3 +87,4 @@ class ResPartnerDebtCompositionReport(models.Model):
                 FROM combined
             );
         """)
+
