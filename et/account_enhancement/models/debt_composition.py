@@ -37,6 +37,15 @@ class ResPartnerDebtCompositionReport(models.Model):
             display = f"{rec.partner_name or ''} - {rec.comprobante or ''}"
             result.append((rec.id, display))
         return result
+    
+    def _search(self, args, offset=0, limit=None, order=None, count=False):
+        new_args = []
+        for arg in args:
+            if isinstance(arg, (list, tuple)) and arg[0] == 'partner_id' and arg[1] in ('ilike', '=ilike'):
+                new_args.append(('partner_name', arg[1], arg[2]))
+            else:
+                new_args.append(arg)
+        return super()._search(new_args, offset=offset, limit=limit, order=order, count=count)
 
     def init(self):
         self.env.cr.execute("""
