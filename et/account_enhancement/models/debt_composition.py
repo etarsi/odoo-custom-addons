@@ -93,6 +93,5 @@ class ResPartnerDebtCompositionReport(models.Model):
                 company_id,
                 currency_id
             FROM combined;
-            );
         """)
 
