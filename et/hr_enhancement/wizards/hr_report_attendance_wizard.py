@@ -55,26 +55,37 @@ class HrReportAttendanceWizard(models.TransientModel):
         workbook = xlsxwriter.Workbook(output, {'in_memory': True})
         worksheet = workbook.add_worksheet('Asistencias')
         # Agrupados por rangos consecutivos con mismo ancho
-        worksheet.set_column(0, 0, 10)   # nro correlativo
-        worksheet.set_column(0, 0, 20)   # Empleado
-        worksheet.set_column(1, 2, 15)   # Fecha Ingreso
-        worksheet.set_column(2, 2, 12)   # Fecha Salida
+        worksheet.set_column(0, 0, 4)   # nro correlativo
+        worksheet.set_column(0, 1, 30)   # Empleado
+        worksheet.set_column(1, 2, 20)   # Fecha Ingreso
+        worksheet.set_column(2, 2, 20)   # Fecha Salida
         worksheet.set_column(3, 3, 10)   # Tipo de Empleado
-        worksheet.set_column(4, 4, 15)   # Turno Asignado
+        worksheet.set_column(4, 4, 10)   # Turno Asignado
         
         #formato de celdas
         formato_encabezado = excel.formato_encabezado(workbook)
         formato_celdas_izquierda = excel.formato_celda_izquierda(workbook)
         formato_celdas_derecha = excel.formato_celda_derecha(workbook)
         formato_celdas_decimal = excel.formato_celda_decimal(workbook)
+        fmt_emp     = workbook.add_format({'bold': True, 'bg_color': '#DDEBF7', 'border': 1, 'align': 'left'})
+            
+        # Escribir datos
+        rango_start = self.date_start.strftime('%Y-%m-%d')
+        rango_end = self.date_end.strftime('%Y-%m-%d')
+        #colocar un titulo que diga SEBIGUS SRL en la primera fila centrado y en negrita de la a columna A a la F
+        worksheet.merge_range(0, 0, 0, 5, 'SEBIGUS SRL', formato_encabezado)
+        #colocar un subtitulo que diga REPORTE DE ASISTENCIA en la segunda fila centrado y en negrita de la a columna A a la F
+        worksheet.merge_range(1, 0, 1, 5, 'REPORTE DE ASISTENCIA', formato_encabezado)
+        #colocar un subtitulo que diga el rango de fechas en la tercera fila centrado y en negrita de la a columna A a la F
+        worksheet.merge_range(2, 0, 2, 5, f'Rango de Fechas: {rango_start} a {rango_end}', formato_encabezado)
         # Escribir encabezados
-        worksheet.write(0, 0, 'NRO', formato_encabezado)
-        worksheet.write(0, 1, 'EMPLEADO', formato_encabezado)
-        worksheet.write(0, 2, 'INGRESO', formato_encabezado)
-        worksheet.write(0, 3, 'SALIDA', formato_encabezado)
-        worksheet.write(0, 4, 'TIPO DE EMPLEADO', formato_encabezado)
-        worksheet.write(0, 5, 'TURNO ASIGNADO', formato_encabezado)
-
+        header_row = 4
+        worksheet.write(header_row, 0, 'NRO', formato_encabezado)
+        worksheet.write(header_row, 1, 'EMPLEADO', formato_encabezado)
+        worksheet.write(header_row, 2, 'INGRESO', formato_encabezado)
+        worksheet.write(header_row, 3, 'SALIDA', formato_encabezado)
+        worksheet.write(header_row, 4, 'TIPO DE EMPLEADO', formato_encabezado)
+        worksheet.write(header_row, 5, 'TURNO ASIGNADO', formato_encabezado)
         # Buscar facturas en el rango de fechas
         domain = [
             ('check_in', '>=', self.date_start),
@@ -92,23 +103,22 @@ class HrReportAttendanceWizard(models.TransientModel):
             domain.append(('employee_type', '=', self.employee_type))
         if self.employee_type_shift != 'all':
             domain.append(('employee_type_shift', '=', self.employee_type_shift))
-        attendances = self.env['hr.attendance'].search(domain)
-        # Escribir datos
-        rango_start = self.date_start.strftime('%Y-%m-%d')
-        rango_end = self.date_end.strftime('%Y-%m-%d')
-        row = 1
+        attendances = self.env['hr.attendance'].search(domain, order="employee_id, check_in")
+        row = header_row + 1
+        current_emp = False
         correlativo = 1
-        #colocar un titulo que diga SEBIGUS SRL en la primera fila centrado y en negrita de la a columna A a la F
-        worksheet.merge_range(0, 0, 0, 5, 'SEBIGUS SRL', formato_encabezado)
-        #colocar un subtitulo que diga REPORTE DE ASISTENCIA en la segunda fila centrado y en negrita de la a columna A a la F
-        worksheet.merge_range(1, 0, 1, 5, 'REPORTE DE ASISTENCIA', formato_encabezado)
-        #colocar un subtitulo que diga el rango de fechas en la tercera fila centrado y en negrita de la a columna A a la F
-        worksheet.merge_range(2, 0, 2, 5, f'Rango de Fechas: {rango_start} a {rango_end}', formato_encabezado)
-        row = 4  # Empezar a escribir datos desde la fila 5 (índice 4)
+
         for attendance in attendances:
+            emp = attendance.employee_id
+            # Cuando cambia el empleado, insertar “título de empleado”
+            if not current_emp or emp.id != current_emp.id:
+                worksheet.merge_range(row, 0, row, 5, emp.name or '—', fmt_emp)
+                row += 1
+                correlativo = 1
+                current_emp = emp
             # Fechas formateadas
-            ingreso = attendance.check_in.strftime('%Y-%m-%d %H:%M:%S') if attendance.check_in else ''
-            salida = attendance.check_out.strftime('%Y-%m-%d %H:%M:%S') if attendance.check_out else ''
+            ingreso = attendance.check_in.strftime('%d/%m/%Y %H:%M:%S') if attendance.check_in else ''
+            salida = attendance.check_out.strftime('%d/%m/%Y %H:%M:%S') if attendance.check_out else ''
             tipo_empleado = 'Empleado' if attendance.employee_type == 'employee' else 'Eventual' if attendance.employee_type == 'eventual' else ''
             turno_asignado = 'Día' if attendance.employee_type_shift == 'day' else 'Noche' if attendance.employee_type_shift == 'night' else ''
             #como colocar una linea separacion entre empleados
@@ -118,6 +128,7 @@ class HrReportAttendanceWizard(models.TransientModel):
             worksheet.write(row, 3, salida, formato_celdas_derecha)
             worksheet.write(row, 4, tipo_empleado, formato_celdas_izquierda)
             worksheet.write(row, 5, turno_asignado, formato_celdas_izquierda)
+
             correlativo += 1
             row += 1
         workbook.close()
