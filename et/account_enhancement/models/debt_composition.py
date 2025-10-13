@@ -8,7 +8,7 @@ class ResPartnerDebtCompositionReport(models.Model):
     _order = 'partner_id, fecha'
     _rec_name = 'partner_name'
 
-    partner_name = fields.Char(string='Nombre del Cliente')
+    partner_name = fields.Char(string='Nombre del Cliente', related='partner_id.name', store=True)
     partner_id = fields.Many2one('res.partner', string='Cliente')
     fecha = fields.Date(string='Fecha del Comprobante')
     vencimiento = fields.Date(string='Fecha de Vencimiento')
@@ -50,7 +50,7 @@ class ResPartnerDebtCompositionReport(models.Model):
                         am.amount_total AS importe_original,
                         (am.amount_total - am.amount_residual) AS importe_aplicado,
                         CASE
-                            WHEN am.move_type = 'out_refund' THEN -am.amount_residual
+                            WHEN am.move_type = 'out_refund' THEN -am.amount_residual  -- 🔹 NC restan
                             ELSE am.amount_residual
                         END AS importe_residual,
                         am.company_id,
@@ -62,7 +62,7 @@ class ResPartnerDebtCompositionReport(models.Model):
 
                     UNION ALL
 
-                    -- RECIBOS NO IMPUTADOS
+                    -- RECIBOS NO IMPUTADOS (restan deuda)
                     SELECT
                         apg.partner_id,
                         apg.payment_date AS fecha,
@@ -71,7 +71,7 @@ class ResPartnerDebtCompositionReport(models.Model):
                         'recibo' AS tipo,
                         apg.x_payments_amount AS importe_original,
                         COALESCE(apg.x_amount_applied, 0) AS importe_aplicado,
-                        -apg.unreconciled_amount AS importe_residual,
+                        -apg.unreconciled_amount AS importe_residual,  -- 🔹 signo negativo
                         apg.company_id,
                         apg.currency_id
                     FROM account_payment_group apg
@@ -81,23 +81,20 @@ class ResPartnerDebtCompositionReport(models.Model):
 
                 SELECT
                     ROW_NUMBER() OVER() AS id,
-                    combined.partner_id,
-                    rp.name AS partner_name,
-                    combined.fecha,
-                    combined.vencimiento,
-                    combined.comprobante,
-                    combined.tipo,
-                    combined.importe_original,
-                    combined.importe_aplicado,
-                    combined.importe_residual,
-                    SUM(combined.importe_residual)
-                        OVER (PARTITION BY combined.partner_id ORDER BY combined.fecha, combined.comprobante)
+                    partner_id,
+                    fecha,
+                    vencimiento,
+                    comprobante,
+                    tipo,
+                    importe_original,
+                    importe_aplicado,
+                    importe_residual,
+                    SUM(importe_residual)
+                        OVER (PARTITION BY partner_id ORDER BY fecha, comprobante)
                         AS saldo_acumulado,
-                    combined.company_id,
-                    combined.currency_id
+                    company_id,
+                    currency_id
                 FROM combined
-                JOIN res_partner rp ON rp.id = combined.partner_id
             );
-
         """)
 
