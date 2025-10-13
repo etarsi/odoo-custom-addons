@@ -33,13 +33,13 @@ class ResPartnerDebtCompositionReport(models.Model):
 
     def init(self):
         self.env.cr.execute("""
+            DROP VIEW IF EXISTS res_partner_debt_composition_report CASCADE;
             CREATE OR REPLACE VIEW res_partner_debt_composition_report AS (
 
                 WITH combined AS (
                     -- FACTURAS / ND / NC
                     SELECT
                         am.partner_id,
-                        am.partner_id.name as partner_name,
                         am.invoice_date AS fecha,
                         am.invoice_date_due AS vencimiento,
                         am.name AS comprobante,
@@ -51,7 +51,7 @@ class ResPartnerDebtCompositionReport(models.Model):
                         am.amount_total AS importe_original,
                         (am.amount_total - am.amount_residual) AS importe_aplicado,
                         CASE
-                            WHEN am.move_type = 'out_refund' THEN -am.amount_residual  -- 🔹 NC restan
+                            WHEN am.move_type = 'out_refund' THEN -am.amount_residual  -- NC restan
                             ELSE am.amount_residual
                         END AS importe_residual,
                         am.company_id,
@@ -66,14 +66,13 @@ class ResPartnerDebtCompositionReport(models.Model):
                     -- RECIBOS NO IMPUTADOS (restan deuda)
                     SELECT
                         apg.partner_id,
-                        apg.partner_id.name as partner_name,
                         apg.payment_date AS fecha,
                         NULL AS vencimiento,
                         apg.name AS comprobante,
                         'recibo' AS tipo,
                         apg.x_payments_amount AS importe_original,
                         COALESCE(apg.x_amount_applied, 0) AS importe_aplicado,
-                        -apg.unreconciled_amount AS importe_residual,  -- 🔹 signo negativo
+                        -apg.unreconciled_amount AS importe_residual,  -- signo negativo
                         apg.company_id,
                         apg.currency_id
                     FROM account_payment_group apg
@@ -83,21 +82,23 @@ class ResPartnerDebtCompositionReport(models.Model):
 
                 SELECT
                     ROW_NUMBER() OVER() AS id,
-                    partner_id,
-                    partner_name,
-                    fecha,
-                    vencimiento,
-                    comprobante,
-                    tipo,
-                    importe_original,
-                    importe_aplicado,
-                    importe_residual,
-                    SUM(importe_residual)
-                        OVER (PARTITION BY partner_id ORDER BY fecha, comprobante)
-                        AS saldo_acumulado,
-                    company_id,
-                    currency_id
-                FROM combined
-            );
-        """)
+                    c.partner_id,
+                    rp.name AS partner_name,
+                    c.fecha,
+                    c.vencimiento,
+                    c.comprobante,
+                    c.tipo,
+                    c.importe_original,
+                    c.importe_aplicado,
+                c.importe_residual,
+                SUM(c.importe_residual)
+                    OVER (PARTITION BY c.partner_id ORDER BY c.fecha, c.comprobante)
+                    AS saldo_acumulado,
+                c.company_id,
+                c.currency_id
+            FROM combined c
+            JOIN res_partner rp ON rp.id = c.partner_id
+        );
+    """)
+
 
