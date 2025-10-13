@@ -69,20 +69,23 @@ class ReportDebtCompositionClient(models.Model):
 
                 SELECT
                     ROW_NUMBER() OVER () AS id,
-                    partner_id,
-                    fecha,
-                    fecha_vencimiento,
-                    nombre,
-                    importe_original,
-                    importe_residual,
-                    importe_aplicado,
-                    company_id,
-                    currency_id,
-                    origen,
-                    SUM(importe_residual) OVER (
-                        PARTITION BY partner_id
-                        ORDER BY fecha, nombre
+                    c.partner_id,
+                    rp.name AS partner_name,  -- aunque no lo uses, lo necesita para hacer el JOIN
+                    c.fecha,
+                    c.fecha_vencimiento,
+                    c.nombre,
+                    c.importe_original,
+                    c.importe_residual,
+                    c.importe_aplicado,
+                    c.company_id,
+                    c.currency_id,
+                    c.origen,
+                    SUM(c.importe_residual) OVER (
+                        PARTITION BY c.partner_id
+                        ORDER BY c.fecha, c.nombre
                     ) AS saldo_acumulado
-                FROM combined
+                FROM combined c
+                JOIN res_partner rp ON rp.id = c.partner_id
+
             );
         """)
