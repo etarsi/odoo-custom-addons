@@ -9,7 +9,7 @@
                     <group>
                         <field name="date_start"/>
                         <field name="date_end"/>
-                        <field name="employee_ids" widget="many2many_tags" attrs="{'': }" />
+                        <field name="employee_ids" widget="many2many_tags"/>
                     </group>
                     <group>
                         <field name="employee_type" widget="radio"/>

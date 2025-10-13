@@ -111,7 +111,7 @@ class HrReportAttendanceWizard(models.TransientModel):
             salida = attendance.check_out.strftime('%Y-%m-%d %H:%M:%S') if attendance.check_out else ''
             tipo_empleado = 'Empleado' if attendance.employee_type == 'employee' else 'Eventual' if attendance.employee_type == 'eventual' else ''
             turno_asignado = 'Día' if attendance.employee_type_shift == 'day' else 'Noche' if attendance.employee_type_shift == 'night' else ''
-            
+            #como colocar una linea separacion entre empleados
             worksheet.write(row, 0, correlativo, formato_celdas_izquierda)
             worksheet.write(row, 1, attendance.employee_id.name, formato_celdas_derecha)
             worksheet.write(row, 2, ingreso, formato_celdas_derecha)
