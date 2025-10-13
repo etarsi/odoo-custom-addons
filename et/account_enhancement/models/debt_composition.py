@@ -6,15 +6,15 @@ class ResPartnerDebtCompositionReport(models.Model):
     _description = 'Composición de Deudas de Clientes'
     _auto = False
     _order = 'partner_id, fecha'
-    _rec_name = 'partner_name'
 
-    partner_name = fields.Char(string='Nombre del Cliente', store=True)
     partner_id = fields.Many2one('res.partner', string='Cliente')
+    partner_name = fields.Char(string='Nombre del Cliente')
     fecha = fields.Date(string='Fecha del Comprobante')
     vencimiento = fields.Date(string='Fecha de Vencimiento')
     comprobante = fields.Char(string='Comprobante')
     tipo = fields.Selection([
         ('factura', 'Factura / ND'),
+        ('nota_credito', 'Nota de Crédito'),
         ('recibo', 'Recibo no Imputado')
     ], string='Tipo')
     importe_original = fields.Monetary(string='Importe Original')
@@ -24,7 +24,6 @@ class ResPartnerDebtCompositionReport(models.Model):
     company_id = fields.Many2one('res.company', string='Compañía')
     currency_id = fields.Many2one('res.currency', string='Moneda')
 
-
     @api.model
     def _name_search(self, name='', args=None, operator='ilike', limit=100, name_get_uid=None):
         args = args or []
@@ -32,11 +31,17 @@ class ResPartnerDebtCompositionReport(models.Model):
             args = expression.OR([args, [('partner_name', operator, name)]])
         return self._search(args, limit=limit, access_rights_uid=name_get_uid)
 
+    def name_get(self):
+        result = []
+        for rec in self:
+            display = f"{rec.partner_name or ''} - {rec.comprobante or ''}"
+            result.append((rec.id, display))
+        return result
 
     def init(self):
         self.env.cr.execute("""
             DROP VIEW IF EXISTS res_partner_debt_composition_report CASCADE;
-            CREATE OR REPLACE VIEW res_partner_debt_composition_report AS (
+            CREATE VIEW res_partner_debt_composition_report AS (
 
                 WITH combined AS (
                     -- FACTURAS / ND / NC
@@ -53,7 +58,7 @@ class ResPartnerDebtCompositionReport(models.Model):
                         am.amount_total AS importe_original,
                         (am.amount_total - am.amount_residual) AS importe_aplicado,
                         CASE
-                            WHEN am.move_type = 'out_refund' THEN -am.amount_residual  -- NC restan
+                            WHEN am.move_type = 'out_refund' THEN -am.amount_residual
                             ELSE am.amount_residual
                         END AS importe_residual,
                         am.company_id,
@@ -65,7 +70,7 @@ class ResPartnerDebtCompositionReport(models.Model):
 
                     UNION ALL
 
-                    -- RECIBOS NO IMPUTADOS (restan deuda)
+                    -- RECIBOS NO IMPUTADOS
                     SELECT
                         apg.partner_id,
                         apg.payment_date AS fecha,
@@ -74,7 +79,7 @@ class ResPartnerDebtCompositionReport(models.Model):
                         'recibo' AS tipo,
                         apg.x_payments_amount AS importe_original,
                         COALESCE(apg.x_amount_applied, 0) AS importe_aplicado,
-                        -apg.unreconciled_amount AS importe_residual,  -- signo negativo
+                        -apg.unreconciled_amount AS importe_residual,
                         apg.company_id,
                         apg.currency_id
                     FROM account_payment_group apg
@@ -92,15 +97,12 @@ class ResPartnerDebtCompositionReport(models.Model):
                     c.tipo,
                     c.importe_original,
                     c.importe_aplicado,
-                c.importe_residual,
-                SUM(c.importe_residual)
-                    OVER (PARTITION BY c.partner_id ORDER BY c.fecha, c.comprobante)
-                    AS saldo_acumulado,
-                c.company_id,
-                c.currency_id
-            FROM combined c
-            JOIN res_partner rp ON rp.id = c.partner_id
-        );
-    """)
-
+                    c.importe_residual,
+                    SUM(c.importe_residual) OVER (PARTITION BY c.partner_id ORDER BY c.fecha, c.comprobante) AS saldo_acumulado,
+                    c.company_id,
+                    c.currency_id
+                FROM combined c
+                JOIN res_partner rp ON rp.id = c.partner_id
+            );
+        """)
 
