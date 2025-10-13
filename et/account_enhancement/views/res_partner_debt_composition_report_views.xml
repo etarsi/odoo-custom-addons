@@ -25,11 +25,11 @@
         <field name="model">res.partner.debt.composition.report</field>
         <field name="arch" type="xml">
             <search string="Buscar Composición de Deuda">
-                <field name="partner_id" />
-                <field name="company_id" />
-                <filter string="Facturas / ND" domain="[('tipo','=','factura')]" />
-                <filter string="Notas de Crédito" domain="[('tipo','=','nota_credito')]" />
-                <filter string="Recibos" domain="[('tipo','=','recibo')]" />
+                <field name="partner_id"/>
+                <field name="company_id"/>
+                <filter string="Facturas / ND" domain="[('tipo','=','factura')]"/>
+                <filter string="Notas de Crédito" domain="[('tipo','=','nota_credito')]"/>
+                <filter string="Recibos" domain="[('tipo','=','recibo')]"/>
             </search>
         </field>
     </record>
