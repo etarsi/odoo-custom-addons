@@ -43,11 +43,5 @@
             <p>Informe consolidado de facturas, notas de crédito y recibos con saldo pendiente.</p>
         </field>
     </record>
-
-    <menuitem id="menu_res_partner_debt_composition_report_root"
-              name="Composición de Deudas"
-              parent="account.menu_finance_receivables"
-              action="action_res_partner_debt_composition_report"
-              sequence="7"/>
 </odoo>
 
