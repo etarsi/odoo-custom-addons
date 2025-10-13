@@ -49,7 +49,7 @@
         'views/res_partner_views.xml',
         'views/templates.xml',
         'views/menu.xml',
-        'res_partner_debt_composition_report_views'
+        'views/res_partner_debt_composition_report_views'
     ],
     "assets": {
         "web.assets_backend": [
