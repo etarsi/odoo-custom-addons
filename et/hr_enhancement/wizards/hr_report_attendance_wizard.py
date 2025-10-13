@@ -86,8 +86,8 @@ class HrReportAttendanceWizard(models.TransientModel):
             raise ValidationError("La Fecha Final del reporte de facturas, no puede ser menor a la Fecha de Inicio")
         
         # Recolectar los tipos seleccionados en una lista
-        if self.partner_ids:
-            domain.append(('partner_id', 'in', self.partner_ids.ids))
+        if self.employee_ids:
+            domain.append(('employee_id', 'in', self.employee_ids.ids))
         if self.employee_type != 'all':
             domain.append(('employee_type', '=', self.employee_type))
         if self.employee_type_shift != 'all':

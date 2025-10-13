@@ -10,7 +10,7 @@
                 <attribute name="sum">Horas Laborales</attribute>
             </xpath>
             <xpath expr="//field[@name='worked_hours']" position="after">
-                <field name="overtime" sum="Horas Extras"/>
+                <field name="overtime" sum="Horas Extras" digits="[16, 0]"/>
                 <field name="holiday_hours" widget="float_time" sum="Horas Feriado"/>
                 <field name="employee_type" widget="badge" decoration-success="employee_type == 'employee'" decoration-danger="employee_type == 'eventual'"/>
                 <field name="employee_type_shift" widget="badge" decoration-warning="employee_type_shift == 'day'" decoration-info="employee_type_shift == 'night'"/>
