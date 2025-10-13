@@ -18,7 +18,7 @@
             </tree>
         </field>
     </record>
-
+<!-- 
     <record id="view_res_partner_debt_composition_report_search" model="ir.ui.view">
         <field name="name">res.partner.debt.composition.report.search</field>
         <field name="model">res.partner.debt.composition.report</field>
@@ -31,7 +31,7 @@
                 <filter string="Recibos" domain="[('tipo','=','recibo')]"/>
             </search>
         </field>
-    </record>
+    </record> -->
 
     <record id="action_res_partner_debt_composition_report" model="ir.actions.act_window">
         <field name="name">Composición de Deudas</field>
