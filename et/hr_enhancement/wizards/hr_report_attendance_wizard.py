@@ -55,12 +55,12 @@ class HrReportAttendanceWizard(models.TransientModel):
         workbook = xlsxwriter.Workbook(output, {'in_memory': True})
         worksheet = workbook.add_worksheet('Asistencias')
         # Agrupados por rangos consecutivos con mismo ancho
-        worksheet.set_column(0, 0, 4)   # nro correlativo
-        worksheet.set_column(0, 1, 30)   # Empleado
-        worksheet.set_column(1, 2, 20)   # Fecha Ingreso
-        worksheet.set_column(2, 2, 20)   # Fecha Salida
-        worksheet.set_column(3, 3, 10)   # Tipo de Empleado
-        worksheet.set_column(4, 4, 10)   # Turno Asignado
+        worksheet.set_column(0, 0, 5)   # nro correlativo
+        worksheet.set_column(1, 1, 40)   # Empleado
+        worksheet.set_column(2, 2, 20)   # Fecha Ingreso
+        worksheet.set_column(3, 3, 20)   # Fecha Salida
+        worksheet.set_column(4, 4, 15)   # Tipo de Empleado
+        worksheet.set_column(5, 5, 15)   # Turno Asignado
         
         #formato de celdas
         formato_encabezado = excel.formato_encabezado(workbook)
@@ -114,7 +114,6 @@ class HrReportAttendanceWizard(models.TransientModel):
             if not current_emp or emp.id != current_emp.id:
                 worksheet.merge_range(row, 0, row, 5, emp.name or '—', fmt_emp)
                 row += 1
-                correlativo = 1
                 current_emp = emp
             # Fechas formateadas
             ingreso = attendance.check_in.strftime('%d/%m/%Y %H:%M:%S') if attendance.check_in else ''
