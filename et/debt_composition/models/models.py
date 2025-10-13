@@ -5,31 +5,7 @@ class ReportDebtCompositionClient(models.Model):
     _auto = False
     _description = "Composición de deuda por cliente"
 
-    partner_id = fields.Many2one('res.partner', string='Cliente', readonly=True)
-    fecha = fields.Date(string='Fecha', readonly=True)
-    fecha_vencimiento = fields.Date(string='Fecha Vencimiento', readonly=True)
-    nombre = fields.Char(string='Comprobante', readonly=True)
-    importe_original = fields.Monetary(string='Importe Original', readonly=True)
-    importe_residual = fields.Monetary(string='Importe Residual', readonly=True)
-    importe_aplicado = fields.Monetary(string='Importe Aplicado', readonly=True)
-    saldo_acumulado = fields.Monetary(string='Saldo Acumulado', readonly=True)
-    origen = fields.Selection([
-        ('factura', 'Factura / ND'),
-        ('nota_credito', 'Nota de Crédito'),
-        ('recibo', 'Recibo'),
-    ], string='Origen', readonly=True)
-    company_id = fields.Many2one('res.company', string='Compañía', readonly=True)
-    currency_id = fields.Many2one('res.currency', string='Moneda', readonly=True)
-
-
-from odoo import fields, models, tools
-
-class ReportDebtCompositionClient(models.Model):
-    _name = "report.debt.composition.client"
-    _auto = False
-    _description = "Composición de deuda por cliente"
-
-    partner_id = fields.Many2one('res.partner', string='Cliente', readonly=True)
+    partner = fields.Many2one('res.partner', string='Cliente', readonly=True)
     fecha = fields.Date(string='Fecha', readonly=True)
     fecha_vencimiento = fields.Date(string='Fecha Vencimiento', readonly=True)
     nombre = fields.Char(string='Comprobante', readonly=True)
@@ -53,7 +29,7 @@ class ReportDebtCompositionClient(models.Model):
                     -- FACTURAS
                     SELECT
                         am.id AS id,
-                        am.partner_id,
+                        am.partner,
                         am.invoice_date AS fecha,
                         am.invoice_date_due AS fecha_vencimiento,
                         am.name AS nombre,
@@ -73,7 +49,7 @@ class ReportDebtCompositionClient(models.Model):
                     -- NOTAS DE CRÉDITO
                     SELECT
                         am.id + 1000000 AS id,
-                        am.partner_id,
+                        am.partner,
                         am.invoice_date AS fecha,
                         am.invoice_date_due AS fecha_vencimiento,
                         am.name AS nombre,
@@ -93,7 +69,7 @@ class ReportDebtCompositionClient(models.Model):
                     -- RECIBOS
                     SELECT
                         apg.id + 2000000 AS id,
-                        apg.partner_id,
+                        apg.partner,
                         apg.payment_date AS fecha,
                         NULL AS fecha_vencimiento,
                         apg.name AS nombre,
@@ -109,7 +85,7 @@ class ReportDebtCompositionClient(models.Model):
                 )
                 SELECT
                     ROW_NUMBER() OVER() AS id,
-                    partner_id,
+                    partner,
                     fecha,
                     fecha_vencimiento,
                     nombre,
