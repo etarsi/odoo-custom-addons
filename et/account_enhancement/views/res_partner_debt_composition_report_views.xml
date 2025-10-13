@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_res_partner_debt_composition_report_tree" model="ir.ui.view">
+        <field name="name">res.partner.debt.composition.report.tree</field>
+        <field name="model">res.partner.debt.composition.report</field>
+        <field name="arch" type="xml">
+            <tree string="Composición de Deudas de Clientes" default_order="partner_id,fecha">
+                <field name="partner_id" string="Cliente"/>
+                <field name="fecha" string="Fecha"/>
+                <field name="vencimiento" string="Fecha de Vencimiento"/>
+                <field name="comprobante" string="Comprobante"/>
+                <field name="tipo" string="Tipo" optional="hide"/>
+                <field name="importe_original" widget="monetary" string="Importe Original"/>
+                <field name="importe_aplicado" widget="monetary" string="Importe Aplicado"/>
+                <field name="importe_residual" widget="monetary" string="Importe Residual"/>
+                <field name="saldo_acumulado" widget="monetary" string="Saldo"/>
+                <field name="company_id" groups="base.group_multi_company" string="Compañía"/>
+            </tree>
+        </field>
+    </record>
+
+    <!-- Vista de búsqueda (opcional pero muy útil) -->
+    <record id="view_res_partner_debt_composition_report_search" model="ir.ui.view">
+        <field name="name">res.partner.debt.composition.report.search</field>
+        <field name="model">res.partner.debt.composition.report</field>
+        <field name="arch" type="xml">
+            <search string="Buscar Composición de Deuda">
+                <field name="partner_id" />
+                <field name="company_id" />
+                <filter string="Facturas / ND" domain="[('tipo','=','factura')]" />
+                <filter string="Notas de Crédito" domain="[('tipo','=','nota_credito')]" />
+                <filter string="Recibos" domain="[('tipo','=','recibo')]" />
+            </search>
+        </field>
+    </record>
+
+    <!-- Acción -->
+    <record id="action_res_partner_debt_composition_report" model="ir.actions.act_window">
+        <field name="name">Composición de Deudas</field>
+        <field name="res_model">res.partner.debt.composition.report</field>
+        <field name="view_mode">tree</field>
+        <field name="help" type="html">
+            <p>Informe consolidado de facturas, notas de crédito y recibos con saldo pendiente.</p>
+        </field>
+    </record>
+
+    <!-- Menú -->
+    <menuitem id="menu_res_partner_debt_composition_report_root"
+              name="Composición de Deudas"
+              parent="account.menu_finance_receivables"
+              action="action_res_partner_debt_composition_report"
+              sequence="7"/>
+</odoo>
