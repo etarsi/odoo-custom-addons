@@ -21,6 +21,16 @@ class ResPartnerDebtCompositionReport(models.Model):
     company_id = fields.Many2one('res.company', string='Compañía')
     currency_id = fields.Many2one('res.currency', string='Moneda')
 
+
+    def _search_partner_id(self, operator, value):
+        partners = self.env['res.partner'].search([('display_name', operator, value)])
+        return [('partner_id', 'in', partners.ids)]
+
+    _search = {
+        'partner_id': _search_partner_id,
+    }
+
+    
     def init(self):
         self.env.cr.execute("""
             CREATE OR REPLACE VIEW res_partner_debt_composition_report AS (
