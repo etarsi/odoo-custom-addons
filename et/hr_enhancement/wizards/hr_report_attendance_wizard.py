@@ -54,7 +54,8 @@ class HrReportAttendanceWizard(models.TransientModel):
         formato_celdas_izquierda = excel.formato_celda_izquierda(workbook)
         formato_celdas_derecha = excel.formato_celda_derecha(workbook)
         formato_celdas_decimal = excel.formato_celda_decimal(workbook)
-        fmt_emp = workbook.add_format({'bold': True, 'bg_color': '#DDEBF7', 'border': 1, 'align': 'left'})
+        fmt_emp = workbook.add_format({'bold': True, 'bg_color': "#5384AF", 'border': 1, 'align': 'left'})
+        fmt_total = workbook.add_format({'bold': True, 'bg_color': '#DDEBF7', 'border': 1, 'align': 'left'})
             
         # Escribir datos
         rango_start = self.date_start.strftime('%Y/%m/%d')
@@ -94,7 +95,7 @@ class HrReportAttendanceWizard(models.TransientModel):
             domain.append(('employee_type_shift', '=', self.employee_type_shift))
         attendances = self.env['hr.attendance'].search(domain, order="employee_id, check_in")
         row = header_row + 1
-        current_emp = False
+        current_emp_id = False
 
         # --- acumular totales en Python por empleado ---
         totales_por_emp = {}
@@ -103,24 +104,24 @@ class HrReportAttendanceWizard(models.TransientModel):
             if emp_id not in totales_por_emp:
                 totales_por_emp[emp_id] = {'wh': 0.0, 'ot': 0.0, 'hh': 0.0}
             totales_por_emp[emp_id]['wh'] += att.worked_hours or 0.0
-            # si tus campos se llaman distinto, ajusta estos dos
             totales_por_emp[emp_id]['ot'] += att.overtime or 0.0
             totales_por_emp[emp_id]['hh'] += att.holiday_hours or 0.0
 
         for attendance in attendances:
             emp = attendance.employee_id
             # 2) cuando cambia de empleado, escribo la "cabecera" con los totales
-            if not current_emp or emp.id != current_emp.id:
-                tot = totales_por_emp.get(emp.id, {'wh': 0.0, 'ot': 0.0, 'hh': 0.0})
-                # si no querés decimales en el rótulo, casteá a int:
-                wh_total = int(round(tot['wh']))
-                ot_total = int(round(tot['ot']))
-                hh_total = int(round(tot['hh']))
-
-                titulo = f"{emp.name}  |  T. Horas Trabajadas: {wh_total}  |  T. Horas al 50%: {ot_total}  |  T. Horas al 100%: {hh_total}"
-                worksheet.merge_range(row, 0, row, 7, titulo, fmt_emp)
+            if not current_emp_id or emp.id != current_emp_id:
+                worksheet.merge_range(row, 0, row, 2, " ", fmt_total)
+                worksheet.write(row, 3, int(round(totales_por_emp[current_emp_id]['wh'])), fmt_total)
+                worksheet.write(row, 4, int(round(totales_por_emp[current_emp_id]['ot'])), fmt_total)
+                worksheet.write(row, 5, int(round(totales_por_emp[current_emp_id]['hh'])), fmt_total)
+                worksheet.merge_range(row, 6, row, 7, " ", fmt_total)
+                row += 1  # línea en blanco después del total
+            # --- primer registro de un empleado (no hay bloque previo) ---
+            if not current_emp_id:
+                worksheet.merge_range(row, 0, row, 7, emp.name or '—', fmt_emp)
                 row += 1
-                current_emp = emp
+            current_emp_id = emp
 
             # Fechas formateadas
             ingreso = attendance.check_in.strftime('%d/%m/%Y %H:%M:%S') if attendance.check_in else ''
