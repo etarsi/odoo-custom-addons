@@ -6,9 +6,9 @@ class ResPartnerDebtCompositionReport(models.Model):
     _description = 'Composición de Deudas de Clientes'
     _auto = False
     _order = 'partner_id, fecha'
-    _rec_name = 'partner_name'
+    _rec_name = 'partner_name2'
 
-    partner_name = fields.Char(string='Nombre del Cliente', related='partner_id.name', store=True)
+    partner_name2 = fields.Char(string='Nombre del Cliente', related='partner_id.name', store=True)
     partner_id = fields.Many2one('res.partner', string='Cliente')
     fecha = fields.Date(string='Fecha del Comprobante')
     vencimiento = fields.Date(string='Fecha de Vencimiento')
