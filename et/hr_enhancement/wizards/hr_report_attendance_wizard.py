@@ -111,10 +111,11 @@ class HrReportAttendanceWizard(models.TransientModel):
             emp = attendance.employee_id
             # 2) cuando cambia de empleado, escribo la "cabecera" con los totales
             if not current_emp_id or emp.id != current_emp_id:
+                tot_prev = totales_por_emp[current_emp_id]
                 worksheet.merge_range(row, 0, row, 2, " ", fmt_total)
-                worksheet.write(row, 3, totales_por_emp[current_emp_id]['wh'], fmt_total)
-                worksheet.write(row, 4, totales_por_emp[current_emp_id]['ot'], fmt_total)
-                worksheet.write(row, 5, totales_por_emp[current_emp_id]['hh'], fmt_total)
+                worksheet.write(row, 3, tot_prev['wh'], fmt_total)
+                worksheet.write(row, 4, tot_prev['ot'], fmt_total)
+                worksheet.write(row, 5, tot_prev['hh'], fmt_total)
                 worksheet.merge_range(row, 6, row, 7, " ", fmt_total)
                 row += 1  # línea en blanco después del total
             # --- primer registro de un empleado (no hay bloque previo) ---
