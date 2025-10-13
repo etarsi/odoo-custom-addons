@@ -24,19 +24,10 @@ class ResPartnerDebtCompositionReport(models.Model):
 
 
     @api.model
-    def _name_search(self, name='', args=None, operator='ilike', limit=100, name_get_uid=None):
-        args = args or []
-        if name:
-            partner_ids = self.env['res.partner'].search([('display_name', operator, name)], limit=limit)
-            args = expression.OR([args, [('partner_id', 'in', partner_ids.ids)]])
-        return super(ResPartnerDebtCompositionReport, self)._name_search(name, args, operator=operator, limit=limit, name_get_uid=name_get_uid)
+    def _search_partner_id(self, operator, value):
+        partner_ids = self.env['res.partner'].search([('display_name', operator, value)])
+        return [('partner_id', 'in', partner_ids.ids)]
 
-    def name_get(self):
-        result = []
-        for rec in self:
-            display = f"{rec.partner_id.display_name or ''} - {rec.comprobante or ''}"
-            result.append((rec.id, display))
-        return result
 
     def init(self):
         self.env.cr.execute("""
