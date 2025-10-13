@@ -123,7 +123,7 @@ class HrReportAttendanceWizard(models.TransientModel):
             if not current_emp_id:
                 worksheet.merge_range(row, 0, row, 7, emp.name or '—', fmt_emp)
                 row += 1
-            current_emp_id = emp
+            current_emp_id = emp_id
 
             # Fechas formateadas
             ingreso = attendance.check_in.strftime('%d/%m/%Y %H:%M:%S') if attendance.check_in else ''
