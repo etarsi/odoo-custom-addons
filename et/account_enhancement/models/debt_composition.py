@@ -1,19 +1,20 @@
 from odoo import models, fields
 
+
 class ResPartnerDebtCompositionReport(models.Model):
     _name = 'res.partner.debt.composition.report'
     _description = 'Composición de Deuda por Cliente'
     _auto = False
     _order = 'fecha desc, comprobante'
 
-    # Campos estándar para evitar errores de ORM
+    # Campos requeridos por el ORM
     create_date = fields.Datetime(readonly=True)
     write_date = fields.Datetime(readonly=True)
     create_uid = fields.Many2one('res.users', readonly=True)
     write_uid = fields.Many2one('res.users', readonly=True)
 
-    partner_id = fields.Many2one('res.partner', string='Cliente')
-    partner_name = fields.Char(string='Nombre del Cliente')  # solo para búsquedas
+    x_partner_id = fields.Integer(string='ID Cliente')
+    partner_id = fields.Char(string='Cliente')  # Aquí va el nombre
     fecha = fields.Date(string='Fecha')
     vencimiento = fields.Date(string='Vencimiento')
     comprobante = fields.Char(string='Comprobante')
@@ -36,10 +37,9 @@ class ResPartnerDebtCompositionReport(models.Model):
             CREATE VIEW res_partner_debt_composition_report AS (
 
                 WITH combined AS (
-                    -- FACTURAS / NC / ND
                     SELECT
-                        am.partner_id,
-                        rp.name AS partner_name,
+                        am.partner_id AS x_partner_id,
+                        rp.name AS partner_id,
                         am.invoice_date AS fecha,
                         am.invoice_date_due AS vencimiento,
                         am.name AS comprobante,
@@ -64,10 +64,9 @@ class ResPartnerDebtCompositionReport(models.Model):
 
                     UNION ALL
 
-                    -- RECIBOS NO IMPUTADOS
                     SELECT
-                        apg.partner_id,
-                        rp.name AS partner_name,
+                        apg.partner_id AS x_partner_id,
+                        rp.name AS partner_id,
                         apg.payment_date AS fecha,
                         NULL AS vencimiento,
                         apg.name AS comprobante,
@@ -85,12 +84,12 @@ class ResPartnerDebtCompositionReport(models.Model):
 
                 SELECT
                     ROW_NUMBER() OVER() AS id,
-                    NULL::timestamp without time zone AS create_date,
+                    NULL::timestamp AS create_date,
                     NULL::integer AS create_uid,
-                    NULL::timestamp without time zone AS write_date,
+                    NULL::timestamp AS write_date,
                     NULL::integer AS write_uid,
+                    x_partner_id,
                     partner_id,
-                    partner_name,
                     fecha,
                     vencimiento,
                     comprobante,
@@ -98,7 +97,7 @@ class ResPartnerDebtCompositionReport(models.Model):
                     importe_original,
                     importe_aplicado,
                     importe_residual,
-                    SUM(importe_residual) OVER (PARTITION BY partner_id ORDER BY fecha, comprobante) AS saldo_acumulado,
+                    SUM(importe_residual) OVER (PARTITION BY x_partner_id ORDER BY fecha, comprobante) AS saldo_acumulado,
                     company_id,
                     currency_id
                 FROM combined
