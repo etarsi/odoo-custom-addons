@@ -1,32 +1,30 @@
 from odoo import fields, models, tools
-
 class ReportDebtCompositionClient(models.Model):
     _name = "report.debt.composition.client"
     _auto = False
     _description = "Composición de deuda por cliente"
 
     partner_id = fields.Many2one('res.partner', string='Cliente', readonly=True)
-    fecha = fields.Date(string='Fecha', readonly=True)
-    fecha_vencimiento = fields.Date(string='Fecha Vencimiento', readonly=True)
-    nombre = fields.Char(string='Comprobante', readonly=True)
-    importe_original = fields.Monetary(string='Importe Original', readonly=True)
-    importe_residual = fields.Monetary(string='Importe Residual', readonly=True)
-    importe_aplicado = fields.Monetary(string='Importe Aplicado', readonly=True)
-    saldo_acumulado = fields.Monetary(string='Saldo Acumulado', readonly=True)
-    company_id = fields.Many2one('res.company', string='Compañía', readonly=True)
-    currency_id = fields.Many2one('res.currency', string='Moneda', readonly=True, default=lambda self: self.env.company.currency_id)
-    origen = fields.Selection([
-        ('factura', 'Factura / NC'),
-        ('recibo', 'Recibo')
-    ], string='Origen', readonly=True)
+
+    fecha = fields.Date(string='Fecha')
+    fecha_vencimiento = fields.Date(string='Fecha Vencimiento')
+    nombre = fields.Char(string='Comprobante')
+    importe_original = fields.Monetary(string='Importe Original')
+    importe_aplicado = fields.Monetary(string='Importe Aplicado')
+    importe_residual = fields.Monetary(string='Importe Residual')
+    saldo_acumulado = fields.Monetary(string='Saldo Acumulado')
+    currency_id = fields.Many2one('res.currency', string='Moneda')
+    company_id = fields.Many2one('res.company', string='Compañía')
+    origen = fields.Selection([('factura', 'Factura'), ('recibo', 'Recibo')], string='Origen')
+
 
     def init(self):
         tools.drop_view_if_exists(self._cr, self._table)
-        self._cr.execute(f"""
-            CREATE OR REPLACE VIEW {self._table} AS (
+        self._cr.execute("""
+            CREATE OR REPLACE VIEW report_debt_composition_client AS (
 
                 WITH combined AS (
-                    -- FACTURAS y NOTAS DE CRÉDITO (NCs restan)
+                    -- FACTURAS y NC
                     SELECT
                         am.id AS id,
                         am.partner_id,
@@ -34,11 +32,11 @@ class ReportDebtCompositionClient(models.Model):
                         am.invoice_date_due AS fecha_vencimiento,
                         am.name AS nombre,
                         am.amount_total_signed AS importe_original,
+                        am.amount_total_signed - am.amount_residual_signed AS importe_aplicado,
                         CASE
                             WHEN am.move_type = 'out_refund' THEN -am.amount_residual_signed
                             ELSE am.amount_residual_signed
                         END AS importe_residual,
-                        (am.amount_total_signed - am.amount_residual_signed) AS importe_aplicado,
                         am.company_id,
                         am.currency_id,
                         'factura' AS origen
@@ -49,43 +47,40 @@ class ReportDebtCompositionClient(models.Model):
 
                     UNION ALL
 
-                    -- RECIBOS NO IMPUTADOS (restan deuda)
+                    -- RECIBOS
                     SELECT
-                        -apg.id AS id,  -- negativo para evitar conflicto con IDs de account_move
+                        -apg.id AS id,
                         apg.partner_id,
                         apg.payment_date AS fecha,
                         NULL AS fecha_vencimiento,
                         apg.name AS nombre,
                         apg.x_payments_amount AS importe_original,
-                        -apg.unreconciled_amount AS importe_residual,
                         COALESCE(apg.x_amount_applied, 0) AS importe_aplicado,
+                        -apg.unreconciled_amount AS importe_residual,
                         apg.company_id,
                         apg.currency_id,
                         'recibo' AS origen
                     FROM account_payment_group apg
-                    WHERE apg.state = 'posted'
-                    AND apg.unreconciled_amount > 0
+                    WHERE apg.state IN ('posted', 'reconciled')
+                    AND apg.unreconciled_amount != 0
                 )
 
                 SELECT
-                    ROW_NUMBER() OVER () AS id,
-                    c.partner_id,
-                    rp.name AS partner_name,  -- aunque no lo uses, lo necesita para hacer el JOIN
-                    c.fecha,
-                    c.fecha_vencimiento,
-                    c.nombre,
-                    c.importe_original,
-                    c.importe_residual,
-                    c.importe_aplicado,
-                    c.company_id,
-                    c.currency_id,
-                    c.origen,
-                    SUM(c.importe_residual) OVER (
-                        PARTITION BY c.partner_id
-                        ORDER BY c.fecha, c.nombre
-                    ) AS saldo_acumulado
-                FROM combined c
-                JOIN res_partner rp ON rp.id = c.partner_id
-
+                    row_number() OVER () AS id,
+                    partner_id,
+                    fecha,
+                    fecha_vencimiento,
+                    nombre,
+                    importe_original,
+                    importe_aplicado,
+                    importe_residual,
+                    SUM(importe_residual) OVER (
+                        PARTITION BY partner_id
+                        ORDER BY fecha, nombre
+                    ) AS saldo_acumulado,
+                    company_id,
+                    currency_id,
+                    origen
+                FROM combined
             );
         """)
