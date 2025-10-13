@@ -6,9 +6,9 @@ class ResPartnerDebtCompositionReport(models.Model):
     _description = 'Composición de Deudas de Clientes'
     _auto = False
     _order = 'partner_id, fecha'
-    _rec_name = 'partner_name2'
+    _rec_name = 'partner_name'
 
-    partner_name2 = fields.Char(string='Nombre del Cliente', related='partner_id.name', store=True)
+    partner_name = fields.Char(string='Nombre del Cliente', store=True)
     partner_id = fields.Many2one('res.partner', string='Cliente')
     fecha = fields.Date(string='Fecha del Comprobante')
     vencimiento = fields.Date(string='Fecha de Vencimiento')
@@ -39,6 +39,7 @@ class ResPartnerDebtCompositionReport(models.Model):
                     -- FACTURAS / ND / NC
                     SELECT
                         am.partner_id,
+                        am.partner_id.name as partner_name,
                         am.invoice_date AS fecha,
                         am.invoice_date_due AS vencimiento,
                         am.name AS comprobante,
@@ -65,6 +66,7 @@ class ResPartnerDebtCompositionReport(models.Model):
                     -- RECIBOS NO IMPUTADOS (restan deuda)
                     SELECT
                         apg.partner_id,
+                        apg.partner_id.name as partner_name,
                         apg.payment_date AS fecha,
                         NULL AS vencimiento,
                         apg.name AS comprobante,
@@ -82,6 +84,7 @@ class ResPartnerDebtCompositionReport(models.Model):
                 SELECT
                     ROW_NUMBER() OVER() AS id,
                     partner_id,
+                    partner_name,
                     fecha,
                     vencimiento,
                     comprobante,
