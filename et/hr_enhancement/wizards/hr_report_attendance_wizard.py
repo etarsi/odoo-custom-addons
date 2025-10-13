@@ -144,7 +144,7 @@ class HrReportAttendanceWizard(models.TransientModel):
             worksheet.write(row, 7, turno_asignado, formato_celdas_izquierda)
             row += 1
         # --- SUBTOTAL para el último empleado ---
-        if current_emp_id and emp.id != current_emp_id:
+        if current_emp_id:
             tot_prev = totales_por_emp[current_emp_id]
             worksheet.merge_range(row, 0, row, 2, " ", fmt_total)
             worksheet.write(row, 3, tot_prev['wh'], fmt_total)
