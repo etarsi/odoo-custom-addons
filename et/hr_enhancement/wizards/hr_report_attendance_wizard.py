@@ -96,20 +96,16 @@ class HrReportAttendanceWizard(models.TransientModel):
         row = header_row + 1
         current_emp = False
 
-        # --- 1) agrego una agregación por empleado para tener los totales ---
-        groups = self.env['hr.attendance'].read_group(
-            domain,
-            ['employee_id', 'worked_hours:sum', 'overtime:sum', 'holiday_hours:sum'],
-            ['employee_id'],
-        )
-        totales_por_emp = {
-            g['employee_id'][0]: {
-                'wh': g['worked_hours_sum'] or 0.0,
-                'ot': g['overtime_sum'] or 0.0,
-                'hh': g['holiday_hours_sum'] or 0.0,
-            }
-            for g in groups
-        }
+        # --- acumular totales en Python por empleado ---
+        totales_por_emp = {}
+        for att in attendances:
+            emp_id = att.employee_id.id
+            if emp_id not in totales_por_emp:
+                totales_por_emp[emp_id] = {'wh': 0.0, 'ot': 0.0, 'hh': 0.0}
+            totales_por_emp[emp_id]['wh'] += att.worked_hours or 0.0
+            # si tus campos se llaman distinto, ajusta estos dos
+            totales_por_emp[emp_id]['ot'] += att.overtime or 0.0
+            totales_por_emp[emp_id]['hh'] += att.holiday_hours or 0.0
 
         for attendance in attendances:
             emp = attendance.employee_id
@@ -135,9 +131,9 @@ class HrReportAttendanceWizard(models.TransientModel):
             worksheet.write(row, 0, attendance.employee_id.name, formato_celdas_izquierda)
             worksheet.write(row, 1, ingreso, formato_celdas_derecha)
             worksheet.write(row, 2, salida, formato_celdas_derecha)
-            worksheet.write(row, 3, attendance.worked_hours if attendance.worked_hours else 0, formato_celdas_derecha)
-            worksheet.write(row, 4, attendance.overtime if attendance.overtime else 0, formato_celdas_derecha)
-            worksheet.write(row, 5, attendance.holiday_hours if attendance.holiday_hours else 0, formato_celdas_derecha)
+            worksheet.write(row, 3, attendance.worked_hours or 0, formato_celdas_derecha)
+            worksheet.write(row, 4, attendance.overtime or 0, formato_celdas_derecha)
+            worksheet.write(row, 5, attendance.holiday_hours or 0, formato_celdas_derecha)
             worksheet.write(row, 6, tipo_empleado, formato_celdas_izquierda)
             worksheet.write(row, 7, turno_asignado, formato_celdas_izquierda)
             row += 1
