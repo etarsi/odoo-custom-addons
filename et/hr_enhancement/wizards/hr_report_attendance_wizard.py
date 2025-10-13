@@ -119,6 +119,9 @@ class HrReportAttendanceWizard(models.TransientModel):
                 worksheet.write(row, 5, tot_prev['hh'], fmt_total)
                 worksheet.merge_range(row, 6, row, 7, " ", fmt_total)
                 row += 1  # línea en blanco después del total
+                # encabezado del nuevo empleado
+                worksheet.merge_range(row, 0, row, 7, emp.name or '—', fmt_emp)
+                row += 1
             # --- primer registro de un empleado (no hay bloque previo) ---
             if not current_emp_id:
                 worksheet.merge_range(row, 0, row, 7, emp.name or '—', fmt_emp)
@@ -140,6 +143,16 @@ class HrReportAttendanceWizard(models.TransientModel):
             worksheet.write(row, 6, tipo_empleado, formato_celdas_izquierda)
             worksheet.write(row, 7, turno_asignado, formato_celdas_izquierda)
             row += 1
+        # --- SUBTOTAL para el último empleado ---
+        if current_emp_id and emp.id != current_emp_id:
+            tot_prev = totales_por_emp[current_emp_id]
+            worksheet.merge_range(row, 0, row, 2, " ", fmt_total)
+            worksheet.write(row, 3, tot_prev['wh'], fmt_total)
+            worksheet.write(row, 4, tot_prev['ot'], fmt_total)
+            worksheet.write(row, 5, tot_prev['hh'], fmt_total)
+            worksheet.merge_range(row, 6, row, 7, " ", fmt_total)
+            row += 1
+        
         workbook.close()
         output.seek(0)
         # Codificar el archivo en base64
