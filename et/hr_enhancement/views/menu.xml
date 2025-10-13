@@ -64,7 +64,6 @@
         parent="hr_enhancement.menu_hr_payroll_salary"
         action="hr_enhancement.action_hr_payroll_employees"
         sequence="2"/>
-
     <!-- Menú principal "Informes" -->
     <menuitem 
         id="hr_enhancement.menu_hr_payroll_reports"
@@ -72,6 +71,13 @@
         parent="hr.menu_hr_root"
         groups="hr_enhancement.group_hr_administrador"
         sequence="40"/>
+    <!-- Submenú "Reporte de Asistencias" -->
+    <menuitem 
+        id="hr_enhancement.menu_hr_report_attendance"
+        name="Reporte de Asistencias"
+        parent="hr_enhancement.menu_hr_payroll_reports"
+        action="hr_enhancement.action_hr_report_attendance_wizard"
+        sequence="1"/>
 
     <!-- Nuevo menú dentro de Recursos Humanos > Configuración -->
     <menuitem 

@@ -10,9 +10,10 @@
                 <attribute name="sum">Horas Laborales</attribute>
             </xpath>
             <xpath expr="//field[@name='worked_hours']" position="after">
-                <field name="overtime" widget="float_time" sum="Horas Extras"/>
+                <field name="overtime" sum="Horas Extras" digits="[16, 0]"/>
                 <field name="holiday_hours" widget="float_time" sum="Horas Feriado"/>
-                <field name="employee_type" />
+                <field name="employee_type" widget="badge" decoration-success="employee_type == 'employee'" decoration-danger="employee_type == 'eventual'"/>
+                <field name="employee_type_shift" widget="badge" decoration-warning="employee_type_shift == 'day'" decoration-info="employee_type_shift == 'night'"/>
             </xpath>
         </field>
     </record>
@@ -53,6 +54,26 @@
             <p>
                 Aquí se muestran únicamente tus registros de asistencia, en modo consulta.
             </p>
+        </field>
+    </record>
+
+    <!-- heredar los filtros hr_attendance.hr_attendance_view_filter -->
+    <record id="view_hr_report_attendance_filter" model="ir.ui.view">
+        <field name="name">hr.report.attendance.filter</field>
+        <field name="model">hr.attendance</field>
+        <field name="inherit_id" ref="hr_attendance.hr_attendance_view_filter"/>
+        <field name="arch" type="xml">
+            <xpath expr="//filter[@name='myattendances']" position="after">
+                <filter name="employee_type" string="Empleado" domain="[('employee_type', '=', 'employee')]"/>
+                <filter name="employee_type_eventual" string="Eventual" domain="[('employee_type', '=', 'eventual')]"/>
+                <filter name="type_shift_day" string="Turno Día" domain="[('employee_id.type_shift', '=', 'day')]"/>
+                <filter name="type_shift_night" string="Turno Noche" domain="[('employee_id.type_shift', '=', 'night')]"/>
+            </xpath>
+            <xpath expr="//filter[@name='employee']" position="after">
+                <filter string="Tipo de Empleado" name="employee_type" context="{'group_by': 'employee_type'}"/>
+                <filter name="employee_type_shift" string="Turno Asignado" context="{'group_by': 'employee_type_shift'}"/>
+                <separator/>
+            </xpath>
         </field>
     </record>
 </odoo>

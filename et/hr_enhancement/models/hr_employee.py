@@ -66,8 +66,8 @@ class HrEmployee(models.Model):
         default='employee', tracking=True
     )
     type_shift = fields.Selection([
-        ('day', 'Turno Diurno'),
-        ('night', 'Turno Nocturno'),
+        ('day', 'Turno Día'),
+        ('night', 'Turno Noche'),
     ], string='Tipo de Turno', default='day', tracking=True)
 
     id_lector = fields.Char(string='ID del Lector', tracking=True)

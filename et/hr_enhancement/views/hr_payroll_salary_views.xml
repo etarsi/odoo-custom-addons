@@ -134,7 +134,7 @@
                             <field name="employee_id"/>
                             <field name="worked_days"/>
                             <field name="worked_hours" widget="float_time"/>
-                            <field name="overtime" widget="float_time"/>
+                            <field name="overtime" digits="[16, 0]"/>
                             <field name="holiday_hours" widget="float_time"/>
                             <field name="holidays"/>
                         </group>

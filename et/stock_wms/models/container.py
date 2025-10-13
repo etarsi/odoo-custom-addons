@@ -104,8 +104,9 @@ class Container(models.Model):
                 data = response.json()
                 if data['Estado'] in ('Guardado','Verificado') and data['Modo'] == 'Completo':
                     if data['ControlCiegoDetalle']:
-                        for element in data['ControlCiegoDetalle']:   
-                            if element['CodigoArticulo'] in product_codes:              
+                        for element in data['ControlCiegoDetalle']:
+                            cod_art = element['CodigoArticulo']
+                            if element['CodigoArticulo'] in product_codes:            
                                 for product in vals_list:
                                     if product['p_code'] == element['CodigoArticulo']:
                                         product['q_picked'] += element['Unidades']
@@ -123,7 +124,7 @@ class Container(models.Model):
                                         'q_picked': element['Unidades'],
                                     }
                                     vals_list.append(vals2)
-
+                                    
                         for v in vals_list:
                             for line in record.lines:
                                 if v['p_code'] == line.product_id.default_code:
