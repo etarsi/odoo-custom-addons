@@ -37,30 +37,28 @@ class ResPartnerDebtCompositionReport(models.Model):
                     am.amount_residual AS importe_residual,
                     am.company_id,
                     am.currency_id
-
                 FROM account_move am
                 WHERE am.move_type IN ('out_invoice', 'out_refund')
-                  AND am.state = 'posted'
-                  AND am.amount_residual > 0
+                AND am.state = 'posted'
+                AND am.amount_residual > 0
 
                 UNION ALL
 
                 -- RECIBOS NO IMPUTADOS
                 SELECT
-                    ROW_NUMBER() OVER() + 1000000 AS id, -- evita colisión de IDs
+                    ROW_NUMBER() OVER() + 1000000 AS id,
                     apg.partner_id,
                     apg.payment_date AS fecha,
                     NULL AS vencimiento,
                     apg.name AS comprobante,
                     'recibo' AS tipo,
-                    apg.payments_amount AS importe_original,
-                    apg.payments_amount - apg.amount_residual AS importe_aplicado,
+                    apg.x_payments_amount AS importe_original,
+                    apg.x_payments_amount - apg.amount_residual AS importe_aplicado,
                     apg.amount_residual AS importe_residual,
                     apg.company_id,
                     apg.currency_id
-
                 FROM account_payment_group apg
                 WHERE apg.state = 'posted'
-                  AND apg.amount_residual > 0
+                AND apg.amount_residual > 0
             );
         """)
