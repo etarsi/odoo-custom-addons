@@ -25,10 +25,10 @@ class ReportDebtCompositionClient(models.Model):
         self._cr.execute(f"""
             CREATE OR REPLACE VIEW {self._table} AS (
                 WITH movimientos AS (
-                    -- FACTURAS Y NOTAS DE CRÉDITO
+                    -- FACTURAS Y NC
                     SELECT
                         am.id AS id,
-                        am.partner_id,
+                        rp.id AS partner_id,
                         am.invoice_date AS fecha,
                         am.invoice_date_due AS fecha_vencimiento,
                         am.name AS nombre,
@@ -39,25 +39,27 @@ class ReportDebtCompositionClient(models.Model):
                         am.currency_id,
                         'factura' AS origen
                     FROM account_move am
+                    JOIN res_partner rp ON rp.id = am.partner_id
                     WHERE am.move_type IN ('out_invoice', 'out_refund')
                     AND am.state = 'posted'
 
                     UNION ALL
 
-                    -- RECIBOS (account_payment_group)
+                    -- RECIBOS
                     SELECT
-                        -apg.id AS id,  -- negativo para que no choquen con los IDs de account_move
-                        apg.partner_id,
+                        -apg.id AS id,
+                        rp.id AS partner_id,
                         apg.payment_date AS fecha,
                         NULL AS fecha_vencimiento,
                         apg.name AS nombre,
                         apg.x_payments_amount AS importe_original,
-                        -apg.unreconciled_amount AS importe_residual, -- 🔹 resta deuda
+                        -apg.unreconciled_amount AS importe_residual,
                         apg.x_amount_applied AS importe_aplicado,
                         apg.company_id,
                         apg.currency_id,
                         'recibo' AS origen
                     FROM account_payment_group apg
+                    JOIN res_partner rp ON rp.id = apg.partner_id
                     WHERE apg.state IN ('posted', 'reconciled')
                 )
 
