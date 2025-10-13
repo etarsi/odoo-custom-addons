@@ -26,9 +26,11 @@ class ResPartnerDebtCompositionReport(models.Model):
 
 
     @api.model
-    def _search_partner_id(self, operator, value):
-        partner_ids = self.env['res.partner'].search([('display_name', operator, value)])
-        return [('partner_id', 'in', partner_ids.ids)]
+    def _name_search(self, name='', args=None, operator='ilike', limit=100, name_get_uid=None):
+        args = args or []
+        if name:
+            args = expression.OR([args, [('partner_name', operator, name)]])
+        return self._search(args, limit=limit, access_rights_uid=name_get_uid)
 
 
     def init(self):
