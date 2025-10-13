@@ -51,11 +51,6 @@
         'views/menu.xml',
         'views/res_partner_debt_composition_report_views.xml'
     ],
-    "assets": {
-        "web.assets_backend": [
-            "account_enhancement/static/src/scss/check_eff.scss",
-        ],
-    },
     # only loaded in demonstration mode
     'demo': [
         'demo/demo.xml',
