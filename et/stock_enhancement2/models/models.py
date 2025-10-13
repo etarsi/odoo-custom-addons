@@ -1364,20 +1364,6 @@ class StockPickingInherit(models.Model):
 
             raise UserError(result2)
 
-class StockMoveInherit(models.Model):
-    _inherit = "stock.move"
-
-    product_available_percent = fields.Float(string='Porc Disponible', compute='_calculate_bultos', store=True, group_operator='avg')
-    product_packaging_qty = fields.Float(string='Bultos', compute='_calculate_bultos', store=True)
-    product_available_pkg_qty = fields.Float(string='Bultos Disponibles', compute='_calculate_bultos', store=True)
-
-    license = fields.Char(string="Licencia", related='picking_id.carrier_tracking_ref', store=True)
-
-    @api.depends('quantity_done', 'product_uom_qty')
-    def _calculate_bultos(self):
-        for record in self:
-            if record.product_uom_qty > 0:
-                record.product_available_percent = (record.quantity_done * 100) / record.product_uom_qty
             
 
 class MergeDeliveriesInherit(models.TransientModel):
