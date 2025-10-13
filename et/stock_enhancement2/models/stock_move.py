@@ -26,7 +26,3 @@ class StockMoveInherit(models.Model):
         for record in self:
             if record.product_uom_qty > 0:
                 record.product_available_percent = (record.quantity_done * 100) / record.product_uom_qty
-
-
-
-    @
