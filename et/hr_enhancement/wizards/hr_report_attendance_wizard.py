@@ -96,13 +96,36 @@ class HrReportAttendanceWizard(models.TransientModel):
         row = header_row + 1
         current_emp = False
 
+        # --- 1) agrego una agregación por empleado para tener los totales ---
+        groups = self.env['hr.attendance'].read_group(
+            domain,
+            ['employee_id', 'worked_hours:sum', 'overtime:sum', 'holiday_hours:sum'],
+            ['employee_id'],
+        )
+        totales_por_emp = {
+            g['employee_id'][0]: {
+                'wh': g['worked_hours_sum'] or 0.0,
+                'ot': g['overtime_sum'] or 0.0,
+                'hh': g['holiday_hours_sum'] or 0.0,
+            }
+            for g in groups
+        }
+
         for attendance in attendances:
             emp = attendance.employee_id
-            # Cuando cambia el empleado, insertar “título de empleado”
+            # 2) cuando cambia de empleado, escribo la "cabecera" con los totales
             if not current_emp or emp.id != current_emp.id:
-                worksheet.merge_range(row, 0, row, 7, emp.name or '—', fmt_emp)
+                tot = totales_por_emp.get(emp.id, {'wh': 0.0, 'ot': 0.0, 'hh': 0.0})
+                # si no querés decimales en el rótulo, casteá a int:
+                wh_total = int(round(tot['wh']))
+                ot_total = int(round(tot['ot']))
+                hh_total = int(round(tot['hh']))
+
+                titulo = f"{emp.name}  |  T. Horas Trabajadas: {wh_total}  |  T. Horas al 50%: {ot_total}  |  T. Horas al 100%: {hh_total}"
+                worksheet.merge_range(row, 0, row, 7, titulo, fmt_emp)
                 row += 1
                 current_emp = emp
+
             # Fechas formateadas
             ingreso = attendance.check_in.strftime('%d/%m/%Y %H:%M:%S') if attendance.check_in else ''
             salida = attendance.check_out.strftime('%d/%m/%Y %H:%M:%S') if attendance.check_out else ''
@@ -112,7 +135,7 @@ class HrReportAttendanceWizard(models.TransientModel):
             worksheet.write(row, 0, attendance.employee_id.name, formato_celdas_izquierda)
             worksheet.write(row, 1, ingreso, formato_celdas_derecha)
             worksheet.write(row, 2, salida, formato_celdas_derecha)
-            worksheet.write(row, 3, attendance.worked_hour if attendance.worked_hours else 0, formato_celdas_derecha)
+            worksheet.write(row, 3, attendance.worked_hours if attendance.worked_hours else 0, formato_celdas_derecha)
             worksheet.write(row, 4, attendance.overtime if attendance.overtime else 0, formato_celdas_derecha)
             worksheet.write(row, 5, attendance.holiday_hours if attendance.holiday_hours else 0, formato_celdas_derecha)
             worksheet.write(row, 6, tipo_empleado, formato_celdas_izquierda)
