@@ -1,4 +1,5 @@
-from odoo import models, fields
+from odoo import models, fields, api
+from odoo.osv import expression
 
 class ResPartnerDebtCompositionReport(models.Model):
     _name = 'res.partner.debt.composition.report'
@@ -22,15 +23,21 @@ class ResPartnerDebtCompositionReport(models.Model):
     currency_id = fields.Many2one('res.currency', string='Moneda')
 
 
-    def _search_partner_id(self, operator, value):
-        partners = self.env['res.partner'].search([('display_name', operator, value)])
-        return [('partner_id', 'in', partners.ids)]
+    @api.model
+    def _name_search(self, name='', args=None, operator='ilike', limit=100, name_get_uid=None):
+        args = args or []
+        if name:
+            partner_ids = self.env['res.partner'].search([('display_name', operator, name)], limit=limit)
+            args = expression.OR([args, [('partner_id', 'in', partner_ids.ids)]])
+        return super(ResPartnerDebtCompositionReport, self)._name_search(name, args, operator=operator, limit=limit, name_get_uid=name_get_uid)
 
-    _search = {
-        'partner_id': _search_partner_id,
-    }
+    def name_get(self):
+        result = []
+        for rec in self:
+            display = f"{rec.partner_id.display_name or ''} - {rec.comprobante or ''}"
+            result.append((rec.id, display))
+        return result
 
-    
     def init(self):
         self.env.cr.execute("""
             CREATE OR REPLACE VIEW res_partner_debt_composition_report AS (
