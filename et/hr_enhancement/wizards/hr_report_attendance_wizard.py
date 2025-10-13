@@ -112,7 +112,7 @@ class HrReportAttendanceWizard(models.TransientModel):
             worksheet.write(row, 0, attendance.employee_id.name, formato_celdas_izquierda)
             worksheet.write(row, 1, ingreso, formato_celdas_derecha)
             worksheet.write(row, 2, salida, formato_celdas_derecha)
-            worksheet.write(row, 3, attendance.worked_hour if attendance.worked_hour else 0, formato_celdas_derecha)
+            worksheet.write(row, 3, attendance.worked_hour if attendance.worked_hours else 0, formato_celdas_derecha)
             worksheet.write(row, 4, attendance.overtime if attendance.overtime else 0, formato_celdas_derecha)
             worksheet.write(row, 5, attendance.holiday_hours if attendance.holiday_hours else 0, formato_celdas_derecha)
             worksheet.write(row, 6, tipo_empleado, formato_celdas_izquierda)
