@@ -53,8 +53,8 @@ class ResPartnerDebtCompositionReport(models.Model):
                     NULL AS vencimiento,
                     apg.name AS comprobante,
                     'recibo' AS tipo,
-                    apg.amount AS importe_original,
-                    apg.amount - apg.amount_residual AS importe_aplicado,
+                    apg.payments_amount AS importe_original,
+                    apg.payments_amount - apg.amount_residual AS importe_aplicado,
                     apg.amount_residual AS importe_residual,
                     apg.company_id,
                     apg.currency_id
