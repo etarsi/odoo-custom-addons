@@ -19,7 +19,6 @@
         </field>
     </record>
 
-    <!-- Vista de búsqueda (opcional pero muy útil) -->
     <record id="view_res_partner_debt_composition_report_search" model="ir.ui.view">
         <field name="name">res.partner.debt.composition.report.search</field>
         <field name="model">res.partner.debt.composition.report</field>
@@ -34,20 +33,21 @@
         </field>
     </record>
 
-    <!-- Acción -->
     <record id="action_res_partner_debt_composition_report" model="ir.actions.act_window">
         <field name="name">Composición de Deudas</field>
         <field name="res_model">res.partner.debt.composition.report</field>
         <field name="view_mode">tree</field>
+        <field name="view_id" ref="view_res_partner_debt_composition_report_tree"/>
+        <field name="search_view_id" ref="view_res_partner_debt_composition_report_search"/>
         <field name="help" type="html">
             <p>Informe consolidado de facturas, notas de crédito y recibos con saldo pendiente.</p>
         </field>
     </record>
 
-    <!-- Menú -->
     <menuitem id="menu_res_partner_debt_composition_report_root"
               name="Composición de Deudas"
               parent="account.menu_finance_receivables"
               action="action_res_partner_debt_composition_report"
               sequence="7"/>
 </odoo>
+
