@@ -1,43 +1,42 @@
-from odoo import models, fields, api
-from odoo.osv import expression
+from odoo import models, fields
 
 class ResPartnerDebtCompositionReport(models.Model):
     _name = 'res.partner.debt.composition.report'
-    _description = 'Composición de Deudas de Clientes'
+    _description = 'Composición de Deuda por Cliente'
     _auto = False
-    _order = 'partner_id, fecha'
+    _order = 'fecha desc, comprobante'
 
-    name = fields.Char(string='Nombre', related='partner_id.name', store=False)
-    partner_id = fields.Many2one('res.partner', string='Cliente')
-    partner_name = fields.Char(string='Nombre del Cliente')
-    fecha = fields.Date(string='Fecha del Comprobante')
-    vencimiento = fields.Date(string='Fecha de Vencimiento')
-    comprobante = fields.Char(string='Comprobante')
-    tipo = fields.Selection([
-        ('factura', 'Factura / ND'),
-        ('nota_credito', 'Nota de Crédito'),
-        ('recibo', 'Recibo no Imputado')
-    ], string='Tipo')
-    importe_original = fields.Monetary(string='Importe Original')
-    importe_aplicado = fields.Monetary(string='Importe Aplicado')
-    importe_residual = fields.Monetary(string='Importe Residual')
-    saldo_acumulado = fields.Monetary(string='Saldo Acumulado')
-    company_id = fields.Many2one('res.company', string='Compañía')
-    currency_id = fields.Many2one('res.currency', string='Moneda')
-
+    # Campos estándar para evitar errores de ORM
     create_date = fields.Datetime(readonly=True)
     write_date = fields.Datetime(readonly=True)
     create_uid = fields.Many2one('res.users', readonly=True)
     write_uid = fields.Many2one('res.users', readonly=True)
 
+    partner_id = fields.Many2one('res.partner', string='Cliente')
+    partner_name = fields.Char(string='Nombre del Cliente')  # solo para búsquedas
+    fecha = fields.Date(string='Fecha')
+    vencimiento = fields.Date(string='Vencimiento')
+    comprobante = fields.Char(string='Comprobante')
+    tipo = fields.Selection([
+        ('factura', 'Factura'),
+        ('nota_credito', 'Nota de Crédito'),
+        ('recibo', 'Recibo'),
+        ('otros', 'Otros'),
+    ], string='Tipo')
+    importe_original = fields.Float(string='Importe Original')
+    importe_aplicado = fields.Float(string='Importe Aplicado')
+    importe_residual = fields.Monetary(string='Importe Pendiente')
+    saldo_acumulado = fields.Monetary(string='Saldo Acumulado')
+    company_id = fields.Many2one('res.company', string='Compañía')
+    currency_id = fields.Many2one('res.currency', string='Moneda')
 
     def init(self):
-        self.env.cr.execute("DROP VIEW IF EXISTS res_partner_debt_composition_report CASCADE;")
         self.env.cr.execute("""
+            DROP VIEW IF EXISTS res_partner_debt_composition_report CASCADE;
             CREATE VIEW res_partner_debt_composition_report AS (
 
                 WITH combined AS (
-                    -- FACTURAS / ND / NC
+                    -- FACTURAS / NC / ND
                     SELECT
                         am.partner_id,
                         rp.name AS partner_name,
@@ -99,12 +98,9 @@ class ResPartnerDebtCompositionReport(models.Model):
                     importe_original,
                     importe_aplicado,
                     importe_residual,
-                    SUM(importe_residual)
-                        OVER (PARTITION BY partner_id ORDER BY fecha, comprobante)
-                        AS saldo_acumulado,
+                    SUM(importe_residual) OVER (PARTITION BY partner_id ORDER BY fecha, comprobante) AS saldo_acumulado,
                     company_id,
                     currency_id
                 FROM combined
             );
         """)
-
