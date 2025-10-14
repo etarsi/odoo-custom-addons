@@ -145,11 +145,6 @@ class HrEnhancementApi(models.AbstractModel):
                                         min_minutes = 60
                                         delta_minutes = (check_utc - open_att.check_in).total_seconds() / 60.0
                                         if delta_minutes < min_minutes:
-                                            env['hr.temp.attendance'].sudo().create({
-                                                'employee_id': employee.id,
-                                                'check_date': check_utc,
-                                                'employee_type': employee.employee_type,
-                                            })
                                             message += f'--la salida debe ser al menos {min_minutes} minutos después de la entrada ({open_att.check_in.strftime("%Y-%m-%d %H:%M")})'
                                             return {'success': False, 'error': message, 'received': data}
                                         if dow == 5:  # Sábado
@@ -228,11 +223,6 @@ class HrEnhancementApi(models.AbstractModel):
                                     min_minutes = 60
                                     delta_minutes = (check_utc - open_att.check_in).total_seconds() / 60.0
                                     if delta_minutes < min_minutes:
-                                        env['hr.temp.attendance'].sudo().create({
-                                            'employee_id': employee.id,
-                                            'check_date': check_utc,
-                                            'employee_type': employee.employee_type,
-                                        })
                                         message += f'--la salida debe ser al menos {min_minutes} minutos después de la entrada ({open_att.check_in.strftime("%Y-%m-%d %H:%M")})'
                                         return {'success': False, 'error': message, 'received': data}
                                     if check_utc > end_limit_night:
@@ -278,10 +268,10 @@ class HrEnhancementApi(models.AbstractModel):
                                         'check_in': check_utc,
                                     })
                                     message += f' (asistencia abierta: {open_att.id})'
-                return {'success': True, 'message': message}
+                return {'success': True, 'message': message, 'status_code': 200, 'received': data}
             except ValidationError as ve:
-                return {'success': False, 'error': str(ve), 'error_class': ve.__class__.__name__, 'received': data}
+                return {'success': False, 'error': str(ve), 'error_class': ve.__class__.__name__, 'received': data, 'status_code': 400}
             except Exception as e:
                 # rollback explícito por si quedó algo a medio camino
                 env.cr.rollback()
-                return {'success': False, 'error': str(e), 'received': data}
+                return {'success': False, 'error': str(e), 'received': data, 'status_code': 500}

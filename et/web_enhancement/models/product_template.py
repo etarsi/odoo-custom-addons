@@ -74,13 +74,6 @@ class ProductTemplate(models.Model):
         return file_obj
 
     def _find_subfolder_for_code(self, service, main_folder_id, code):
-        """
-        Busca una subcarpeta bajo 'main_folder_id' cuyo nombre:
-        1) sea exactamente 'code', o
-        2) empiece con 'code ' / 'code-' / 'code_', o
-        3) contenga 'code'.
-        Devuelve el dict del folder elegido o None.
-        """
         code_str = (code or "").strip()
         if not code_str:
             return None
@@ -134,18 +127,12 @@ class ProductTemplate(models.Model):
 
     # --------- Acción: ZIP por default_code ---------
     def action_zip_by_default_code_from_main_folder(self):
-        """
-        Para cada producto:
-          - Usa gdrive_folder_id como CARPETA PRINCIPAL.
-          - Busca subcarpeta cuyo nombre coincida con default_code (exacto/empieza/contiene).
-          - Zipea SOLO esa subcarpeta (recursivo), guardando solo imágenes (.jpg/.jpeg/.png).
-          - Crea ir.attachment y devuelve descarga directa (si es un producto).
-        """
         service = self._build_gdrive_service()
         attachments = []
         sheet_drive_folder_path = self.env['ir.config_parameter'].get_param('web_enhancement.sheet_drive_folder_path')
         if not sheet_drive_folder_path:
-            raise UserError(_("No está configurado el ID de la carpeta principal en Drive (Settings > Configuración de Google Drive)."))
+            _logger.info("No está configurado el ID de la carpeta principal en Drive (Settings > Configuración de Google Drive).")
+            raise UserError(_("Se produjo un error al obtener las imagenes, por favor contáctese a soporte."))
         
         def _add_file_to_zip(zipf, file_obj, arc_prefix):
             file_id = file_obj["id"]
@@ -195,14 +182,17 @@ class ProductTemplate(models.Model):
                 if not sub:
                     main_id = (sheet_drive_folder_path or "").strip()
                     if not main_id:
-                        raise UserError(_("No está configurado el ID de la carpeta principal en Drive (Settings > Configuración de Google Drive)."))
+                        _logger.info("No está configurado el ID de la carpeta principal en Drive (Settings > Configuración de Google Drive).")
+                        raise UserError(_("Se produjo un error al obtener las imagenes, por favor contáctese a soporte."))
                     code = (tmpl.default_code or "").strip()
                     if not code:
-                        raise UserError(_("El producto '%s' no tiene default_code (Referencia interna).") % tmpl.display_name)
+                        _logger.info("No está configurado el default_code para el producto '%s'." % tmpl.display_name)
+                        raise UserError(_("Se produjo un error al obtener las imagenes, por favor contáctese a soporte."))
 
                     sub = self._find_subfolder_for_code(service, main_id, code)
                     if not sub:
-                        raise UserError(_("No se encontró subcarpeta para el código '%s' dentro de la carpeta principal.") % code)
+                        _logger.info("No se encontró subcarpeta para el código '%s' dentro de la carpeta principal." % code)
+                        raise UserError(_("Se produjo un error al obtener las imagenes, por favor contáctese a soporte."))
                     target_folder_id = sub["id"]
                     root_prefix = (sub.get("name") or code).strip().replace("/", "_")
                 else:
@@ -212,14 +202,17 @@ class ProductTemplate(models.Model):
                 # Caso 2: usar carpeta principal global y buscar subcarpeta por default_code
                 main_id = (sheet_drive_folder_path or "").strip()
                 if not main_id:
-                    raise UserError(_("No está configurado el ID de la carpeta principal en Drive (Settings > Configuración de Google Drive)."))
+                    _logger.info("No está configurado el ID de la carpeta principal en Drive (Settings > Configuración de Google Drive).")
+                    raise UserError(_("Se produjo un error al obtener las imagenes, por favor contáctese a soporte."))
                 code = (tmpl.default_code or "").strip()
                 if not code:
-                    raise UserError(_("El producto '%s' no tiene default_code (Referencia interna).") % tmpl.display_name)
+                    _logger.info("No está configurado el default_code para el producto '%s'." % tmpl.display_name)
+                    raise UserError(_("Se produjo un error al obtener las imagenes, por favor contáctese a soporte."))
 
                 sub = self._find_subfolder_for_code(service, main_id, code)
                 if not sub:
-                    raise UserError(_("No se encontró subcarpeta para el código '%s' dentro de la carpeta principal.") % code)
+                    _logger.info("No se encontró subcarpeta para el código '%s' dentro de la carpeta principal." % code)
+                    raise UserError(_("Se produjo un error al obtener las imagenes, por favor contáctese a soporte."))
                 target_folder_id = sub["id"]
                 root_prefix = (sub.get("name") or code).strip().replace("/", "_")   
             # Armar ZIP SOLO de esa subcarpeta
@@ -246,8 +239,6 @@ class ProductTemplate(models.Model):
                          tmpl.display_name, sub.get("name"), attach.id)
             #guardar el id en el campo del producto
             tmpl.write({'gdrive_folder_id': target_folder_id})
-        _logger.info("Total productos procesados: %d", len(self))
-        _logger.info("Total attachments creados: %d", len(attachments))
         # Si es un solo producto, devuelvo descarga directa
         if len(self) == 1 and attachments:
             att = self.env["ir.attachment"].browse(attachments[-1])
