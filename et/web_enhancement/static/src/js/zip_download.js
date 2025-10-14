@@ -53,6 +53,7 @@ odoo.define('web_enhancement.gdrive_zip_public', function () {
     })
     .then(r => r.json())
     .then(data => {
+      console.log('ZIP público:', data);
       if (!data || !data.ok || !data.url) {
         const msg = (data && data.message) || 'No se pudo generar la descarga.';
         throw new Error(msg);
