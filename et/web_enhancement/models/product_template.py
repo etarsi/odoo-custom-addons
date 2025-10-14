@@ -9,6 +9,7 @@ from datetime import datetime
 from google.oauth2 import service_account
 from googleapiclient.discovery import build
 from googleapiclient.http import MediaIoBaseDownload
+from werkzeug.urls import url_quote
 
 from odoo import api, fields, models, _
 from odoo.exceptions import UserError
@@ -232,6 +233,7 @@ class ProductTemplate(models.Model):
                 "res_model": tmpl._name,
                 "res_id": tmpl.id,
                 "mimetype": "application/zip",
+                "public": True,
             })
             #generar token si no tiene
             if not attach.access_token:
@@ -246,7 +248,8 @@ class ProductTemplate(models.Model):
             att = self.env["ir.attachment"].browse(attachments[-1])
             if not att.access_token:
                 att._generate_access_token()
-            url = f"/web/content/{att.id}?download=true"
+            filename = url_quote(att.name or 'archivo.zip')
+            url = f"/web/content/{att.id}?download=1&filename={filename}&access_token={att.access_token}"
             return {
                 "type": "ir.actions.act_url",
                 "url": url,
