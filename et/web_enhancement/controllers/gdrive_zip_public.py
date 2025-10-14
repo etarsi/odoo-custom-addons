@@ -42,7 +42,7 @@ class GDriveZipPublicController(http.Controller):
 
         except UserError as ue:
             # Mensaje neutral para web
-            _logger.warning("UserError en ZIP público: %s", ue.name or str(ue))
+            _logger.info("UserError en ZIP público: %s", ue.name or str(ue))
             return {"ok": False, "message": _("Se produjo un error al obtener las imágenes, por favor contáctese a soporte.")}
         except Exception as ex:
             _logger.exception("Error inesperado en ZIP público")
