@@ -31,7 +31,8 @@
     ],
     'assets': {
         'web.assets_backend': [
-            'hr_enhancement/static/src/js/handle_service.js',
+            'web_enhancement/static/src/js/handle_service.js',
+            'web_enhancement/static/src/js/zip_download.js',
         ],
     },
     'application': False,
