@@ -74,14 +74,14 @@ class ReportDebtCompositionClient(models.Model):
                         NULL AS fecha_vencimiento,
                         apg.name AS nombre,
                         apg.x_payments_amount AS importe_original,
-                        -apg.unreconciled_amount AS importe_residual,
-                        apg.x_payments_amount - apg.unreconciled_amount AS importe_aplicado,
+                        -apg.unmatched_amount AS importe_residual,
+                        apg.x_payments_amount - apg.unmatched_amount AS importe_aplicado,
                         'recibo' AS origen,
                         apg.company_id,
                         apg.currency_id
                     FROM account_payment_group apg
                     WHERE apg.state = 'posted'
-                    AND apg.unreconciled_amount > 0
+                    AND apg.unmatched_amount > 0
                 )
                 SELECT
                     id,
