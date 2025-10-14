@@ -84,7 +84,7 @@ class ReportDebtCompositionClient(models.Model):
                     AND apg.unreconciled_amount > 0
                 )
                 SELECT
-                    ROW_NUMBER() OVER() AS id,
+                    id,
                     partner,
                     fecha,
                     fecha_vencimiento,
