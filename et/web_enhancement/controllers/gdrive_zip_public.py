@@ -18,7 +18,7 @@ class GDriveZipXMLRPC(http.Controller):
         if not pid:
             return {"ok": False, "message": _("Parámetro 'product_id' faltante.")}
         # Parámetros de conexión XML-RPC (deberían estar en Configuración)
-        URL  = "https://one.sebigus.com.ar/"
+        URL  = "https://one.sebigus.com.ar"
         DB   = "one"
         USER = "rrhh@sebigus.com.ar"
         KEY  = "123"
@@ -50,5 +50,5 @@ class GDriveZipXMLRPC(http.Controller):
             return {"ok": False, "message": _("Operación finalizada sin URL directa.")}
 
         except Exception as e:
-            _logger.exception("Error XML-RPC")
+            _logger.info("Error XML-RPC: %s", e)
             return {"ok": False, "message": _("Error inesperado comunicando con Odoo.")}
