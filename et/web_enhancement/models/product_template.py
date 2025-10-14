@@ -127,6 +127,8 @@ class ProductTemplate(models.Model):
 
     # --------- Acción: ZIP por default_code ---------
     def action_zip_by_default_code_from_main_folder(self):
+        self.ensure_one()
+        self = self.sudo()
         service = self._build_gdrive_service()
         attachments = []
         sheet_drive_folder_path = self.env['ir.config_parameter'].get_param('web_enhancement.sheet_drive_folder_path')
@@ -154,7 +156,7 @@ class ProductTemplate(models.Model):
         def _walk_and_zip(zipf, folder_id, prefix):
             items = self._gdrive_list_folder_items(service, folder_id)
             for it in items:
-                it = self._gdrive_resolve_shortcut(service, it)
+                it = self._gdrive_resolve_shortcut(service, it) 
                 mime = it.get("mimeType")
                 name = it.get("name") or it["id"]
                 if mime == "application/vnd.google-apps.folder":
