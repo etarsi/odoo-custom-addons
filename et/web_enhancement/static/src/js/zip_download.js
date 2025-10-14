@@ -1,6 +1,6 @@
 /** @odoo-module **/
 
-odoo.define('tu_modulo.zip_download', function (require) {
+odoo.define('web_enhancement.zip_download', function (require) {
   'use strict';
 
   // ===== Overlay simple =====

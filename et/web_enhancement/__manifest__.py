@@ -32,6 +32,8 @@
     'assets': {
         'web.assets_backend': [
             'web_enhancement/static/src/js/handle_service.js',
+        ],
+        'web.assets_frontend': [
             'web_enhancement/static/src/js/zip_download.js',
         ],
     },
