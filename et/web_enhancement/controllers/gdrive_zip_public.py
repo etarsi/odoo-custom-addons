@@ -24,10 +24,10 @@ class GDriveZipPublicController(http.Controller):
             tmpl = env['product.template'].sudo().browse(pid).exists()
             if not tmpl:
                 return {"ok": False, "message": _("Producto no encontrado.")}
-
+            _logger.info("Iniciando acción ZIP público para producto ID %d (Código: %s)", tmpl.id, tmpl.default_code or '—')
             res = tmpl.action_zip_by_default_code_from_main_folder()
-
-            # Tu método devuelve ir.actions.act_url con url directa (cuando es 1 producto)
+            _logger.info("Resultado acción ZIP público: %s", res)
+            # Si hay URL directa, la devolvemos
             if isinstance(res, dict) and res.get('type') == 'ir.actions.act_url' and res.get('url'):
                 return {"ok": True, "url": res['url']}
 
@@ -45,5 +45,5 @@ class GDriveZipPublicController(http.Controller):
             _logger.info("UserError en ZIP público: %s", ue.name or str(ue))
             return {"ok": False, "message": _("Se produjo un error al obtener las imágenes, por favor contáctese a soporte.")}
         except Exception as ex:
-            _logger.exception("Error inesperado en ZIP público")
+            _logger.info("Error inesperado en ZIP público")
             return {"ok": False, "message": _("Error inesperado. Intente nuevamente.")}
