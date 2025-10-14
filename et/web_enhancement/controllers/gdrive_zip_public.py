@@ -18,8 +18,8 @@ class GDriveZipXMLRPC(http.Controller):
         if not pid:
             return {"ok": False, "message": _("Parámetro 'product_id' faltante.")}
         # Parámetros de conexión XML-RPC (deberían estar en Configuración)
-        URL  = "http://192.168.0.85:8069/"
-        DB   = "test_v2"
+        URL  = "https://one.sebigus.com.ar/"
+        DB   = "one"
         USER = "rrhh@sebigus.com.ar"
         KEY  = "123"
 
