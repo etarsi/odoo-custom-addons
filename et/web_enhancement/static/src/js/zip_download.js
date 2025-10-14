@@ -45,7 +45,7 @@ odoo.define('web_enhancement.gdrive_zip_public', function () {
     showOverlay();
     if (anchor) { anchor.classList.add('disabled'); }
 
-    fetch(endpoint || '/gdrive/zip/public', {
+    fetch(endpoint || '/gdrive/zip/public_xmlrpc', {
       method: 'POST',
       credentials: 'same-origin',
       headers: {'Content-Type': 'application/json'},
