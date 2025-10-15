@@ -49,8 +49,8 @@ class HrPayrollSalary(models.Model):
     )
     #seleccionar que tipo de eventual o empleado o turno
     type_liquidacion_eventual = fields.Selection([
-        ('eventual_day', 'Eventual Día'),
-        ('eventual_night', 'Eventual Noche')
+        ('eventual_day', 'Eventuales de Turno Día'),
+        ('eventual_night', 'Eventuales de Turno Noche')
     ], string="Tipo de Liquidación", default='eventual_day', required=True, tracking=True)
     type_liquidacion_employee = fields.Selection([
         ('employee_day', 'Empleado Día'),
