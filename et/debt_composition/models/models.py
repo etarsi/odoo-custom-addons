@@ -74,7 +74,7 @@ class ReportDebtCompositionClient(models.Model):
                         NULL AS fecha_vencimiento,
                         apg.name AS nombre,
                         apg.x_payments_amount AS importe_original,
-                        -apx_unmatched_amount AS importe_residual,
+                        -ap.x_unmatched_amount AS importe_residual,
                         apg.x_payments_amount - apg.x_unmatched_amount AS importe_aplicado,
                         'recibo' AS origen,
                         apg.company_id,
