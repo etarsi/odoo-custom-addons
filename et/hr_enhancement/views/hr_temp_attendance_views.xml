@@ -8,7 +8,9 @@
             <tree string="Bitacora de Asistencias" create="false" edit="false">
                 <field name="employee_id"/>
                 <field name="check_date"/>
-                <field name="employee_type"/>
+                <field name="employee_type" widget="badge" decoration-success="employee_type == 'employee'" decoration-danger="employee_type == 'eventual'"/>
+                <field name="employee_type_shift" widget="badge" decoration-warning="employee_type_shift == 'day'" decoration-info="employee_type_shift == 'night'"/>
+                <field name="notes"/>
             </tree>
         </field>
     </record>
