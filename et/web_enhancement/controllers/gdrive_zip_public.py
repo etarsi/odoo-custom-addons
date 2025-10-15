@@ -1,6 +1,6 @@
 # controllers/gdrive_zip_xmlrpc.py
 # -*- coding: utf-8 -*-
-import xmlrpc.client, logging, socket
+import xmlrpc.client, logging, socket, urllib.parse
 from odoo import http, _
 from odoo.http import request
 
@@ -22,7 +22,20 @@ class GDriveZipXMLRPC(http.Controller):
         DB   = "one"
         USER = "rrhh@sebigus.com.ar"
         KEY  = "123"
-
+        # ¿Apunta al MISMO Odoo/DB? Usar ORM directamente: más rápido y sin red.
+        same_host = URL and (urllib.parse.urlparse(URL).netloc == urllib.parse.urlparse(request.httprequest.host_url).netloc)
+        same_db   = (DB == request.db)
+        if same_host and same_db:
+            try:
+                # Ejecutar en sudo (o con un usuario técnico si querés contexto)
+                tmpl = request.env['product.template'].sudo().browse(pid).exists()
+                res = tmpl.action_zip_by_default_code_from_main_folder()
+                url = (isinstance(res, dict) and res.get('url')) or None
+                if url:
+                    return {"ok": True, "url": url}
+                return {"ok": False, "message": _("Operación finalizada sin URL directa.")}
+            except Exception as e:
+                _logger.exception("Error ORM directo en public_xmlrpc: %s", e)
         if not (URL and DB and USER and KEY):
             return {"ok": False, "message": _("Credenciales/URL XML-RPC no configuradas.")}
 

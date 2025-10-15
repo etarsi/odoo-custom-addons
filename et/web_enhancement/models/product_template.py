@@ -226,7 +226,7 @@ class ProductTemplate(models.Model):
             data_b64 = base64.b64encode(mem.read())
             zip_name = f"{(tmpl.name or code).strip().replace('/', '_')}_{code}_imagenes.zip"
 
-            attach = self.env["ir.attachment"].create({
+            attach = self.env["ir.attachment"].sudo().create({
                 "name": zip_name,
                 "datas": data_b64,
                 "res_model": tmpl._name,
