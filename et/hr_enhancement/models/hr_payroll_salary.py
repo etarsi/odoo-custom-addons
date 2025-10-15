@@ -48,11 +48,14 @@ class HrPayrollSalary(models.Model):
         store=True
     )
     #seleccionar que tipo de eventual o empleado o turno
-    type_liquidacion = fields.Selection([
+    type_liquidacion_eventual = fields.Selection([
         ('eventual_day', 'Eventual Día'),
-        ('eventual_night', 'Eventual Noche'),
-        ('employee_day', 'Empleado Día'),
+        ('eventual_night', 'Eventual Noche')
     ], string="Tipo de Liquidación", default='eventual_day', required=True, tracking=True)
+    type_liquidacion_employee = fields.Selection([
+        ('employee_day', 'Empleado Día'),
+        ('employee_night', 'Empleado Noche')
+    ], string="Tipo de Liquidación", default='employee_day', required=True, tracking=True)
     line_ids = fields.One2many('hr.payroll.salary.line', 'payroll_id', string="Detalles de Planilla", copy=True)
     
     
@@ -111,7 +114,18 @@ class HrPayrollSalary(models.Model):
             # no eliminar las lineas de la planilla sino traer los empleados que falten
             if record.line_ids:
                 existing_employees = record.line_ids.mapped('employee_id')
-                employees = self.env['hr.employee'].search([('employee_type', '=', record.employee_type), ('id', 'not in', existing_employees.ids)])
+                domain = [('employee_type', '=', record.employee_type), ('id', 'not in', existing_employees.ids)]
+                if record.employee_type == 'eventual':
+                    if record.type_liquidacion_eventual == 'eventual_day':
+                        domain.append(('type_shift', '=', 'day'))
+                    else:
+                        domain.append(('type_shift', '=', 'night'))
+                elif record.employee_type == 'employee':
+                    if record.type_liquidacion_employee == 'employee_day':
+                        domain.append(('type_shift', '=', 'day'))
+                    else:
+                        domain.append(('type_shift', '=', 'night'))
+                employees = self.env['hr.employee'].search(domain)
             else:
                 employees = self.env['hr.employee'].search([('employee_type', '=', record.employee_type)])
             for emp in employees:
@@ -313,12 +327,20 @@ class HrPayrollSalaryLine(models.Model):
         for rec in self:
             rec.gross_amount = 0.00
             if rec.labor_cost_id:
-                amount_overtime = rec.labor_cost_id.hour_cost_extra
-                amount_holiday = rec.labor_cost_id.hour_cost_holiday
-                rec.gross_amount = (rec.bonus + (rec.worked_hours * rec.labor_cost_id.hour_cost_normal) +
-                                    (rec.overtime * amount_overtime) +
-                                    (rec.holiday_hours * amount_holiday))
-                rec.net_amount = rec.gross_amount - rec.discount
+                if rec.payroll_id.employee_type == 'eventual' and rec.payroll_id.type_liquidacion_eventual == 'eventual_day':
+                    amount_overtime = rec.labor_cost_id.hour_cost_extra
+                    amount_holiday = rec.labor_cost_id.hour_cost_holiday
+                    rec.gross_amount = (rec.bonus + (rec.worked_hours * rec.labor_cost_id.hour_cost_normal) +
+                                        (rec.overtime * amount_overtime) +
+                                        (rec.holiday_hours * amount_holiday))
+                    rec.net_amount = rec.gross_amount - rec.discount
+                elif rec.payroll_id.employee_type == 'eventual' and rec.payroll_id.type_liquidacion_eventual == 'eventual_night':
+                    amount_overtime = rec.labor_cost_id.hour_cost_extra
+                    amount_holiday = rec.labor_cost_id.hour_cost_holiday
+                    rec.gross_amount = (rec.bonus + (rec.worked_hours * rec.labor_cost_id.hour_cost_night) +
+                                        (rec.overtime * amount_overtime) +
+                                        (rec.holiday_hours * amount_holiday))
+                    rec.net_amount = rec.gross_amount - rec.discount
             
     @api.depends('employee_id', 'payroll_id.date_start', 'payroll_id.date_end')
     def _compute_attendance(self):
@@ -333,9 +355,7 @@ class HrPayrollSalaryLine(models.Model):
             if not season_costo:
                 raise ValidationError('No hay una temporada activa para calcular el costo laboral. Por favor, cree y active una temporada en Costo Laboral por Temporada.')
             rec.labor_cost_id = season_costo.id
-            season_costo.hour_cost_normal
-            
-            
+
             if rec.employee_id and rec.payroll_id:
                 attendances = self.env['hr.attendance'].search([
                     ('employee_id', '=', rec.employee_id.id),
