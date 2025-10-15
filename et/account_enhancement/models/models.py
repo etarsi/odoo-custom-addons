@@ -510,7 +510,7 @@ class AccountPaymentGroupInherit(models.Model):
     @api.depends('unmatched_amount')
     def _compute_unmatched_amount(self):
         for record in self:
-            record.x_unmatched_amount = record.x_unmatched_amount
+            record.x_unmatched_amount = record.unmatched_amount
 
     
     #### ONCHANGE #####
