@@ -115,6 +115,18 @@
                         class="btn-danger"
                         attrs="{'invisible': [('active', '=', False)]}"/>
             </xpath>
+            <xpath expr="//sheet" position="inside">
+                <!-- Eventual -->
+                <widget name="web_ribbon" title="Eventual" bg_color="bg-danger"
+                        attrs="{'invisible': [('employee_type','!=','eventual')]}"/>
+                <!-- Empleado -->
+                <widget name="web_ribbon" title="Empleado" bg_color="bg-success"
+                        attrs="{'invisible': [('employee_type','!=','employee')]}"/>
+                <widget name="web_ribbon" title="Esta Activo"
+                        class="ribbon-2"
+                        bg_color="bg-success"
+                        attrs="{'invisible': [('employee_type','!=','employee')]}"/>
+            </xpath>
             <xpath expr="//field[@name='image_1920']" position="attributes">
                 <attribute name="attrs">{'readonly': [('state', '!=', 'draft')], 'required': [('employee_type', '=', 'employee')]}</attribute>
             </xpath>

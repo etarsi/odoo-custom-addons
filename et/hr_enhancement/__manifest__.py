@@ -51,4 +51,9 @@
     'demo': [
         'demo/demo.xml',
     ],
+    'assets': {
+        'web.assets_backend': [
+            'hr_enhancement/static/src/scss/style.scss',
+        ],
+    },
 }

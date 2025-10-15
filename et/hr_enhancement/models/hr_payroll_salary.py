@@ -163,6 +163,11 @@ class HrPayrollSalary(models.Model):
             if record.state != 'draft':
                 raise ValidationError('Solo se pueden eliminar las líneas de una planilla en estado Borrador.')
             record.line_ids.unlink()
+            
+    @api.onchage('type_liquidacion_eventual')
+    def _onchange_type_liquidacion_eventual_clear_line(self):
+        for record in self:
+            record.action_clear_lines()
 
     def action_generar_excel(self):
         self.ensure_one()
@@ -371,7 +376,7 @@ class HrPayrollSalaryLine(models.Model):
                 attendances = self.env['hr.attendance'].search([
                     ('employee_id', '=', rec.employee_id.id),
                     ('check_in', '>=', rec.payroll_id.date_start),
-                    ('check_in', '<=', rec.payroll_id.date_end),
+                    ('check_out', '<=', rec.payroll_id.date_end),
                 ])
                 if not attendances:
                     raise ValidationError('No se encontraron asistencias para el empleado %s en el período seleccionado.' % rec.employee_id.name)
