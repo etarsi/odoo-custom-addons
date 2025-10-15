@@ -39,7 +39,7 @@ class HrPayrollSalary(models.Model):
     employee_type = fields.Selection([
         ('employee', 'Fijo'),
         ('eventual', 'Eventual'),
-    ], string="Tipo de Empleado a Pagar", default='eventual', required=True, tracking=True)
+    ], string="Tipo de Empleado", default='eventual', required=True, tracking=True)
     #totales de la planilla
     total_amount = fields.Monetary(
         string="Total a Pagar",
