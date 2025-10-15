@@ -54,7 +54,7 @@ class ReportDebtCompositionClient(models.Model):
                         am.invoice_date_due AS fecha_vencimiento,
                         am.name AS nombre,
                         am.amount_total_signed AS importe_original,
-                        -am.amount_residual_signed AS importe_residual,
+                        am.amount_residual_signed AS importe_residual,
                         (am.amount_total_signed - am.amount_residual_signed) AS importe_aplicado,
                         'nota_credito' AS origen,
                         am.company_id,
