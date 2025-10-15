@@ -122,7 +122,7 @@
                 <attribute name="attrs">{'invisible': [('id', '!=', 0)]}</attribute>
             </xpath>
             <xpath expr="//field[@name='name']" position="attributes">
-                <attribute name="attrs">{'readonly': ['&', ('employee_type', '=', 'employee'), ('state', '!=', 'draft')], 'required': [('employee_type', '=', 'employee')]}</attribute>
+                <attribute name="attrs">{'readonly': [('employee_type', '=', 'employee'), ('state', '!=', 'draft')], 'required': [('employee_type', '=', 'employee')]}</attribute>
             </xpath>
             <xpath expr="//field[@name='job_title']" position="attributes">
                 <attribute name="attrs">{'readonly': [('state', '!=', 'draft')], 'required': [('employee_type', '=', 'employee')]}</attribute>
@@ -140,13 +140,13 @@
                 <attribute name="invisible">1</attribute>
             </xpath>
             <xpath expr="//field[@name='department_id']" position="attributes">
-                <attribute name="attrs">{'readonly': ['&', ('employee_type', '=', 'employee'), ('state', '!=', 'draft')], 'required': [('employee_type', '=', 'employee')]}</attribute>
+                <attribute name="attrs">{'readonly': [('employee_type', '=', 'employee'), ('state', '!=', 'draft')], 'required': [('employee_type', '=', 'employee')]}</attribute>
             </xpath>
             <xpath expr="//field[@name='parent_id']" position="attributes">
-                <attribute name="attrs">{'readonly': ['&', ('employee_type', '=', 'employee'), ('state', '!=', 'draft')], 'required': [('employee_type', '=', 'employee')]}</attribute>
+                <attribute name="attrs">{'readonly': [('employee_type', '=', 'employee'), ('state', '!=', 'draft')], 'required': [('employee_type', '=', 'employee')]}</attribute>
             </xpath>
             <xpath expr="//field[@name='coach_id']" position="attributes">
-                <attribute name="attrs">{'readonly': ['&', ('employee_type', '=', 'employee'), ('state', '!=', 'draft')], 'required': [('employee_type', '=', 'employee')]}</attribute>
+                <attribute name="attrs">{'readonly': [('employee_type', '=', 'employee'), ('state', '!=', 'draft')], 'required': [('employee_type', '=', 'employee')]}</attribute>
             </xpath>
             <xpath expr="//field[@name='address_id']" position="attributes">
                 <attribute name="attrs">{'readonly': [('state', '!=', 'draft')], 'required': [('employee_type', '=', 'employee')]}</attribute>
