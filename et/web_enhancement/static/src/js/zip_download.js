@@ -25,7 +25,8 @@ odoo.define('web_enhancement.gdrive_zip_public', function () {
                                       border-radius:50%;margin:0 auto;animation:zipspin .8s linear infinite;"></div>
 
         <div id="zip-error" style="display:none;text-align:left;">
-          <p style="margin:12px 0 6px 0;font-weight:600;color:#b00020;">No se pudo generar la descarga, Contacte con un personal de Sebigus</p>
+          <p style="margin:12px 0 6px 0;font-weight:600;color:#b00020;">No se pudo generar la descarga</p>
+          <p style="margin:0 0 12px 0;color:#444;white-space:pre-wrap;">Contacte con un personal de Sebigus</p>
           <div style="display:flex;gap:8px;justify-content:center;">
             <button id="zip-retry" class="btn btn-primary" style="padding:6px 12px;border-radius:8px;">Reintentar</button>
             <button id="zip-close" class="btn btn-secondary" style="padding:6px 12px;border-radius:8px;">Cerrar</button>
