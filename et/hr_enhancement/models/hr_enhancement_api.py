@@ -96,6 +96,8 @@ class HrEnhancementApi(models.AbstractModel):
                                     'employee_id': employee.id,
                                     'check_date': check_utc,
                                     'employee_type': employee.employee_type,
+                                    'employee_type_shift': employee.type_shift, 
+                                    'notes': 'Intento marcar la salida, debe ser al menos %d minutos después de la entrada (%s)' % (min_minutes, open_att.check_in.strftime("%Y-%m-%d %H:%M")),
                                 })
                                 message += f'--la salida debe ser al menos {min_minutes} minutos después de la entrada ({open_att.check_in.strftime("%Y-%m-%d %H:%M")})'
                                 return {'success': False, 'error': message, 'received': data}
@@ -123,6 +125,8 @@ class HrEnhancementApi(models.AbstractModel):
                                     'employee_id': employee.id,
                                     'check_date': check_utc,
                                     'employee_type': employee.employee_type,
+                                    'employee_type_shift': employee.type_shift,
+                                    'notes': 'Intento marcar Entrada fuera del rango diurno (%s-%s)' % (start_limit_day.strftime("%H:%M"), end_limit_day.strftime("%H:%M")),
                                 })
                                 message += f'--asistencia fuera de rango diurno ({start_limit_day.strftime("%H:%M")}-{end_limit_day.strftime("%H:%M")})'
                                 return {'success': False, 'error': message, 'received': data}
@@ -149,14 +153,24 @@ class HrEnhancementApi(models.AbstractModel):
                                             return {'success': False, 'error': message, 'received': data}
                                         if dow == 5:  # Sábado
                                             end_limit_day = end_limit_day - timedelta(hours=2)
-                                            message += f'--asistencia fuera del limite de salida diurno ({end_limit_day.strftime("%H:%M")})'
-                                            return {'success': False, 'error': message, 'received': data}
+                                            if check_utc > end_limit_day:
+                                                env['hr.temp.attendance'].sudo().create({
+                                                    'employee_id': employee.id,
+                                                    'check_date': check_utc,
+                                                    'employee_type': employee.employee_type,
+                                                    'employee_type_shift': employee.type_shift,
+                                                    'notes': 'Intento marcar la salida fuera del rango diurno (%s-%s)' % (start_limit_day.strftime("%H:%M"), end_limit_day.strftime("%H:%M")),
+                                                })
+                                                message += f'--asistencia fuera del limite de salida diurno ({end_limit_day.strftime("%H:%M")})'
+                                                return {'success': False, 'error': message, 'received': data}
                                         if dow in [0,1,2,3,4]:  # Lunes a Viernes
                                             if check_utc > end_limit_day:
                                                 env['hr.temp.attendance'].sudo().create({
                                                     'employee_id': employee.id,
                                                     'check_date': check_utc,
                                                     'employee_type': employee.employee_type,
+                                                    'employee_type_shift': employee.type_shift,
+                                                    'notes': 'Intento marcar la salida fuera del rango diurno (%s-%s)' % (start_limit_day.strftime("%H:%M"), end_limit_day.strftime("%H:%M")),
                                                 })
                                                 message += f'--asistencia fuera del limite de salida diurno ({end_limit_day.strftime("%H:%M")})'
                                                 return {'success': False, 'error': message, 'received': data}
@@ -198,6 +212,8 @@ class HrEnhancementApi(models.AbstractModel):
                                                 'employee_id': employee.id,
                                                 'check_date': check_utc,
                                                 'employee_type': employee.employee_type,
+                                                'employee_type_shift': employee.type_shift,
+                                                'notes': 'Intento marcar Entrada fuera del rango diurno (%s-%s)' % (start_limit_day.strftime("%H:%M"), end_limit_day.strftime("%H:%M")),
                                             })
                                             message += f'--asistencia fuera del limite de ingreso diurno ({start_limit_day.strftime("%H:%M")})'
                                             return {'success': False, 'error': message, 'received': data}
@@ -208,6 +224,8 @@ class HrEnhancementApi(models.AbstractModel):
                                                 'employee_id': employee.id,
                                                 'check_date': check_utc,
                                                 'employee_type': employee.employee_type,
+                                                'employee_type_shift': employee.type_shift,
+                                                'notes': 'Intento marcar la salida fuera del rango diurno (%s-%s)' % (start_limit_day.strftime("%H:%M"), end_limit_day.strftime("%H:%M")),
                                             })
                                             message += f'--asistencia fuera del limite de salida diurno ({end_limit_day.strftime("%H:%M")})'
                                             return {'success': False, 'error': message, 'received': data}
@@ -236,11 +254,6 @@ class HrEnhancementApi(models.AbstractModel):
                                     # permitir mismo día o día siguiente como máximo
                                     delta_days = (check_utc.date() - open_att.check_in.date()).days
                                     if delta_days > 1:
-                                        env['hr.temp.attendance'].sudo().create({
-                                            'employee_id': employee.id,
-                                            'check_date': check_utc,
-                                            'employee_type': employee.employee_type,
-                                        })
                                         message += ' --la salida nocturna debe ser el mismo día o el día siguiente (máx. 1 día de diferencia)'
                                         return {'success': False, 'error': message, 'received': data}
                                     if check_utc <= open_att.check_in:
@@ -248,6 +261,8 @@ class HrEnhancementApi(models.AbstractModel):
                                             'employee_id': employee.id,
                                             'check_date': check_utc,
                                             'employee_type': employee.employee_type,
+                                            'employee_type_shift': employee.type_shift,
+                                            'notes': 'Intento marcar la salida nocturna anterior/igual a la entrada (%s)' % (open_att.check_in.strftime("%Y-%m-%d %H:%M")), 
                                         })
                                         message += ' --la salida no puede ser anterior/igual a la entrada'
                                         return {'success': False, 'error': message, 'received': data}
@@ -259,6 +274,8 @@ class HrEnhancementApi(models.AbstractModel):
                                             'employee_id': employee.id,
                                             'check_date': check_utc,
                                             'employee_type': employee.employee_type,
+                                            'employee_type_shift': employee.type_shift,
+                                            'notes': 'Intento marcar la salida fuera del rango nocturno (%s-%s)' % (start_limit_night.strftime("%H:%M"), end_limit_night.strftime("%H:%M")),
                                         })
                                         message += f'--asistencia fuera de rango nocturno ({start_limit_night.strftime("%H:%M")}-{end_limit_night.strftime("%H:%M")})'
                                         return {'success': False, 'error': message, 'received': data}

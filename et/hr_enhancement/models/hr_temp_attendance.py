@@ -10,4 +10,5 @@ class HrTempAttendance(models.Model):
     employee_id = fields.Many2one('hr.employee', string='Employee', required=True)
     check_date = fields.Datetime(string='Check Fecha', required=True)
     employee_type = fields.Selection(related='employee_id.employee_type', string='Tipo de Empleado', store=True)
-    
+    employee_type_shift = fields.Selection(related='employee_id.type_shift', string='Turno Asignado', store=True)
+    notes = fields.Text(string='Notas')

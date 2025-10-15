@@ -126,6 +126,12 @@ class HrPayrollSalary(models.Model):
                         'overtime': total_overtime,
                         'holiday_hours': total_holiday_hours,
                     })
+    
+    def action_clear_lines(self):
+        for record in self:
+            if record.state != 'draft':
+                raise ValidationError('Solo se pueden eliminar las líneas de una planilla en estado Borrador.')
+            record.line_ids.unlink()
 
     def action_generar_excel(self):
         self.ensure_one()
