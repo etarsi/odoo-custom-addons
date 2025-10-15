@@ -127,7 +127,18 @@ class HrPayrollSalary(models.Model):
                         domain.append(('type_shift', '=', 'night'))
                 employees = self.env['hr.employee'].search(domain)
             else:
-                employees = self.env['hr.employee'].search([('employee_type', '=', record.employee_type)])
+                domain = [('employee_type', '=', record.employee_type)]
+                if record.employee_type == 'eventual':
+                    if record.type_liquidacion_eventual == 'eventual_day':
+                        domain.append(('type_shift', '=', 'day'))
+                    else:
+                        domain.append(('type_shift', '=', 'night'))
+                elif record.employee_type == 'employee':
+                    if record.type_liquidacion_employee == 'employee_day':
+                        domain.append(('type_shift', '=', 'day'))
+                    else:
+                        domain.append(('type_shift', '=', 'night'))
+                employees = self.env['hr.employee'].search(domain)
             for emp in employees:
                 attendances = self.env['hr.attendance'].search([
                     ('employee_id', '=', emp.id),

@@ -40,9 +40,9 @@
                             attrs="{'invisible': [('state', '!=', 'draft')]}"/>
                 </header>
                 <sheet>
-                    <widget name="web_ribbon" title="Planilla Eventual Turno Noche" bg_color="text-bg-danger" attrs="{'invisible': [('type_liquidacion_eventual', '!=', 'eventual_night')]}"/>
-                    <widget name="web_ribbon" title="Planilla Eventual Turno Dia" bg_color="text-bg-info" attrs="{'invisible': [('type_liquidacion_eventual', '!=', 'eventual_day')]}"/>
-                    <widget name="web_ribbon" title="Planilla Empleado Día" bg_color="text-bg-success" attrs="{'invisible': [('type_liquidacion_employee', '!=', 'employee_day')]}"/>
+                    <widget name="web_ribbon" title="Planilla Eventual Turno Noche" bg_color="bg-danger" attrs="{'invisible': [('type_liquidacion_eventual', '!=', 'eventual_night')]}"/>
+                    <widget name="web_ribbon" title="Planilla Eventual Turno Dia" bg_color="bg-danger" attrs="{'invisible': [('type_liquidacion_eventual', '!=', 'eventual_day')]}"/>
+                    <widget name="web_ribbon" title="Planilla Empleado Día" bg_color="bg-success" attrs="{'invisible': [('type_liquidacion_employee', '!=', 'employee_day')]}"/>
                     <div class="oe_title">
                         <h1 class="mt0" attrs="{'invisible':[('name', '=', '/')]}">
                             <field name="name" attrs="{'readonly': [('state', '!=', 'draft')]}" placeholder="QUINCENA/MES/001/2025"/>
