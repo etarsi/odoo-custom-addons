@@ -24,8 +24,7 @@ class GDriveZipXMLRPC(http.Controller):
         KEY  = "123"
         # ¿Apunta al MISMO Odoo/DB? Usar ORM directamente: más rápido y sin red.
         same_host = URL and (urllib.parse.urlparse(URL).netloc == urllib.parse.urlparse(request.httprequest.host_url).netloc)
-        same_db   = (DB == request.db)
-        if same_host and same_db:
+        if same_host:
             try:
                 # Ejecutar en sudo (o con un usuario técnico si querés contexto)
                 tmpl = request.env['product.template'].sudo().browse(pid).exists()
