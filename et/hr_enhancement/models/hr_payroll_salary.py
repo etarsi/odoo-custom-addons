@@ -164,7 +164,7 @@ class HrPayrollSalary(models.Model):
                 raise ValidationError('Solo se pueden eliminar las líneas de una planilla en estado Borrador.')
             record.line_ids.unlink()
             
-    @api.onchage('type_liquidacion_eventual')
+    @api.onchange('type_liquidacion_eventual')
     def _onchange_type_liquidacion_eventual_clear_line(self):
         for record in self:
             record.action_clear_lines()
