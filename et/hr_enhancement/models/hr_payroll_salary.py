@@ -47,6 +47,12 @@ class HrPayrollSalary(models.Model):
         currency_field='currency_id',
         store=True
     )
+    #seleccionar que tipo de eventual o empleado o turno
+    type_liquidacion = fields.Selection([
+        ('eventual_day', 'Eventual Día'),
+        ('eventual_night', 'Eventual Noche'),
+        ('employee_day', 'Empleado Día'),
+    ], string="Tipo de Liquidación", default='eventual_day', required=True, tracking=True)
     line_ids = fields.One2many('hr.payroll.salary.line', 'payroll_id', string="Detalles de Planilla", copy=True)
     
     

@@ -33,8 +33,16 @@
                             string="Cargar Empleados"
                             icon="fa-users"
                             attrs="{'invisible': [('state', '!=', 'draft')]}"/>
+                    <button name="action_clear_lines"
+                            type="object"
+                            string="Quitar Líneas de Empleados"
+                            icon="fa-trash"
+                            attrs="{'invisible': [('state', '!=', 'draft')]}"/>
                 </header>
                 <sheet>
+                    <widget name="web_ribbon" title="Planilla Eventual Turno Noche" bg_color="text-bg-danger" attrs="{'invisible': [('type_liquidacion', '!=', 'eventual_night')]}"/>
+                    <widget name="web_ribbon" title="Planilla Eventual Turno Dia" bg_color="text-bg-info" attrs="{'invisible': [('type_liquidacion', '!=', 'eventual_day')]}"/>
+                    <widget name="web_ribbon" title="Planilla Empleado Día" bg_color="text-bg-success" attrs="{'invisible': [('type_liquidacion', '!=', 'employee_day')]}"/>
                     <div class="oe_title">
                         <h1 class="mt0" attrs="{'invisible':[('name', '=', '/')]}">
                             <field name="name" attrs="{'readonly': [('state', '!=', 'draft')]}" placeholder="QUINCENA/MES/001/2025"/>
@@ -51,6 +59,7 @@
                             <field name="currency_id" attrs="{'readonly': [('state', '!=', 'draft')]}" invisible="1"/>
                         </group>
                         <group>
+                            <field name="type_liquidacion" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
                             <field name="total_amount" widget="monetary" options="{'currency_field': 'currency_id'}"/>
                         </group>
                     </group>
