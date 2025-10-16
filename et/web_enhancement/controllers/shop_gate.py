@@ -3,7 +3,7 @@ from odoo.http import request
 
 class ShopGate(http.Controller):
 
-    @http.route('/shop/gate', type='http', auth='public', website=True, methods=['GET','POST'])
+    @http.route('/shop/gate', type='http', auth='public', website=True,  csrf=False, methods=['GET','POST'])
     def shop_gate(self, **post):
         msg = None
         if request.httprequest.method == 'POST':
