@@ -1,25 +1,27 @@
 <odoo>
-  <template id="shop_gate" name="Shop Gate">
-    <t t-call="website.layout">
-      <t t-set="main_object">{}</t> <!-- evita el error del layout -->
-      <t t-set="title">Acceso a la tienda</t>
-      <div class="container my-5" style="max-width:480px">
-        <div class="card shadow-sm">
-          <div class="card-body">
-            <h3 class="mb-3">Acceso a la tienda</h3>
-            <t t-if="msg">
-              <div class="alert alert-danger" t-esc="msg"/>
-            </t>
-            <form method="post">
-              <div class="mb-3">
-                <label class="form-label">Contraseña</label>
-                <input class="form-control" name="password" type="password" required="required" autofocus="autofocus"/>
-              </div>
-              <button class="btn btn-primary w-100" type="submit">Entrar</button>
-            </form>
-          </div>
-        </div>
-      </div>
-    </t>
-  </template>
+    <template id="shop_gate" name="Shop Gate">
+        <t t-call="website.layout">
+            <!-- 👇 Record real, evita el crash del publisher -->
+            <t t-set="main_object" t-value="request.website"/>
+            <t t-set="title">Acceso a la tienda</t>
+
+            <div class="container my-5" style="max-width:480px">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                <h3 class="mb-3">Acceso a la tienda</h3>
+                <t t-if="msg">
+                    <div class="alert alert-danger" t-esc="msg"/>
+                </t>
+                <form method="post">
+                    <div class="mb-3">
+                    <label class="form-label">Contraseña</label>
+                    <input class="form-control" name="password" type="password" required="required" autofocus="autofocus"/>
+                    </div>
+                    <button class="btn btn-primary w-100" type="submit">Entrar</button>
+                </form>
+                </div>
+            </div>
+            </div>
+        </t>
+    </template>
 </odoo>
