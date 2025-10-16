@@ -22,6 +22,7 @@
         #'views/web_product_template.xml',
         'views/product_template_views.xml',
         #'views/website_menu.xml',
+        'views/shop_gate.xml',
         'views/views.xml',
         'views/res_config_views.xml',
         'views/templates.xml',
