@@ -141,7 +141,7 @@ class ProductTemplate(models.Model):
             file_name = file_obj.get("name") or file_id
             buf = io.BytesIO()
             req = service.files().get_media(fileId=file_id)
-            downloader = MediaIoBaseDownload(buf, req)
+            downloader = MediaIoBaseDownload(buf, req, chunksize=8*1024*1024)
             done = False
             while not done:
                 status, done = downloader.next_chunk()
@@ -219,11 +219,11 @@ class ProductTemplate(models.Model):
                 root_prefix = (sub.get("name") or code).strip().replace("/", "_")   
             # Armar ZIP SOLO de esa subcarpeta
             mem = io.BytesIO()
-            with zipfile.ZipFile(mem, mode="w", compression=zipfile.ZIP_DEFLATED) as zipf:
+            with zipfile.ZipFile(mem, mode="w", compression=zipfile.ZIP_STORED) as zipf:
                 root_prefix = (sub.get("name") or code).strip().replace("/", "_")
                 _walk_and_zip(zipf, sub["id"], root_prefix)
             mem.seek(0)
-            data_b64 = base64.b64encode(mem.read())
+            data_b64 = base64.b64encode(mem.getvalue()).decode()
             zip_name = f"{(tmpl.name or code).strip().replace('/', '_')}_imagenes.zip"
 
             attach = self.env["ir.attachment"].sudo().create({

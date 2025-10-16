@@ -33,16 +33,37 @@
                             string="Cargar Empleados"
                             icon="fa-users"
                             attrs="{'invisible': [('state', '!=', 'draft')]}"/>
+                    <button name="action_clear_lines"
+                            type="object"
+                            string="Quitar Líneas de Empleados"
+                            icon="fa-trash"
+                            attrs="{'invisible': [('state', '!=', 'draft')]}"/>
                 </header>
                 <sheet>
+                    <!-- Eventual - Turno Noche -->
+                    <widget name="web_ribbon" title="Planilla Eventual Turno Noche" bg_color="bg-danger"
+                            attrs="{'invisible': ['|',
+                                        ('type_liquidacion_eventual','!=','eventual_night'),
+                                        ('employee_type','!=','eventual')]}"/>
+
+                    <!-- Eventual - Turno Día -->
+                    <widget name="web_ribbon" title="Planilla Eventual Turno Día" bg_color="bg-danger"
+                            attrs="{'invisible': ['|',
+                                        ('type_liquidacion_eventual','!=','eventual_day'),
+                                        ('employee_type','!=','eventual')]}"/>
+
+                    <!-- Empleado - Día -->
+                    <widget name="web_ribbon" title="Planilla Empleado Día" bg_color="bg-success"
+                            attrs="{'invisible': ['|',
+                                        ('type_liquidacion_employee','!=','employee_day'),
+                                        ('employee_type','!=','employee')]}"/>
                     <div class="oe_title">
                         <h1 class="mt0" attrs="{'invisible':[('name', '=', '/')]}">
-                            <field name="name" attrs="{'readonly': [('state', '!=', 'draft')]}" placeholder="QUINCENA/MES/001/2025"/>
+                            <field name="name" attrs="{'readonly': [('state', '!=', 'draft')]}" placeholder="QUINCENA-MES-01"/>
                         </h1>
                     </div>
                     <group name="group_info" string="Información de la Planilla">
                         <group>
-                            <field name="employee_type" readonly="1"/>
                             <field name="type_paid" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
                             <field name="date_start" attrs="{'readonly': [('state', '!=', 'draft')], 'invisible': [('type_paid', '=', 'mensual')]}"/>
                             <field name="date_end" attrs="{'readonly': [('state', '!=', 'draft')], 'invisible': [('type_paid', '=', 'mensual')]}"/>
@@ -51,6 +72,9 @@
                             <field name="currency_id" attrs="{'readonly': [('state', '!=', 'draft')]}" invisible="1"/>
                         </group>
                         <group>
+                            <field name="employee_type" readonly="1"/>
+                            <field name="type_liquidacion_eventual" attrs="{'readonly': [('state', '!=', 'draft')], 'invisible': [('employee_type', '!=', 'eventual')]}"/>
+                            <field name="type_liquidacion_employee" attrs="{'readonly': [('state', '!=', 'draft')], 'invisible': [('employee_type', '!=', 'employee')]}"/>
                             <field name="total_amount" widget="monetary" options="{'currency_field': 'currency_id'}"/>
                         </group>
                     </group>
