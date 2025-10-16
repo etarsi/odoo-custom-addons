@@ -78,18 +78,6 @@
                         </span>
                     </div>
                 </button>
-                <!-- Botón para mostrar el tipo de empleado -->
-                <button
-                    type="object"
-                    name="show_employee_type"
-                    class="oe_stat_button"
-                    icon="fa-user">
-                    <div class="o_stat_info">
-                        <span class="o_stat_value">
-                            <field name="employee_type" widget="selection" readonly="1"/>
-                        </span>
-                    </div>
-                </button>
             </xpath>
             <xpath expr="//header" position="inside">
                 <button name="action_request_edit"

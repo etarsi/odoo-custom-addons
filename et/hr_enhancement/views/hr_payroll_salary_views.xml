@@ -125,6 +125,8 @@
                 <field name="date_end"/>
                 <field name="pay_month"/>
                 <field name="pay_year"/>
+                <field name="type_liquidacion_eventual" attrs="{'invisible': [('employee_type', '!=', 'eventual')]}" widget="badge" decoration-success="type_liquidacion_eventual == 'eventual_day'" decoration-danger="type_liquidacion_eventual == 'eventual_night'"/>
+                <field name="type_liquidacion_employee" attrs="{'invisible': [('employee_type', '!=', 'employee')]}" widget="badge" decoration-success="type_liquidacion_employee == 'employee_day'" decoration-danger="type_liquidacion_employee == 'employee_night'"/>
                 <field name="total_amount" widget="monetary"/>
                 <field name="state" widget="badge" decoration-info="state == 'draft'" 
                         decoration-warning="state == 'confirmed'"
