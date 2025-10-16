@@ -117,7 +117,7 @@ class StockPickingInherit(models.Model):
         else:
             raise UserError(f'No hay lotes para el código: {move.product_id.default_code}')
                     
-                
+    ## RE DO         
     def create_lots(self, move, lot_name):
         company_ids = [1, 2, 3, 4]
         new_lots = []
@@ -146,82 +146,15 @@ class StockPickingInherit(models.Model):
             if lot.company_id.id == move.company_id.id:
                 return lot
 
+    ## RE DO
     def check_product_lot(self, product_id):
         if product_id.tracking != 'lot':
             product_id.tracking = 'lot'
 
     
-    def mark_as_delivered(self):
-        for record in self:
-            record.delivery_state = 'delivered'
+    
 
-            if record.picking_type_code == 'outgoing':
-                move_type = 'ENTREGA'
-                record.action_create_product_moves(move_type)
-                record.consume_stock()
-                record.action_write_tms_stock_picking()
-
-    def update_availability(self):
-        for record in self:
-            if record.move_ids_without_package:
-                for move in record.move_ids_without_package:
-
-                    default_code = move.product_id.default_code
-                    if default_code:
-                        if default_code.startswith('9'):
-                            search_code = default_code[1:]
-                        else:
-                            search_code = default_code
-
-                    stock_erp = self.env['stock.erp'].search([
-                            ('product_id.default_code', '=', search_code)
-                        ], limit=1)
-                    
-                    if not stock_erp:
-                            raise UserError(f'El producto [{default_code}]{move.product_id.name} no se encuentra en el listado de Stock. Avise al administrador.')
-              
-
-                    if move.product_uom_qty == 0:
-                        available_percent = 0
-                    
-                    elif stock_erp.entregable_unidades >= move.product_uom_qty:
-                        available_percent = 100
-                        move.product_available_pkg_qty = move.product_packaging_qty
-                        move.quantity_done = move.product_uom_qty
-
-                    elif stock_erp.entregable_unidades == 0:
-                        available_percent = 0
-                        move.product_available_pkg_qty = 0
-                        move.quantity_done = 0
-                    else:
-
-                        move.quantity_done = stock_erp.entregable_unidades
-                        available_percent = (stock_erp.entregable_unidades * 100) / move.product_uom_qty
-                        move.product_available_pkg_qty = move.quantity_done / move.product_packaging_id.qty
-
-                    move.product_available_percent = available_percent
-
-                pkg_qty = record.move_ids_without_package.mapped('product_packaging_qty')
-                u_values = record.move_ids_without_package.mapped('product_available_percent')
-                u_avg = (sum(u_values) / len(u_values)) if u_values else 0
-                pkg_qty_sum = sum(pkg_qty)
-                bultos = record.move_ids_without_package.mapped('product_available_pkg_qty')
-                bultos_sum = sum(bultos)
-
-                record.packaging_qty = pkg_qty_sum
-                record.available_pkg_qty = bultos_sum
-                record.available_percent = round(u_avg, 2)
-                
-                record.update_bultos()
-
-
-    def update_bultos(self):
-        for record in self:
-            bultos = 0
-            for move in record.move_ids_without_package:
-                move.product_packaging_qty = move.product_uom_qty / move.product_packaging_id.qty
-                bultos += move.product_packaging_qty
-            record.packaging_qty = bultos
+    ### STOCK
 
     def consume_stock(self):
         for record in self:
@@ -269,13 +202,84 @@ class StockPickingInherit(models.Model):
                     vals_list.append(vals)
             self.env['stock.moves.erp'].create(vals_list)
 
-            
+    ### PICKING
 
     def mark_as_returned(self):
         for record in self:
             record.delivery_state = 'returned'
             record.action_write_tms_stock_picking(True)
 
+    def mark_as_delivered(self):
+            for record in self:
+                record.delivery_state = 'delivered'
+
+                if record.picking_type_code == 'outgoing':
+                    move_type = 'ENTREGA'
+                    record.action_create_product_moves(move_type)
+                    record.consume_stock()
+                    record.action_write_tms_stock_picking()
+
+    def update_availability(self):
+        for record in self:
+            if record.move_ids_without_package:
+                for move in record.move_ids_without_package:
+
+                    default_code = move.product_id.default_code
+                    if default_code:
+                        if default_code.startswith('9'):
+                            search_code = default_code[1:]
+                        else:
+                            search_code = default_code
+
+                    stock_erp = self.env['stock.erp'].search([
+                            ('product_id.default_code', '=', search_code)
+                        ], limit=1)
+                    
+                    if not stock_erp:
+                            raise UserError(f'El producto [{default_code}]{move.product_id.name} no se encuentra en el listado de Stock. Avise al administrador.')
+                
+
+                    if move.product_uom_qty == 0:
+                        available_percent = 0
+                    
+                    elif stock_erp.entregable_unidades >= move.product_uom_qty:
+                        available_percent = 100
+                        move.product_available_pkg_qty = move.product_packaging_qty
+                        move.quantity_done = move.product_uom_qty
+
+                    elif stock_erp.entregable_unidades == 0:
+                        available_percent = 0
+                        move.product_available_pkg_qty = 0
+                        move.quantity_done = 0
+                    else:
+
+                        move.quantity_done = stock_erp.entregable_unidades
+                        available_percent = (stock_erp.entregable_unidades * 100) / move.product_uom_qty
+                        move.product_available_pkg_qty = move.quantity_done / move.product_packaging_id.qty
+
+                    move.product_available_percent = available_percent
+
+                pkg_qty = record.move_ids_without_package.mapped('product_packaging_qty')
+                u_values = record.move_ids_without_package.mapped('product_available_percent')
+                u_avg = (sum(u_values) / len(u_values)) if u_values else 0
+                pkg_qty_sum = sum(pkg_qty)
+                bultos = record.move_ids_without_package.mapped('product_available_pkg_qty')
+                bultos_sum = sum(bultos)
+
+                record.packaging_qty = pkg_qty_sum
+                record.available_pkg_qty = bultos_sum
+                record.available_percent = round(u_avg, 2)
+                
+                record.update_bultos()
+
+    def update_bultos(self):
+        for record in self:
+            bultos = 0
+            for move in record.move_ids_without_package:
+                move.product_packaging_qty = move.product_uom_qty / move.product_packaging_id.qty
+                bultos += move.product_packaging_qty
+            record.packaging_qty = bultos
+        
     def button_validate(self):
         res = super().button_validate()
 
@@ -333,6 +337,65 @@ class StockPickingInherit(models.Model):
         self.env['product.move'].create(vals_list)
 
 
+    ### DIGIP
+
+    def enviar_d(self):
+        for record in self:
+            next_number = self.env['ir.sequence'].sudo().next_by_code('DIGIP_C')
+            headers = {
+                "Content-Type": "application/json",
+                "Accept": "application/json",
+            }
+
+            product_list = record.get_product_list()
+
+            payload = {
+                "Numero": f'{next_number}',
+                "Factura": "",
+                "Fecha": str(fields.Date.context_today(self)),
+                "CodigoProveedor": "16571",
+                "Proveedor": "ZHEJIANG YUFUN ELEC TECH CO., LTD",
+                "Observacion": record.name,
+                "DocumentoRecepcionTipo": "remito",
+                "RecepcionTipo": "abastecimiento",
+                "DocumentoRecepcionDetalleRequest": product_list
+            }          
+            
+            
+            headers["x-api-key"] = self.env['ir.config_parameter'].sudo().get_param('digipwms.key')
+            response = requests.post('http://api.patagoniawms.com/v1/DocumentoRecepcion', headers=headers, json=payload)
+
+            if response.status_code == 200:
+                record.wms_code = f'{next_number}'
+                record.state = 'sent'
+            else:
+                raise UserError(f'Error code: {response.status_code} - Error Msg: {response.text}')
+    
+    def get_product_list(self):
+        for record in self:
+            product_list = []
+            if record.move_ids_without_package:
+                for move in record.move_ids_without_package:
+                    product_info = {}
+                    product_info['CodigoArticulo'] = move.product_id.default_code
+                    product_info['Unidades'] = move.product_uom_qty
+
+                    product_list.append(product_info)
+
+            return product_list
+
+    def recibir(self):
+        res = super().recibir()
+        for rec in self:
+            tms_stock = rec.env['tms.stock.picking'].search([('codigo_wms', '=', rec.codigo_wms)], limit=1)
+            if tms_stock:
+                tms_stock.write({'estado_digip': 'closed',
+                                'delivery_state': rec.delivery_state,
+                                'estado_despacho': 'prepared',
+                                'fecha_entrega': rec.date_done})
+        return res
+
+    ### INVOICE
 
     def action_create_invoice_from_picking(self):
         self.ensure_one()
@@ -472,17 +535,6 @@ class StockPickingInherit(models.Model):
                                 'delivery_state': record.delivery_state,
                                 'estado_despacho': 'void'})
 
-    def recibir(self):
-        res = super().recibir()
-        for rec in self:
-            tms_stock = rec.env['tms.stock.picking'].search([('codigo_wms', '=', rec.codigo_wms)], limit=1)
-            if tms_stock:
-                tms_stock.write({'estado_digip': 'closed',
-                                'delivery_state': rec.delivery_state,
-                                'estado_despacho': 'prepared',
-                                'fecha_entrega': rec.date_done})
-        return res
-
     def action_create_invoice_from_picking2(self):
         self.ensure_one()
 
@@ -561,7 +613,6 @@ class StockPickingInherit(models.Model):
             'view_mode': 'form',
             'res_id': invoice.id,
         }
-
     
     def _prepare_invoice_base_vals(self, company):
         partner = self.partner_id
@@ -595,6 +646,9 @@ class StockPickingInherit(models.Model):
     def _default_delivery_carrier(self):        
         return self.partner_id.property_delivery_carrier_id.id
     
+
+    ### GET AVAILABLE FROM DIGIP - OLD
+
     def update_available_percent(self):
         all_product_codes = set()
 
@@ -688,6 +742,10 @@ class StockPickingInherit(models.Model):
         elif response.status_code == 500:
             raise UserError('ERROR: 500 INTERNAL SERVER ERROR. Avise a su administrador de sistema. Probablemente alguno de los productos no se encuentra creado en Digip.')
 
+
+    ### COMPUTED - PICKING FILTERS
+
+
     @api.depends('move_ids_without_package')
     def _compute_has_rodado(self):
         for record in self:
@@ -723,14 +781,12 @@ class StockPickingInherit(models.Model):
                 if line.product_id.categ_id.parent_id.id == 244:
                     record.has_makeup = True
 
-
     @api.depends('move_ids_without_package')
     def _compute_has_pistolas_agua(self):
         for record in self:
             for line in record.move_ids_without_package:
                 if line.product_id.categ_id.parent_id.id == 324:
                     record.has_pistolas_agua = True
-
 
     @api.depends('move_ids_without_package')
     def _compute_has_vehiculos(self):
@@ -752,17 +808,9 @@ class StockPickingInherit(models.Model):
             for line in record.move_ids_without_package:
                 if line.product_id.categ_id.parent_id.id == 763:
                     record.has_pop = True
-    # def enviar(self):
-    #     res = super().enviar()
-    #     for record in self:
-    #         record.wms_date = fields.Date.today()
 
-    #     return res
+    ### TITO
 
-    # def ajustar_fecha(self):
-    #     for record in self:
-    #         record.wms_date = fields.Date.today()
-    
     def action_forzar_envio_compartido(self):
         for record in self:
             record.action_enviar_compartido(envio_forzar=True)
@@ -861,6 +909,8 @@ class StockPickingInherit(models.Model):
         dt_local = fields.Datetime.context_timestamp(self, dt)  # tz del usuario
         return dt_local.strftime('%d/%m/%Y')
 
+    ### SPLIT
+
     def split_auto(self):
         for picking in self:
             selected_moves = self.env['stock.move']
@@ -923,6 +973,9 @@ class StockPickingInherit(models.Model):
             }
         return False
     
+
+    ### REMITO 
+
     def action_print_remito(self):
         self.ensure_one()
         return {
