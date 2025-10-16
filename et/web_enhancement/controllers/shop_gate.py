@@ -1,4 +1,5 @@
 from odoo import http, _
+import time
 from odoo.http import request
 
 class ShopGate(http.Controller):
@@ -10,6 +11,7 @@ class ShopGate(http.Controller):
             pwd_cfg = '123456' #request.env['ir.config_parameter'].sudo().get_param('website.shop_gate_password') or ''
             if (post.get('password') or '') == pwd_cfg:
                 request.session['shop_gate_ok'] = True
+                request.session['shop_gate_time'] = time.time() + 60
                 return request.redirect('/shop')
             msg = _("Contraseña incorrecta. Intenta de nuevo.")
 
