@@ -349,14 +349,14 @@ class HrPayrollSalaryLine(models.Model):
                     rec.gross_amount = ((rec.worked_hours * rec.labor_cost_id.hour_cost_normal) +
                                         (rec.overtime * amount_overtime) +
                                         (rec.holiday_hours * amount_holiday))
-                    rec.net_amount = rec.gross_amount - rec.discount
+                    rec.net_amount = rec.bonus + rec.gross_amount - rec.discount
                 elif rec.payroll_id.employee_type == 'eventual' and rec.payroll_id.type_liquidacion_eventual == 'eventual_night':
                     amount_overtime = rec.labor_cost_id.hour_cost_extra
                     amount_holiday = rec.labor_cost_id.hour_cost_holiday
                     rec.gross_amount = ((rec.worked_hours * rec.labor_cost_id.hour_cost_night) +
                                         (rec.overtime * amount_overtime) +
                                         (rec.holiday_hours * amount_holiday))
-                    rec.net_amount = rec.gross_amount - rec.discount
+                    rec.net_amount = rec.bonus + rec.gross_amount - rec.discount
             
     @api.depends('employee_id', 'payroll_id.date_start', 'payroll_id.date_end')
     def _compute_attendance(self):
