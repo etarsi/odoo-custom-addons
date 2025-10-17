@@ -49,6 +49,9 @@ class StockPickingInherit(models.Model):
     china_purchase = fields.Boolean(default=False, copy=True)
     wesend_ids = fields.Char(string="Remitos")
     ruteo_compartido = fields.Selection([('no', 'No Enviado HDR'), ('si', 'Enviado HDR')], default='no', string='Ruteo HDR', copy=False)
+    
+    sale_order_ids = fields.Many2many('sale.order', string="Pedidos de Venta Asociados", compute="_compute_sale_order_ids")
+
 
     def action_correction_secuence(self):
         return True
@@ -745,6 +748,15 @@ class StockPickingInherit(models.Model):
 
     ### COMPUTED - PICKING FILTERS
 
+    @api.depends('merged_delivery')
+    def _compute_sale_order_ids(self):
+        for record in self:
+            sale_orders_ids = []
+            if record.state != 'cancel':
+                if record.move_ids_without_package:
+                    for move in record.move_ids_without_package:
+                        sale_order = move.sale_line_id.order_id.id
+                        sale_orders_ids.append(sale_order)
 
     @api.depends('move_ids_without_package')
     def _compute_has_rodado(self):
