@@ -6,6 +6,7 @@ from odoo.exceptions import AccessError, UserError, ValidationError
 import logging, json
 from datetime import date
 from odoo.tools.misc import format_date, format_amount
+from odoo.tools.float_utils import float_compare
 _logger = logging.getLogger(__name__)
 
 class AccountMoveInherit(models.Model):
@@ -507,10 +508,20 @@ class AccountPaymentGroupInherit(models.Model):
 
     
 
+    
+
     @api.depends('unmatched_amount')
     def _compute_unmatched_amount(self):
+        precision = 2
         for record in self:
-            record.x_unmatched_amount = record.unmatched_amount
+            new_value = record.unmatched_amount or 0.0
+            if (
+                not record.x_unmatched_amount
+                or float_compare(record.x_unmatched_amount, new_value, precision_digits=precision) != 0
+            ):
+                record.x_unmatched_amount = new_value
+                record.sudo().write({'x_unmatched_amount': new_value})
+
 
     
     #### ONCHANGE #####
