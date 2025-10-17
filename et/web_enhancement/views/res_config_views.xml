@@ -6,20 +6,36 @@
         <field name="inherit_id" ref="base_setup.res_config_settings_view_form"/>
         <field name="arch" type="xml">
             <xpath expr="//div[@id='invite_users']" position="after">
-                <div id="et_web_enhancement_drive_integration_settings">
-                    <block title="Configuracion de password fotos y drive" name="drive_integration_block" class="o_setting_box">
-                        <!-- Carpeta de Drive -->
-                        <setting string="Drive - Carpeta principal" id="setting_sheet_drive_folder_path"
-                                help="ID de la carpeta PADRE en Google Drive (donde están las subcarpetas de cada producto).">
-                        <field name="sheet_drive_folder_path" placeholder="1AbCDefGhIJ..."/>
-                        </setting>
-
-                        <!-- Contraseña para /shop -->
-                        <setting string="Contraseña de acceso a /shop" id="setting_shop_gate_password"
-                                help="Clave que se pedirá antes de acceder a /shop.">
-                        <field name="shop_gate_password" password="True" placeholder="••••••••"/>
-                        </setting>
-                    </block>
+                <!-- Título opcional -->
+                <h2 class="mt16">Configuración de Drive y Acceso a Tienda</h2>
+                <div class="row mt16 o_settings_container">
+                    <!-- Drive: Carpeta principal -->
+                    <div class="col-12 col-lg-6 o_setting_box" name="setting_drive_folder_parent"
+                        title="ID de la carpeta PADRE en Google Drive; dentro habrá subcarpetas por producto.">
+                        <div class="o_setting_left_pane">
+                            <field name="sheet_drive_folder_path" placeholder="1AbCDefGhIJ-xxxxxxxxxxxxxxxx"/>
+                        </div>
+                        <div class="o_setting_right_pane">
+                            <label for="sheet_drive_folder_path" string="Drive - Carpeta principal"/>
+                            <div class="text-muted">
+                                Ingresá el <b>ID</b> de la carpeta principal en Google Drive que contiene las subcarpetas de cada producto.
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Contraseña de acceso a /shop -->
+                    <div class="col-12 col-lg-6 o_setting_box" name="setting_shop_gate_password"
+                        title="Contraseña requerida para ingresar a /shop (puerta de la tienda).">
+                        <div class="o_setting_left_pane">
+                            <!-- El atributo password hace que el input se muestre oculto -->
+                            <field name="shop_gate_password" placeholder="••••••••"/>
+                        </div>
+                        <div class="o_setting_right_pane">
+                            <label for="shop_gate_password" string="Contraseña de acceso a /shop"/>
+                            <div class="text-muted">
+                                Se pedirá esta contraseña antes de permitir el acceso a la tienda. Podés cambiarla cuando quieras.
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </xpath>
         </field>
