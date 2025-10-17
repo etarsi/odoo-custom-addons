@@ -752,11 +752,13 @@ class StockPickingInherit(models.Model):
     def _compute_sale_order_ids(self):
         for record in self:
             sale_orders_ids = []
-            if record.state != 'cancel':
+            if record.state != 'cancel' and record.merged_delivery:
                 if record.move_ids_without_package:
                     for move in record.move_ids_without_package:
                         sale_order = move.sale_line_id.order_id.id
                         sale_orders_ids.append(sale_order)
+            else:
+                sale_orders_ids = False
 
     @api.depends('move_ids_without_package')
     def _compute_has_rodado(self):
