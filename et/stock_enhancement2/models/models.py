@@ -757,6 +757,7 @@ class StockPickingInherit(models.Model):
                     for move in record.move_ids_without_package:
                         sale_order = move.sale_line_id.order_id.id
                         sale_orders_ids.append(sale_order)
+                        record.sale_order_ids = [(6, 0, sale_orders_ids)]
             else:
                 sale_orders_ids = False
 
