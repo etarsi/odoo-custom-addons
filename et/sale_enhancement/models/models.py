@@ -381,18 +381,15 @@ class SaleOrderLineInherit(models.Model):
                 
         return res
     
-    # def unlink(self):
-    #     for record in self:
-    #         stock_moves_erp_prep = self.env['stock.moves.erp'].search([('sale_line_id', '=', record.id), ('type', '=', 'preparation')])
-    #         if stock_moves_erp_prep:
-    #             raise UserError(f'No puede borrar o liberar stock de una linea que está siendo preparada. Código: [{record.product_id.code}] {record.product_id.name}')
-            
-    #         stock_moves_erp_res = self.env['stock.moves.erp'].search([('sale_line_id', '=', record.id), ('type', '=', 'reserve')], limit=1)
+    def unlink(self):
+        for record in self:
+            if record.state == 'draft':
+                stock_moves_erp_res = self.env['stock.moves.erp'].search([('sale_line_id', '=', record.id), ('type', '=', 'reserve')], limit=1)
 
-    #         if stock_moves_erp_res:
-    #             stock_moves_erp_res.unreserve_stock()
+                if stock_moves_erp_res:
+                    stock_moves_erp_res.unreserve_stock()
 
-    #         return super().unlink()
+                return super().unlink()
         
     def unreserve_stock(self):
         for record in self:
@@ -404,6 +401,9 @@ class SaleOrderLineInherit(models.Model):
 
             if stock_moves_erp_res:
                 stock_moves_erp_res.unreserve_stock()
+
+            if record.state == 'draft':
+                record.unlink()
 
     def update_stock_erp(self):
         for record in self:
