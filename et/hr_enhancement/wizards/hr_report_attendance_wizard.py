@@ -31,7 +31,10 @@ class HrReportAttendanceWizard(models.TransientModel):
     def _onchange_employee_type(self):
         if self.employee_type != 'all':
             self.employee_ids = False   
-    
+
+    def _to_local(self, dt):
+        return fields.Datetime.context_timestamp(self, dt) if dt else None
+
     # Generar el reporte en Excel
     def action_generar_excel(self):
         # Crear un buffer en memoria
@@ -130,10 +133,14 @@ class HrReportAttendanceWizard(models.TransientModel):
                 row += 1
             current_emp_id = emp_id
 
-            # Fechas formateadas
-            fecha = attendance.check_in.strftime('%d/%m/%Y') if attendance.check_in else ''
-            ingreso = attendance.check_in.strftime('%H:%M:%S') if attendance.check_in else ''
-            salida = attendance.check_out.strftime('%H:%M:%S') if attendance.check_out else ''
+            # dentro del loop
+            ci_local = self._to_local(attendance.check_in)
+            co_local = self._to_local(attendance.check_out)
+            # si querés también la fecha local: 
+            fecha = ci_local.strftime('%Y/%m/%d') if ci_local else ''
+            # horas en la tz del usuario de Odoo (o la del contexto)
+            ingreso = ci_local.strftime('%H:%M:%S') if ci_local else ''
+            salida  = co_local.strftime('%H:%M:%S') if co_local else ''
             tipo_empleado = 'Empleado' if attendance.employee_type == 'employee' else 'Eventual' if attendance.employee_type == 'eventual' else ''
             turno_asignado = 'Día' if attendance.employee_type_shift == 'day' else 'Noche' if attendance.employee_type_shift == 'night' else ''
             #como colocar una linea separacion entre empleados
