@@ -759,7 +759,7 @@ class StockPickingInherit(models.Model):
                         sale_orders_ids.append(sale_order)
                         record.sale_order_ids = [(6, 0, sale_orders_ids)]
             else:
-                sale_orders_ids = False
+                record.sale_order_ids = False
 
     @api.depends('move_ids_without_package')
     def _compute_has_rodado(self):
