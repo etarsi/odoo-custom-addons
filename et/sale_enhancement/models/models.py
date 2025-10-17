@@ -380,7 +380,19 @@ class SaleOrderLineInherit(models.Model):
                 rec.comprometer_stock()
                 
         return res
+    
+    def unlink(self):
+        for record in self:
+            stock_moves_erp_prep = self.env['stock.moves.erp'].search([('sale_order_line', '=', record.id), ('type', '=', 'preparation')])
+            if stock_moves_erp_prep:
+                raise UserError(f'No puede borrar o liberar stock de una linea que está siendo preparada. Código: [{record.product_id.code}] {record.product_id.name}')
+            
+            stock_moves_erp_res = self.env['stock.moves.erp'].search([('sale_order_line', '=', record.id), ('type', '=', 'reserve')], limit=1)
 
+            if stock_moves_erp_res:
+                stock_moves_erp_res.unreserve_stock()
+
+            return super().unlink()
 
     def update_stock_erp(self):
         for record in self:
@@ -521,16 +533,6 @@ class SaleOrderLineInherit(models.Model):
 
     
 
-    # ONCHANGE
-                            # else:
-                            #     capturar intencion de compra?
-
-
-    # @api.onchange('product_uom_qty')
-    # def _onchange_client_purchase_intent(self):
-    #     for record in self:
-    #         if record.product_id:
-    #             record.check_client_purchase_intent()
 
     @api.onchange('product_id')
     def _onchange_availability(self):
