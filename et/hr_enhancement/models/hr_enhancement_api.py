@@ -1,4 +1,4 @@
-from odoo import http, api, SUPERUSER_ID, models
+from odoo import http, api, SUPERUSER_ID, models, re
 from odoo.http import request
 from odoo.exceptions import ValidationError
 from datetime import datetime, timedelta, time
@@ -23,6 +23,15 @@ def _get_json():
     if isinstance(data, dict) and 'params' in data and isinstance(data['params'], dict):
         data = data['params']
     return data
+
+def _parse_shift_from_dni(dni: str):
+    s = (dni or '').strip()
+    if not s:
+        return '', 'day'
+    if s[0] in ('N', 'n'):
+        core = s[1:].strip()
+        return core, 'night'
+    return s, 'day'
 
 class HrEnhancementApi(models.AbstractModel):
     _name = 'hr.enhancement.api'
@@ -68,6 +77,7 @@ class HrEnhancementApi(models.AbstractModel):
                 hr_employee = env['hr.employee'].sudo()
                 employee = hr_employee.search([('id_lector', '=', employee_dni), ('state', '!=', 'inactive')], limit=1)
                 message = f'ingreso: {check_utc.strftime("%Y-%m-%d %H:%M:%S")}--'
+                dni, type_shift = _parse_shift_from_dni(employee_dni)
                 if open_method == 'FACE_RECOGNITION':
                     if not employee:
                         employee = hr_employee.create({
@@ -113,9 +123,10 @@ class HrEnhancementApi(models.AbstractModel):
                     if not employee:
                         employee = hr_employee.create({
                             'id_lector': employee_dni,
-                            'dni': employee_dni,
+                            'dni': dni,
                             'name': employee_name,
                             'employee_type': 'eventual',
+                            'type_shift': type_shift,
                             'state': 'active',
                         })
                         if employee.type_shift == 'day':
@@ -133,7 +144,24 @@ class HrEnhancementApi(models.AbstractModel):
                             else:
                                 open_att = hr_attendance.create({
                                     'employee_id': employee.id,
-                                    'check_in': check_utc,  # naive UTC
+                                    'check_in': check_utc,
+                                })
+                        else:  # night
+                            if check_utc > start_limit_night:
+                                # lo registro en el hr temp attendance
+                                env['hr.temp.attendance'].sudo().create({
+                                    'employee_id': employee.id,
+                                    'check_date': check_utc,
+                                    'employee_type': employee.employee_type,
+                                    'employee_type_shift': employee.type_shift,
+                                    'notes': 'Intento marcar Entrada fuera del rango nocturno (%s-%s)' % (start_limit_night.strftime("%H:%M"), end_limit_night.strftime("%H:%M")),
+                                })
+                                message += f'--asistencia fuera de rango nocturno ({start_limit_night.strftime("%H:%M")}-{end_limit_night.strftime("%H:%M")})'
+                                return {'success': False, 'error': message, 'received': data}
+                            else:
+                                open_att = hr_attendance.create({
+                                    'employee_id': employee.id,
+                                    'check_in': check_utc,
                                 })
                         message += f'--asistencia abierta: {open_att.id} (empleado en borrador)'
                     else:
