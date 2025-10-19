@@ -35,7 +35,10 @@ class Container(models.Model):
     
     def enviar(self):        
         for record in self:
-            
+            if not record.license:
+                raise UserError('Debe asignar un númeor de licencia al contenedor para poder enviar el documento.')
+
+
             next_number = self.env['ir.sequence'].sudo().next_by_code('DIGIP_C')
             headers = {
                 "Content-Type": "application/json",
@@ -45,7 +48,7 @@ class Container(models.Model):
             product_list = record.get_product_list()
 
             payload = {
-                "Numero": f'{next_number}',
+                "Numero": f'{next_number}_{record.license}',
                 "Factura": "",
                 "Fecha": str(fields.Date.context_today(self)),
                 "CodigoProveedor": "16571",
@@ -300,7 +303,7 @@ class ContainerLine(models.Model):
         url = "https://api.v2.digipwms.com/api/v2/Articulos"
         payload = {
             "codigo": p_code,
-            "descripcion": p_name,
+            "descripcion": f'{p_code} - {p_name}',
             "diasVidaUtil": 999999,
             "esVirtual": False,
             "usaLote": False,
