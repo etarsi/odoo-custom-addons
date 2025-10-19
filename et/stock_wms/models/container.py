@@ -73,8 +73,6 @@ class Container(models.Model):
             record.wms_code = ''
 
 
-
-
     def recibir(self):
         for record in self:
             vals_list = []
@@ -196,7 +194,9 @@ class Container(models.Model):
             product_list = []
             if record.lines:
                 for line in record.lines:
-                    line.check_digip_product(line.product_id.default_code)
+                    p_code = line.product_id.default_code
+                    p_name = line.product_id.name
+                    line.check_digip_product(p_code, p_name)
                     product_info = {}
                     product_info['CodigoArticulo'] = line.product_id.default_code
                     product_info['Unidades'] = line.quantity_send
@@ -206,8 +206,59 @@ class Container(models.Model):
             return product_list
 
 
-    # def check_digip_product(self, default_code):
-        
+    def check_digip_product(self, p_code, p_name):
+        if not self.get_digip_product(p_code):
+            self.post_digip_product(p_code, p_name)
+
+
+    def get_digip_product(self, p_code):
+        headers = {
+            "Content-Type": "application/json",
+        }
+                
+        headers["x-api-key"] = self.env['ir.config_parameter'].sudo().get_param('digipwms.key')
+        url = f'https://api.v2.digipwms.com/api/v2/Articulos/{p_code}'
+        response = requests.get(url, headers=headers)
+
+        if response.status_code == 200:
+            return True
+        else:
+            return False
+
+    def post_digip_product(self, p_code, p_name):
+        headers = {
+            "Content-Type": "application/json",
+            "Accept": "application/json",
+        }
+
+        headers["x-api-key"] = self.env['ir.config_parameter'].sudo().get_param('digipwms.key')
+        url = "https://api.v2.digipwms.com/api/v2/Articulos"
+        payload = {
+            "codigo": p_code,
+            "descripcion": p_name,
+            "diasVidaUtil": 999999,
+            "esVirtual": False,
+            "usaLote": False,
+            "usaSerie": False,
+            "usaVencimiento": False,
+            "usaPesoDeclarado": False,
+            "tipoRotacion": "Alta",
+            "unidadMedidas": []
+        }
+
+        response = requests.post(url, headers=headers, json=payload, timeout=20)
+
+        if response.status_code in (200, 201):
+            return True
+        else:
+            raise UserError(f'El articulo [{p_code}] {p_name} no existe en Digip y no se pudo crear automáticamente. ERROR: {response.text}')
+
+
+
+
+
+
+
 
 
 class ContainerLine(models.Model):
