@@ -196,6 +196,7 @@ class Container(models.Model):
             product_list = []
             if record.lines:
                 for line in record.lines:
+                    line.check_digip_product(line.product_id.default_code)
                     product_info = {}
                     product_info['CodigoArticulo'] = line.product_id.default_code
                     product_info['Unidades'] = line.quantity_send
@@ -205,6 +206,8 @@ class Container(models.Model):
             return product_list
 
 
+    # def check_digip_product(self, default_code):
+        
 
 
 class ContainerLine(models.Model):
