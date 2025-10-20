@@ -20,7 +20,7 @@
                             attrs="{'invisible': [('state', '!=', 'confirmed')]}"/>
                     <button name="action_paid"
                             type="object"
-                            string="Liquidar Planilla"
+                            string="Confirmar Liquidación de Planilla"
                             icon="fa-check"
                             attrs="{'invisible': [('state', '!=', 'confirmed')]}"/>
                     <button name="action_draft"
@@ -102,6 +102,14 @@
                                             icon="fa-check" attrs="{'invisible': ['|', ('state', '!=', 'confirmed'), ('is_paid', '=', True)]}"/>
                                     <button name="action_cancel_paid" type="object" string="Deshacer Liquidación" class="btn-secondary"
                                             attrs="{'invisible': ['|', ('state', '!=', 'confirmed'), ('is_paid', '=', False)]}"/>
+                                    <!-- Mantén el booleano oculto (por si lo necesitas) -->
+                                    <field name="is_paid" invisible="1"/>
+
+                                    <!-- Muestra texto LIQUIDADO como badge solo cuando corresponde -->
+                                    <field name="paid_label"
+                                        widget="badge"
+                                        decoration-success="paid_label == 'Liquidado'" decoration-danger="paid_label == 'Sin Liquidar'"
+                                        attrs="{'invisible': ['|', ('is_paid', '=', False), ('state', 'not in', ('partial_paid','paid'))]}"/>
                                 </tree>
                             </field>
                         </page>
