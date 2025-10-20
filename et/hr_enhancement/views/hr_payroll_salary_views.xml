@@ -110,7 +110,7 @@
                                         widget="badge"
                                         decoration-success="paid_label == 'liquidado'" 
                                         decoration-danger="paid_label == 'sin_liquidar'"
-                                        attrs="{'invisible': ['|', ('is_paid', '=', False), ('state', 'not in', ('partial_paid','paid'))]}"/>
+                                        attrs="{'invisible': [('state', 'not in', ('partial_paid','paid'))]}"/>
                                 </tree>
                             </field>
                         </page>
