@@ -136,7 +136,7 @@ class Container(models.Model):
                     data = response.json()
                     raise UserError(f'El contenedor no está recibido o controlado todavía. Estado: {data["Estado"]}')
             else:
-                raise UserError(f'Error code: {response.status_code} - Error Msg: {response.text}')
+                raise UserError(f'No se encuentra Control Ciego para este contenedor.')
             
     
     def confirmar(self):
