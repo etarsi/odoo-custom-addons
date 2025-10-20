@@ -172,6 +172,69 @@ class HrPayrollSalary(models.Model):
                         'overtime': total_overtime,
                         'holiday_hours': total_holiday_hours,
                     })
+                    
+    def action_load_employees(self):
+        for record in self:
+            if record.state != 'draft':
+                raise ValidationError('Solo se pueden cargar empleados en una planilla en estado Borrador.')
+
+            # 1) buscar planillas que se solapen en fechas y sean del mismo tipo/turno
+            overlapped = self.env['hr.payroll.salary'].search([
+                ('id', '!=', record.id),
+                ('employee_type', '=', record.employee_type),
+                # mismo subtipo de liquidación
+                '|',
+                    '&', ('employee_type', '=', 'eventual'),
+                        ('type_liquidacion_eventual', '=', record.type_liquidacion_eventual),
+                    '&', ('employee_type', '=', 'employee'),
+                        ('type_liquidacion_employee', '=', record.type_liquidacion_employee),
+                # solapamiento de fechas
+                ('date_start', '<=', record.date_end),
+                ('date_end', '>=', record.date_start),
+                # estados que indican que ya se liquidó (total o parcial)
+                ('state', 'in', ['partial_paid', 'paid'])
+            ])
+
+            # 2) empleados ya liquidados en ese solape
+            already_paid_emps = self.env['hr.payroll.salary.line'].search([
+                ('payroll_id', 'in', overlapped.ids),
+                ('is_paid', '=', True),
+            ]).mapped('employee_id')
+
+            # 3) base domain por tipo y turno de la planilla actual
+            domain = [('employee_type', '=', record.employee_type),
+                    ('id', 'not in', already_paid_emps.ids)]
+            if record.line_ids:
+                domain.append(('id', 'not in', record.line_ids.mapped('employee_id').ids))
+
+            # turno
+            if record.employee_type == 'eventual':
+                domain.append(('type_shift', '=', 'day' if record.type_liquidacion_eventual == 'eventual_day' else 'night'))
+            else:
+                domain.append(('type_shift', '=', 'day' if record.type_liquidacion_employee == 'employee_day' else 'night'))
+
+            employees = self.env['hr.employee'].search(domain)
+
+            # 4) crear líneas solo para los no-liquidados
+            for emp in employees:
+                attendances = self.env['hr.attendance'].search([
+                    ('employee_id', '=', emp.id),
+                    ('check_in', '>=', record.date_start),
+                    ('check_in', '<=', record.date_end),
+                ])
+                if attendances:
+                    total_hours = sum(a.worked_hours for a in attendances)
+                    total_overtime = sum(a.overtime for a in attendances)
+                    total_holiday_hours = sum(a.holiday_hours for a in attendances)
+                    self.env['hr.payroll.salary.line'].create({
+                        'payroll_id': record.id,
+                        'employee_id': emp.id,
+                        'basic_amount': emp.wage,
+                        'worked_hours': total_hours,
+                        'overtime': total_overtime,
+                        'holiday_hours': total_holiday_hours,
+                    })
+
 
     def action_clear_lines(self):
         for record in self:
@@ -497,3 +560,14 @@ class HrPayrollSalaryLine(models.Model):
             'user_paid': False,
             'date_paid': False
         })
+        
+    @api.constrains('payroll_id', 'employee_id')
+    def _check_unique_employee_in_payroll(self):
+        for rec in self:
+            dup = self.search_count([
+                ('id', '!=', rec.id),
+                ('payroll_id', '=', rec.payroll_id.id),
+                ('employee_id', '=', rec.employee_id.id),
+            ])
+            if dup:
+                raise ValidationError('El empleado ya está en esta planilla.')
