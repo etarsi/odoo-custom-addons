@@ -64,7 +64,7 @@ class HrPayrollSalary(models.Model):
     line_ids = fields.One2many('hr.payroll.salary.line', 'payroll_id', string="Detalles de Planilla", copy=True)
     import_file = fields.Binary('Archivo Liquidación (XLSX)')
     import_filename = fields.Char('Nombre archivo')
-    labor_cost_id = fields.Many2one('hr.season.labor.cost', string="Costo Laboral", help="Costo laboral aplicado a la planilla")    
+    labor_cost_id = fields.Many2one('hr.season.labor.cost', string="Costo Laboral", help="Costo laboral aplicado a la planilla", store=True)   # como forzar guardado de un dato si esta readonly
 
 
     @api.model
@@ -184,8 +184,8 @@ class HrPayrollSalary(models.Model):
         for record in self:
             record.action_clear_lines()
 
-    @api.depends('date_start', 'date_end')
-    def _depends_cost_laboral(self):
+    @api.onchange('date_start', 'date_end')
+    def _onchange_cost_laboral(self):
         for rec in self:
             season_costo = self.env['hr.season.labor.cost'].search([('state', '=', 'active'),
                                                                     ('date_start', '<=', rec.date_start),
