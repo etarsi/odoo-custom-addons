@@ -89,18 +89,24 @@
                                     <field name="currency_id" attrs="{'readonly': [('state', '!=', 'draft')]}" invisible="1"/>
                                     <field name="employee_id" domain="[('employee_type', '=', parent.employee_type)]" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
                                     <field name="worked_hours" optional="show" widget="float_time"/>
-                                    <field name="overtime" optional="show" widget="float_time"/>
+                                    <field name="overtime" optional="show" digits="[16, 0]"/>
                                     <field name="holiday_hours" optional="show" widget="float_time"/>
                                     <field name="holidays" optional="hide" widget="float_time"/>
                                     <field name="bonus" widget="monetary" optional="show" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
                                     <field name="gross_amount" widget="monetary" optional="show" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
                                     <field name="discount" widget="monetary" optional="show" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
                                     <field name="net_amount" widget="monetary" optional="show"/>
-
+                                    <!-- controles para liquidación -->
                                     <button name="action_paid" type="object" string="Liquidar" class="btn-primary oe_highlight"
                                             icon="fa-check" attrs="{'invisible': ['|', ('state', '!=', 'confirmed'), ('is_paid', '=', True)]}"/>
+                                    <button name="action_cancel_paid" type="object" string="Deshacer Liquidación" class="btn-secondary"
+                                            attrs="{'invisible': ['|', ('state', '!=', 'confirmed'), ('is_paid', '=', False)]}"/>
                                 </tree>
                             </field>
+                        </page>
+                        <page name="liquidacion_import" string="Importacion de Liquidación" attrs="{'invisible': [('state', '!=', 'confirmed')]}">
+                            <field name="import_file" widget="upload"/>
+                            <button name="action_importar_liquidacion" type="object" string="Importar" class="btn-primary"/>
                         </page>
                     </notebook>
                 </sheet>
@@ -128,10 +134,12 @@
                 <field name="type_liquidacion_eventual" attrs="{'invisible': [('employee_type', '!=', 'eventual')]}" widget="badge" decoration-success="type_liquidacion_eventual == 'eventual_day'" decoration-danger="type_liquidacion_eventual == 'eventual_night'"/>
                 <field name="type_liquidacion_employee" attrs="{'invisible': [('employee_type', '!=', 'employee')]}" widget="badge" decoration-success="type_liquidacion_employee == 'employee_day'" decoration-danger="type_liquidacion_employee == 'employee_night'"/>
                 <field name="total_amount" widget="monetary"/>
-                <field name="state" widget="badge" decoration-info="state == 'draft'" 
-                        decoration-warning="state == 'confirmed'"
-                        decoration-success="state == 'paid'" 
-                        decoration-danger="state == 'cancelled'"/>
+                <field name="state" widget="badge"
+                    decoration-info="state == 'draft'"
+                    decoration-warning="state == 'confirmed'"
+                    decoration-primary="state == 'partial_paid'"
+                    decoration-success="state == 'paid'"
+                    decoration-danger="state == 'cancelled'"/>
             </tree>
         </field>
     </record>

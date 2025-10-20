@@ -2,6 +2,10 @@ from odoo import models, fields, api
 from odoo.exceptions import ValidationError
 import base64, xlsxwriter, io
 from datetime import date, datetime
+import base64, io
+from openpyxl import load_workbook
+from datetime import datetime
+
 
 class HrPayrollSalary(models.Model):
     _name = 'hr.payroll.salary'
@@ -26,10 +30,11 @@ class HrPayrollSalary(models.Model):
     pay_year = fields.Integer(string='Año', tracking=True, default=lambda self: date.today().year)
     #que mas deberia polocar en un payroll
     state = fields.Selection([('draft', 'Borrador'),
-                               ('confirmed', 'Confirmado'),
-                               ('paid', 'Pagado'),
-                               ('cancelled', 'Cancelado')],
-                              string='Estado', default='draft', tracking=True)
+                                ('confirmed', 'Confirmado'),
+                                ('paid', 'Pagado'),
+                                ('partial_paid', 'Parcialmente Pagado'),
+                                ('cancelled', 'Cancelado')],
+                            string='Estado', default='draft', tracking=True)
     currency_id = fields.Many2one(
         'res.currency',
         string="Moneda",
@@ -57,8 +62,11 @@ class HrPayrollSalary(models.Model):
         ('employee_night', 'Empleado Noche')
     ], string="Tipo de Liquidación", default='employee_day', required=True, tracking=True)
     line_ids = fields.One2many('hr.payroll.salary.line', 'payroll_id', string="Detalles de Planilla", copy=True)
-    
-    
+    import_file = fields.Binary('Archivo Liquidación (XLSX)')
+    import_filename = fields.Char('Nombre archivo')
+    labor_cost_id = fields.Many2one('hr.season.labor.cost', string="Costo Laboral", help="Costo laboral aplicado a la planilla")    
+
+
     @api.model
     def create(self, vals):
         # Si viene default desde el action, respetalo
@@ -98,7 +106,14 @@ class HrPayrollSalary(models.Model):
         for record in self:
             if record.state != 'confirmed':
                 raise ValidationError('Solo se puede marcar una planilla como Pagada en estado Confirmado.')
-            record.state = 'paid'
+            total = len(record.line_ids)
+            pagadas = len(record.line_ids.filtered('is_paid'))
+            if pagadas == 0:
+                record.state = 'confirmed'
+            elif pagadas < total:
+                record.state = 'partial_paid'
+            else:
+                record.state = 'paid'
             # Aquí podrías agregar lógica adicional para procesar el pago, como registrar transacciones contables o enviar notificaciones a los empleados.
 
     def action_draft(self):
@@ -157,7 +172,7 @@ class HrPayrollSalary(models.Model):
                         'overtime': total_overtime,
                         'holiday_hours': total_holiday_hours,
                     })
-    
+
     def action_clear_lines(self):
         for record in self:
             if record.state != 'draft':
@@ -168,6 +183,16 @@ class HrPayrollSalary(models.Model):
     def _onchange_type_liquidacion_eventual_clear_line(self):
         for record in self:
             record.action_clear_lines()
+
+    @api.depends('date_start', 'date_end')
+    def _depends_cost_laboral(self):
+        for rec in self:
+            season_costo = self.env['hr.season.labor.cost'].search([('state', '=', 'active'),
+                                                                    ('date_start', '<=', rec.date_start),
+                                                                    ('date_end', '>=', rec.date_end)], limit=1)
+            if not season_costo:
+                raise ValidationError('No hay una temporada activa para calcular el costo laboral. Por favor, cree y active una temporada en Costo Laboral por Temporada.')
+            rec.labor_cost_id = season_costo.id
 
     def action_generar_excel(self):
         self.ensure_one()
@@ -300,6 +325,77 @@ class HrPayrollSalary(models.Model):
         }
 
 
+    def action_importar_liquidacion(self):
+        self.ensure_one()
+        if self.state not in ('confirmed', 'paid'):
+            raise ValidationError("La planilla debe estar Confirmada para importar liquidaciones.")
+        if not self.import_file:
+            raise ValidationError("Subí un archivo XLSX en el campo 'Archivo Liquidación'.")
+
+        # Leer XLSX
+        data = base64.b64decode(self.import_file)
+        wb = load_workbook(io.BytesIO(data), data_only=True)
+        ws = wb.active  # o por nombre si lo fijaste
+
+        # Ubicar índices de columnas por encabezado
+        header_row = None
+        cols = {}
+        needed = {'LINE_ID', 'LIQUIDADO'}
+        for r in range(1, 30):  # busca encabezado en primeras 30 filas
+            vals = [ws.cell(row=r, column=c).value for c in range(1, 50)]
+            if vals and any(vals):
+                # normalizar
+                for idx, v in enumerate(vals, start=1):
+                    nv = (str(v).strip().upper() if v is not None else '')
+                    if nv in {'LINE_ID','LIQUIDADO'}:
+                        cols[nv] = idx
+                if needed.issubset(set(cols)):
+                    header_row = r
+                    break
+        if not header_row:
+            raise ValidationError("No se encontraron columnas 'LINE_ID' y 'LIQUIDADO' en el archivo.")
+
+        # Marcar líneas pagadas según XLSX
+        Line = self.env['hr.payroll.salary.line'].sudo()
+        marcados = 0
+        for r in range(header_row+1, ws.max_row+1):
+            line_id = ws.cell(row=r, column=cols['LINE_ID']).value
+            liq_val = ws.cell(row=r, column=cols['LIQUIDADO']).value
+            if not line_id:
+                continue
+            flag = str(liq_val).strip().lower() if liq_val is not None else ''
+            if flag in {'l','x','1','si','sí','yes','y'}:
+                line = Line.search([('id','=', int(line_id)), ('payroll_id','=', self.id)], limit=1)
+                if line and not line.is_paid:
+                    line.write({
+                        'is_paid': True,
+                        'user_paid': self.env.user.id,
+                        'date_paid': fields.Date.today(),
+                    })
+                    marcados += 1
+
+        # Actualizar estado de la planilla
+        total = len(self.line_ids)
+        pagadas = len(self.line_ids.filtered(lambda l: l.is_paid))
+        if pagadas == 0:
+            # permanece en confirmed
+            pass
+        elif 0 < pagadas < total:
+            # si querés estado intermedio, agregá 'partial' en tu selección de state
+            # self.state = 'partial'
+            self.message_post(body=f"Liquidación parcial: {pagadas}/{total} líneas marcadas.")
+        else:
+            # todas pagadas
+            self.state = 'paid'
+            self.message_post(body="Todas las líneas fueron marcadas como pagadas.")
+
+        return {
+            'type': 'ir.actions.client',
+            'tag': 'display_notification',
+            'params': {'title': 'Importación completada',
+                       'message': f'Líneas marcadas: {marcados}',
+                       'sticky': False}
+        }
     
 class HrPayrollSalaryLine(models.Model):
     _name = 'hr.payroll.salary.line'
@@ -333,7 +429,7 @@ class HrPayrollSalaryLine(models.Model):
     state = fields.Selection(related='payroll_id.state', string='Estado', store=True)
     labor_cost_id = fields.Many2one('hr.season.labor.cost', string="Costo Laboral")
     #campo para saber que si fue pagado para eventuales
-    is_paid = fields.Boolean(string="¿Pagado?", default=False)
+    is_paid = fields.Boolean(string="Liquidado", default=False)
     user_paid = fields.Many2one('res.users', string="Usuario que Pagó", readonly=True)
     date_paid = fields.Date(string="Fecha de Pago", readonly=True)
 
@@ -392,4 +488,12 @@ class HrPayrollSalaryLine(models.Model):
             'is_paid': True,
             'user_paid': self.env.user.id,
             'date_paid': fields.Date.today()
+        })
+        
+    def action_cancel_paid(self):
+        self.ensure_one()
+        self.write({
+            'is_paid': False,
+            'user_paid': False,
+            'date_paid': False
         })
