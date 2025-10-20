@@ -76,7 +76,7 @@
                             <field name="type_liquidacion_eventual" attrs="{'readonly': [('state', '!=', 'draft')], 'invisible': [('employee_type', '!=', 'eventual')]}"/>
                             <field name="type_liquidacion_employee" attrs="{'readonly': [('state', '!=', 'draft')], 'invisible': [('employee_type', '!=', 'employee')]}"/>
                             <field name="total_amount" widget="monetary" options="{'currency_field': 'currency_id'}"/>
-                            <field name="labor_cost_id" readonly="1"/>
+                            <field name="labor_cost_id" readonly="1" force_save="1"/>
                         </group>
                     </group>
                     <notebook>
