@@ -495,11 +495,15 @@ class HrPayrollSalaryLine(models.Model):
     is_paid = fields.Boolean(string="Liquidado", default=False)
     user_paid = fields.Many2one('res.users', string="Usuario que Pagó", readonly=True)
     date_paid = fields.Date(string="Fecha de Pago", readonly=True)
-    paid_label = fields.Char(string="Estado Pago", compute='_compute_paid_label')
-
+    paid_label = fields.Selection(
+        string='Estado Pago',
+        selection=[('liquidado', 'Liquidado'), ('sin_liquidar', 'Sin Liquidar')],
+        compute='_compute_paid_label'
+    )
+    @api.depends('is_paid')
     def _compute_paid_label(self):
         for r in self:
-            r.paid_label = 'Liquidado' if r.is_paid else 'Sin Liquidar'
+            r.paid_label = 'liquidado' if r.is_paid else 'sin_liquidar'
 
     @api.depends('worked_hours', 'overtime', 'holiday_hours', 'bonus', 'discount')
     def _compute_amount(self):

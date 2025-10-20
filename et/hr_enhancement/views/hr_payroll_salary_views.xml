@@ -108,7 +108,8 @@
                                     <!-- Muestra texto LIQUIDADO como badge solo cuando corresponde -->
                                     <field name="paid_label"
                                         widget="badge"
-                                        decoration-success="paid_label == 'Liquidado'" decoration-danger="paid_label == 'Sin Liquidar'"
+                                        decoration-success="paid_label == 'liquidado'" 
+                                        decoration-danger="paid_label == 'sin_liquidar'"
                                         attrs="{'invisible': ['|', ('is_paid', '=', False), ('state', 'not in', ('partial_paid','paid'))]}"/>
                                 </tree>
                             </field>
