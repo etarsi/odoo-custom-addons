@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Acción desde sale.order -->
+    <record id="action_open_sale_refacturar_wizard" model="ir.actions.act_window">
+        <field name="name">Refacturar</field>
+        <field name="res_model">sale.refacturar.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+        <field name="context">{'default_sale_id': active_id}</field>
+    </record>
+
+    <!-- Vista del wizard -->
+    <record id="view_sale_refacturar_wizard_form" model="ir.ui.view">
+        <field name="name">sale.refacturar.wizard.form</field>
+        <field name="model">sale.refacturar.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Refacturar pedido">
+                <group>
+                    <group string="Datos del pedido original">
+                        <field name="sale_id" readonly="1" force_save="1"/>
+                        <field name="partner_id"  options="{'no_create': True}"/>
+                        <field name="company_id"  options="{'no_create': True}"/>
+                        <field name="condicion_m2m_id"  options="{'no_create': True}"/>
+                    </group>
+                    <group>
+                        <field name="pricelist_id" options="{'no_create': True}"/>
+                    </group>
+                </group>
+                <footer>
+                    <button string="Cancelar" class="btn-secondary" special="cancel"/>
+                    <button name="action_confirm" type="object" string="Crear factura" class="btn-primary"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+</odoo>

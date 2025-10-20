@@ -36,6 +36,7 @@
         'data/ir_cron.xml',
         #Reportes
         'wizard/generar_factura_wizard_views.xml',
+        'wizard/sale_refacturar_wizard_views.xml',
         #permissions
         'permissions/res_group.xml',
         'views/views.xml',
