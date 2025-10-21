@@ -2,7 +2,7 @@ from odoo import models, fields, api, exceptions, _
 from datetime import time, datetime, timedelta
 from odoo.exceptions import ValidationError, UserError
 from odoo.tools import convert, format_duration, format_time, format_datetime
-import math
+import math, re
 
 class HrAttendance(models.Model):
     _inherit = 'hr.attendance'
@@ -28,6 +28,22 @@ class HrAttendance(models.Model):
     employee_type = fields.Selection(related='employee_id.employee_type', string='Tipo de Empleado', store=True)
     employee_type_shift = fields.Selection(related='employee_id.type_shift', string='Turno Asignado', store=True)
     blocked = fields.Boolean(string='Bloqueado', default=False)
+    create_lector = fields.Boolean(string='Creado por Lector', default=False)
+    justification = fields.Text(string='Justificación')
+
+    @api.constrains('justification')
+    def _check_justification_min_words(self):
+        for rec in self:
+            if rec.create_lector:
+                continue
+            text = (rec.justification or '').strip()
+            # cuenta palabras con letras/números (ignora dobles espacios y signos)
+            words = re.findall(r'\w+', text, flags=re.UNICODE)
+            if len(words) < 20:
+                raise ValidationError(
+                    f'La justificación debe tener al menos 20 palabras '
+                    f'(actual: {len(words)}).'
+                )
 
     @api.depends('check_in', 'check_out', 'employee_id')
     def _compute_worked_hours(self):

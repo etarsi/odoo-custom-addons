@@ -89,6 +89,7 @@
                                     <field name="payroll_id" invisible="1"/>
                                     <field name="currency_id" attrs="{'readonly': [('state', '!=', 'draft')]}" invisible="1"/>
                                     <field name="employee_id" domain="[('employee_type', '=', parent.employee_type)]" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                                    <field name="worked_days" optional="show" digits="[16, 0]"/>
                                     <field name="worked_hours" optional="show" widget="float_time"/>
                                     <field name="overtime" optional="show" digits="[16, 0]"/>
                                     <field name="holiday_hours" optional="show" widget="float_time"/>

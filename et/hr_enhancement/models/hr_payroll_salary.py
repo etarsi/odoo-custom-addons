@@ -549,6 +549,7 @@ class HrPayrollSalaryLine(models.Model):
                     raise ValidationError('No se encontraron asistencias para el empleado %s en el período seleccionado.' % rec.employee_id.name)
                 # Calcular horas trabajadas, días trabajados, horas extras y horas de vacaciones
                 for att in attendances:
+                    rec.worked_days += 1
                     rec.worked_hours += att.worked_hours
                     rec.overtime += att.overtime
                     rec.holiday_hours += att.holiday_hours

@@ -21,28 +21,54 @@
         action="hr_attendance.hr_attendance_action"
         sequence="2"/>
 
-    <!-- Menú principal "Licencias" -->
+    <!-- Menú principal "Solicitudes" -->
     <menuitem 
-        id="hr_enhancement.menu_hr_license"
-        name="Licencias"
+        id="hr_enhancement.menu_hr_requests"
+        name="Solicitudes"
         parent="hr.menu_hr_root"
         sequence="20"/>
-    <!-- Submenú "Mis Licencias" -->
+    <!-- Submenú Nivel 1 -->
+    <menuitem 
+        id="hr_enhancement.menu_my_requests"
+        name="Mis solicitudes"
+        parent="hr_enhancement.menu_hr_requests"
+        sequence="1"/>
     <menuitem 
         id="hr_enhancement.menu_my_licenses"
-        name="Mis Licencias"
-        parent="hr_enhancement.menu_hr_license"
+        name="Licencias"
+        parent="hr_enhancement.menu_my_requests"
         action="hr_enhancement.action_my_licenses"
         sequence="1"/>
-    <!-- Submenú "Aprobar Licencias" -->
+    <menuitem 
+        id="hr_enhancement.menu_my_overtime"
+        name="Horas extra"
+        parent="hr_enhancement.menu_my_requests"
+        action="hr_enhancement.action_my_overtime"
+        sequence="2"/>
+    <!-- Submenú Nivel 1 "Aprobar Solicitudes" -->
+    <menuitem 
+        id="hr_enhancement.menu_approve_requests"
+        name="Aprobar solicitudes"
+        parent="hr_enhancement.menu_hr_requests"
+        groups="hr_enhancement.group_hr_administrador"
+        sequence="2"/>
+
+    <!-- Submenú nivel 2 "Aprobar Licencias" -->
     <menuitem 
         id="hr_enhancement.menu_approve_licenses"
-        name="Aprobar Licencias"
-        parent="hr_enhancement.menu_hr_license"
+        name="Licencias"
+        parent="hr_enhancement.menu_approve_requests"
         groups="hr_enhancement.group_hr_administrador"
         action="hr_enhancement.action_approve_licenses"
         sequence="2"/>
-
+    <!-- Submenú nivel 2 "Aprobar Horas Extra" -->
+    <menuitem 
+        id="hr_enhancement.menu_approve_overtime"
+        name="Horas extra"
+        parent="hr_enhancement.menu_approve_requests"
+        groups="hr_enhancement.group_hr_administrador"
+        action="hr_enhancement.action_approve_overtime"
+        sequence="3"/>
     <!-- Menú principal "Planilla de Sueldos" -->
     <menuitem 
         id="hr_enhancement.menu_hr_payroll_salary"

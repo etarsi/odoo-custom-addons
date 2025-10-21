@@ -4,7 +4,7 @@ class HrEmployeeChildren(models.Model):
     _name = 'hr.employee.children'
     _rec_name = 'name'
 
-    employee_id = fields.Many2one('hr.employee', required=True, string='Padre/Madre')
+    employee_id = fields.Many2one('hr.employee', required=True, string='Padre/Madre', ondelete='cascade')
     name = fields.Char('Nombre y Apellido', required=True)
     age = fields.Integer('Edad', required=True)
     dni = fields.Char('DNI', required=True)

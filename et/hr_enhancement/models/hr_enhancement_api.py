@@ -89,7 +89,8 @@ class HrEnhancementApi(models.AbstractModel):
                         })
                         open_att = hr_attendance.create({
                             'employee_id': employee.id,
-                            'check_in': check_utc,  # naive UTC
+                            'check_in': check_utc,  # naive UT
+                            'create_lector': True,
                         })
                         message += f'--asistencia abierta: {open_att.id} (empleado en borrador)'
                     else:
@@ -117,6 +118,7 @@ class HrEnhancementApi(models.AbstractModel):
                             open_att = hr_attendance.create({
                                 'employee_id': employee.id,
                                 'check_in': check_utc,
+                                'create_lector': True,
                             })
                             message += f' (asistencia abierta: {open_att.id})'
                 elif open_method == 'FINGERPRINT':
@@ -145,6 +147,7 @@ class HrEnhancementApi(models.AbstractModel):
                                 open_att = hr_attendance.create({
                                     'employee_id': employee.id,
                                     'check_in': check_utc,
+                                    'create_lector': True,
                                 })
                         else:  # night
                             if check_utc > start_limit_night:
@@ -162,6 +165,7 @@ class HrEnhancementApi(models.AbstractModel):
                                 open_att = hr_attendance.create({
                                     'employee_id': employee.id,
                                     'check_in': check_utc,
+                                    'create_lector': True,
                                 })
                         message += f'--asistencia abierta: {open_att.id} (empleado en borrador)'
                     else:
@@ -231,6 +235,7 @@ class HrEnhancementApi(models.AbstractModel):
                                         open_att = hr_attendance.create({
                                             'employee_id': employee.id,
                                             'check_in': check_utc,
+                                            'create_lector': True,
                                         })
                                         message += f' (asistencia abierta: {open_att.id})'
                                 else:
@@ -261,6 +266,7 @@ class HrEnhancementApi(models.AbstractModel):
                                     open_att = hr_attendance.create({
                                         'employee_id': employee.id,
                                         'check_in': check_utc,
+                                        'create_lector': True,
                                     })
                                     message += f' (asistencia abierta: {open_att.id})'
                             elif employee.type_shift == 'night':
@@ -311,6 +317,7 @@ class HrEnhancementApi(models.AbstractModel):
                                     open_att = hr_attendance.create({
                                         'employee_id': employee.id,
                                         'check_in': check_utc,
+                                        'create_lector': True,
                                     })
                                     message += f' (asistencia abierta: {open_att.id})'
                 return {'success': True, 'message': message, 'status_code': 200, 'received': data}

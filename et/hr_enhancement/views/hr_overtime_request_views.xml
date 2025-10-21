@@ -1,0 +1,88 @@
+<!-- views/hr_overtime_views.xml -->
+<odoo>
+
+    <record id="view_hr_overtime_form" model="ir.ui.view">
+        <field name="name">hr.overtime.request.form</field>
+        <field name="model">hr.overtime.request</field>
+        <field name="arch" type="xml">
+            <form string="Solicitud de Horas Extra">
+                <header>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,submitted,approved,rejected"/>
+                    <button name="action_submit" type="object" string="Enviar"
+                            class="btn-primary" attrs="{'invisible':[('state','!=','draft')]}"/>
+                    <button name="action_approve" type="object" string="Aprobar"
+                            class="btn-success" groups="hr_enhancement.group_hr_administrador"
+                            attrs="{'invisible':[('state','!=','submitted')]}"/>
+                    <button name="action_reject" type="object" string="Rechazar"
+                            class="btn-danger" groups="hr_enhancement.group_hr_administrador"
+                            attrs="{'invisible':[('state','!=','submitted')]}"/>
+                </header>
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="employee_id" attrs="{'readonly':[('state','!=','draft')]}"/>
+                            <field name="date" attrs="{'readonly':[('state','!=','draft')]}"/>
+                            <field name="weekday" readonly="1"/>
+                            <field name="total_hours" readonly="1"/>
+                        </group>
+                    </group>
+
+                    <group string="Detalle">
+                        <field name="task" attrs="{'readonly':[('state','!=','draft')]}"/>
+                        <field name="justification" attrs="{'readonly':[('state','!=','draft')]}"/>
+                        <group>
+                            <field name="time_start" attrs="{'readonly':[('state','!=','draft')]}"/>
+                            <field name="time_end" attrs="{'readonly':[('state','!=','draft')]}"/>
+                        </group>
+                    </group>
+
+                    <group string="Justificación y aprobación">
+                        <group>
+                            <field name="approver_id" readonly="1"/>
+                            <field name="approval_date" readonly="1"/>
+                        </group>
+                    </group>
+                </sheet>
+                <div class="oe_chatter">
+                    <field name="message_follower_ids" widget="mail_followers"/>
+                    <field name="activity_ids" widget="mail_activity"/>
+                    <field name="message_ids" widget="mail_thread"/>
+                </div>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_hr_overtime_tree" model="ir.ui.view">
+        <field name="name">hr.overtime.request.tree</field>
+        <field name="model">hr.overtime.request</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="name"/>
+                <field name="employee_id"/>
+                <field name="date"/>
+                <field name="total_hours"/>
+                <field name="state" widget="badge"
+                        decoration-info="state=='draft'"
+                        decoration-warning="state=='submitted'"
+                        decoration-success="state=='approved'"
+                        decoration-danger="state=='rejected'"/>
+            </tree>
+        </field>
+    </record>
+
+    <!-- Acciones -->
+    <record id="action_my_overtime" model="ir.actions.act_window">
+        <field name="name">Mis Horas extra</field>
+        <field name="res_model">hr.overtime.request</field>
+        <field name="view_mode">tree,form</field>
+        <field name="domain">[('employee_id.user_id','=',uid)]</field>
+        <field name="context">{'default_employee_id': user.employee_id.id}</field>
+    </record>
+
+    <record id="action_approve_overtime" model="ir.actions.act_window">
+        <field name="name">Aprobar Horas extra</field>
+        <field name="res_model">hr.overtime.request</field>
+        <field name="view_mode">tree,form</field>
+        <field name="domain">[('state','=','submitted')]</field>
+    </record>
+</odoo>

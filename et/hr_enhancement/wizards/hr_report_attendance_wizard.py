@@ -47,12 +47,13 @@ class HrReportAttendanceWizard(models.TransientModel):
         worksheet.set_column(1, 1, 15)   # Fecha 
         worksheet.set_column(2, 2, 15)   # Fecha Ingreso
         worksheet.set_column(3, 3, 15)   # Fecha Salida
-        worksheet.set_column(4, 4, 15)   # Horas Trabajadas
-        worksheet.set_column(5, 5, 15)   # Horas Extras
-        worksheet.set_column(6, 6, 15)   # Horas Feriado
-        worksheet.set_column(7, 7, 20)   # Tipo de Empleado
-        worksheet.set_column(8, 8, 20)   # Turno Asignado
-        
+        worksheet.set_column(4, 4, 15)   # Dias Trabajados
+        worksheet.set_column(5, 5, 15)   # Horas Trabajadas
+        worksheet.set_column(6, 6, 15)   # Horas Extras
+        worksheet.set_column(7, 7, 15)   # Horas Feriado
+        worksheet.set_column(8, 8, 20)   # Tipo de Empleado
+        worksheet.set_column(9, 9, 20)   # Turno Asignado
+
         #formato de celdas
         formato_encabezado = excel.formato_encabezado(workbook)
         formato_celdas_izquierda = excel.formato_celda_izquierda(workbook)
@@ -62,8 +63,8 @@ class HrReportAttendanceWizard(models.TransientModel):
         fmt_total = workbook.add_format({'bold': True, 'bg_color': '#DDEBF7', 'border': 1, 'align': 'ringht'})
             
         # Escribir datos
-        rango_start = self.date_start.strftime('%Y/%m/%d')
-        rango_end = self.date_end.strftime('%Y/%m/%d')
+        rango_start = self.date_start.strftime('%d/%m/%Y')
+        rango_end = self.date_end.strftime('%d/%m/%Y')
         #colocar un titulo que diga SEBIGUS SRL en la primera fila centrado y en negrita de la a columna A a la E
         worksheet.merge_range(0, 0, 0, 8, 'SEBIGUS SRL', formato_encabezado)
         #colocar un subtitulo que diga REPORTE DE ASISTENCIA en la segunda fila centrado y en negrita de la a columna A a la E
@@ -76,14 +77,16 @@ class HrReportAttendanceWizard(models.TransientModel):
         worksheet.write(header_row, 1, 'FECHA', formato_encabezado)
         worksheet.write(header_row, 2, 'INGRESO', formato_encabezado)
         worksheet.write(header_row, 3, 'SALIDA', formato_encabezado)
-        worksheet.write(header_row, 4, 'H. TRABAJADAS', formato_encabezado)
-        worksheet.write(header_row, 5, 'H. 50%', formato_encabezado)
-        worksheet.write(header_row, 6, 'H. 100%', formato_encabezado)
-        worksheet.write(header_row, 7, 'TIPO DE EMPLEADO', formato_encabezado)
-        worksheet.write(header_row, 8, 'TURNO ASIGNADO', formato_encabezado)
+        worksheet.write(header_row, 4, 'DÍAS TRABAJADOS', formato_encabezado)
+        worksheet.write(header_row, 5, 'H. TRABAJADAS', formato_encabezado)
+        worksheet.write(header_row, 6, 'H. 50%', formato_encabezado)
+        worksheet.write(header_row, 7, 'H. 100%', formato_encabezado)
+        worksheet.write(header_row, 8, 'TIPO DE EMPLEADO', formato_encabezado)
+        worksheet.write(header_row, 9, 'TURNO ASIGNADO', formato_encabezado)
         # Buscar facturas en el rango de fechas
         domain = [
             ('check_in', '>=', self.date_start),
+            ('check_in', '<=', self.date_end),
             '|', ('check_out', '=', False), ('check_out', '<=', self.date_end),
         ]
         if not self.date_start or not self.date_end:
@@ -137,7 +140,7 @@ class HrReportAttendanceWizard(models.TransientModel):
             ci_local = self._to_local(attendance.check_in)
             co_local = self._to_local(attendance.check_out)
             # si querés también la fecha local: 
-            fecha = ci_local.strftime('%Y/%m/%d') if ci_local else ''
+            fecha = ci_local.strftime('%d/%m/%Y') if ci_local else ''
             # horas en la tz del usuario de Odoo (o la del contexto)
             ingreso = ci_local.strftime('%H:%M:%S') if ci_local else ''
             salida  = co_local.strftime('%H:%M:%S') if co_local else ''
@@ -166,18 +169,17 @@ class HrReportAttendanceWizard(models.TransientModel):
         
         workbook.close()
         output.seek(0)
-        # Codificar el archivo en base64
         archivo_excel = base64.b64encode(output.read())
         attachment = self.env['ir.attachment'].create({
-            'name': f'reporte_asistencia.xlsx',  # Nombre del archivo con fecha
-            'type': 'binary',  # Tipo binario para archivos
-            'datas': archivo_excel,  # Datos codificados en base64
-            'store_fname': f'reporte_asistencia.xlsx',  # Nombre para almacenamiento
-            'mimetype': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'  # Tipo MIME correcto
+            'name': f'reporte_asistencia.xlsx',
+            'type': 'binary',
+            'datas': archivo_excel,
+            'store_fname': f'reporte_asistencia.xlsx',
+            'mimetype': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
         })
         # Retornar acción para descargar el archivo
         return {
             'type': 'ir.actions.act_url',
-            'url': f'/web/content/{attachment.id}?download=true',  # URL para descarga
-            'target': 'self'  # Abrir en la misma ventana
+            'url': f'/web/content/{attachment.id}?download=true',
+            'target': 'self'
         }
