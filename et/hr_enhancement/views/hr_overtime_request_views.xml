@@ -23,23 +23,19 @@
                             <field name="employee_id" attrs="{'readonly':[('state','!=','draft')]}"/>
                             <field name="date" attrs="{'readonly':[('state','!=','draft')]}"/>
                             <field name="weekday" readonly="1"/>
-                            <field name="total_hours" readonly="1"/>
-                        </group>
-                    </group>
-
-                    <group string="Detalle">
-                        <field name="task" attrs="{'readonly':[('state','!=','draft')]}"/>
-                        <field name="justification" attrs="{'readonly':[('state','!=','draft')]}"/>
-                        <group>
                             <field name="time_start" attrs="{'readonly':[('state','!=','draft')]}"/>
                             <field name="time_end" attrs="{'readonly':[('state','!=','draft')]}"/>
+                            <field name="total_hours" readonly="1"/>
                         </group>
-                    </group>
-
-                    <group string="Justificación y aprobación">
-                        <group>
-                            <field name="approver_id" readonly="1"/>
-                            <field name="approval_date" readonly="1"/>
+                        <group string="Detalle">
+                            <field name="task" attrs="{'readonly':[('state','!=','draft')]}"/>
+                            <field name="justification" attrs="{'readonly':[('state','!=','draft')]}"/>
+                        </group>
+                        <group string="Justificación y aprobación">
+                            <group>
+                                <field name="approver_id" readonly="1"/>
+                                <field name="approval_date" readonly="1"/>
+                            </group>
                         </group>
                     </group>
                 </sheet>
