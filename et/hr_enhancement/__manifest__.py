@@ -24,10 +24,12 @@
 
     # always loaded
     'data': [
-        'data/res_groups_data.xml',
-        'security/ir.model.access.csv',
+        #Seguridad
         'security/hr_enhancement_groups.xml',
         'security/hr_enhancement_rules.xml',
+        'security/ir.model.access.csv',
+        #Datos iniciales
+        'data/res_groups_data.xml',
         #Ingreso de datos por defecto
         'data/hr_license_type_data.xml',
         'data/action_hr_payroll_salary.xml',

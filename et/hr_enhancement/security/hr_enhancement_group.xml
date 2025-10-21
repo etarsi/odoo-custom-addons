@@ -1,24 +1,24 @@
 <!-- security/hr_enhancement_groups.xml -->
 <odoo>
-  <!-- Empleado (self-service) -->
-  <record id="group_hr_self_service" model="res.groups">
-    <field name="name">Empleado (Self-Service)</field>
-    <field name="category_id" ref="base.module_category_human_resources"/>
-    <!-- todos los usuarios internos pueden estar aquí -->
-    <field name="implied_ids" eval="[(4, ref('base.group_user'))]"/>
-  </record>
+    <!-- Empleado (self-service) -->
+    <record id="group_hr_self_service" model="res.groups">
+        <field name="name">Empleado (Self-Service)</field>
+        <field name="category_id" ref="base.module_category_human_resources"/>
+        <!-- todos los usuarios internos pueden estar aquí -->
+        <field name="implied_ids" eval="[(4, ref('base.group_user'))]"/>
+    </record>
 
-  <!-- Supervisor RR.HH. (ve asistencias de todos y reportes) -->
-  <record id="group_hr_supervisor" model="res.groups">
-    <field name="name">Supervisor RR.HH.</field>
-    <field name="category_id" ref="base.module_category_human_resources"/>
-    <field name="implied_ids" eval="[(4, ref('hr_enhancement.group_hr_self_service'))]"/>
-  </record>
+    <!-- Supervisor RR.HH. (ve asistencias de todos y reportes) -->
+    <record id="group_hr_supervisor" model="res.groups">
+        <field name="name">Supervisor RR.HH.</field>
+        <field name="category_id" ref="base.module_category_human_resources"/>
+        <field name="implied_ids" eval="[(4, ref('hr_enhancement.group_hr_self_service'))]"/>
+    </record>
 
-  <!-- Administrador RR.HH. (todo acceso) -->
-  <record id="group_hr_administrador" model="res.groups">
-    <field name="name">Administrador RR.HH.</field>
-    <field name="category_id" ref="base.module_category_human_resources"/>
-    <field name="implied_ids" eval="[(4, ref('hr_enhancement.group_hr_supervisor'))]"/>
-  </record>
+    <!-- Administrador RR.HH. (todo acceso) -->
+    <record id="group_hr_administrador" model="res.groups">
+        <field name="name">Administrador RR.HH.</field>
+        <field name="category_id" ref="base.module_category_human_resources"/>
+        <field name="implied_ids" eval="[(4, ref('hr_enhancement.group_hr_supervisor'))]"/>
+    </record>
 </odoo>
