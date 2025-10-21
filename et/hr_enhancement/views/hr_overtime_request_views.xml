@@ -18,7 +18,7 @@
                             attrs="{'invisible':[('state','!=','submitted')]}"/>
                 </header>
                 <sheet>
-                    <group>
+                    <group string="Información General">
                         <group>
                             <field name="employee_id" attrs="{'readonly':[('state','!=','draft')]}"/>
                             <field name="date" attrs="{'readonly':[('state','!=','draft')]}"/>
@@ -77,7 +77,7 @@
         <field name="res_model">hr.overtime.request</field>
         <field name="view_mode">tree,form</field>
         <field name="domain">[('employee_id.user_id','=',uid)]</field>
-        <field name="context">{'default_employee_id': user.employee_id.id}</field>
+        <field name="context">{}</field>
     </record>
 
     <record id="action_approve_overtime" model="ir.actions.act_window">

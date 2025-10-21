@@ -101,7 +101,7 @@
 
     <!-- Acción de licencia para aprobar -->
     <record id="action_approve_licenses" model="ir.actions.act_window">
-        <field name="name">Licencias</field>
+        <field name="name">Licencias a Aprobar</field>
         <field name="res_model">hr.license</field>
         <field name="view_mode">tree,form</field>
         <field name="view_id" ref="hr_enhancement.view_hr_license_tree"/>
