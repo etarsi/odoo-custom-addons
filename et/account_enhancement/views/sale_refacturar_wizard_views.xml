@@ -20,9 +20,9 @@
                         <field name="sale_id" readonly="1" force_save="1"/>
                         <field name="partner_id"  options="{'no_create': True}"/>
                         <field name="company_id"  options="{'no_create': True}"/>
-                        <field name="condicion_m2m_id"  options="{'no_create': True}"/>
                     </group>
                     <group>
+                        <field name="condicion_m2m_id"  options="{'no_create': True}"/>
                         <field name="pricelist_id" options="{'no_create': True}"/>
                     </group>
                 </group>
