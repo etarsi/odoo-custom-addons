@@ -64,7 +64,7 @@ class Container(models.Model):
             response = requests.post('http://api.patagoniawms.com/v1/DocumentoRecepcion', headers=headers, json=payload)
 
             if response.status_code == 200:
-                record.wms_code = f'{next_number}'
+                record.wms_code = f'{next_number}_{record.license}'
                 record.state = 'sent'
             else:
                 raise UserError(f'Error code: {response.status_code} - Error Msg: {response.text}')
@@ -132,8 +132,11 @@ class Container(models.Model):
                                     line.quantity_picked = v['q_picked']
                     
                     record.state = 'received'
+                else:
+                    data = response.json()
+                    raise UserError(f'El contenedor no está recibido o controlado todavía. Estado: {data["Estado"]}')
             else:
-                raise UserError(f'Error code: {response.status_code} - Error Msg: {response.text}')
+                raise UserError(f'No se encuentra Control Ciego para este contenedor.')
             
     
     def confirmar(self):
