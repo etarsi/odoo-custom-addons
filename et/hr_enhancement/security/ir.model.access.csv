@@ -16,3 +16,11 @@ access_hr_enhancement_hr_temp_attendance,hr_enhancement.hr_temp_attendance,model
 access_hr_enhancement_api,access_hr_enhancement_api,model_hr_enhancement_api,base.group_user,1,1,1,1
 access_hr_enhancement_hr_report_attendance_wizard,hr_enhancement.hr_report_attendance_wizard,model_hr_report_attendance_wizard,base.group_user,1,1,1,1
 access_hr_enhancement_hr_overtime_request,hr_enhancement.hr_overtime_request,model_hr_overtime_request,base.group_user,1,1,1,1
+
+access_attendance_self,attendance self,hr.model_hr_attendance,hr_enhancement.group_hr_self_service,1,0,0,0
+access_attendance_supervisor,attendance supervisor,hr.model_hr_attendance,hr_enhancement.group_hr_supervisor,1,0,0,0
+access_attendance_admin,attendance admin,hr.model_hr_attendance,hr_enhancement.group_hr_administrador,1,1,1,1
+
+access_employee_self,employee self,hr.model_hr_employee,hr_enhancement.group_hr_self_service,1,0,0,0
+access_employee_supervisor,employee supervisor,hr.model_hr_employee,hr_enhancement.group_hr_supervisor,1,0,0,0
+access_employee_admin,employee admin,hr.model_hr_employee,hr_enhancement.group_hr_administrador,1,1,1,1

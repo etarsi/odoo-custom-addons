@@ -1,155 +1,171 @@
 <odoo>
-    <!-- Menu de Asistencia en Employee-->
+    <!-- ===== Asistencia ===== -->
     <menuitem 
         id="hr_enhancement.menu_hr_attendance"
         name="Asistencia"
         parent="hr.menu_hr_root"
-        sequence="15"/>
-    <!-- Submenú "Mi Asistencia" -->
+        sequence="15"
+        groups="hr_enhancement.group_hr_self_service,hr_enhancement.group_hr_supervisor,hr_enhancement.group_hr_administrador"/>
+
     <menuitem
         id="hr_enhancement.menu_my_hr_attendance"
         name="Mi Asistencia"
         parent="hr_enhancement.menu_hr_attendance"
         action="hr_enhancement.action_my_attendance"
-        sequence="1"/>
-    <!-- Submenú "Asistencias de Empleados/Eventuales" -->
+        sequence="1"
+        groups="hr_enhancement.group_hr_self_service,hr_enhancement.group_hr_supervisor,hr_enhancement.group_hr_administrador"/>
+
     <menuitem
         id="hr_enhancement.menu_hr_attendance_enhancements"
         name="Asistencias de Empleados/Eventuales"
         parent="hr_enhancement.menu_hr_attendance"
-        groups="hr_enhancement.group_hr_administrador"
         action="hr_attendance.hr_attendance_action"
-        sequence="2"/>
+        sequence="2"
+        groups="hr_enhancement.group_hr_supervisor,hr_enhancement.group_hr_administrador"/>
 
-    <!-- Menú principal "Solicitudes" -->
+    <!-- ===== Solicitudes ===== -->
     <menuitem 
         id="hr_enhancement.menu_hr_requests"
         name="Solicitudes"
         parent="hr.menu_hr_root"
-        sequence="20"/>
-    <!-- Submenú Nivel 1 -->
+        sequence="20"
+        groups="hr_enhancement.group_hr_self_service,hr_enhancement.group_hr_supervisor,hr_enhancement.group_hr_administrador"/>
+
+    <!-- Mis solicitudes -->
     <menuitem 
         id="hr_enhancement.menu_my_requests"
         name="Mis solicitudes"
         parent="hr_enhancement.menu_hr_requests"
-        sequence="1"/>
+        sequence="1"
+        groups="hr_enhancement.group_hr_self_service,hr_enhancement.group_hr_supervisor,hr_enhancement.group_hr_administrador"/>
+
     <menuitem 
         id="hr_enhancement.menu_my_licenses"
         name="Licencias"
         parent="hr_enhancement.menu_my_requests"
         action="hr_enhancement.action_my_licenses"
-        sequence="1"/>
+        sequence="1"
+        groups="hr_enhancement.group_hr_self_service,hr_enhancement.group_hr_supervisor,hr_enhancement.group_hr_administrador"/>
+
     <menuitem 
         id="hr_enhancement.menu_my_overtime"
         name="Horas extra"
         parent="hr_enhancement.menu_my_requests"
         action="hr_enhancement.action_my_overtime"
-        sequence="2"/>
-    <!-- Submenú Nivel 1 "Aprobar Solicitudes" -->
+        sequence="2"
+        groups="hr_enhancement.group_hr_self_service,hr_enhancement.group_hr_supervisor,hr_enhancement.group_hr_administrador"/>
+
+    <!-- Aprobar solicitudes -->
     <menuitem 
         id="hr_enhancement.menu_approve_requests"
         name="Aprobar solicitudes"
         parent="hr_enhancement.menu_hr_requests"
-        groups="hr_enhancement.group_hr_administrador"
-        sequence="2"/>
+        sequence="2"
+        groups="hr_enhancement.group_hr_supervisor,hr_enhancement.group_hr_administrador"/>
 
-    <!-- Submenú nivel 2 "Aprobar Licencias" -->
     <menuitem 
         id="hr_enhancement.menu_approve_licenses"
         name="Licencias"
         parent="hr_enhancement.menu_approve_requests"
-        groups="hr_enhancement.group_hr_administrador"
         action="hr_enhancement.action_approve_licenses"
-        sequence="2"/>
-    <!-- Submenú nivel 2 "Aprobar Horas Extra" -->
+        sequence="2"
+        groups="hr_enhancement.group_hr_supervisor,hr_enhancement.group_hr_administrador"/>
+
     <menuitem 
         id="hr_enhancement.menu_approve_overtime"
         name="Horas extra"
         parent="hr_enhancement.menu_approve_requests"
-        groups="hr_enhancement.group_hr_administrador"
         action="hr_enhancement.action_approve_overtime"
-        sequence="3"/>
-    <!-- Menú principal "Planilla de Sueldos" -->
+        sequence="3"
+        groups="hr_enhancement.group_hr_supervisor,hr_enhancement.group_hr_administrador"/>
+
+    <!-- ===== Planillas ===== -->
     <menuitem 
         id="hr_enhancement.menu_hr_payroll_salary"
         name="Planilla de Sueldos"
         parent="hr.menu_hr_root"
-        groups="hr_enhancement.group_hr_administrador"
-        sequence="30"/>
-    <!-- Submenú "Planilla de Eventuales" -->
+        sequence="30"
+        groups="hr_enhancement.group_hr_administrador"/>
+
     <menuitem 
         id="hr_enhancement.menu_payroll_eventuales"
         name="Planilla de Eventuales"
         parent="hr_enhancement.menu_hr_payroll_salary"
         action="hr_enhancement.action_hr_payroll_eventuales"
-        sequence="1"/>
-    <!-- Submenú "Planilla de Empleados" -->
+        sequence="1"
+        groups="hr_enhancement.group_hr_administrador"/>
+
     <menuitem 
         id="hr_enhancement.menu_payroll_employees"
         name="Planilla de Empleados"
         parent="hr_enhancement.menu_hr_payroll_salary"
         action="hr_enhancement.action_hr_payroll_employees"
-        sequence="2"/>
-    <!-- Menú principal "Informes" -->
+        sequence="2"
+        groups="hr_enhancement.group_hr_administrador"/>
+
+    <!-- ===== Informes ===== -->
     <menuitem 
         id="hr_enhancement.menu_hr_payroll_reports"
         name="Informes"
         parent="hr.menu_hr_root"
-        groups="hr_enhancement.group_hr_administrador"
-        sequence="40"/>
-    <!-- Submenú "Reporte de Asistencias" -->
+        sequence="40"
+        groups="hr_enhancement.group_hr_supervisor,hr_enhancement.group_hr_administrador"/>
+
     <menuitem 
         id="hr_enhancement.menu_hr_report_attendance"
         name="Reporte de Asistencias"
         parent="hr_enhancement.menu_hr_payroll_reports"
         action="hr_enhancement.action_hr_report_attendance_wizard"
-        sequence="1"/>
+        sequence="1"
+        groups="hr_enhancement.group_hr_supervisor,hr_enhancement.group_hr_administrador"/>
 
-    <!-- Nuevo menú dentro de Recursos Humanos > Configuración -->
+    <!-- ===== Configuración RR.HH. ===== -->
     <menuitem 
         id="hr_enhancement.menu_hr_season_labor_cost_config"
         name="Recursos Humanos"
         parent="hr.menu_human_resources_configuration"
-        groups="hr_enhancement.group_hr_administrador"
-        sequence="25"/>
-        
+        sequence="25"
+        groups="hr_enhancement.group_hr_administrador"/>
+
     <record id="action_hr_season_labor_cost" model="ir.actions.act_window">
         <field name="name">Costos Laborales por Temporada</field>
         <field name="res_model">hr.season.labor.cost</field>
         <field name="view_mode">tree,form</field>
     </record>
-    <!-- Submenú "Costos Laborales por Temporada" -->
     <menuitem
         id="hr_enhancement.menu_hr_season_labor_cost_config_action"
         name="Costos Laborales por Temporada"
         parent="hr_enhancement.menu_hr_season_labor_cost_config"
         action="action_hr_season_labor_cost"
-        sequence="1"/>
+        sequence="1"
+        groups="hr_enhancement.group_hr_administrador"/>
 
     <record id="action_hr_work_schedule" model="ir.actions.act_window">
         <field name="name">Rangos de Horario Laboral</field>
         <field name="res_model">hr.work.schedule</field>
         <field name="view_mode">tree,form</field>
     </record>
-    <!-- Submenú "Rangos de Horario Laboral" -->
     <menuitem
         id="hr_enhancement.menu_hr_work_schedule_action"
         name="Rangos de Horario Laboral"
         parent="hr_enhancement.menu_hr_season_labor_cost_config"
         action="action_hr_work_schedule"
-        sequence="2"/>
-    <!-- Submenú "Días No Laborales" -->
+        sequence="2"
+        groups="hr_enhancement.group_hr_administrador"/>
+
     <menuitem
         id="hr_enhancement.menu_hr_holiday_custom"
         name="Días No Laborales"
         parent="hr_enhancement.menu_hr_season_labor_cost_config"
         action="action_hr_holiday_custom"
-        sequence="3"/>
-    
+        sequence="3"
+        groups="hr_enhancement.group_hr_administrador"/>
+
     <menuitem
         id="hr_enhancement.menu_hr_temp_attendance"
         name="Bitacora de Asistencias"
         parent="hr_enhancement.menu_hr_season_labor_cost_config"
         action="action_hr_temp_attendance"
-        sequence="4"/>
+        sequence="4"
+        groups="hr_enhancement.group_hr_administrador"/>
 </odoo>
