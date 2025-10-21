@@ -57,10 +57,11 @@
         <field name="model">hr.overtime.request</field>
         <field name="arch" type="xml">
             <tree>
-                <field name="name"/>
                 <field name="employee_id"/>
                 <field name="date"/>
-                <field name="total_hours"/>
+                <field name="total_hours" widget="float_time"/>
+                <field name="weekday"/>
+                <field name="task"/>
                 <field name="state" widget="badge"
                         decoration-info="state=='draft'"
                         decoration-warning="state=='submitted'"
