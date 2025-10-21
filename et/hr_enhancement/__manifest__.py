@@ -25,11 +25,13 @@
     # always loaded
     'data': [
         'security/ir.model.access.csv',
+        'security/hr_enhancement_groups.xml',
+        'security/hr_enhancement_rules.xml',
         #Ingreso de datos por defecto
         'data/res_groups_data.xml',
         'data/hr_license_type_data.xml',
         'data/action_hr_payroll_salary.xml',
-        #Vista
+        #Vistas
         'views/hr_license_views.xml',
         'views/hr_location_views.xml',
         'views/hr_employee_form_views.xml',
