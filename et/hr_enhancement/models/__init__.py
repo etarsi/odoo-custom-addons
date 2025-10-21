@@ -17,3 +17,4 @@ from . import hr_holiday_custom
 from . import hr_employee_offboard
 from . import hr_temp_attendance
 from . import hr_enhancement_api
+from . import hr_overtime_request

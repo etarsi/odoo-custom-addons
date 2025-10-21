@@ -43,6 +43,7 @@
         'views/hr_holiday_custom_views.xml',
         'views/hr_temp_attendance_views.xml',
         'views/hr_report_attendance_wizard_views.xml',
+        'views/hr_overtime_request_views.xml',
         'views/res_config_views.xml',
         'views/menu.xml',
         'views/views.xml',

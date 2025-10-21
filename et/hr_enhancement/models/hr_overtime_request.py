@@ -24,7 +24,7 @@ class HrOvertimeRequest(models.Model):
     date = fields.Date('Fecha', required=True, default=fields.Date.context_today, tracking=True)
     weekday = fields.Char('Día', compute='_compute_weekday', store=True, readonly=True)
     task = fields.Text('Tarea/Proyecto')
-    justification = fields.Text('Justificación (motivo específico)', required=True)
+    justification = fields.Text('Justificación (especificar motivo)', required=True)
     time_start = fields.Float('Hora de inicio', required=True, help='Formato 24h: 18.5 = 18:30')
     time_end   = fields.Float('Hora de finalización', required=True)
     total_hours = fields.Float('Total de horas', compute='_compute_total', store=True, readonly=True)
@@ -65,16 +65,6 @@ class HrOvertimeRequest(models.Model):
             if words < 5:
                 raise ValidationError('La justificación debe tener al menos 5 palabras.')
 
-    @api.constrains('justification_summary')
-    def _check_summary_words(self):
-        for r in self:
-            if r.state in ('submitted', 'approved'):
-                words = len((r.justification_summary or '').strip().split())
-                if words < 10:
-                    raise ValidationError('El resumen debe tener al menos 10 palabras.')
-
-    # ----------------- Acciones -----------------
-
     def action_submit(self):
         for r in self:
             if r.state != 'draft':
@@ -93,12 +83,8 @@ class HrOvertimeRequest(models.Model):
                 raise ValidationError('Solo se puede rechazar una solicitud enviada.')
             r.state = 'rejected'
 
-    # ----------------- Create -----------------
-
     @api.model
     def create(self, vals):
-        if vals.get('name', 'Nueva') == 'Nueva':
-            vals['name'] = self.env['ir.sequence'].next_by_code('hr.overtime.request') or 'Nueva'
         if not vals.get('employee_id'):
             emp = self.env['hr.employee'].search([('user_id', '=', self.env.uid)], limit=1)
             if emp:
