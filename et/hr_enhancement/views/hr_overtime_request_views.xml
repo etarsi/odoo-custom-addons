@@ -18,6 +18,15 @@
                             attrs="{'invisible':[('state','!=','submitted')]}"/>
                 </header>
                 <sheet>
+                    <!-- Enviado -->
+                    <widget name="web_ribbon" title="Enviado" bg_color="bg-warning"
+                        attrs="{'invisible': [('state','!=','submitted')]}"/>
+                    <!-- Aprobado -->
+                    <widget name="web_ribbon" title="Aprobado" bg_color="bg-success"
+                        attrs="{'invisible': [('state','!=','approved')]}"/>
+                    <!-- Rechazado -->
+                    <widget name="web_ribbon" title="Rechazado" bg_color="bg-danger"
+                        attrs="{'invisible': [('state','!=','rejected')]}"/>
                     <group string="Información General">
                         <group>
                             <field name="employee_id" attrs="{'readonly':[('state','!=','draft')]}" groups="hr_enhancement.group_hr_administrador"/>
