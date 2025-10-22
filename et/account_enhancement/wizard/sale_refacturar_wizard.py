@@ -38,123 +38,144 @@ class SaleRefacturarWizard(models.TransientModel):
             else:
                 return {'domain': {'condicion_m2m_id': [('name', '!=', 'TIPO 3')]}}
 
-    # ---------- helper: precio por lista compatible v15 ----------
-    def _pl_price(self, product, qty, uom, partner, date_order=None):
-        """Devuelve el precio según la lista elegida (o None si no hay lista)."""
-        if not self.pricelist_id:
-            return None
-        ctx = dict(self.env.context or {})
-        if uom:
-            ctx['uom'] = uom.id
-        if date_order:
-            ctx['date'] = fields.Date.to_date(date_order)
-        pl = self.pricelist_id.with_context(ctx)
-        # v15 CE
-        if hasattr(pl, 'get_product_price'):
-            return pl.get_product_price(product, qty, partner)
-        # Fallback conocido
-        if hasattr(pl, 'get_product_price_rule'):
-            price, _rule = pl.get_product_price_rule(product, qty, partner)
-            return price
-        return None
+    def _prepare_invoice_base_vals(self, company):
+        invoice_date_due = fields.Date.context_today(self)
+
+        if self.sale_id.payment_term_id:
+            extra_days = max(self.sale_id.payment_term_id.line_ids.mapped('days') or [0])
+            invoice_date_due = self.set_due_date_plus_x(extra_days)
+        
+        return {
+            'move_type': 'out_invoice',
+            'partner_id': self.partner_id.id,
+            'partner_shipping_id': self.sale_id.partner_shipping_id,
+            'invoice_date': fields.Date.context_today(self),
+            'invoice_date_due': invoice_date_due,
+            'company_id': company.id,
+            'currency_id': company.currency_id.id,
+            'invoice_origin': self.origin or self.name,
+            'payment_reference': self.name,
+            'fiscal_position_id': self.sale_id.partner_invoice_id.property_account_position_id.id,
+            'invoice_payment_term_id': self.sale_id.payment_term_id,
+            'wms_code': False,
+        }
 
     def action_create_invoice_from_sale(self):
-        """Crea factura(s) a partir de las LÍNEAS DEL PEDIDO (no del picking)."""
         self.ensure_one()
+
         sale = self.sale_id
         if not sale:
             raise UserError(_("Este asistente debe abrirse desde un pedido de venta."))
 
-        # Proporciones por TIPO
-        tipo = (self.condicion_m2m_id.name or '').upper().strip()
-        prop_blanco, prop_negro = {
+        # TIPO (tomá el que uses en tu wizard)
+        tipo = (self.condicion_m2m_id.name or '').upper().strip()  # o (self.x_order_type.name or '')
+        proportion_blanco, proportion_negro = {
             'TIPO 1': (1.0, 0.0),
             'TIPO 2': (0.5, 0.5),
             'TIPO 3': (0.0, 1.0),
             'TIPO 4': (0.25, 0.75),
         }.get(tipo, (1.0, 0.0))
 
-        # Compañías
         company_blanca = self.company_id or sale.company_id
-        # Reemplazá este browse(1) por un campo en el wizard: self.company_negra_id
-        company_negra = self.env['res.company'].browse(1) if prop_negro > 0 else False
-        # company_negra = self.company_negra_id if prop_negro > 0 else False
-        if prop_negro > 0 and not company_negra:
-            raise UserError(_("Debes seleccionar la Compañía (Negra) para este esquema."))
+        # Reemplazá browse(1) por un campo en el wizard si querés parametrizarlo
+        company_negra = self.env['res.company'].browse(1) if proportion_negro > 0 else False
 
-        # Diarios
-        def _find_sale_journal(company):
-            j = self.env['account.journal'].search([('type', '=', 'sale'), ('company_id', '=', company.id)], limit=1)
-            if not j:
-                raise UserError(_('No hay diario de ventas para la compañía %s.') % company.display_name)
-            return j
+        invoice_lines_blanco = []
+        invoice_lines_negro = []
+        sequence = 1
 
-        # Posición fiscal (Blanca)
-        fpos_blanca = sale.partner_invoice_id.property_account_position_id.with_company(company_blanca) if sale.partner_invoice_id else False
-
-        # Construir líneas desde SALE ORDER LINES (las “mismas que en la factura” según TIPO)
-        inv_lines_blanca, inv_lines_negra = [], []
-
+        # Construimos desde LÍNEAS DE VENTA (no inventario)
         for so_line in sale.order_line.filtered(lambda l: not l.display_type and l.product_id):
-            # Cantidad base a facturar (elegí la que necesites: qty_to_invoice / qty_delivered / product_uom_qty)
+            # Elegí tu política de cantidad:
             qty_total = so_line.qty_to_invoice or so_line.qty_delivered or so_line.product_uom_qty
             if qty_total <= 0:
                 continue
 
-            uom = so_line.product_uom
-            rounding = uom.rounding or 0.01
+            # Base: usamos el preparador de la línea para factura
+            base_vals = so_line._prepare_invoice_line(sequence=sequence)
+            # Aseguramos cantidad y precio base según la línea
+            base_vals['quantity'] = qty_total
+            base_vals['price_unit'] = so_line.price_unit
+            base_vals['discount'] = so_line.discount
+            # tax_ids ya viene de la línea
 
-            # Proporciones con redondeo de UdM
-            qty_blanca = round(qty_total * prop_blanco / rounding) * rounding
-            qty_negra  = max(qty_total - qty_blanca, 0.0)
+            # Proporciones
+            qty_blanco = math.floor(qty_total * proportion_blanco)
+            qty_negro = qty_total - qty_blanco
 
-            # Precio base (usa lista del wizard si se eligió; si no, toma el del pedido)
-            price_unit = so_line.price_unit
-            pl = self._pl_price(so_line.product_id, qty_total, uom, sale.partner_id, sale.date_order)
-            if pl is not None:
-                price_unit = pl
+            if proportion_blanco > 0 and qty_blanco:
+                blanco_vals = base_vals.copy()
+                blanco_vals['quantity'] = qty_blanco
+                # impuestos de la línea (respetando FP del pedido al validar la factura)
+                invoice_lines_blanco.append((0, 0, blanco_vals))
 
-            discount = so_line.discount  # copiamos descuento del pedido
-            taxes = so_line.tax_id
+            if proportion_negro > 0 and qty_negro:
+                negro_vals = base_vals.copy()
+                negro_vals['quantity'] = qty_negro
+                # sin impuestos en NEGRA
+                negro_vals['tax_ids'] = False
+                # multiplicador precio (salvo TIPO 3)
+                if tipo == 'TIPO 3':
+                    negro_vals['price_unit'] = so_line.price_unit
+                else:
+                    negro_vals['price_unit'] = so_line.price_unit * 1.21
+                invoice_lines_negro.append((0, 0, negro_vals))
 
-            # -------- BLANCA --------
-            if qty_blanca > 0:
-                taxes_blanca = taxes
-                if fpos_blanca:
-                    taxes_blanca = fpos_blanca.map_tax(taxes, so_line.product_id, sale.partner_invoice_id)
-                account_blanca = so_line.product_id.with_company(company_blanca).get_product_income_account(return_default=True)
-                if fpos_blanca:
-                    account_blanca = fpos_blanca.map_account(account_blanca)
+            sequence += 1
 
-                inv_lines_blanca.append((0, 0, {
-                    'product_id': so_line.product_id.id,
-                    'name': so_line.name or so_line.product_id.display_name,
-                    'quantity': qty_blanca,
-                    'product_uom_id': uom.id,
-                    'price_unit': price_unit,
-                    'discount': discount,
-                    'tax_ids': [(6, 0, taxes_blanca.ids)],
-                    'account_id': account_blanca.id if account_blanca else False,
-                    'sale_line_ids': [(6, 0, [so_line.id])],
-                }))
+        invoices = self.env['account.move']
 
-            # -------- NEGRA --------
-            if company_negra and qty_negra > 0:
-                # sin impuestos; multiplicador 1.21 salvo TIPO 3
-                price_negra = price_unit * (1.0 if tipo == 'TIPO 3' else 1.21)
-                account_negra = so_line.product_id.get_product_income_account(return_default=True)
+        # ---- Crear factura BLANCA ----
+        if invoice_lines_blanco:
+            vals_blanco = self._prepare_invoice_base_vals(company_blanca)
+            vals_blanco.update({
+                'invoice_line_ids': invoice_lines_blanco,
+                'invoice_user_id': sale.user_id.id,
+                'partner_bank_id': False,
+                'company_id': company_blanca.id,
+            })
+            if not vals_blanco.get('journal_id'):
+                journal = self.env['account.journal'].search([
+                    ('type', '=', 'sale'),
+                    ('company_id', '=', company_blanca.id)
+                ], limit=1)
+                if not journal:
+                    raise UserError(_("No se encontró un diario de ventas para la compañía %s.") % (company_blanca.name,))
+                vals_blanco['journal_id'] = journal.id
 
-                inv_lines_negra.append((0, 0, {
-                    'product_id': so_line.product_id.id,
-                    'name': so_line.name or so_line.product_id.display_name,
-                    'quantity': qty_negra,
-                    'product_uom_id': uom.id,
-                    'price_unit': price_negra,
-                    'discount': discount,
-                    'tax_ids': [(6, 0, [])],  # explícitamente sin impuestos
-                    'account_id': account_negra.id if account_negra else False,
-                    'sale_line_ids': [(6, 0, [so_line.id])],
-                }))
+            invoices |= self.env['account.move'].with_company(company_blanca).create(vals_blanco)
+
+        # ---- Crear factura NEGRA ----
+        if invoice_lines_negro and company_negra:
+            vals_negro = self._prepare_invoice_base_vals(company_negra)
+            vals_negro.update({
+                'invoice_line_ids': invoice_lines_negro,
+                'invoice_user_id': sale.user_id.id,
+                'partner_bank_id': False,
+                'company_id': company_negra.id,
+            })
+            journal = self.env['account.journal'].search([
+                ('type', '=', 'sale'),
+                ('company_id', '=', company_negra.id)
+            ], limit=1)
+            if not journal:
+                raise UserError(_("No se encontró un diario de ventas para la compañía (Negra)."))
+            vals_negro['journal_id'] = journal.id
+
+            invoices |= self.env['account.move'].with_company(company_negra).create(vals_negro)
+
+        # Origen de la factura = Pedido
+        invoices.write({'invoice_origin': sale.name})
+
+        # Abrir resultado
+        action = self.env.ref('account.action_move_out_invoice_type').read()[0]
+        if len(invoices) == 1:
+            action['views'] = [(self.env.ref('account.view_move_form').id, 'form')]
+            action['res_id'] = invoices.id
+        else:
+            action['domain'] = [('id', 'in', invoices.ids)]
+        return action
+
 
         if not inv_lines_blanca and not inv_lines_negra:
             raise UserError(_('No hay líneas para refacturar.'))
