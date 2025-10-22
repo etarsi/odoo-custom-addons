@@ -37,7 +37,7 @@
                     </group>
                 </group>
                 <footer>
-                    <button name="action_confirm" type="object" string="Crear factura" class="btn-primary"/>
+                    <button name="action_create_invoice_from_sale" type="object" string="Crear factura" class="btn-primary"/>
                     <button string="Cancelar" class="btn-secondary" special="cancel"/>
                 </footer>
             </form>
