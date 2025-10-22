@@ -6,6 +6,12 @@
         <field name="res_model">sale.refacturar.wizard</field>
         <field name="view_mode">form</field>
         <field name="target">new</field>
+        <!-- hace que aparezca en el menú "Acción" de Sale Order (form y tree) -->
+        <field name="binding_model_id" ref="sale.model_sale_order"/>
+        <field name="binding_type">action</field>
+        <field name="binding_view_types">form,tree</field>
+        <!-- el context sí recibe active_id cuando se dispara el act_window -->
+        <field name="context">{'default_sale_id': active_id}</field>
     </record>
 
     <!-- Server Action en menú "Acción" de sale.order -->
