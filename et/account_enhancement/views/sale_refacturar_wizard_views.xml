@@ -19,10 +19,6 @@
         <field name="binding_view_types">form,tree</field>
         <field name="state">code</field>
         <field name="code"><![CDATA[
-    sale_id = active_id or (active_ids and active_ids[0]) or False
-    if not sale_id:
-        raise ValueError('Seleccioná un pedido de venta.')
-
     action = env.ref('your_module.action_open_sale_refacturar_wizard').read()[0]
     ctx = dict(env.context or {})
     ctx.update({'default_sale_id': sale_id})
