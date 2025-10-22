@@ -26,7 +26,7 @@ class SaleRefacturarWizard(models.TransientModel):
             'partner_id': sale.partner_id.id,
         })
         return res
-    
+
     @api.onchange('company_id')
     def _onchange_company_id(self):
         if self.company_id:
@@ -37,6 +37,14 @@ class SaleRefacturarWizard(models.TransientModel):
                 return {'domain': {'condicion_m2m_id': domain}}
             else:
                 return {'domain': {'condicion_m2m_id': [('name', '!=', 'TIPO 3')]}}
+
+    def _pl_price(self, product, qty, uom, partner):
+        if not self.pricelist_id:
+            return None
+        ctx = dict(self.env.context or {})
+        if uom:
+            ctx['uom'] = uom.id
+        return self.pricelist_id.with_context(ctx)._get_product_price(product, qty, partner=partner)
 
     def action_confirm(self):
         self.ensure_one()
