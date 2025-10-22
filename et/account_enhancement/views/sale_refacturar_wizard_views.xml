@@ -25,8 +25,8 @@
         <field name="model">sale.refacturar.wizard</field>
         <field name="arch" type="xml">
             <form string="Refacturar pedido">
-                <group>
-                    <group string="Datos del pedido original">
+                <group string="Datos del pedido original">
+                    <group>
                         <field name="sale_id" readonly="1" force_save="1"/>
                         <field name="partner_id"  options="{'no_create': True}"/>
                         <field name="company_id"  options="{'no_create': True}"/>
@@ -37,8 +37,8 @@
                     </group>
                 </group>
                 <footer>
-                    <button string="Cancelar" class="btn-secondary" special="cancel"/>
                     <button name="action_confirm" type="object" string="Crear factura" class="btn-primary"/>
+                    <button string="Cancelar" class="btn-secondary" special="cancel"/>
                 </footer>
             </form>
         </field>
