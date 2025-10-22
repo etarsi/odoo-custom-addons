@@ -1,20 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <!-- Act_window del wizard -->
+    <!-- Act_window del wizard (sin binding, la invoca la server action) -->
     <record id="action_open_sale_refacturar_wizard" model="ir.actions.act_window">
         <field name="name">Refacturar</field>
         <field name="res_model">sale.refacturar.wizard</field>
         <field name="view_mode">form</field>
         <field name="target">new</field>
-        <!-- hace que aparezca en el menú "Acción" de Sale Order (form y tree) -->
-        <field name="binding_model_id" ref="sale.model_sale_order"/>
-        <field name="binding_type">action</field>
-        <field name="binding_view_types">form,tree</field>
-        <!-- el context sí recibe active_id cuando se dispara el act_window -->
-        <field name="context">{'default_sale_id': active_id}</field>
     </record>
 
-    <!-- Server Action en menú "Acción" de sale.order -->
+    <!-- Server Action atada a sale.order -->
     <record id="action_server_open_sale_refacturar_wizard" model="ir.actions.server">
         <field name="name">Refacturar</field>
         <field name="model_id" ref="sale.model_sale_order"/>
@@ -22,7 +16,9 @@
         <field name="binding_type">action</field>
         <field name="binding_view_types">form,tree</field>
         <field name="state">code</field>
-        <field name="code"><![CDATA[action = env.ref('account_enhancement.action_open_sale_refacturar_wizard').read()[0]; sale_id = (active_id or (active_ids and active_ids[0])); action['context'] = dict(env.context, default_sale_id=sale_id)]]></field>
+        <!-- reemplazá account_enhancement por tu módulo real -->
+        <field name="code"><![CDATA[action = env.ref('account_enhancement.action_open_sale_refacturar_wizard').read()[0]; sale_id = (records and records[0].id) or env.context.get('active_id') or ((env.context.get('active_ids') or [False])[0]); 
+    action['context'] = dict(env.context, default_sale_id=sale_id)]]></field>
     </record>
     <!-- Vista del wizard -->
     <record id="view_sale_refacturar_wizard_form" model="ir.ui.view">
