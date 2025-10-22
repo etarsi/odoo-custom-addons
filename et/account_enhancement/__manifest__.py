@@ -36,10 +36,10 @@
         'data/ir_cron.xml',
         #Reportes
         'wizard/generar_factura_wizard_views.xml',
-        'wizard/sale_refacturar_wizard_views.xml',
         #permissions
         'permissions/res_group.xml',
         'views/views.xml',
+        'views/sale_refacturar_wizard_views.xml',
         'views/report_account_payment_group.xml',
         'views/report_account_move.xml',
         'views/account_move_views.xml',
