@@ -1,27 +1,33 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <!-- 1) Acción ventana del wizard (igual que antes) -->
+    <!-- 1) Acción ventana del wizard -->
     <record id="action_open_sale_refacturar_wizard" model="ir.actions.act_window">
         <field name="name">Refacturar</field>
         <field name="res_model">sale.refacturar.wizard</field>
         <field name="view_mode">form</field>
         <field name="target">new</field>
-        <field name="context">{'default_sale_id': active_id}</field>
+        <field name="context">{}</field>
     </record>
 
-    <!-- 2) Server Action para que aparezca en el menú "Acción" de sale.order -->
+    <!-- 2) Server Action para menú "Acción" en sale.order -->
     <record id="action_server_open_sale_refacturar_wizard" model="ir.actions.server">
         <field name="name">Refacturar</field>
         <field name="model_id" ref="sale.model_sale_order"/>
         <field name="binding_model_id" ref="sale.model_sale_order"/>
         <field name="binding_type">action</field>
+        <!-- opcional: mostrar sólo en formulario y lista -->
+        <field name="binding_view_types">form,tree</field>
         <field name="state">code</field>
-        <field name="code">
+        <field name="code"><![CDATA[
+    sale_id = active_id or (active_ids and active_ids[0]) or False
+    if not sale_id:
+        raise ValueError('Seleccioná un pedido de venta.')
+
     action = env.ref('your_module.action_open_sale_refacturar_wizard').read()[0]
-    # pasar el contexto para que el wizard reciba el sale_id activo
-    action['context'] = {'default_sale_id': active_id}
-    result = action
-        </field>
+    ctx = dict(env.context or {})
+    ctx.update({'default_sale_id': sale_id})
+    action['context'] = ctx
+    ]]></field>
     </record>
     <!-- Vista del wizard -->
     <record id="view_sale_refacturar_wizard_form" model="ir.ui.view">
