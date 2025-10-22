@@ -8,7 +8,16 @@
         <field name="target">new</field>
         <field name="context">{'default_sale_id': active_id}</field>
     </record>
-
+    <!-- 2) Server action enlazada al modelo sale.order para que aparezca en el menú "Acción" -->
+    <record id="action_server_open_sale_refacturar_wizard" model="ir.actions.server">
+        <field name="name">Refacturar</field>
+        <field name="model_id" ref="sale.model_sale_order"/>
+        <field name="binding_model_id" ref="sale.model_sale_order"/>
+        <field name="binding_type">action</field>
+        <field name="state">ir_actions_act_window</field>
+        <field name="ref_ir_act_window" ref="action_open_sale_refacturar_wizard"/>
+        <field name="context">{'default_sale_id': active_id}</field>
+    </record>
     <!-- Vista del wizard -->
     <record id="view_sale_refacturar_wizard_form" model="ir.ui.view">
         <field name="name">sale.refacturar.wizard.form</field>
