@@ -34,12 +34,12 @@ class SaleRefacturarWizard(models.TransientModel):
     def _onchange_company_id(self):
         if self.company_id:
             domain = []
+            self.condicion_m2m_id = False
             if self.company_id.id == 1:  # Producción B
-                self.condicion_m2m_id = False
-                domain = [('name', '=', 'Tipo 3')]
+                domain = [('name', '=', 'TIPO 3')]
                 return {'domain': {'condicion_m2m_id': domain}}
             else:
-                return False
+                return {'domain': {'condicion_m2m_id': [('name', '!=', 'TIPO 3')]}}
 
     def action_confirm(self):
         self.ensure_one()
