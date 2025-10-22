@@ -2,6 +2,7 @@
 from odoo import api, fields, models, _
 from odoo.exceptions import UserError
 import math
+from datetime import timedelta
 
 class SaleRefacturarWizard(models.TransientModel):
     _name = 'sale.refacturar.wizard'
@@ -37,6 +38,11 @@ class SaleRefacturarWizard(models.TransientModel):
                 return {'domain': {'condicion_m2m_id': domain}}
             else:
                 return {'domain': {'condicion_m2m_id': [('name', '!=', 'TIPO 3')]}}
+
+    def set_due_date_plus_x(self, x):
+        today = fields.Date.context_today(self)
+        new_date = today + timedelta(days=x)
+        return new_date
 
     def _prepare_invoice_base_vals(self, company):
         invoice_date_due = fields.Date.context_today(self)
