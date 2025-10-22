@@ -38,13 +38,31 @@ class SaleRefacturarWizard(models.TransientModel):
             else:
                 return {'domain': {'condicion_m2m_id': [('name', '!=', 'TIPO 3')]}}
 
-    def _pl_price(self, product, qty, uom, partner):
+    def _pl_price(self, product, qty, uom, partner, date_order=None):
+        """Devuelve el precio según la lista elegida, compatible con v15."""
         if not self.pricelist_id:
             return None
         ctx = dict(self.env.context or {})
         if uom:
             ctx['uom'] = uom.id
-        return self.pricelist_id.with_context(ctx)._get_product_price(product, qty, partner=partner)
+        if date_order:
+            ctx['date'] = fields.Date.to_date(date_order)
+        pl = self.pricelist_id.with_context(ctx)
+
+        # 1) Algunos módulos/branches
+        if hasattr(pl, '_get_product_price'):
+            return pl._get_product_price(product, qty, partner=partner)
+
+        # 2) v15 CE estándar
+        if hasattr(pl, 'get_product_price'):
+            return pl.get_product_price(product, qty, partner)
+
+        # 3) Fallback conocido
+        if hasattr(pl, 'get_product_price_rule'):
+            price, _rule = pl.get_product_price_rule(product, qty, partner)
+            return price
+
+        return None
 
     def action_confirm(self, **kwargs):
         self.ensure_one()
@@ -95,13 +113,7 @@ class SaleRefacturarWizard(models.TransientModel):
 
             # precio base (lista si se definió)
             price_unit = so_line.price_unit
-            pl = self.pricelist_id._get_product_price(
-                    product=so_line.product_id,
-                    quantity=1.0,
-                    currency=self.sale_id.currency_id,
-                    date=self.sale_id.date_order,
-                    **kwargs,
-                )
+            pl = self._pl_price(so_line.product_id, qty_total, so_line.product_uom, sale.partner_id, date_order=sale.date_order)
             if pl is not None:
                 price_unit = pl
 
