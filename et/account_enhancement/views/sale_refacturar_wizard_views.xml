@@ -16,11 +16,7 @@
         <field name="binding_type">action</field>
         <field name="binding_view_types">form,tree</field>
         <field name="state">code</field>
-        <field name="code"><![CDATA[
-    action = env.ref('account_enhancement.action_open_sale_refacturar_wizard').read()[0]
-    sale_id = active_id or (active_ids and active_ids[0])
-    action['context'] = dict(env.context, default_sale_id=sale_id)
-    ]]></field>
+        <field name="code"><![CDATA[action = env.ref('account_enhancement.action_open_sale_refacturar_wizard').read()[0]; sale_id = (active_id or (active_ids and active_ids[0])); action['context'] = dict(env.context, default_sale_id=sale_id)]]></field>
     </record>
     <!-- Vista del wizard -->
     <record id="view_sale_refacturar_wizard_form" model="ir.ui.view">
