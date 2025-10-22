@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <!-- Acción desde sale.order -->
+    <!-- 1) Acción ventana del wizard (igual que antes) -->
     <record id="action_open_sale_refacturar_wizard" model="ir.actions.act_window">
         <field name="name">Refacturar</field>
         <field name="res_model">sale.refacturar.wizard</field>
@@ -8,15 +8,19 @@
         <field name="target">new</field>
         <field name="context">{'default_sale_id': active_id}</field>
     </record>
-    <!-- 2) Server action enlazada al modelo sale.order para que aparezca en el menú "Acción" -->
+
+    <!-- 2) Server Action para que aparezca en el menú "Acción" de sale.order -->
     <record id="action_server_open_sale_refacturar_wizard" model="ir.actions.server">
         <field name="name">Refacturar</field>
         <field name="model_id" ref="sale.model_sale_order"/>
         <field name="binding_model_id" ref="sale.model_sale_order"/>
         <field name="binding_type">action</field>
-        <field name="state">ir_actions_act_window</field>
-        <field name="ref_ir_act_window" ref="action_open_sale_refacturar_wizard"/>
-        <field name="context">{'default_sale_id': active_id}</field>
+        <field name="state">code</field>
+        <field name="code">
+            action = env.ref('account_enhancement.action_open_sale_refacturar_wizard').read()[0]
+            action['context'] = {'default_sale_id': active_id}
+            result = action
+        </field>
     </record>
     <!-- Vista del wizard -->
     <record id="view_sale_refacturar_wizard_form" model="ir.ui.view">
