@@ -1,2 +1,3 @@
 id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
 access_account_enhancement_reporte_factura_wizard,account_enhancement.reporte_factura_wizard,model_reporte_factura_wizard,base.group_user,1,1,1,1
+access_account_enhancement_sale_refacturar_wizard,account_enhancement.sale_refacturar_wizard,model_sale_refacturar_wizard,base.group_user,1,1,1,1
