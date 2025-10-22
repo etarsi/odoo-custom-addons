@@ -46,7 +46,7 @@ class SaleRefacturarWizard(models.TransientModel):
             ctx['uom'] = uom.id
         return self.pricelist_id.with_context(ctx)._get_product_price(product, qty, partner=partner)
 
-    def action_confirm(self):
+    def action_confirm(self, **kwargs):
         self.ensure_one()
         sale = self.sale_id
         if not sale:
@@ -67,7 +67,7 @@ class SaleRefacturarWizard(models.TransientModel):
         else:
             company_negra = False
 
-        company_blanca = self.company_id or sale.company_id
+        company_blanca = self.company_id
 
         # diarios
         def _find_sale_journal(company):
@@ -95,7 +95,13 @@ class SaleRefacturarWizard(models.TransientModel):
 
             # precio base (lista si se definió)
             price_unit = so_line.price_unit
-            pl = self._pl_price(so_line.product_id, qty_total, uom, sale.partner_id)
+            pl = self.pricelist_id._get_product_price(
+                    product=so_line.product_id,
+                    quantity=1.0,
+                    currency=self.sale_id.currency_id,
+                    date=self.sale_id.date_order,
+                    **kwargs,
+                )
             if pl is not None:
                 price_unit = pl
 
@@ -190,6 +196,131 @@ class SaleRefacturarWizard(models.TransientModel):
         else:
             action['domain'] = [('id', 'in', moves.ids)]
         return action
+    
+    def action_create_invoice_from_picking(self):
+        self.ensure_one()
+
+        SaleOrder = self.sale_id
+        if not SaleOrder:
+            raise UserError("La transferencia no está vinculada a ningún pedido de venta.")
+
+        tipo = (self.condicion_m2m_id.name or '').upper().strip()
+        proportion_blanco, proportion_negro = {
+            'TIPO 1': (1.0, 0.0),
+            'TIPO 2': (0.5, 0.5),
+            'TIPO 3': (0.0, 1.0),
+            'TIPO 4': (0.25, 0.75),
+        }.get(tipo, (1.0, 0.0))
+
+        company_blanca = self.company_id
+        company_negra = self.env['res.company'].browse(1)
+
+        invoice_lines_blanco = []
+        invoice_lines_negro = []
+        sequence = 1
+
+        for move in self.move_ids_without_package:
+            base_vals = move.sale_line_id._prepare_invoice_line(sequence=sequence)
+
+            qty_total = move.quantity_done
+            qty_blanco = math.floor(qty_total * proportion_blanco)
+            qty_negro = qty_total - qty_blanco
+
+            if proportion_blanco > 0:
+                blanco_vals = base_vals.copy()
+                blanco_vals['quantity'] = qty_blanco
+                # blanco_vals['tax_ids'] = False
+                blanco_vals['company_id'] = company_blanca.id
+
+                taxes = move.sale_line_id.tax_id
+                blanco_vals['tax_ids'] = [(6, 0, taxes.ids)] if taxes else False
+
+
+                invoice_lines_blanco.append((0, 0, blanco_vals))
+
+            if proportion_negro > 0:
+                negro_vals = base_vals.copy()
+                negro_vals['quantity'] = qty_negro
+                negro_vals['company_id'] = company_negra.id
+                if tipo == 'TIPO 3':
+                    negro_vals['price_unit'] *= 1
+                else:
+                    negro_vals['price_unit'] *= 1.21
+                
+                negro_vals['tax_ids'] = False
+                invoice_lines_negro.append((0, 0, negro_vals))
+
+            sequence += 1
+
+        invoices = self.env['account.move']
+
+        # Crear factura blanca
+        if invoice_lines_blanco:            
+            vals_blanco = self._prepare_invoice_base_vals(company_blanca)
+
+            vals_blanco['invoice_line_ids'] = invoice_lines_blanco
+            vals_blanco['invoice_user_id'] = self.sale_id.user_id
+            vals_blanco['partner_bank_id'] = False            
+            vals_blanco['company_id'] = company_blanca.id
+
+            if not vals_blanco.get('journal_id'):
+                journal = self.env['account.journal'].search([
+                    ('type', '=', 'sale'),
+                    ('company_id', '=', company_blanca.id)
+                ], limit=1)
+                if not journal:
+                    raise UserError(f"No se encontr\u00f3 un diario de ventas para la compa\u00f1\u00eda {self.company_id.name}.")
+                vals_blanco['journal_id'] = journal.id
+
+            invoices += self.env['account.move'].with_company(company_blanca).create(vals_blanco)
+
+        # Crear factura negra
+        if invoice_lines_negro:
+            vals_negro = self._prepare_invoice_base_vals(company_negra)
+            vals_negro['invoice_line_ids'] = invoice_lines_negro
+            vals_negro['invoice_user_id'] = self.sale_id.user_id                        
+            vals_negro['company_id'] = company_negra
+
+            # Asignar journal correcto
+            journal = self.env['account.journal'].search([
+                ('type', '=', 'sale'),
+                ('company_id', '=', company_negra.id)
+            ], limit=1)
+            if not journal:
+                raise UserError("No se encontró un diario de ventas para Producción B.")
+            vals_negro['journal_id'] = journal.id
+            vals_negro['partner_bank_id'] = False
+
+            invoices += self.env['account.move'].with_company(company_negra).create(vals_negro)
+
+        # Relacionar con la transferencia
+        invoices.write({
+            'invoice_origin': self.origin or self.name,
+        })
+
+        self.invoice_ids = [(6, 0, invoices.ids)]
+
+        self.invoice_state = 'invoiced'
+        for move in self.move_ids_without_package.filtered(lambda m: m.sale_line_id):
+            move.sale_line_id.qty_invoiced += move.quantity_done
+            move.invoice_state = 'invoiced'
+            
+        if len(self.invoice_ids) == 1:
+            return {
+                'name': "Factura generada",
+                'type': 'ir.actions.act_window',
+                'res_model': 'account.move',
+                'view_mode': 'form',
+                'res_id': self.invoice_ids[0].id,
+            }
+        else:
+            return {
+                'name': "Facturas generadas",
+                'type': 'ir.actions.act_window',
+                'res_model': 'account.move',
+                'view_mode': 'tree,form',
+                'domain': [('id', 'in', self.invoice_ids.ids)],
+            }
     
     def _prepare_invoice_base_vals(self, company):
         partner = self.partner_id
