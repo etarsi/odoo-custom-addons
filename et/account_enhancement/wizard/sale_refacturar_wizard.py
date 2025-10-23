@@ -172,11 +172,9 @@ class SaleRefacturarWizard(models.TransientModel):
 
         # Abrir resultado
         action = self.env.ref('account.action_move_out_invoice_type').read()[0]
-        if len(invoices) == 1:
-            action['views'] = [(self.env.ref('account.view_move_form').id, 'form')]
-            action['res_id'] = invoices.id
-        else:
-            action['domain'] = [('id', 'in', invoices.ids)]
+        action.pop('views', None)
+        action.pop('res_id', None)
+        action['domain'] = [('id', 'in', invoices.ids)]
         return action
 
     def _asignacion_tax_invoice(self, tax_ids):
