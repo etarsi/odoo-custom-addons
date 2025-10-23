@@ -995,7 +995,7 @@ class StockPickingInherit(models.Model):
         return {
             'type': 'ir.actions.act_url',
             'url': f'/remito/auto/{self.id}',
-            'target': 'self',
+            'target': 'new', # abrir en nueva pestaña
         }
     
     def action_print_remito2(self):
