@@ -172,9 +172,25 @@ class SaleRefacturarWizard(models.TransientModel):
 
         # Abrir resultado
         action = self.env.ref('account.action_move_out_invoice_type').read()[0]
-        action.pop('views', None)
-        action.pop('res_id', None)
-        action['domain'] = [('id', 'in', invoices.ids)]
+        if len(invoices) == 1:
+            action = {
+                'type': 'ir.actions.act_window',
+                'res_model': 'account.move',
+                'view_mode': 'form',
+                'views': [(self.env.ref('account.view_move_form').id, 'form')],
+                'target': 'current',
+                'res_id': invoices.id,
+                'context': dict(self.env.context, default_move_type='out_invoice'),
+            }
+        else:
+            action = {
+                'type': 'ir.actions.act_window',
+                'res_model': 'account.move',
+                'view_mode': 'tree,form',
+                'domain': [('id', 'in', invoices.ids)],
+                'target': 'current',
+                'context': dict(self.env.context, search_default_customer=1, default_move_type='out_invoice'),
+            }
         return action
 
     def _asignacion_tax_invoice(self, tax_ids):
