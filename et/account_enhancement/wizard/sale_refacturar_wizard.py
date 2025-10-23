@@ -113,6 +113,8 @@ class SaleRefacturarWizard(models.TransientModel):
                 blanco_vals = base_vals.copy()
                 blanco_vals['quantity'] = qty_blanco
                 # impuestos de la línea (respetando FP del pedido al validar la factura)
+                # impuestos de la línea depende de la compañia
+                blanco_vals['tax_ids'] = so_line.tax_ids.filtered(lambda t: t.company_id == company_blanca)
                 invoice_lines_blanco.append((0, 0, blanco_vals))
 
             if proportion_negro > 0 and qty_negro:
