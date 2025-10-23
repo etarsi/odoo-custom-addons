@@ -26,7 +26,7 @@
         ],
     },
     # any module necessary for this one to work correctly
-    'depends': ['base', 'account_check_printing', 'account_payment_group', 'l10n_latam_check', 'l10n_ar', 'l10n_ar_reports','l10n_ar_afipws_fe', 'account', 'mail'],
+    'depends': ['base', 'account_check_printing', 'account_payment_group', 'l10n_latam_check', 'l10n_ar', 'l10n_ar_reports','l10n_ar_afipws_fe', 'account', 'mail', 'sale', 'product'],
 
     # always loaded
     'data': [
@@ -39,6 +39,7 @@
         #permissions
         'permissions/res_group.xml',
         'views/views.xml',
+        'views/sale_refacturar_wizard_views.xml',
         'views/report_account_payment_group.xml',
         'views/report_account_move.xml',
         'views/account_move_views.xml',

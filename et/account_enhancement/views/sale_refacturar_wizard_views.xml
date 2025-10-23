@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Act_window del wizard (sin binding, la invoca la server action) -->
+    <record id="action_open_sale_refacturar_wizard" model="ir.actions.act_window">
+        <field name="name">REFACTURAR</field>
+        <field name="res_model">sale.refacturar.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+
+    <!-- Server Action atada a sale.order -->
+    <record id="action_server_open_sale_refacturar_wizard" model="ir.actions.server">
+        <field name="name">REFACTURAR</field>
+        <field name="model_id" ref="sale.model_sale_order"/>
+        <field name="binding_model_id" ref="sale.model_sale_order"/>
+        <field name="binding_type">action</field>
+        <field name="binding_view_types">form,tree</field>
+        <field name="state">code</field>
+        <!-- reemplazá account_enhancement por tu módulo real -->
+        <field name="code"><![CDATA[action = env.ref('account_enhancement.action_open_sale_refacturar_wizard').read()[0]; sale_id = (records and records[0].id) or env.context.get('active_id') or ((env.context.get('active_ids') or [False])[0]); action['context'] = dict(env.context, default_sale_id=sale_id)]]></field>
+    </record>
+    <!-- Vista del wizard -->
+    <record id="view_sale_refacturar_wizard_form" model="ir.ui.view">
+        <field name="name">sale.refacturar.wizard.form</field>
+        <field name="model">sale.refacturar.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Refacturar pedido">
+                <group string="Datos del pedido original">
+                    <group>
+                        <field name="sale_id" readonly="1" force_save="1"/>
+                        <field name="partner_id"  options="{'no_create': True}"/>
+                        <field name="company_id"  options="{'no_create': True}" domain="[('id', 'in', [1, 2, 3, 4])]"/>
+                    </group>
+                    <group>
+                        <field name="condicion_m2m_id"  options="{'no_create': True}"/>
+                        <field name="pricelist_id" options="{'no_create': True}"/>
+                    </group>
+                </group>
+                <footer>
+                    <button name="action_create_invoice_from_sale" type="object" string="Crear factura" class="btn-primary"/>
+                    <button string="Cancelar" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+</odoo>
