@@ -73,8 +73,8 @@ class SaleRefacturarWizard(models.TransientModel):
         if not sale:
             raise UserError(_("Este asistente debe abrirse desde un pedido de venta."))
 
-        # TIPO (tomá el que uses en tu wizard)
-        tipo = (self.condicion_m2m_id.name or '').upper().strip()  # o (self.x_order_type.name or '')
+        # TIPO
+        tipo = (self.condicion_m2m_id.name or '').upper().strip()
         proportion_blanco, proportion_negro = {
             'TIPO 1': (1.0, 0.0),
             'TIPO 2': (0.5, 0.5),
@@ -82,28 +82,26 @@ class SaleRefacturarWizard(models.TransientModel):
             'TIPO 4': (0.25, 0.75),
         }.get(tipo, (1.0, 0.0))
 
-        company_blanca = self.company_id or sale.company_id
-        # Reemplazá browse(1) por un campo en el wizard si querés parametrizarlo
+        company_blanca = self.company_id
         company_negra = self.env['res.company'].browse(1) if proportion_negro > 0 else False
 
         invoice_lines_blanco = []
         invoice_lines_negro = []
         sequence = 1
-
-        # Construimos desde LÍNEAS DE VENTA (no inventario)
+        impuestos = False
         for so_line in sale.order_line.filtered(lambda l: not l.display_type and l.product_id):
+            #IMPUESTOS QUE TINE LA VENTA 
+            if so_line.tax_id:
+                impuestos = self._asignacion_tax_invoice(so_line.tax_id)
             # Elegí tu política de cantidad:
             qty_total = so_line.qty_to_invoice or so_line.qty_delivered or so_line.product_uom_qty
             if qty_total <= 0:
                 continue
 
-            # Base: usamos el preparador de la línea para factura
             base_vals = so_line._prepare_invoice_line(sequence=sequence)
-            # Aseguramos cantidad y precio base según la línea
             base_vals['quantity'] = qty_total
             base_vals['price_unit'] = so_line.price_unit
             base_vals['discount'] = so_line.discount
-            # tax_ids ya viene de la línea
 
             # Proporciones
             qty_blanco = math.floor(qty_total * proportion_blanco)
@@ -112,15 +110,12 @@ class SaleRefacturarWizard(models.TransientModel):
             if proportion_blanco > 0 and qty_blanco:
                 blanco_vals = base_vals.copy()
                 blanco_vals['quantity'] = qty_blanco
-                # impuestos de la línea (respetando FP del pedido al validar la factura)
-                # impuestos de la línea depende de la compañia
-                blanco_vals['tax_ids'] = so_line.tax_ids.filtered(lambda t: t.company_id == company_blanca)
+                blanco_vals['tax_ids'] = impuestos
                 invoice_lines_blanco.append((0, 0, blanco_vals))
 
             if proportion_negro > 0 and qty_negro:
                 negro_vals = base_vals.copy()
                 negro_vals['quantity'] = qty_negro
-                # sin impuestos en NEGRA
                 negro_vals['tax_ids'] = False
                 # multiplicador precio (salvo TIPO 3)
                 if tipo == 'TIPO 3':
@@ -184,54 +179,15 @@ class SaleRefacturarWizard(models.TransientModel):
             action['domain'] = [('id', 'in', invoices.ids)]
         return action
 
-
-        if not inv_lines_blanca and not inv_lines_negra:
-            raise UserError(_('No hay líneas para refacturar.'))
-
-        moves = self.env['account.move']
-
-        # Crear Factura BLANCA
-        if inv_lines_blanca:
-            j_blanca = _find_sale_journal(company_blanca)
-            vals_b = {
-                'move_type': 'out_invoice',
-                'company_id': company_blanca.id,
-                'journal_id': j_blanca.id,
-                'partner_id': sale.partner_invoice_id.id or sale.partner_id.id,
-                'partner_shipping_id': sale.partner_shipping_id.id or sale.partner_id.id,
-                'invoice_origin': sale.name,
-                'invoice_user_id': sale.user_id.id,
-                'invoice_payment_term_id': sale.payment_term_id.id,
-                'fiscal_position_id': fpos_blanca.id if fpos_blanca else False,
-                'currency_id': company_blanca.currency_id.id,
-                'invoice_line_ids': inv_lines_blanca,
-            }
-            move_b = self.env['account.move'].with_company(company_blanca).create(vals_b)
-            moves |= move_b
-
-        # Crear Factura NEGRA
-        if inv_lines_negra:
-            j_negra = _find_sale_journal(company_negra)
-            vals_n = {
-                'move_type': 'out_invoice',
-                'company_id': company_negra.id,
-                'journal_id': j_negra.id,
-                'partner_id': sale.partner_invoice_id.id or sale.partner_id.id,
-                'partner_shipping_id': sale.partner_shipping_id.id or sale.partner_id.id,
-                'invoice_origin': sale.name,
-                'invoice_user_id': sale.user_id.id,
-                'invoice_payment_term_id': sale.payment_term_id.id,
-                'currency_id': company_negra.currency_id.id,
-                'invoice_line_ids': inv_lines_negra,
-            }
-            move_n = self.env['account.move'].with_company(company_negra).create(vals_n)
-            moves |= move_n
-
-        # Abrir resultado
-        action = self.env.ref('account.action_move_out_invoice_type').read()[0]
-        if len(moves) == 1:
-            action['views'] = [(self.env.ref('account.view_move_form').id, 'form')]
-            action['res_id'] = moves.id
-        else:
-            action['domain'] = [('id', 'in', moves.ids)]
-        return action
+    def _asignacion_tax_invoice(self, tax_ids):
+        tax = self.env['account.tax']
+        mapped = tax.browse()
+        for tax in tax_ids:
+            candidate = tax.search([
+                ('company_id', '=', self.company_id.id),
+                ('type_tax_use', '=', tax.type_tax_use),
+                ('description', '=', tax.description), 
+            ], limit=1)
+            if candidate:
+                mapped |= candidate
+        return mapped
