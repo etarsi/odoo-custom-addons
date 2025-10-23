@@ -10,6 +10,38 @@ _logger = logging.getLogger(__name__)
 
 class StockPickingController(http.Controller):
 
+    #comentar todo este controller 
+    #@http.route('/remito/auto/<int:picking_id>', type='http', auth='user')
+    #def remito_auto(self, picking_id, **kwargs):
+    #    picking = request.env['stock.picking'].browse(picking_id)
+    #    if not picking.exists():
+    #        return request.not_found()
+
+    #    tipo = str(picking.x_order_type.name or '').strip().upper()
+    #    blanco_pct, negro_pct = self._get_type_proportion(tipo)
+
+    #    html = """
+    #    <html><head><title>Generando remitos...</title></head>
+    #    <body>
+    #   <script>
+    #       function abrir(url, delay) {
+    #           setTimeout(function() {
+    #               window.open(url, '_blank');
+    #           }, delay);
+    #       }
+    #   """
+    #   if blanco_pct > 0:
+    #        html += f"abrir('/remito/a/{picking.id}', 50);"
+    #    if negro_pct > 0:
+    #        html += f"abrir('/remito/b/{picking.id}', 200);"
+
+    #    html += """
+    #    </script>
+    #    <p>Puede cerrar esta pagina.</p>
+    #    </body></html>
+    #    """
+    #    return request.make_response(html, headers=[('Content-Type', 'text/html')])
+
     @http.route('/remito/auto/<int:picking_id>', type='http', auth='user', website=False)
     def remito_auto(self, picking_id, **kwargs):
         picking = request.env['stock.picking'].browse(picking_id)
