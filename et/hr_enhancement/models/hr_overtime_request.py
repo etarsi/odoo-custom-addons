@@ -18,7 +18,7 @@ class HrOvertimeRequest(models.Model):
     _order = 'date desc, id desc'
     
     company_id = fields.Many2one('res.company', default=lambda s: s.env.company, required=True)
-    employee_id = fields.Many2one('hr.employee', 'Empleado', required=True, tracking=True, default=lambda self: self.env.user.employee_id)
+    employee_id = fields.Many2one('hr.employee', 'Empleado', required=True, tracking=True, default=lambda self: self.env.user.employee_id, domain="[('employee_type', '!=', 'eventual')]")
     user_id = fields.Many2one(related='employee_id.user_id', store=True)
     department_id = fields.Many2one(related='employee_id.department_id', store=True, string='Área')
     date = fields.Date('Fecha', required=True, default=fields.Date.context_today, tracking=True)
