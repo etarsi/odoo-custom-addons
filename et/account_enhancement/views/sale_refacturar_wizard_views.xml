@@ -6,6 +6,9 @@
         <field name="res_model">sale.refacturar.wizard</field>
         <field name="view_mode">form</field>
         <field name="target">new</field>
+        <field name="binding_model_id" eval="False"/>
+        <field name="binding_type"></field>
+        <field name="binding_view_types"></field>
     </record>
 
     <!-- Server Action atada a sale.order -->
