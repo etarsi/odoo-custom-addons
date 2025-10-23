@@ -990,13 +990,12 @@ class StockPickingInherit(models.Model):
     
 
     ### REMITO 
-
     def action_print_remito(self):
         self.ensure_one()
         return {
             'type': 'ir.actions.act_url',
             'url': f'/remito/auto/{self.id}',
-            'target': 'new',
+            'target': 'self',
         }
     
     def action_print_remito2(self):

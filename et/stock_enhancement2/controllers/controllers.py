@@ -4,12 +4,13 @@ from odoo.tools import file_open
 from odoo.tools.misc import xlsxwriter
 from odoo.http import content_disposition
 from odoo.exceptions import UserError
+from odoo.tools.pdf import merge_pdf 
 import logging
 _logger = logging.getLogger(__name__)
 
 class StockPickingController(http.Controller):
 
-    @http.route('/remito/auto/<int:picking_id>', type='http', auth='user')
+    @http.route('/remito/auto/<int:picking_id>', type='http', auth='user', website=False)
     def remito_auto(self, picking_id, **kwargs):
         picking = request.env['stock.picking'].browse(picking_id)
         if not picking.exists():
@@ -18,28 +19,40 @@ class StockPickingController(http.Controller):
         tipo = str(picking.x_order_type.name or '').strip().upper()
         blanco_pct, negro_pct = self._get_type_proportion(tipo)
 
-        html = """
-        <html><head><title>Generando remitos...</title></head>
-        <body>
-        <script>
-            function abrir(url, delay) {
-                setTimeout(function() {
-                    window.open(url, '_blank');
-                }, delay);
-            }
-        """
+        pdf_parts = []
+
+        # --- Remito A (blanco) ---
         if blanco_pct > 0:
-            html += f"abrir('/remito/a/{picking.id}', 50);"
+            company_a = picking.company_id
+            # si tenés alguna lógica especial para A, aplicala acá
+            pdf_a = picking._build_remito_pdf2(picking, blanco_pct, company_a, 'a')
+            if pdf_a:
+                pdf_parts.append(pdf_a)
+
+        # --- Remito B (negro) ---
         if negro_pct > 0:
-            html += f"abrir('/remito/b/{picking.id}', 200);"
+            # tu excepción para TIPO 3
+            company_b = request.env['res.company'].browse(1) if tipo == 'TIPO 3' else picking.company_id
+            pdf_b = picking._build_remito_pdf2(picking, negro_pct, company_b, 'b')
+            if pdf_b:
+                pdf_parts.append(pdf_b)
 
-        html += """
-        </script>
-        <p>Puede cerrar esta pagina.</p>
-        </body></html>
-        """
+        if not pdf_parts:
+            return request.make_response("Nada para imprimir", headers=[('Content-Type', 'text/plain')])
 
-        return request.make_response(html, headers=[('Content-Type', 'text/html')])
+        pdf_bytes = pdf_parts[0] if len(pdf_parts) == 1 else merge_pdf(pdf_parts)
+
+        filename = 'REM_%s.pdf' % (picking.name or str(picking_id)).replace('/', '-')
+        headers = [
+            ('Content-Type', 'application/pdf'),
+            ('Content-Length', str(len(pdf_bytes))),
+            ('Content-Disposition', 'inline; filename="%s"' % filename),
+            # Opcional: evitar caches raros del navegador
+            ('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0'),
+            ('Pragma', 'no-cache'),
+        ]
+        return request.make_response(pdf_bytes, headers=headers)
+    
 
     @http.route('/backend/remito/pdf/<int:picking_id>', type='http', auth='user', website=False)
     def remito_pdf(self, picking_id, **kwargs):
