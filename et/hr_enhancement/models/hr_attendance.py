@@ -30,6 +30,29 @@ class HrAttendance(models.Model):
     blocked = fields.Boolean(string='Bloqueado', default=False)
     create_lector = fields.Boolean(string='Creado por Lector', default=False)
     justification = fields.Text(string='Justificación')
+    day_of_week = fields.Selection(
+        selection=[
+            ('0', 'Lunes'),
+            ('1', 'Martes'),
+            ('2', 'Miércoles'),
+            ('3', 'Jueves'),
+            ('4', 'Viernes'),
+            ('5', 'Sábado'),
+            ('6', 'Domingo')
+        ],
+        string='Día Trabajado',
+        store=True,
+        compute='_compute_day_of_week'
+    )
+
+    @api.depends('check_in')
+    def _compute_day_of_week(self):
+        for rec in self:
+            if rec.check_in:
+                local_dt = fields.Datetime.context_timestamp(rec, rec.check_in)
+                rec.day_of_week = str(local_dt.weekday())
+            else:
+                rec.day_of_week = False
 
     @api.constrains('justification')
     def _check_justification_min_words(self):

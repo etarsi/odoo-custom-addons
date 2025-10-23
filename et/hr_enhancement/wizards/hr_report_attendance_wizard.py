@@ -45,9 +45,9 @@ class HrReportAttendanceWizard(models.TransientModel):
         # Agrupados por rangos consecutivos con mismo ancho
         worksheet.set_column(0, 0, 30)   # Empleado
         worksheet.set_column(1, 1, 15)   # Fecha 
-        worksheet.set_column(2, 2, 15)   # Fecha Ingreso
-        worksheet.set_column(3, 3, 15)   # Fecha Salida
-        worksheet.set_column(4, 4, 15)   # Dias Trabajados
+        worksheet.set_column(2, 2, 15)   # Dia Trabajado
+        worksheet.set_column(3, 3, 15)   # Fecha Ingreso
+        worksheet.set_column(4, 4, 15)   # Fecha Salida
         worksheet.set_column(5, 5, 15)   # Horas Trabajadas
         worksheet.set_column(6, 6, 15)   # Horas Extras
         worksheet.set_column(7, 7, 15)   # Horas Feriado
@@ -66,11 +66,11 @@ class HrReportAttendanceWizard(models.TransientModel):
         rango_start = self.date_start.strftime('%d/%m/%Y')
         rango_end = self.date_end.strftime('%d/%m/%Y')
         #colocar un titulo que diga SEBIGUS SRL en la primera fila centrado y en negrita de la a columna A a la E
-        worksheet.merge_range(0, 0, 0, 8, 'SEBIGUS SRL', formato_encabezado)
+        worksheet.merge_range(0, 0, 0, 9, 'SEBIGUS SRL', formato_encabezado)
         #colocar un subtitulo que diga REPORTE DE ASISTENCIA en la segunda fila centrado y en negrita de la a columna A a la E
-        worksheet.merge_range(1, 0, 1, 8, 'REPORTE DE ASISTENCIA', formato_encabezado)
+        worksheet.merge_range(1, 0, 1, 9, 'REPORTE DE ASISTENCIA', formato_encabezado)
         #colocar un subtitulo que diga el rango de fechas en la tercera fila centrado y en negrita de la a columna A a la E
-        worksheet.merge_range(2, 0, 2, 8, f'Rango de Fechas: {rango_start} a {rango_end}', formato_encabezado)
+        worksheet.merge_range(2, 0, 2, 9, f'Rango de Fechas: {rango_start} a {rango_end}', formato_encabezado)
         # Escribir encabezados
         header_row = 4
         worksheet.write(header_row, 0, 'EMPLEADO', formato_encabezado)
@@ -121,18 +121,18 @@ class HrReportAttendanceWizard(models.TransientModel):
             # 2) cuando cambia de empleado, escribo la "cabecera" con los totales
             if current_emp_id and emp.id != current_emp_id:
                 tot_prev = totales_por_emp[current_emp_id]
-                worksheet.merge_range(row, 0, row, 3, " ", fmt_total)
-                worksheet.write(row, 4, tot_prev['wh'], fmt_total)
-                worksheet.write(row, 5, tot_prev['ot'], fmt_total)
-                worksheet.write(row, 6, tot_prev['hh'], fmt_total)
-                worksheet.merge_range(row, 7, row, 8, " ", fmt_total)
+                worksheet.merge_range(row, 0, row, 4, " ", fmt_total)
+                worksheet.write(row, 5, tot_prev['wh'], fmt_total)
+                worksheet.write(row, 6, tot_prev['ot'], fmt_total)
+                worksheet.write(row, 7, tot_prev['hh'], fmt_total)
+                worksheet.merge_range(row, 8, row, 9, " ", fmt_total)
                 row += 1  # línea en blanco después del total
                 # encabezado del nuevo empleado
-                worksheet.merge_range(row, 0, row, 8, emp.name or '—', fmt_emp)
+                worksheet.merge_range(row, 0, row, 9, emp.name or '—', fmt_emp)
                 row += 1
             # --- primer registro de un empleado (no hay bloque previo) ---
             if not current_emp_id:
-                worksheet.merge_range(row, 0, row, 8, emp.name or '—', fmt_emp)
+                worksheet.merge_range(row, 0, row, 9, emp.name or '—', fmt_emp)
                 row += 1
             current_emp_id = emp_id
 
@@ -160,11 +160,11 @@ class HrReportAttendanceWizard(models.TransientModel):
         # --- SUBTOTAL para el último empleado ---
         if current_emp_id:
             tot_prev = totales_por_emp[current_emp_id]
-            worksheet.merge_range(row, 0, row, 3, " ", fmt_total)
-            worksheet.write(row, 4, tot_prev['wh'], fmt_total)
-            worksheet.write(row, 5, tot_prev['ot'], fmt_total)
-            worksheet.write(row, 6, tot_prev['hh'], fmt_total)
-            worksheet.merge_range(row, 7, row, 8, " ", fmt_total)
+            worksheet.merge_range(row, 0, row, 4, " ", fmt_total)
+            worksheet.write(row, 5, tot_prev['wh'], fmt_total)
+            worksheet.write(row, 6, tot_prev['ot'], fmt_total)
+            worksheet.write(row, 7, tot_prev['hh'], fmt_total)
+            worksheet.merge_range(row, 8, row, 9, " ", fmt_total)
             row += 1
         
         workbook.close()
