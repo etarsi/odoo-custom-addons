@@ -9,6 +9,9 @@
             <xpath expr="//field[@name='worked_hours']" position="attributes">
                 <attribute name="sum">Horas Laborales</attribute>
             </xpath>
+            <xpath expr="//field[@name='worked_hours']" position="before">
+                <field name="day_worked" sum="Día Trabajado" />
+            </xpath>
             <xpath expr="//field[@name='worked_hours']" position="after">
                 <field name="overtime" sum="Horas Extras" digits="[16, 0]"/>
                 <field name="holiday_hours" widget="float_time" sum="Horas Feriado"/>
