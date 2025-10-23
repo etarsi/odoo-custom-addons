@@ -27,24 +27,20 @@
                     <!-- Rechazado -->
                     <widget name="web_ribbon" title="Rechazado" bg_color="bg-danger"
                         attrs="{'invisible': [('state','!=','rejected')]}"/>
-                    <group string="Información General">
-                        <group>
+                    <group>
+                        <group string="Información General">
                             <field name="employee_id" attrs="{'readonly':[('state','!=','draft')]}" groups="hr_enhancement.group_hr_administrador"/>
                             <field name="date" attrs="{'readonly':[('state','!=','draft')]}" />
                             <field name="weekday" readonly="1"/>
                             <field name="time_start" attrs="{'readonly':[('state','!=','draft')]}" widget="float_time"/>
                             <field name="time_end" attrs="{'readonly':[('state','!=','draft')]}" widget="float_time"/>
                             <field name="total_hours" readonly="1" widget="float_time"/>
-                        </group>
-                        <group>
                             <field name="task" attrs="{'readonly':[('state','!=','draft')]}"/>
                             <field name="justification" attrs="{'readonly':[('state','!=','draft')]}"/>
                         </group>
-                        <group string="Justificación y aprobación">
-                            <group>
-                                <field name="approver_id" readonly="1"/>
-                                <field name="approval_date" readonly="1"/>
-                            </group>
+                        <group string="Justificación y aprobación" attrs="{'invisible':[('state','in',('draft'))]}">
+                            <field name="approver_id" readonly="1"/>
+                            <field name="approval_date" readonly="1"/>
                         </group>
                     </group>
                 </sheet>
