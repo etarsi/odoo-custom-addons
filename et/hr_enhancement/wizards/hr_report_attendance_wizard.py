@@ -135,7 +135,10 @@ class HrReportAttendanceWizard(models.TransientModel):
                 worksheet.merge_range(row, 0, row, 9, emp.name or '—', fmt_emp)
                 row += 1
             current_emp_id = emp_id
-
+            
+            weekday_label = dict(attendance._fields['day_of_week'].selection).get(
+                attendance.day_of_week, ''
+            )
             # dentro del loop
             ci_local = self._to_local(attendance.check_in)
             co_local = self._to_local(attendance.check_out)
@@ -151,11 +154,12 @@ class HrReportAttendanceWizard(models.TransientModel):
             worksheet.write(row, 1, fecha, formato_celdas_derecha)
             worksheet.write(row, 2, ingreso, formato_celdas_derecha)
             worksheet.write(row, 3, salida, formato_celdas_derecha)
-            worksheet.write(row, 4, attendance.worked_hours or 0, formato_celdas_derecha)
-            worksheet.write(row, 5, attendance.overtime or 0, formato_celdas_derecha)
-            worksheet.write(row, 6, attendance.holiday_hours or 0, formato_celdas_derecha)
-            worksheet.write(row, 7, tipo_empleado, formato_celdas_izquierda)
-            worksheet.write(row, 8, turno_asignado, formato_celdas_izquierda)
+            worksheet.write(row, 4, weekday_label, formato_celdas_derecha)
+            worksheet.write(row, 5, attendance.worked_hours or 0, formato_celdas_derecha)
+            worksheet.write(row, 6, attendance.overtime or 0, formato_celdas_derecha)
+            worksheet.write(row, 7, attendance.holiday_hours or 0, formato_celdas_derecha)
+            worksheet.write(row, 8, tipo_empleado, formato_celdas_izquierda)
+            worksheet.write(row, 9, turno_asignado, formato_celdas_izquierda)
             row += 1
         # --- SUBTOTAL para el último empleado ---
         if current_emp_id:
