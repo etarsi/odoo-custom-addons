@@ -288,31 +288,3 @@ class HrAttendance(models.Model):
                                                        empl_name=attendance.employee_id.name,
                                                        datetime=format_datetime(self.env, last_attendance_before_check_out.check_in, dt_format=False)))
     
-    #@api.model
-    #def create(self, vals):
-    #    if 'check_in' in vals and 'employee_id' in vals:
-    #        check_in = vals['check_in']
-    #        employee = self.env['hr.employee'].browse(vals['employee_id'])
-    #        if not employee:
-    #            raise ValidationError("El empleado especificado no existe.")
-    #        if employee.employee_type == 'eventual':
-    # schedule = self.env['hr.work.schedule'].search([
-    #         ('type', '=', self.employee_id.employee_type),
-    #         ('state', '=', 'active')
-    #     ], limit=1)
-    # if not schedule:
-    #     raise ValidationError("No se encontró un horario laboral activo para el empleado.")
-    # # Verificar si el horario del empleado es diurno
-    # if employee.type_shift == 'day':
-    #     # Si es diurno, aplicar la lógica de horario
-    #     start_t = self._float_to_time(schedule.hour_start + 3)
-    #     start_dt = datetime.combine(check_in.date(), start_t)
-    #     if check_in < start_dt:
-    #         raise ValidationError("La hora de entrada debe estar dentro del horario laboral diurno.")
-    # elif employee.type_shift == 'night':
-    #     # Si es nocturno, aplicar la lógica de horario nocturno
-    #     start_t = self._float_to_time(schedule.hour_start_night + 3)
-    #     start_dt = datetime.combine(check_in.date(), start_t)
-    #     if check_in < start_dt:
-    #         raise ValidationError("La hora de entrada debe estar dentro del horario laboral nocturno.")
-    # return super(HrAttendance, self).create(vals)
