@@ -10,8 +10,8 @@
                 <attribute name="sum">Horas Laborales</attribute>
             </xpath>
             <xpath expr="//field[@name='worked_hours']" position="before">
-                <field name="create_lector" />
-                <field name="justification" widget="text" attrs="{'required': [('create_lector', '=', False)]}"/>
+                <field name="create_lector" invisible="1"/>
+                <field name="justification" attrs="{'required': [('create_lector', '=', False)]}"/>
                 <field name="day_of_week" sum="Día Trabajado" />
             </xpath>
             <xpath expr="//field[@name='worked_hours']" position="after">
