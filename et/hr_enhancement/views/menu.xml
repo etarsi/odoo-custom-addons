@@ -71,7 +71,7 @@
         name="Aprobar solicitudes"
         parent="hr_enhancement.menu_hr_requests"
         sequence="2"
-        groups="hr_enhancement.group_hr_supervisor,hr_enhancement.group_hr_administrador"/>
+        groups="hr_enhancement.group_hr_administrador"/>
 
     <menuitem 
         id="hr_enhancement.menu_approve_licenses"
@@ -79,7 +79,7 @@
         parent="hr_enhancement.menu_approve_requests"
         action="hr_enhancement.action_approve_licenses"
         sequence="2"
-        groups="hr_enhancement.group_hr_supervisor,hr_enhancement.group_hr_administrador"/>
+        groups="hr_enhancement.group_hr_administrador"/>
 
     <menuitem 
         id="hr_enhancement.menu_approve_overtime"
@@ -87,7 +87,7 @@
         parent="hr_enhancement.menu_approve_requests"
         action="hr_enhancement.action_approve_overtime"
         sequence="3"
-        groups="hr_enhancement.group_hr_supervisor,hr_enhancement.group_hr_administrador"/>
+        groups="hr_enhancement.group_hr_administrador"/>
 
     <!-- ===== Planillas ===== -->
     <menuitem 
