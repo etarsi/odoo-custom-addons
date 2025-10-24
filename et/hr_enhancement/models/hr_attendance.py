@@ -62,9 +62,9 @@ class HrAttendance(models.Model):
             text = (rec.justification or '').strip()
             # cuenta palabras con letras/números (ignora dobles espacios y signos)
             words = re.findall(r'\w+', text, flags=re.UNICODE)
-            if len(words) < 20:
+            if len(words) < 3:
                 raise ValidationError(
-                    f'La justificación debe tener al menos 20 palabras '
+                    f'La justificación debe tener al menos 3 palabras '
                     f'(actual: {len(words)}).'
                 )
 

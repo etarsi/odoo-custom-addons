@@ -39,6 +39,7 @@ class HrOvertimeRequest(models.Model):
     ], default='draft', tracking=True, string='Estado')
     
 
+    # ----------------- COMPUTES / CONSTRAINS -----------------
     @api.depends('date')
     def _compute_weekday(self):
         for r in self:
@@ -54,34 +55,106 @@ class HrOvertimeRequest(models.Model):
     def _check_times(self):
         for r in self:
             if r.time_end <= r.time_start:
-                raise ValidationError('La hora de finalización debe ser mayor a la de inicio.')
+                raise ValidationError(_('La hora de finalización debe ser mayor a la de inicio.'))
             if r.total_hours <= 0:
-                raise ValidationError('El total de horas debe ser mayor a 0.')
+                raise ValidationError(_('El total de horas debe ser mayor a 0.'))
 
     @api.constrains('justification')
     def _check_justification_words(self):
         for r in self:
             words = len((r.justification or '').strip().split())
             if words < 5:
-                raise ValidationError('La justificación debe tener al menos 5 palabras.')
+                raise ValidationError(_('La justificación debe tener al menos 5 palabras.'))
 
+    # ----------------- NOTIFICACIONES -----------------
+    def _notify_hr_admins(self, subject, body_html):
+        """Notifica a todos los usuarios del grupo HR Administrador."""
+        try:
+            group = self.env.ref('hr_enhancement.group_hr_administrador')
+        except ValueError:
+            group = False
+        if not group:
+            return
+        partners = group.users.mapped('partner_id')
+        if partners:
+            self.message_post(
+                subject=subject,
+                body=body_html,
+                partner_ids=partners.ids,
+                subtype_xmlid='mail.mt_comment'
+            )
+
+    def _notify_employee(self, subject, body_html):
+        """Notifica al empleado solicitante (si tiene usuario/partner)."""
+        partner = self.user_id.partner_id if self.user_id else False
+        if partner:
+            self.message_post(
+                subject=subject,
+                body=body_html,
+                partner_ids=[partner.id],
+                subtype_xmlid='mail.mt_comment'
+            )
+
+    # ----------------- ACCIONES -----------------
     def action_submit(self):
         for r in self:
             if r.state != 'draft':
-                raise ValidationError('Solo se puede enviar desde Borrador.')
+                raise ValidationError(_('Solo se puede enviar desde Borrador.'))
             r.state = 'submitted'
+            # Notificar HR Admins
+            subject = _("Nueva solicitud de horas extra")
+            body = _(
+                "<p>El empleado <b>%s</b> envió una solicitud de horas extra:</p>"
+                "<ul>"
+                "<li><b>Fecha:</b> %s (%s)</li>"
+                "<li><b>Horario:</b> %.2f - %.2f (Total: %.1f h)</li>"
+                "<li><b>Tarea:</b> %s</li>"
+                "<li><b>Justificación:</b> %s</li>"
+                "</ul>"
+            ) % (
+                r.employee_id.name or '',
+                r.date or '',
+                r.weekday or '',
+                r.time_start or 0.0,
+                r.time_end or 0.0,
+                r.total_hours or 0.0,
+                (r.task or '').replace('\n', '<br/>'),
+                (r.justification or '').replace('\n', '<br/>'),
+            )
+            r._notify_hr_admins(subject, body)
 
     def action_approve(self):
         for r in self:
             if r.state != 'submitted':
-                raise ValidationError('Solo se puede aprobar una solicitud enviada.')
+                raise ValidationError(_('Solo se puede aprobar una solicitud enviada.'))
             r.write({'state': 'approved', 'approver_id': self.env.user.id, 'approval_date': fields.Datetime.now()})
+            # Notificar empleado
+            subject = _("Solicitud de horas extra aprobada")
+            body = _(
+                "<p>Tu solicitud de horas extra fue <b>aprobada</b>.</p>"
+                "<ul>"
+                "<li><b>Fecha:</b> %s (%s)</li>"
+                "<li><b>Horario:</b> %.2f - %.2f (Total: %.1f h)</li>"
+                "</ul>"
+            ) % (r.date or '', r.weekday or '', r.time_start or 0.0, r.time_end or 0.0, r.total_hours or 0.0)
+            r._notify_employee(subject, body)
+
 
     def action_reject(self):
         for r in self:
             if r.state != 'submitted':
-                raise ValidationError('Solo se puede rechazar una solicitud enviada.')
+                raise ValidationError(_('Solo se puede rechazar una solicitud enviada.'))
             r.state = 'rejected'
+            # Notificar empleado
+            subject = _("Solicitud de horas extra rechazada")
+            body = _(
+                "<p>Tu solicitud de horas extra fue <b>rechazada</b>.</p>"
+                "<ul>"
+                "<li><b>Fecha:</b> %s (%s)</li>"
+                "<li><b>Horario:</b> %.2f - %.2f (Total: %.1f h)</li>"
+                "</ul>"
+            ) % (r.date or '', r.weekday or '', r.time_start or 0.0, r.time_end or 0.0, r.total_hours or 0.0)
+            r._notify_employee(subject, body)
 
     @api.model
     def create(self, vals):
