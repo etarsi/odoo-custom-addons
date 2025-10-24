@@ -101,7 +101,7 @@ class HrReportAttendanceWizard(models.TransientModel):
             domain.append(('employee_type', '=', self.employee_type))
         if self.employee_type_shift != 'all':
             domain.append(('employee_type_shift', '=', self.employee_type_shift))
-        attendances = self.env['hr.attendance'].search(domain, order="employee_id.name asc, check_in desc")
+        attendances = self.env['hr.attendance'].search(domain, order="employee_id asc, check_in desc")
         row = header_row + 1
         current_emp_id = False
 
