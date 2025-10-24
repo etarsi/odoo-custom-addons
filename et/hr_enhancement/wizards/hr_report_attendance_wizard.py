@@ -44,8 +44,8 @@ class HrReportAttendanceWizard(models.TransientModel):
         worksheet = workbook.add_worksheet('Asistencias')
         # Agrupados por rangos consecutivos con mismo ancho
         worksheet.set_column(0, 0, 30)   # Empleado
-        worksheet.set_column(1, 1, 15)   # Fecha 
-        worksheet.set_column(2, 2, 15)   # Dia Trabajado
+        worksheet.set_column(1, 1, 15)   # Dia Trabajado
+        worksheet.set_column(2, 2, 15)   # Fecha
         worksheet.set_column(3, 3, 15)   # Fecha Ingreso
         worksheet.set_column(4, 4, 15)   # Fecha Salida
         worksheet.set_column(5, 5, 15)   # Horas Trabajadas
@@ -74,8 +74,8 @@ class HrReportAttendanceWizard(models.TransientModel):
         # Escribir encabezados
         header_row = 4
         worksheet.write(header_row, 0, 'EMPLEADO', formato_encabezado)
-        worksheet.write(header_row, 1, 'FECHA', formato_encabezado)
-        worksheet.write(header_row, 2, 'DÍAS TRABAJADOS', formato_encabezado)
+        worksheet.write(header_row, 1, 'DÍA TRABAJADO', formato_encabezado)
+        worksheet.write(header_row, 2, 'FECHA', formato_encabezado)
         worksheet.write(header_row, 3, 'INGRESO', formato_encabezado)
         worksheet.write(header_row, 4, 'SALIDA', formato_encabezado)
         worksheet.write(header_row, 5, 'H. TRABAJADAS', formato_encabezado)
@@ -151,8 +151,8 @@ class HrReportAttendanceWizard(models.TransientModel):
             turno_asignado = 'Día' if attendance.employee_type_shift == 'day' else 'Noche' if attendance.employee_type_shift == 'night' else ''
             #como colocar una linea separacion entre empleados
             worksheet.write(row, 0, attendance.employee_id.name, formato_celdas_izquierda)
-            worksheet.write(row, 1, fecha, formato_celdas_derecha)
-            worksheet.write(row, 2, weekday_label, formato_celdas_izquierda)
+            worksheet.write(row, 1, weekday_label, formato_celdas_izquierda)
+            worksheet.write(row, 2, fecha, formato_celdas_derecha)
             worksheet.write(row, 3, ingreso, formato_celdas_derecha)
             worksheet.write(row, 4, salida, formato_celdas_derecha)
             worksheet.write(row, 5, attendance.worked_hours or 0, formato_celdas_derecha)
