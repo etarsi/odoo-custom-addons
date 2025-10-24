@@ -72,6 +72,10 @@ class SaleRefacturarWizard(models.TransientModel):
         sale = self.sale_id
         if not sale:
             raise UserError(_("Este asistente debe abrirse desde un pedido de venta."))
+        
+        # no debe dejar refacturar si la venta esta en borrador
+        if sale.state not in ['sale', 'done']:
+            raise UserError(_("No se puede refacturar un pedido que no está confirmado."))
 
         # TIPO
         tipo = (self.condicion_m2m_id.name or '').upper().strip()

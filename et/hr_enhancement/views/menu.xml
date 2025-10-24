@@ -1,4 +1,14 @@
 <odoo>
+    <!-- Configuración Herencia -->
+    <record id="hr.menu_human_resources_configuration" model="ir.ui.menu">
+        <field name="groups_id" eval="[(4, ref('hr_enhancement.group_hr_administrador'))]"/>
+    </record>
+
+    <!-- =====  Departamento ===== -->
+    <record id="hr.menu_hr_department_kanban" model="ir.ui.menu">
+        <field name="groups_id" eval="[(4, ref('hr_enhancement.group_hr_administrador'))]"/>
+    </record>
+
     <!-- ===== Asistencia ===== -->
     <menuitem 
         id="hr_enhancement.menu_hr_attendance"
