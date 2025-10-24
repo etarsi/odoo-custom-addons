@@ -11,7 +11,7 @@
             </xpath>
             <xpath expr="//field[@name='worked_hours']" position="before">
                 <field name="create_lector" optional="hide" />
-                <field name="justification" attrs="{'required': [('create_lector', '=', False)]}" widget="text"  style="height: 120px;" optional="show"/>
+                <field name="justification" attrs="{'required': [('create_lector', '=', False)]}" widget="text" class="o_field_text" optional="show"/>
                 <field name="day_of_week" sum="Día Trabajado"  optional="show"/>
             </xpath>
             <xpath expr="//field[@name='worked_hours']" position="after">
