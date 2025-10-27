@@ -10,11 +10,11 @@
 
     <!-- Server Action atada a account.move -->
     <record id="action_server_open_out_invoice_refacturar_wizard" model="ir.actions.server">
-        <field name="name">REFACTURAR</field>
+        <field name="name">Anular y Refacturar facturas</field>
         <field name="model_id" ref="account.model_account_move"/>
         <field name="binding_model_id" ref="account.model_account_move"/>
         <field name="binding_type">action</field>
-        <field name="binding_view_types">tree,kanban,form</field>
+        <field name="binding_view_types">tree,kanban</field>
         <field name="state">code</field>
         <field name="code"><![CDATA[
 recs = records.filtered(lambda m: m.move_type == 'out_invoice')
