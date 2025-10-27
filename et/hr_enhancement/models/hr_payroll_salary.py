@@ -307,16 +307,19 @@ class HrPayrollSalary(models.Model):
         ws.set_column(2, 2, 10)   # Horas trabajadas
         ws.set_column(3, 3, 10)   # 50%
         ws.set_column(4, 4, 10)   # 100%
-        ws.set_column(5, 5, 15)   # Bono
-        ws.set_column(6, 6, 15) # Monto Neto
-        ws.set_column(7, 7, 15) # Descuento
-        ws.set_column(8, 8, 15) # Total a cobrar
-        ws.set_column(9, 9, 10) # Pagado
-        ws.set_column(10, 10, 35) # Nota
+        ws.set_column(5, 5, 15)   # Monto H. Trabajadas
+        ws.set_column(6, 6, 15)   # Monto 50%
+        ws.set_column(7, 7, 15)   # Monto 100%
+        ws.set_column(8, 8, 15)   # Monto Neto
+        ws.set_column(9, 9, 15)   # Bono
+        ws.set_column(10, 10, 15) # Descuento
+        ws.set_column(11, 11, 15) # Total a cobrar
+        ws.set_column(12, 12, 10) # Pagado
+        ws.set_column(13, 13, 35) # Nota
 
         # ==== encabezados ====
         headers = [
-            'N°', 'Empleado', 'H. Trab', 'H. 50%', 'H. 100%', 'Bono', 'Monto Neto', 'Descuento', 'Total a Cobrar', '¿Pagado?', 'Nota'
+            'N°', 'EMPLEADO', 'H. TRAB.', 'H. 50%', 'H. 100%', 'MONTO H. TRAB.', 'MONTO 50%', 'MONTO 100%', 'MONTO NETO', 'BONO', 'DESCUENTO', 'TOTAL A COBRAR', '¿PAGADO?', 'NOTA'
         ]
 
         for c, h in enumerate(headers):
@@ -327,6 +330,7 @@ class HrPayrollSalary(models.Model):
 
         # Totales
         tot_worked = tot_overtime = tot_holiday = tot_days = 0.0
+        tot_worked_hours_amount = tot_overtime_amount = tot_holiday_hours_amount = 0.0
         tot_basic = tot_bonus = tot_discount = tot_gross = tot_net = 0.0
 
         for line in self.line_ids:
@@ -336,18 +340,25 @@ class HrPayrollSalary(models.Model):
             ws.write_number(row, 2, line.worked_hours or 0.0, fmt_float2)
             ws.write_number(row, 3, line.overtime or 0.0, fmt_float2)
             ws.write_number(row, 4, line.holiday_hours or 0.0, fmt_float2)
-            ws.write_number(row, 5, line.bonus or 0.0, fmt_money)
-            ws.write_number(row, 6, line.gross_amount or 0.0, fmt_money)
-            ws.write_number(row, 7, line.discount or 0.0, fmt_money)
-            ws.write_number(row, 8, line.net_amount or 0.0, fmt_money)
-            ws.write(row, 9, 'Sí' if line.is_paid else 'No', fmt_left)
-            ws.write(row, 10, line.note or '', fmt_left)
+            ws.write_number(row, 5, line.worked_hours_amount or 0.0, fmt_money)
+            ws.write_number(row, 6, line.overtime_amount or 0.0, fmt_money)
+            ws.write_number(row, 7, line.holiday_hours_amount or 0.0, fmt_money)
+            ws.write_number(row, 8, line.gross_amount or 0.0, fmt_money)
+            ws.write_number(row, 9, line.bonus or 0.0, fmt_money)
+            ws.write_number(row, 10, line.discount or 0.0, fmt_money)
+            ws.write_number(row, 11, line.net_amount or 0.0, fmt_money)
+            ws.write(row, 12, 'Sí' if line.is_paid else 'No', fmt_left)
+            ws.write(row, 13, line.note or '', fmt_left)
 
             # acumula totales
+            
             tot_worked += (line.worked_hours or 0.0)
             tot_overtime += (line.overtime or 0.0)
             tot_holiday += (line.holiday_hours or 0.0)
 
+            tot_worked_hours_amount += (line.worked_hours_amount or 0.0)
+            tot_overtime_amount += (line.overtime_amount or 0.0)
+            tot_holiday_hours_amount += (line.holiday_hours_amount or 0.0)
             tot_bonus += (line.bonus or 0.0)
             tot_discount += (line.discount or 0.0)
             tot_gross += (line.gross_amount or 0.0)
@@ -357,8 +368,7 @@ class HrPayrollSalary(models.Model):
             i += 1
 
         # ==== fila de totales ====
-        ws.write(row, 0, 'Totales', fmt_header)
-        ws.write(row, 1, '', fmt_header)
+        ws.merge_range(row, 0, row, 1, "TOTALES", fmt_header)
         ws.write_number(row, 2, tot_worked, fmt_float3)
         ws.write_number(row, 3, tot_overtime, fmt_float3)
         ws.write_number(row, 4, tot_holiday, fmt_float3)
