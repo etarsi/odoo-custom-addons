@@ -108,7 +108,6 @@
                                             attrs="{'invisible': ['|', ('state', '!=', 'confirmed'), ('is_paid', '=', False)]}"/>
                                     <!-- Mantén el booleano oculto (por si lo necesitas) -->
                                     <field name="is_paid" invisible="1"/>
-
                                     <!-- Muestra texto LIQUIDADO como badge solo cuando corresponde -->
                                     <field name="paid_label"
                                         widget="badge"
