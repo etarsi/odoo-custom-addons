@@ -13,11 +13,13 @@ class SaleOrderInherit(models.Model):
         'JUGUETES': 3,
         'CARPAS': 3,
         'RODADOS INFANTILES': 3,
+        'PISTOLA DE AGUA': 4,
+        'INFLABLES': 4,
+        'PELOTAS': 4,
+        'VEHICULOS A BATERIA': 4,
         'RODADOS': 2,
         'MAQUILLAJE': 2,
-        'PELOTAS': 4,
-        'CABALLITOS SALTARINES': 4,
-        'VEHICULOS A BATERIA': 4,
+        'CABALLITOS SALTARINES': 2,
     }
 
     # inherited
@@ -158,24 +160,19 @@ class SaleOrderInherit(models.Model):
     def create(self, vals):
 
         self.check_partner_origin()
-
         records = super().create(vals)
-
-
-        for record in records:
-            company_produccionb_id = 1
-            if record.company_id.id != company_produccionb_id and record.condicion_m2m.name == 'TIPO 3':
-                record.write({'company_id': company_produccionb_id})
-                record.write({'warehouse_id': company_produccionb_id})
-                for line in record.order_line:
-                    if line.company_id.id != company_produccionb_id:
-                        line.write({'company_id': company_produccionb_id})
-                record.message_post(body=_("Compañía cambiada a %s en el pedido y todas sus líneas durante la creación.") % record.company_id.name)
-                    
-            
-            record.check_order()
-            if not record.message_ids:
-                record.message_post(body=_("Orden de venta creada."))
+        #company_produccion_b = self.env['res.company'].browse(1)
+        #if self.company_id.id != company_produccion_b.id and self.condicion_m2m.name == 'TIPO 3':
+        #    warehouse = self.env['stock.warehouse'].search([('company_id', '=', company_produccion_b.id)], limit=1)
+        #    self.write({'company_id': company_produccion_b.id})
+        #    self.write({'warehouse_id': warehouse.id})
+        #    for line in self.order_line:
+        #        if line.company_id.id != company_produccion_b.id:
+        #            line.write({'company_id': company_produccion_b.id})
+        #    self.message_post(body=_("Compañía cambiada a %s en el pedido y todas sus líneas durante la creación.") % self.company_id.name)
+        self.check_order()
+        if not self.message_ids:
+            self.message_post(body=_("Orden de venta creada."))
         return records
 
     def action_confirm(self):

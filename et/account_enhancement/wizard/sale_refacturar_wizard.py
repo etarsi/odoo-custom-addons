@@ -189,6 +189,7 @@ class SaleRefacturarWizard(models.TransientModel):
         else:
             action = {
                 'type': 'ir.actions.act_window',
+                'name': 'Facturas de Cliente',
                 'res_model': 'account.move',
                 'view_mode': 'tree,form',
                 'domain': [('id', 'in', invoices.ids)],
