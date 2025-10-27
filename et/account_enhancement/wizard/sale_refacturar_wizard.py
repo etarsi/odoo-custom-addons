@@ -32,12 +32,15 @@ class SaleRefacturarWizard(models.TransientModel):
     def _onchange_company_id(self):
         if self.company_id:
             domain = []
+            domain2 = []
             self.condicion_m2m_id = False
+            self.pricelist_id = False
             if self.company_id.id == 1:  # Producción B
+                domain2 = [('is_default', '=', True)]
                 domain = [('name', '=', 'TIPO 3')]
-                return {'domain': {'condicion_m2m_id': domain}}
+                return {'domain': {'condicion_m2m_id': domain, 'pricelist_id': domain2}}
             else:
-                return {'domain': {'condicion_m2m_id': [('name', '!=', 'TIPO 3')]}}
+                return {'domain': {'condicion_m2m_id': [('name', '!=', 'TIPO 3')], 'pricelist_id': [('is_default', '!=', True)]}}
 
     def set_due_date_plus_x(self, x):
         today = fields.Date.context_today(self)
