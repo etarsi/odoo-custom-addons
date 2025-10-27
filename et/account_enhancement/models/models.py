@@ -508,18 +508,6 @@ class AccountPaymentGroupInherit(models.Model):
 
     
 
-    
-    # @api.depends('unmatched_amount')
-    # def _compute_unmatched_amount(self):
-    #     precision = 2
-    #     for record in self:
-    #         new_value = record.unmatched_amount or 0.0
-    #         if (
-    #             not record.x_unmatched_amount
-    #             or float_compare(record.x_unmatched_amount, new_value, precision_digits=precision) != 0
-    #         ):
-    #             record.invalidate_cache(['x_unmatched_amount'])
-    #             record.sudo().write({'x_unmatched_amount': new_value})
 
     @api.depends(
         'state',
