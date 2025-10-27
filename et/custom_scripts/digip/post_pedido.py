@@ -9,17 +9,49 @@ headers = {
 }
 
 payload = {
-    "Numero": "R1",
-    "Factura": "",
-    "Fecha": "2025-08-07T16:12:00Z",
-    "CodigoProveedor": "1388",
-    "Proveedor": "EL MUNDO DEL JUGUETE SA",
-    "Observacion": "Prueba de Odoo",
-    "DocumentoRecepcionTipo": "remito",
-    "RecepcionTipo": "devolucion",
-    "DocumentoRecepcionDetalleRequest": [
+    "codigo": "P987654322",
+    "clienteUbicacionCodigo": "509",
+    "fecha": "2025-10-16T20:51:29.019Z",
+    "fechaEstimadaEntrega": "2025-10-16T20:51:29.019Z",
+    "estado": "Pendiente",
+    "observacion": "Pedido de Prueba!",
+    "importe": 0,
+    "codigoDespacho": "Reparto Propio",
+    "codigoDeEnvio": "S54321 - P",
+    "servicioDeEnvioTipo": "Propio",
+    "ordenPreparacion": 0,
+    "items": [
+        {
+        "linea": "",
+        "articuloCodigo": "50231",
+        "unidades": 1,
+        "minimoDiasVencimiento": 0,
+        "lote": "",
+        "fechaVencimiento": None
+        },
+        {
+        "linea": "",
+        "articuloCodigo": "54320",
+        "unidades": 2,
+        "minimoDiasVencimiento": 0,
+        "lote": "",
+        "fechaVencimiento": None
+        },
+        {
+        "linea": "",
+        "articuloCodigo": "52502",
+        "unidades": 3,
+        "minimoDiasVencimiento": 0,
+        "lote": "",
+        "fechaVencimiento": None
+        }
+    ],
+    "tags": [
+        "string"
     ]
 }
+
+
 
 try:
     resp = requests.post(url, headers=headers, json=payload, timeout=20)

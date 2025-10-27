@@ -10,13 +10,21 @@ headers = {
 }
 
 params = {
-    'PedidoCodigo': 'P8346',
+    'PedidoCodigo': 'P8347',
 }
 
 response = requests.get(url, headers=headers, params=params)
 
 if response.status_code == 200:
     data = response.json()
-    print(data)
+    for info in data:
+        for key in info:
+            print(f'{key}: {info[key]}')
+            # print(info[key])
+            if key == 'items':
+                for item in info[key]:
+                    for i in item:
+                        print(f'---- {i}: {item[i]}')
+                        # print(f'{i}')
 else:
     print(f"Error {response.status_code}: {response.text}")
