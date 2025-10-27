@@ -17,7 +17,7 @@
         <field name="binding_view_types">form,tree</field>
         <field name="state">code</field>
         <!-- reemplazá account_enhancement por tu módulo real -->
-        <field name="code"><![CDATA[recs = records.filtered(lambda m: m.move_type == 'out_invoice') if not recs: raise UserError("Seleccioná facturas de cliente (Ventas).") action = env.ref('account_enhancement.action_open_out_invoice_refacturar_wizard').read()[0] action['context'] = dict(env.context, default_account_move_ids=[(6, 0, recs.ids)])]]></field>
+        <field name="code"><![CDATA[recs = records.filtered(lambda m: m.move_type == 'out_invoice'); if not recs: raise UserError("Seleccioná facturas de cliente (Ventas)."); action = env.ref('account_enhancement.action_open_out_invoice_refacturar_wizard').read()[0]; action['context'] = dict(env.context, default_account_move_ids=[(6, 0, recs.ids)])]]></field>
     </record>
     <!-- Vista del wizard -->
     <record id="view_out_invoice_refacturar_wizard_form" model="ir.ui.view">
