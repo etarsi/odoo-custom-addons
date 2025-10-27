@@ -160,38 +160,28 @@ class SaleOrderInherit(models.Model):
     def create(self, vals):
 
         self.check_partner_origin()
-        target_company = self.env['res.company'].browse(1)  # PRODUCCION B (ajustá si tenés XMLID)
-        if not target_company.exists():
-            raise UserError(_("No existe la compañía destino (id=1)."))
+        # --- Config compañía destino ---
+        company_produccion_b = self.env['res.company'].browse(1)
+        # --- Resolver condición (Many2one) ---
+        cond_model = self.env['condicion.venta']  # ajustá el modelo si se llama distinto
+        cond_name = cond_model.browse(vals.get('condicion_m2m')).name or ''
 
-        # Extraer los IDs de condicion_m2m desde los comandos ORM
-        cond_ids = set()
-        for cmd in (vals.get('condicion_m2m') or []):
-            if cmd[0] in (4,):              # (4, id) → agregar un id
-                cond_ids.add(cmd[1])
-            elif cmd[0] in (6,):            # (6, 0, [ids]) → reemplazar por ids
-                cond_ids.update(cmd[2])
+        # --- Forzar compañía/depósito en vals si corresponde (TIPO 3) ---
+        force_company = (cond_name.strip().upper() == 'TIPO 3')
+        current_company_id = vals.get('company_id')
 
-        cond_names = set()
-        if cond_ids:
-            cond_names = set(self.env['condicion.venta'].browse(list(cond_ids)).mapped('name'))
-
-        # 2) Si es TIPO 3 y la compañía que viene en vals no es la destino → forzar en vals
-        force_company = 'TIPO 3' in cond_names
-        current_company_id = vals.get('company_id')  # puede venir vacío
-
-        if force_company and current_company_id != target_company.id:
-            # Warehouse de la compañía destino
-            wh = self.env['stock.warehouse'].search([('company_id', '=', target_company.id)], limit=1)
+        env_create = self
+        if force_company and current_company_id != company_produccion_b.id:
+            wh = self.env['stock.warehouse'].search([('company_id', '=', company_produccion_b.id)], limit=1)
             if not wh:
-                raise UserError(_("No se encontró un depósito para la compañía %s.") % target_company.display_name)
+                raise UserError(_("No se encontró un depósito para la compañía %s.") % company_produccion_b.display_name)
 
-            vals['company_id'] = target_company.id
+            vals = dict(vals)  # copiar para no mutar
+            vals['company_id'] = company_produccion_b.id
             vals['warehouse_id'] = wh.id
-            # (Opcional) Si necesitás asegurar contexto multi-compañía, podés crear con allowed_company_ids
-            env_create = self.with_context(allowed_company_ids=[target_company.id]).with_company(target_company)
-        else:
-            env_create = self
+
+            # Crear bajo el contexto/compañía destino para evitar conflictos multi-company
+            env_create = self.with_context(allowed_company_ids=[company_produccion_b.id]).with_company(company_produccion_b)
         order = super(SaleOrderInherit, env_create).create(vals)
         # validar la linea de productos si tienen el mismo rubo que pertenece a la compañia si es company_id = 1 no entra por aca
         if order.company_id.id != 1:

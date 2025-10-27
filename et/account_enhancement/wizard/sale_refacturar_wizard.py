@@ -67,7 +67,7 @@ class SaleRefacturarWizard(models.TransientModel):
         }
 
     def action_create_invoice_from_sale(self):
-        self.ensure_one()
+        #self.ensure_one()
 
         sale = self.sale_id
         if not sale:
