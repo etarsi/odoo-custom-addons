@@ -10,7 +10,7 @@ class OutInvoiceRefacturarWizard(models.TransientModel):
 
     account_move_ids = fields.Many2many('account.move', string='Facturas', required=True, readonly=True)
     company_id = fields.Many2one('res.company', string='Compañía', required=True)
-    condicion_m2m_id = fields.Many2one('condicion.venta', string='Condición de Venta', required=True, readonly=True)
+    condicion_m2m_id = fields.Many2one('condicion.venta', string='Condición de Venta', required=True)
     pricelist_id = fields.Many2one('product.pricelist', string='Lista de precios', required=True)
 
     @api.model
