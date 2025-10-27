@@ -71,7 +71,8 @@ class OutInvoiceRefacturarWizard(models.TransientModel):
     def comparar_company_id(self, company_id):
         for move in self.account_move_ids:
             if move.company_id != company_id:
-                return {'company_id': False, 'name': move.name}
+                return {'company_id': False, 'name': move.name}    
+        return {'company_id': True}
 
 
 
