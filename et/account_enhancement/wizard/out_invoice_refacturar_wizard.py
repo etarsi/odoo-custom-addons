@@ -23,10 +23,6 @@ class OutInvoiceRefacturarWizard(models.TransientModel):
             if not moves:
                 raise UserError(_("Seleccioná al menos una factura de cliente."))
             res['account_move_ids'] = [(6, 0, moves.ids)]
-            # compañía por defecto: si todas comparten, usala; sino no pongas nada
-            companies = moves.mapped('company_id')
-            if len(companies) == 1:
-                res['company_id'] = companies.id
         return res
 
     @api.onchange('company_id')
@@ -72,147 +68,130 @@ class OutInvoiceRefacturarWizard(models.TransientModel):
             'wms_code': False,
         }
 
+    def comparar_company_id(self, company_id):
+        for move in self.account_move_ids:
+            if move.company_id != company_id:
+                return {'company_id': False, 'name': move.name}
+
+
+
+    # ---------------- Core helpers ----------------
+
+    def _map_taxes_to_company(self, taxes, company, partner_fp):
+        """Mapea impuestos a la compañía destino.
+        1) mismo nombre en esa compañía; si no,
+        2) impuestos del producto en esa compañía; luego
+        3) aplica fiscal position.
+        """
+        Tax = self.env['account.tax'].with_company(company)
+        mapped = self.env['account.tax']
+        for tax in taxes:
+            cand = Tax.search([('name', '=', tax.name), ('type_tax_use', '=', tax.type_tax_use),
+                               ('company_id', '=', company.id)], limit=1)
+            if cand:
+                mapped |= cand
+        return partner_fp.map_tax(mapped) if partner_fp and mapped else mapped
+
+    def _compute_price_with_pricelist(self, product, qty, pricelist, company, date):
+        """Devuelve price_unit desde la lista. Si no hay lista, None."""
+        if not (product and pricelist):
+            return None
+        return pricelist._get_product_price(
+            product=product,
+            quantity=qty or 1.0,
+            currency=company.currency_id,
+            date=date,
+        )
+
+    def _new_invoice_vals(self, move_src, company, pricelist):
+        """Arma vals para nueva factura en 'company' a partir de 'move_src'."""
+        partner = move_src.partner_id
+        journal = self.env['account.journal'].search(
+            [('type', '=', 'sale'), ('company_id', '=', company.id)], limit=1)
+        if not journal:
+            raise UserError(_("No se encontró un diario de ventas en %s") % company.display_name)
+
+        # Fiscal position del partner en la compañía destino
+        fp = partner.property_account_position_id
+
+        vals = {
+            'move_type': 'out_invoice',
+            'partner_id': partner.id,
+            'invoice_date': fields.Date.context_today(self),
+            'company_id': company.id,
+            'currency_id': company.currency_id.id,
+            'invoice_payment_term_id': move_src.invoice_payment_term_id.id,
+            'invoice_origin': move_src.name,
+            'payment_reference': move_src.payment_reference or move_src.name,
+            'journal_id': journal.id,
+            'invoice_line_ids': [],
+        }
+
+        for line in move_src.invoice_line_ids.filtered(lambda l: not l.display_type):
+            # precio: si hay pricelist, recalculo; si no, dejo el de origen
+            price_unit = self._compute_price_with_pricelist(
+                product=line.product_id,
+                qty=line.quantity,
+                pricelist=pricelist,
+                company=company,
+                date=fields.Date.context_today(self),
+            )
+            if price_unit is None:
+                price_unit = line.price_unit
+
+            # impuestos: mapear por compañía y aplicar FP
+            mapped_taxes = self._map_taxes_to_company(line.tax_ids, company, fp)
+            if not mapped_taxes and line.product_id:
+                # fallback: impuestos del producto en esa compañía
+                prod_taxes = line.product_id.taxes_id.filtered(lambda t: t.company_id == company)
+                mapped_taxes = fp.map_tax(prod_taxes) if fp and prod_taxes else prod_taxes
+
+            vals['invoice_line_ids'].append((0, 0, {
+                'product_id': line.product_id.id,
+                'name': line.name,
+                'quantity': line.quantity,
+                'product_uom_id': line.product_uom_id.id,
+                'price_unit': price_unit,
+                'discount': line.discount,
+                'tax_ids': [(6, 0, mapped_taxes.ids)],
+            }))
+
+        return vals
+
+    # ---------------- Acción principal ----------------
+
     def action_create_invoice_from_out_invoice(self):
-        #self.ensure_one()
-        return False
-        sale = self.sale_id
-        if not sale:
-            raise UserError(_("Este asistente debe abrirse desde un pedido de venta."))
-        
-        # no debe dejar refacturar si la venta esta en borrador
-        if sale.state not in ['sale', 'done']:
-            raise UserError(_("No se puede refacturar un pedido que no está confirmado."))
+        self.ensure_one()
 
-        # TIPO
-        tipo = (self.condicion_m2m_id.name or '').upper().strip()
-        proportion_blanco, proportion_negro = {
-            'TIPO 1': (1.0, 0.0),
-            'TIPO 2': (0.5, 0.5),
-            'TIPO 3': (0.0, 1.0),
-            'TIPO 4': (0.25, 0.75),
-        }.get(tipo, (1.0, 0.0))
+        new_invoices = self.env['account.move']
+        credit_notes = self.env['account.move']
 
-        company_blanca = self.company_id
-        company_negra = self.env['res.company'].browse(1) if proportion_negro > 0 else False
+        for move in self.account_move_ids:
+            if move.move_type != 'out_invoice':
+                raise UserError(_("La factura %s no es de cliente.") % move.name)
+            if move.state != 'posted':
+                raise UserError(_("La factura %s debe estar Validada.") % move.name)
+            company_comparacion = self.comparar_company_id(move.company_id)
+            if not company_comparacion['company_id']:
+                raise UserError(_("La factura %s debe pertenecer a la compañía seleccionada.") % (company_comparacion['name'],))
 
-        invoice_lines_blanco = []
-        invoice_lines_negro = []
-        sequence = 1
-        impuestos = False
-        for so_line in sale.order_line.filtered(lambda l: not l.display_type and l.product_id):
-            #IMPUESTOS QUE TINE LA VENTA 
-            if so_line.tax_id:
-                impuestos = self._asignacion_tax_invoice(so_line.tax_id)
-            # Elegí tu política de cantidad:
-            qty_total = so_line.qty_to_invoice or so_line.qty_delivered or so_line.product_uom_qty
-            if qty_total <= 0:
-                continue
+            # 1) Reverso (NC) en la compañía original
+            #    cancel=True: crea NC y marca la original como cancelada/reconciliada (según configuración).
+            reversal_vals = [{
+                'ref': _('Refacturación de %s') % move.name,
+                'date': fields.Date.context_today(self),
+            }]
+            # Odoo 15: _reverse_moves(default_values_list=None, cancel=False)
+            credit = move._reverse_moves(default_values_list=reversal_vals, cancel=True)
+            credit.action_post()
+            credit_notes |= credit
 
-            base_vals = so_line._prepare_invoice_line(sequence=sequence)
-            base_vals['quantity'] = qty_total
-            base_vals['price_unit'] = so_line.price_unit
-            base_vals['discount'] = so_line.discount
+            # 2) Nueva factura en la compañía destino
+            vals = self._new_invoice_vals(move_src=move, company=self.company_id, pricelist=self.pricelist_id)
+            new = self.env['account.move'].with_company(self.company_id).create(vals)
+            new_invoices |= new
 
-            # Proporciones
-            qty_blanco = math.floor(qty_total * proportion_blanco)
-            qty_negro = qty_total - qty_blanco
-
-            if proportion_blanco > 0 and qty_blanco:
-                blanco_vals = base_vals.copy()
-                blanco_vals['quantity'] = qty_blanco
-                blanco_vals['tax_ids'] = impuestos
-                invoice_lines_blanco.append((0, 0, blanco_vals))
-
-            if proportion_negro > 0 and qty_negro:
-                negro_vals = base_vals.copy()
-                negro_vals['quantity'] = qty_negro
-                negro_vals['tax_ids'] = False
-                # multiplicador precio (salvo TIPO 3)
-                if tipo == 'TIPO 3':
-                    negro_vals['price_unit'] = so_line.price_unit
-                else:
-                    negro_vals['price_unit'] = so_line.price_unit * 1.21
-                invoice_lines_negro.append((0, 0, negro_vals))
-
-            sequence += 1
-
-        invoices = self.env['account.move']
-
-        # ---- Crear factura BLANCA ----
-        if invoice_lines_blanco:
-            vals_blanco = self._prepare_invoice_base_vals(company_blanca)
-            vals_blanco.update({
-                'invoice_line_ids': invoice_lines_blanco,
-                'invoice_user_id': sale.user_id.id,
-                'partner_bank_id': False,
-                'company_id': company_blanca.id,
-            })
-            if not vals_blanco.get('journal_id'):
-                journal = self.env['account.journal'].search([
-                    ('type', '=', 'sale'),
-                    ('company_id', '=', company_blanca.id)
-                ], limit=1)
-                if not journal:
-                    raise UserError(_("No se encontró un diario de ventas para la compañía %s.") % (company_blanca.name,))
-                vals_blanco['journal_id'] = journal.id
-
-            invoices |= self.env['account.move'].with_company(company_blanca).create(vals_blanco)
-
-        # ---- Crear factura NEGRA ----
-        if invoice_lines_negro and company_negra:
-            vals_negro = self._prepare_invoice_base_vals(company_negra)
-            vals_negro.update({
-                'invoice_line_ids': invoice_lines_negro,
-                'invoice_user_id': sale.user_id.id,
-                'partner_bank_id': False,
-                'company_id': company_negra.id,
-            })
-            journal = self.env['account.journal'].search([
-                ('type', '=', 'sale'),
-                ('company_id', '=', company_negra.id)
-            ], limit=1)
-            if not journal:
-                raise UserError(_("No se encontró un diario de ventas para la compañía (Negra)."))
-            vals_negro['journal_id'] = journal.id
-
-            invoices |= self.env['account.move'].with_company(company_negra).create(vals_negro)
-
-        # Origen de la factura = Pedido
-        invoices.write({'invoice_origin': sale.name})
-
-        # Abrir resultado
+        # Mostrar nuevas facturas creadas
         action = self.env.ref('account.action_move_out_invoice_type').read()[0]
-        if len(invoices) == 1:
-            action = {
-                'type': 'ir.actions.act_window',
-                'res_model': 'account.move',
-                'view_mode': 'form',
-                'views': [(self.env.ref('account.view_move_form').id, 'form')],
-                'target': 'current',
-                'res_id': invoices.id,
-                'context': dict(self.env.context, default_move_type='out_invoice'),
-            }
-        else:
-            action = {
-                'type': 'ir.actions.act_window',
-                'name': 'Facturas de Cliente',
-                'res_model': 'account.move',
-                'view_mode': 'tree,form',
-                'domain': [('id', 'in', invoices.ids)],
-                'target': 'current',
-                'context': dict(self.env.context, search_default_customer=1, default_move_type='out_invoice'),
-            }
+        action['domain'] = [('id', 'in', new_invoices.ids)]
         return action
-
-    def _asignacion_tax_invoice(self, tax_ids):
-        tax = self.env['account.tax']
-        mapped = tax.browse()
-        for tax in tax_ids:
-            candidate = tax.search([
-                ('company_id', '=', self.company_id.id),
-                ('type_tax_use', '=', tax.type_tax_use),
-                ('description', '=', tax.description), 
-            ], limit=1)
-            if candidate:
-                mapped |= candidate
-        return mapped
