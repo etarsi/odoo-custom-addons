@@ -513,13 +513,13 @@ class AccountPaymentGroupInherit(models.Model):
             rec.payments_amount = sum((rec._origin.payment_ids + rec.payment_ids.filtered(lambda x: not x.ids)).mapped(
                 'l10n_ar_amount_company_currency_signed'))
             
-            rec.update_unmatched_amount()
+    #         rec.update_unmatched_amount()
 
-    def update_unmatched_amount(self):
-        for record in self:
-            record.write(
-                {'x_unmatched_amount': record.unmatched_amount}
-            )
+    # def update_unmatched_amount(self):
+    #     for record in self:
+    #         record.write(
+    #             {'x_unmatched_amount': record.unmatched_amount}
+    #         )
 
     
     #### ONCHANGE #####
