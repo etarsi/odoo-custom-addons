@@ -14,7 +14,7 @@
         <field name="model_id" ref="account.model_account_move"/>
         <field name="binding_model_id" ref="account.model_account_move"/>
         <field name="binding_type">action</field>
-        <field name="binding_view_types">tree,kanban</field>
+        <field name="binding_view_types">list,tree,kanban,form</field>
         <field name="state">code</field>
         <field name="code"><![CDATA[
 recs = records.filtered(lambda m: m.move_type == 'out_invoice')
