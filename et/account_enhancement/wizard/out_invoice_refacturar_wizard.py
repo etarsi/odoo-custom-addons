@@ -182,10 +182,13 @@ class OutInvoiceRefacturarWizard(models.TransientModel):
                 'ref': _('Refacturación de %s') % move.name,
                 'date': fields.Date.context_today(self),
             }]
-            # Odoo 15: _reverse_moves(default_values_list=None, cancel=False)
-            credit = move._reverse_moves(default_values_list=reversal_vals, cancel=True)
-            credit.action_post()
-            credit_notes |= credit
+            credit_notes = move._reverse_moves(default_values_list=reversal_vals, cancel=True)
+
+            # 2) Publicar SOLO las NC en borrador (evita "ya está publicado")
+            draft_credits = credit_notes.filtered(lambda m: m.state == 'draft')
+            if draft_credits:
+                draft_credits.action_post()
+            credit_notes |= draft_credits
 
             # 2) Nueva factura en la compañía destino
             vals = self._new_invoice_vals(move_src=move, company=self.company_id, pricelist=self.pricelist_id)
