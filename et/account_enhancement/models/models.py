@@ -517,8 +517,9 @@ class AccountPaymentGroupInherit(models.Model):
 
     def update_unmatched_amount(self):
         for record in self:
-            record.x_unmatched_amount = record.unmatched_amount
-
+            record.write(
+                {'x_unmatched_amount': record.unmatched_amount}
+            )
 
     
     #### ONCHANGE #####
