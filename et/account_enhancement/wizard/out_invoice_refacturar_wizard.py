@@ -8,7 +8,7 @@ class OutInvoiceRefacturarWizard(models.TransientModel):
     _name = 'out.invoice.refacturar.wizard'
     _description = 'Wizard: Refacturar Facturas de Cliente'
 
-    account_move_ids = fields.Many2many('account.move', string='Facturas', required=True)
+    account_move_ids = fields.Many2many('account.move', string='Facturas', required=True, readonly=True)
     company_id = fields.Many2one('res.company', string='Compañía', required=True)
     condicion_m2m_id = fields.Many2one('condicion.venta', string='Condición de Venta', required=True, readonly=True)
     pricelist_id = fields.Many2one('product.pricelist', string='Lista de precios', required=True)
@@ -39,8 +39,10 @@ class OutInvoiceRefacturarWizard(models.TransientModel):
             if self.company_id.id == 1:  # Producción B
                 domain2 = [('is_default', '=', True)]
                 domain = [('name', '=', 'TIPO 3')]
+                self.condicion_m2m_id = self.env['condicion.venta'].search([('name', '=', 'TIPO 3')], limit=1)
                 return {'domain': {'condicion_m2m_id': domain, 'pricelist_id': domain2}}
             else:
+                self.condicion_m2m_id = self.env['condicion.venta'].search([('name', '=', 'TIPO 1')], limit=1)
                 return {'domain': {'condicion_m2m_id': [('name', '=', 'TIPO 1')], 'pricelist_id': [('is_default', '!=', True)]}}
 
     def set_due_date_plus_x(self, x):
