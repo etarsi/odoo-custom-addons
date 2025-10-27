@@ -151,8 +151,6 @@ class SaleRefacturarWizard(models.TransientModel):
                 vals_blanco['journal_id'] = journal.id
 
             invoices |= self.env['account.move'].with_company(company_blanca).create(vals_blanco)
-        else:
-            raise UserError(_("No hay líneas para facturar en la factura BLANCA."))
 
         # ---- Crear factura NEGRA ----
         if invoice_lines_negro and company_negra:
@@ -172,8 +170,6 @@ class SaleRefacturarWizard(models.TransientModel):
             vals_negro['journal_id'] = journal.id
 
             invoices |= self.env['account.move'].with_company(company_negra).create(vals_negro)
-        else:
-            raise UserError(_("No hay líneas para facturar en la factura NEGRA."))
 
         # Origen de la factura = Pedido
         invoices.write({'invoice_origin': sale.name})
