@@ -480,6 +480,9 @@ class HrPayrollSalaryLine(models.Model):
     bonus = fields.Monetary('Bonos/Gratificación', currency_field='currency_id', default=0.0)
     discount = fields.Monetary('Descuento', currency_field='currency_id', default=0.0)
     holidays = fields.Monetary('Días de Licencia', currency_field='currency_id', default=0.0)
+    worked_hours_amount = fields.Monetary('Monto H. Trabajadas', compute='_compute_amount', currency_field='currency_id', default=0.0, readonly=True)
+    overtime_amount = fields.Monetary('Monto al 50%', compute='_compute_amount', currency_field='currency_id', default=0.0, readonly=True)
+    holiday_hours_amount = fields.Monetary('Monto al 100%', compute='_compute_amount', currency_field='currency_id', default=0.0, readonly=True)
     gross_amount = fields.Monetary('Monto Neto', currency_field='currency_id', compute='_compute_amount', store=True)
     net_amount = fields.Monetary('Total a Cobrar', currency_field='currency_id', compute='_compute_amount', readonly=True, store=True)
     note = fields.Char('Nota (Observaciones)')
@@ -517,12 +520,16 @@ class HrPayrollSalaryLine(models.Model):
                                         (rec.overtime * amount_overtime) +
                                         (rec.holiday_hours * amount_holiday))
                     rec.net_amount = rec.bonus + rec.gross_amount - rec.discount
+                    rec.worked_hours_amount = rec.worked_hours * rec.labor_cost_id.hour_cost_normal
+                    rec.overtime_amount = rec.overtime * amount_overtime
+                    rec.holiday_hours_amount = rec.holiday_hours * amount_holiday
                 elif rec.payroll_id.employee_type == 'eventual' and rec.payroll_id.type_liquidacion_eventual == 'eventual_night':
                     amount_overtime = rec.labor_cost_id.hour_cost_extra
                     amount_holiday = rec.labor_cost_id.hour_cost_holiday
-                    rec.gross_amount = ((rec.worked_hours * rec.labor_cost_id.hour_cost_night) +
-                                        (rec.overtime * amount_overtime) +
-                                        (rec.holiday_hours * amount_holiday))
+                    rec.worked_hours_amount = rec.worked_hours * rec.labor_cost_id.hour_cost_night
+                    rec.overtime_amount = rec.overtime * amount_overtime
+                    rec.holiday_hours_amount = rec.holiday_hours * amount_holiday
+                    rec.gross_amount = rec.worked_hours_amount + rec.overtime_amount + rec.holiday_hours_amount
                     rec.net_amount = rec.bonus + rec.gross_amount - rec.discount
             
     @api.depends('employee_id', 'payroll_id.date_start', 'payroll_id.date_end')
