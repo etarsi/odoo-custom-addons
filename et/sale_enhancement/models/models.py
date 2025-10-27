@@ -193,14 +193,15 @@ class SaleOrderInherit(models.Model):
         else:
             env_create = self
         order = super(SaleOrderInherit, env_create).create(vals)
-        # validar la linea de productos si tienen el mismo rubo que pertenece a la compañia
-        for line in order.order_line:
-            rubro = line.product_id.categ_id.parent_id.name.upper().strip()
-            if rubro in self.RUBRO_COMPANY_MAPPING:
-                expected_company_id = self.RUBRO_COMPANY_MAPPING[rubro]
-                if order.company_id.id != expected_company_id:
-                    raise UserError(_("La línea de producto %s pertenece al rubro %s que debe estar en la compañía con ID %s, pero la orden está en la compañía con ID %s.") % (
-                        line.product_id.display_name, rubro, expected_company_id, order.company_id.id))
+        # validar la linea de productos si tienen el mismo rubo que pertenece a la compañia si es company_id = 1 no entra por aca
+        if order.company_id.id != 1:
+            for line in order.order_line:
+                rubro = line.product_id.categ_id.parent_id.name.upper().strip()
+                if rubro in self.RUBRO_COMPANY_MAPPING:
+                    expected_company_id = self.RUBRO_COMPANY_MAPPING[rubro]
+                    if order.company_id.id != expected_company_id:
+                        raise UserError(_("La línea de producto %s pertenece al rubro %s que debe estar en la compañía con ID %s, pero la orden está en la compañía con ID %s.") % (
+                            line.product_id.display_name, rubro, expected_company_id, order.company_id.id))
         
         #company_produccion_b = self.env['res.company'].browse(1)
         #if self.company_id.id != company_produccion_b.id and self.condicion_m2m.name == 'TIPO 3':
