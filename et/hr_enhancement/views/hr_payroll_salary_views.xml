@@ -94,15 +94,13 @@
                                     <field name="overtime" optional="show" digits="[16, 0]"/>
                                     <field name="holiday_hours" optional="show" widget="float_time"/>
                                     <field name="holidays" optional="hide" widget="float_time"/>
-                                    <field name="worked_hours_amount" widget="monetary" optional="show" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
-                                    <field name="overtime_amount" widget="monetary" optional="show"
-                                        attrs="{'readonly': [('state', '!=', 'draft')]}"/>
-                                    <field name="holiday_hours_amount" widget="monetary" optional="show"
-                                        attrs="{'readonly': [('state', '!=', 'draft')]}"/>
-                                    <field name="gross_amount" widget="monetary" optional="show" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
-                                    <field name="bonus" widget="monetary" optional="show" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
-                                    <field name="discount" widget="monetary" optional="show" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
-                                    <field name="net_amount" widget="monetary" optional="show"/>
+                                    <field name="worked_hours_amount" widget="monetary" optional="show"/>
+                                    <field name="overtime_amount" widget="monetary" optional="show"/>
+                                    <field name="holiday_hours_amount" widget="monetary" optional="show"/>
+                                    <field name="gross_amount" widget="monetary" optional="show" attrs="{'readonly': [('state', '!=', 'draft')]}" />
+                                    <field name="bonus" widget="monetary" optional="show" attrs="{'readonly': [('state', '!=', 'draft')]}" />
+                                    <field name="discount" widget="monetary" optional="show" attrs="{'readonly': [('state', '!=', 'draft')]}" />
+                                    <field name="net_amount" widget="monetary" optional="show" />
                                     <!-- controles para liquidación -->
                                     <button name="action_paid" type="object" string="Liquidar" class="btn-primary oe_highlight"
                                             icon="fa-check" attrs="{'invisible': ['|', ('state', '!=', 'confirmed'), ('is_paid', '=', True)]}"/>
