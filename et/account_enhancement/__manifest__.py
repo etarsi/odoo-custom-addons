@@ -40,6 +40,7 @@
         'permissions/res_group.xml',
         'views/views.xml',
         'views/sale_refacturar_wizard_views.xml',
+        'views/out_invoice_refacturar_wizard_views.xml',
         'views/report_account_payment_group.xml',
         'views/report_account_move.xml',
         'views/account_move_views.xml',
