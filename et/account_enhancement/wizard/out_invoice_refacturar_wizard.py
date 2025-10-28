@@ -94,19 +94,17 @@ class OutInvoiceRefacturarWizard(models.TransientModel):
         return partner_fp.map_tax(mapped) if partner_fp and mapped else mapped
 
     def _new_invoice_vals(self, move_src, company, pricelist):
-        """Arma vals para nueva factura en 'company' a partir de 'move_src'."""
-        partner = move_src.partner_id
         journal = self.env['account.journal'].search(
             [('type', '=', 'sale'), ('company_id', '=', company.id)], limit=1)
         if not journal:
             raise UserError(_("No se encontró un diario de ventas en %s") % company.display_name)
 
         # Fiscal position del partner en la compañía destino
-        fp = partner.property_account_position_id
+        fp = move_src.partner_id.property_account_position_id
 
         vals = {
             'move_type': 'out_invoice',
-            'partner_id': partner.id,
+            'partner_id': move_src.partner_id.id,
             'invoice_date': fields.Date.context_today(self),
             'company_id': company.id,
             'currency_id': company.currency_id.id,
@@ -163,7 +161,6 @@ class OutInvoiceRefacturarWizard(models.TransientModel):
                 raise UserError(_("La factura %s debe pertenecer a la compañía seleccionada.") % (company_comparacion['name'],))
 
             # 1) Reverso (NC) en la compañía original
-            #    cancel=True: crea NC y marca la original como cancelada/reconciliada (según configuración).
             reversal_vals = [{
                 'ref': _('Refacturación de %s') % move.name,
                 'date': fields.Date.context_today(self),
@@ -183,5 +180,24 @@ class OutInvoiceRefacturarWizard(models.TransientModel):
 
         # Mostrar nuevas facturas creadas
         action = self.env.ref('account.action_move_out_invoice_type').read()[0]
-        action['domain'] = [('id', 'in', new_invoices.ids)]
+        if len(new_invoices) == 1:
+            action = {
+                'type': 'ir.actions.act_window',
+                'res_model': 'account.move',
+                'view_mode': 'form',
+                'views': [(self.env.ref('account.view_move_form').id, 'form')],
+                'target': 'current',
+                'res_id': new_invoices.id,
+                'context': dict(self.env.context, default_move_type='out_invoice'),
+            }
+        else:
+            action = {
+                'type': 'ir.actions.act_window',
+                'name': 'Facturas de Cliente',
+                'res_model': 'account.move',
+                'view_mode': 'tree,form',
+                'domain': [('id', 'in', new_invoices.ids)],
+                'target': 'current',
+                'context': dict(self.env.context, search_default_customer=1, default_move_type='out_invoice'),
+            }
         return action
