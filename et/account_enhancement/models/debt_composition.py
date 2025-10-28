@@ -71,7 +71,11 @@ class ResPartnerDebtCompositionReport(models.Model):
                         NULL AS vencimiento,
                         apg.name AS comprobante,
                         'recibo' AS tipo,
-                        apg.x_payments_amount AS importe_original,
+                        (
+                            SELECT COALESCE(SUM(p.l10n_ar_amount_company_currency_signed), 0.0)
+                            FROM account_payment p
+                            WHERE p.payment_group_id = apg.id
+                        ) AS importe_original,
                         COALESCE(apg.x_amount_applied, 0) AS importe_aplicado,
                         -apg.unreconciled_amount AS importe_residual,
                         apg.company_id,

@@ -81,15 +81,61 @@ class ReportDebtCompositionClient(models.Model):
                         apg.name AS nombre,
                         apg.x_comercial_id as comercial,
                         apg.executive_id as ejecutivo,
-                        -apg.x_payments_amount AS importe_original,
-                        -apg.x_unmatched_amount AS importe_residual,
-                        apg.x_payments_amount - apg.x_unmatched_amount AS importe_aplicado,
+                        (
+                            SELECT COALESCE(SUM(p.l10n_ar_amount_company_currency_signed), 0.0)
+                            FROM account_payment p
+                            WHERE p.payment_group_id = apg.id
+                        ) AS importe_original,
+                        (
+                            CASE WHEN apg.partner_type = 'supplier' THEN -1.0 ELSE 1.0 END
+                            ) * (
+                            SELECT COALESCE(SUM(apr.amount), 0.0)
+                            FROM account_payment p
+                            JOIN account_move am   ON am.id = p.move_id
+                            JOIN account_move_line aml ON aml.move_id = am.id
+                            JOIN account_partial_reconcile apr
+                                ON apr.debit_move_id = aml.id OR apr.credit_move_id = aml.id
+                            WHERE p.payment_group_id = apg.id
+                        ) AS importe_aplicado,
+                        (
+                        SELECT COALESCE(SUM(p.l10n_ar_amount_company_currency_signed), 0.0)
+                        FROM account_payment p
+                        WHERE p.payment_group_id = apg.id
+                        )
+                        - (
+                            (CASE WHEN apg.partner_type = 'supplier' THEN -1.0 ELSE 1.0 END) *
+                            (
+                                SELECT COALESCE(SUM(apr.amount), 0.0)
+                                FROM account_payment p
+                                JOIN account_move am   ON am.id = p.move_id
+                                JOIN account_move_line aml ON aml.move_id = am.id
+                                JOIN account_partial_reconcile apr
+                                    ON apr.debit_move_id = aml.id OR apr.credit_move_id = aml.id
+                                WHERE p.payment_group_id = apg.id
+                            )
+                        ) AS importe_residual,
                         'recibo' AS origen,
                         apg.company_id,
                         apg.currency_id
                     FROM account_payment_group apg
                     WHERE apg.state = 'posted'
-                    AND apg.x_unmatched_amount > 0
+                    AND (
+                        SELECT COALESCE(SUM(p.l10n_ar_amount_company_currency_signed), 0.0)
+                        FROM account_payment p
+                        WHERE p.payment_group_id = apg.id
+                        )
+                        - (
+                            (CASE WHEN apg.partner_type = 'supplier' THEN -1.0 ELSE 1.0 END) *
+                            (
+                                SELECT COALESCE(SUM(apr.amount), 0.0)
+                                FROM account_payment p
+                                JOIN account_move am   ON am.id = p.move_id
+                                JOIN account_move_line aml ON aml.move_id = am.id
+                                JOIN account_partial_reconcile apr
+                                    ON apr.debit_move_id = aml.id OR apr.credit_move_id = aml.id
+                                WHERE p.payment_group_id = apg.id
+                            )
+                        ) > 0
                 )
                 SELECT
                     id,
