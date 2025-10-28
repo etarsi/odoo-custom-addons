@@ -81,40 +81,21 @@ class ReportDebtCompositionClient(models.Model):
                         apg.name AS nombre,
                         apg.x_comercial_id AS comercial,
                         apg.executive_id AS ejecutivo,
-                        -COALESCE((
-                            SELECT SUM(ap.amount)
-                            FROM account_payment ap
-                            WHERE ap.payment_group_id = apg.id
-                        ), 0.0) AS importe_original,
-                        -COALESCE((
-                            SELECT SUM(aml.payment_group_matched_amount)
-                            FROM account_move_line aml
-                            WHERE aml.payment_group_id = apg.id
-                        ), 0.0) AS importe_aplicado,
-                        -- importe_residual = payments_amount - matched_amount
-                        COALESCE((
-                            SELECT SUM(ap.amount)
-                            FROM account_payment ap
-                            WHERE ap.payment_group_id = apg.id
-                        ), 0.0) - COALESCE((
-                            SELECT SUM(aml.payment_group_matched_amount)
-                            FROM account_move_line aml
-                            WHERE aml.payment_group_id = apg.id
-                        ), 0.0) AS importe_residual,
+                        -COALESCE(SUM(ap.amount), 0.0) AS importe_original,
+                        -COALESCE(SUM(pr.amount), 0.0) AS importe_aplicado,
+                        (COALESCE(SUM(ap.amount), 0.0) - COALESCE(SUM(pr.amount), 0.0)) AS importe_residual,
                         'recibo' AS origen,
                         apg.company_id,
                         apg.currency_id
                     FROM account_payment_group apg
+                    LEFT JOIN account_payment ap ON ap.payment_group_id = apg.id
+                    LEFT JOIN account_move_line aml ON aml.payment_id = ap.id
+                    LEFT JOIN account_partial_reconcile pr ON (pr.debit_move_id = aml.id OR pr.credit_move_id = aml.id)
                     WHERE apg.state = 'posted'
-                    HAVING COALESCE((
-                            SELECT SUM(ap.amount)
-                            FROM account_payment ap
-                            WHERE ap.payment_group_id = apg.id
-                        ), 0.0) - COALESCE((
-                            SELECT SUM(aml.payment_group_matched_amount)
-                            FROM account_move_line aml
-                            WHERE aml.payment_group_id = apg.id
-                        ), 0.0) > 0
+                    GROUP BY apg.id, apg.partner_id, apg.payment_date, apg.name,
+                            apg.x_comercial_id, apg.executive_id, apg.company_id, apg.currency_id
+                    HAVING (COALESCE(SUM(ap.amount), 0.0) - COALESCE(SUM(pr.amount), 0.0)) > 0
+
 
                 )
                 SELECT
