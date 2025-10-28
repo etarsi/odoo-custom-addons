@@ -1,9 +1,11 @@
 # -*- coding: utf-8 -*-
 from odoo import api, fields, models, _
-from odoo.exceptions import UserError
+from odoo.exceptions import UserError, RedirectWarning
 import math
 from datetime import timedelta
 
+
+EXPO_POS = {'FEERCEL', 'FEEWS', 'FEERCELP'}
 class OutInvoiceRefacturarWizard(models.TransientModel):
     _name = 'out.invoice.refacturar.wizard'
     _description = 'Wizard: Refacturar Facturas de Cliente'
@@ -12,6 +14,33 @@ class OutInvoiceRefacturarWizard(models.TransientModel):
     company_id = fields.Many2one('res.company', string='Compañía', required=True)
     condicion_m2m_id = fields.Many2one('condicion.venta', string='Condición de Venta', required=True)
     pricelist_id = fields.Many2one('product.pricelist', string='Lista de precios', required=True)
+
+
+    def _pick_sale_journal_for_partner(self, company, partner):
+        """Devuelve un journal de venta válido (exportación/doméstico) para company/partner."""
+        Journal = self.env['account.journal'].with_company(company)
+        base_domain = [
+            ('company_id', '=', company.id),
+            ('type', '=', 'sale'),
+            ('l10n_latam_use_documents', '=', True),
+        ]
+
+        is_foreign = (
+            partner.country_id and partner.country_id != company.account_fiscal_country_id
+        ) or partner.l10n_ar_afip_responsibility_type_id.code in ('9','10')
+
+        dom = base_domain + [
+            ('l10n_ar_afip_pos_system', 'in' if is_foreign else 'not in', list(EXPO_POS))
+        ]
+        journal = Journal.search(dom, limit=1)
+        if not journal:
+            action = self.env.ref('account.action_account_journal_form')
+            msg = (_("You are trying to create an invoice for foreign partner but you don't have an exportation journal")
+                if is_foreign else
+                _("You are trying to create an invoice for domestic partner but you don't have a domestic market journal"))
+            raise RedirectWarning(msg, action.id, _('Go to Journals'))
+        return journal, dom
+
 
     @api.model
     def default_get(self, fields_list):
@@ -94,11 +123,9 @@ class OutInvoiceRefacturarWizard(models.TransientModel):
         return partner_fp.map_tax(mapped) if partner_fp and mapped else mapped
 
     def _new_invoice_vals(self, move_src, company, pricelist):
-        journal = self.env['account.journal'].search(
-            [('type', '=', 'sale'), ('company_id', '=', company.id)], limit=1)
-        if not journal:
-            raise UserError(_("No se encontró un diario de ventas en %s") % company.display_name)
-
+        # Valores base (compruebo journal de venta)
+        journal, _ = self._pick_sale_journal_for_partner(self.company_id, move_src.partner_id)
+        vals.update({'journal_id': journal.id})
         # Fiscal position del partner en la compañía destino
         fp = move_src.partner_id.property_account_position_id
 
