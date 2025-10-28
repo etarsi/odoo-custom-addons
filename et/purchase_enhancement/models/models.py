@@ -8,6 +8,8 @@ class PurchaseInherit(models.Model):
 
 class PurchaseLineInherit(models.Model):
     _inherit = 'purchase.order.line'
+
+    observaciones = fields.Text(string="Observaciones")
     
     @api.onchange('product_id')
     def _onchange_product_id(self):

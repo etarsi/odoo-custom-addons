@@ -504,16 +504,10 @@ class AccountPaymentGroupInherit(models.Model):
     )
     is_paid_date_venc_text = fields.Boolean(default=False, copy=False)
     paid_date_venc_text = fields.Text(default='⚠️ EL PAGO A REGISTRAR ESTA FUERA DE FECHA ⚠️')
-    x_unmatched_amount = fields.Monetary(string="Monto No Conciliado", currency_field='currency_id')
+    
+    x_ua = fields.Float(string="Monto no conciliado")
 
-    @api.depends('payment_ids.l10n_ar_amount_company_currency_signed')
-    def _compute_payments_amount(self):
-        for rec in self:
-            # this hac is to make it work when creating payment groups with payments without saving + saved records
-            rec.payments_amount = sum((rec._origin.payment_ids + rec.payment_ids.filtered(lambda x: not x.ids)).mapped(
-                'l10n_ar_amount_company_currency_signed'))
-            
-    #         rec.update_unmatched_amount()
+
 
     # def update_unmatched_amount(self):
     #     for record in self:
