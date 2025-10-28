@@ -73,6 +73,7 @@ class ReportDebtCompositionClient(models.Model):
                     UNION ALL
 
                     -- RECIBOS
+                    -- RECIBOS optimizados
                     SELECT
                         apg.id + 2000000 AS id,
                         apg.partner_id AS partner,
@@ -82,15 +83,16 @@ class ReportDebtCompositionClient(models.Model):
                         apg.x_comercial_id AS comercial,
                         apg.executive_id AS ejecutivo,
                         -SUM(DISTINCT ap.amount) AS importe_original,
-                        -SUM(DISTINCT COALESCE(pr.amount, 0)) AS importe_aplicado,
-                        SUM(DISTINCT ap.amount) - SUM(DISTINCT COALESCE(pr.amount, 0)) AS importe_residual,
+                        -COALESCE(SUM(DISTINCT pr1.amount), 0) - COALESCE(SUM(DISTINCT pr2.amount), 0) AS importe_aplicado,
+                        SUM(DISTINCT ap.amount) - (COALESCE(SUM(DISTINCT pr1.amount), 0) + COALESCE(SUM(DISTINCT pr2.amount), 0)) AS importe_residual,
                         'recibo' AS origen,
                         apg.company_id,
                         apg.currency_id
                     FROM account_payment_group apg
                     JOIN account_payment ap ON ap.payment_group_id = apg.id
                     LEFT JOIN account_move_line aml ON aml.payment_id = ap.id
-                    LEFT JOIN account_partial_reconcile pr ON pr.debit_move_id = aml.id OR pr.credit_move_id = aml.id
+                    LEFT JOIN account_partial_reconcile pr1 ON pr1.debit_move_id = aml.id
+                    LEFT JOIN account_partial_reconcile pr2 ON pr2.credit_move_id = aml.id
                     WHERE apg.state = 'posted'
                     GROUP BY
                         apg.id,
@@ -101,6 +103,7 @@ class ReportDebtCompositionClient(models.Model):
                         apg.executive_id,
                         apg.company_id,
                         apg.currency_id
+
 
 
                 )
