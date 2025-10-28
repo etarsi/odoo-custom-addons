@@ -93,17 +93,6 @@ class OutInvoiceRefacturarWizard(models.TransientModel):
                 mapped |= cand
         return partner_fp.map_tax(mapped) if partner_fp and mapped else mapped
 
-    def _compute_price_with_pricelist(self, product, qty, pricelist, company, date):
-        """Devuelve price_unit desde la lista. Si no hay lista, None."""
-        if not (product and pricelist):
-            return None
-        return pricelist._get_product_price(
-            product=product,
-            quantity=qty or 1.0,
-            currency=company.currency_id,
-            date=date,
-        )
-
     def _new_invoice_vals(self, move_src, company, pricelist):
         """Arma vals para nueva factura en 'company' a partir de 'move_src'."""
         partner = move_src.partner_id
@@ -130,14 +119,13 @@ class OutInvoiceRefacturarWizard(models.TransientModel):
 
         for line in move_src.invoice_line_ids.filtered(lambda l: not l.display_type):
             # precio: si hay pricelist, recalculo; si no, dejo el de origen
-            price_unit = self._compute_price_with_pricelist(
-                product=line.product_id,
-                qty=line.quantity,
-                pricelist=pricelist,
-                company=company,
-                date=fields.Date.context_today(self),
-            )
-            if price_unit is None:
+            self.show_update_pricelist = False
+            price_unit = self.pricelist_id.price_get(
+                line.product_id.id,
+                line.quantity or 1.0,
+                partner_id=partner.id
+            )[self.pricelist_id.id]
+            if not price_unit:
                 price_unit = line.price_unit
 
             # impuestos: mapear por compañía y aplicar FP
