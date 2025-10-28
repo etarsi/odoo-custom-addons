@@ -247,10 +247,11 @@ class SaleOrderInherit(models.Model):
 
     def update_prices(self):
         self.ensure_one()
-        for line in self._get_update_prices_lines():
-            line.product_uom_change()
-            line.discount = 0
-            line._onchange_discount()
+        if not self.special_price:
+            for line in self._get_update_prices_lines():
+                line.product_uom_change()
+                line.discount = 0
+                line._onchange_discount()
         self.show_update_pricelist = False
 
 
