@@ -125,7 +125,6 @@ class OutInvoiceRefacturarWizard(models.TransientModel):
     def _new_invoice_vals(self, move_src, company, pricelist):
         # Valores base (compruebo journal de venta)
         journal, _ = self._pick_sale_journal_for_partner(self.company_id, move_src.partner_id)
-        vals.update({'journal_id': journal.id})
         # Fiscal position del partner en la compañía destino
         fp = move_src.partner_id.property_account_position_id
 
