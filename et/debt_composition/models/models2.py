@@ -81,15 +81,41 @@ class ReportDebtCompositionClient(models.Model):
                         apg.name AS nombre,
                         apg.x_comercial_id AS comercial,
                         apg.executive_id AS ejecutivo,
-                        -apg.x_payments_amount AS importe_original,
-                        -apg.x_unmatched_amount AS importe_residual,
-                        ABS(apg.x_payments_amount - apg.x_unmatched_amount) AS importe_aplicado,
+                        -COALESCE((
+                            SELECT SUM(ap.amount)
+                            FROM account_payment ap
+                            WHERE ap.payment_group_id = apg.id
+                        ), 0.0) AS importe_original,
+                        -COALESCE((
+                            SELECT SUM(aml.payment_group_matched_amount)
+                            FROM account_move_line aml
+                            WHERE aml.payment_group_id = apg.id
+                        ), 0.0) AS importe_aplicado,
+                        -- importe_residual = payments_amount - matched_amount
+                        COALESCE((
+                            SELECT SUM(ap.amount)
+                            FROM account_payment ap
+                            WHERE ap.payment_group_id = apg.id
+                        ), 0.0) - COALESCE((
+                            SELECT SUM(aml.payment_group_matched_amount)
+                            FROM account_move_line aml
+                            WHERE aml.payment_group_id = apg.id
+                        ), 0.0) AS importe_residual,
                         'recibo' AS origen,
                         apg.company_id,
                         apg.currency_id
                     FROM account_payment_group apg
                     WHERE apg.state = 'posted'
-                    AND apg.x_unmatched_amount > 0
+                    HAVING COALESCE((
+                            SELECT SUM(ap.amount)
+                            FROM account_payment ap
+                            WHERE ap.payment_group_id = apg.id
+                        ), 0.0) - COALESCE((
+                            SELECT SUM(aml.payment_group_matched_amount)
+                            FROM account_move_line aml
+                            WHERE aml.payment_group_id = apg.id
+                        ), 0.0) > 0
+
                 )
                 SELECT
                     id,
