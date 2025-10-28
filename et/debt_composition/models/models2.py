@@ -82,7 +82,7 @@ class ReportDebtCompositionClient(models.Model):
                         apg.x_comercial_id AS comercial,
                         apg.executive_id AS ejecutivo,
                         -SUM(aml.balance) AS importe_original,
-                        -SUM(COALESCE(pr.amount, 0)) AS importe_aplicado,
+                        -SUM(DISTINCT COALESCE(pr.amount, 0)) AS importe_aplicado,
                         -SUM(aml.balance) + SUM(COALESCE(pr.amount, 0)) AS importe_residual,
                         'recibo' AS origen,
                         apg.company_id,
