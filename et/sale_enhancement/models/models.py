@@ -160,48 +160,34 @@ class SaleOrderInherit(models.Model):
     def create(self, vals):
 
         self.check_partner_origin()
-        # --- Config compañía destino ---
-        #company_produccion_b = self.env['res.company'].browse(1)
-        # --- Resolver condición (Many2one) ---
-        #cond_model = self.env['condicion.venta']  # ajustá el modelo si se llama distinto
-        #cond_name = cond_model.browse(vals.get('condicion_m2m')).name or ''
+        company_produccion_b = self.env['res.company'].browse(1)
+        cond_model = self.env['condicion.venta']  # ajustá el modelo si se llama distinto
+        cond_name = cond_model.browse(vals.get('condicion_m2m')).name
 
         # --- Forzar compañía/depósito en vals si corresponde (TIPO 3) ---
-        #force_company = (cond_name.strip().upper() == 'TIPO 3')
-        #current_company_id = vals.get('company_id')
+        force_company = (cond_name.strip().upper() == 'TIPO 3')
+        current_company_id = vals.get('company_id')
+        env_create = self
+        if force_company and current_company_id != company_produccion_b.id:
+            wh = self.env['stock.warehouse'].search([('company_id', '=', company_produccion_b.id)], limit=1)
+            if not wh:
+                raise UserError(_("No se encontró un depósito para la compañía %s.") % company_produccion_b.display_name)
 
-        #env_create = self
-        #if force_company and current_company_id != company_produccion_b.id:
-        #    wh = self.env['stock.warehouse'].search([('company_id', '=', company_produccion_b.id)], limit=1)
-        #    if not wh:
-        #        raise UserError(_("No se encontró un depósito para la compañía %s.") % company_produccion_b.display_name)
+            vals = dict(vals)
+            vals['company_id'] = company_produccion_b.id
+            vals['warehouse_id'] = wh.id
+            env_create = self.with_context(allowed_company_ids=[company_produccion_b.id]).with_company(company_produccion_b)
 
-        #    vals = dict(vals)  # copiar para no mutar
-        #    vals['company_id'] = company_produccion_b.id
-        #    vals['warehouse_id'] = wh.id
+        order = super(SaleOrderInherit, env_create).create(vals)
 
-            # Crear bajo el contexto/compañía destino para evitar conflictos multi-company
-        #    env_create = self.with_context(allowed_company_ids=[company_produccion_b.id]).with_company(company_produccion_b)
-        order = super().create(vals)
-        # validar la linea de productos si tienen el mismo rubo que pertenece a la compañia si es company_id = 1 no entra por aca
-        #if order.company_id.id != 1:
-        #    for line in order.order_line:
-        #        rubro = line.product_id.categ_id.parent_id.name.upper().strip()
-        #        if rubro in self.RUBRO_COMPANY_MAPPING:
-        #            expected_company_id = self.RUBRO_COMPANY_MAPPING[rubro]
-        #            if order.company_id.id != expected_company_id:
-        #                raise UserError(_("La línea de producto %s pertenece al rubro %s que debe estar en la compañía con ID %s, pero la orden está en la compañía con ID %s.") % (
-        #                    line.product_id.display_name, rubro, expected_company_id, order.company_id.id))
-        
-        #company_produccion_b = self.env['res.company'].browse(1)
-        #if self.company_id.id != company_produccion_b.id and self.condicion_m2m.name == 'TIPO 3':
-        #    warehouse = self.env['stock.warehouse'].search([('company_id', '=', company_produccion_b.id)], limit=1)
-        #    self.write({'company_id': company_produccion_b.id})
-        #    self.write({'warehouse_id': warehouse.id})
-        #    for line in self.order_line:
-        #        if line.company_id.id != company_produccion_b.id:
-        #            line.write({'company_id': company_produccion_b.id})
-        #    self.message_post(body=_("Compañía cambiada a %s en el pedido y todas sus líneas durante la creación.") % self.company_id.name)
+        if order.company_id.id != 1:
+            for line in order.order_line:
+                rubro = line.product_id.categ_id.parent_id.name.upper().strip()
+                if rubro in self.RUBRO_COMPANY_MAPPING:
+                    expected_company_id = self.RUBRO_COMPANY_MAPPING[rubro]
+                    if order.company_id.id != expected_company_id:
+                        raise UserError(_("La línea de producto %s pertenece al rubro %s que debe estar en la compañía con ID %s, pero la orden está en la compañía con ID %s.") % (
+                            line.product_id.display_name, rubro, expected_company_id, order.company_id.id))
         order.check_order()
         if not order.message_ids:
             order.message_post(body=_("Orden de venta creada."))
@@ -788,3 +774,9 @@ class ProductPricelist(models.Model):
         ])
         if others:
             others.with_context(pricelist_toggle_guard=True).write({'is_default': False})
+            
+class ProductTemplateInherit(models.Model):
+    _inherit = 'product.template'
+
+    company_ids = fields.Many2many('res.company', string='Compañías Asignadas', default=lambda self: self.env.company.ids,
+                                        help="Compañías en las que este producto está disponible.")
