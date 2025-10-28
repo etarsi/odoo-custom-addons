@@ -178,6 +178,8 @@ class OutInvoiceRefacturarWizard(models.TransientModel):
         credit_notes = self.env['account.move']
 
         for move in self.account_move_ids:
+            if move.payment_state == 'reversed':
+                raise UserError(_("La factura %s ya fue refacturada, no se puede volver a refacturar.") % move.name)
             if move.move_type != 'out_invoice':
                 raise UserError(_("La factura %s no es de cliente.") % move.name)
             if move.state != 'posted':
