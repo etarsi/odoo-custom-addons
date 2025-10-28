@@ -72,7 +72,7 @@ class ReportDebtCompositionClient(models.Model):
 
                     UNION ALL
 
-                    -- RECIBOS mejorado con subquery
+                    -- RECIBOS
                     SELECT
                         apg.id + 2000000 AS id,
                         apg.partner_id AS partner,
@@ -82,20 +82,26 @@ class ReportDebtCompositionClient(models.Model):
                         apg.x_comercial_id AS comercial,
                         apg.executive_id AS ejecutivo,
                         -SUM(aml.balance) AS importe_original,
-                        -SUM(DISTINCT COALESCE(pr.amount, 0)) AS importe_aplicado,
-                        -SUM(aml.balance) + SUM(DISTINCT COALESCE(pr.amount, 0)) AS importe_residual,
+                        SUM(COALESCE(pr_sub.total_amount, 0)) AS importe_aplicado,
+                        -SUM(aml.balance) + SUM(COALESCE(pr_sub.total_amount, 0)) AS importe_residual,
                         'recibo' AS origen,
                         apg.company_id,
                         apg.currency_id
                     FROM account_payment_group apg
                     JOIN account_payment p ON p.payment_group_id = apg.id
                     JOIN account_move_line aml ON aml.payment_id = p.id
-                    JOIN account_account aa ON aa.id = aml.account_id AND aa.internal_type IN ('receivable', 'payable')
-                    LEFT JOIN account_partial_reconcile pr 
-                        ON pr.debit_move_id = aml.id OR pr.credit_move_id = aml.id
+                    LEFT JOIN (
+                        SELECT credit_move_id, SUM(amount) AS total_amount
+                        FROM account_partial_reconcile
+                        GROUP BY credit_move_id
+                    ) pr_sub ON pr_sub.credit_move_id = aml.id
                     WHERE apg.state = 'posted'
-                    GROUP BY apg.id, apg.partner_id, apg.payment_date, apg.name, apg.x_comercial_id,
-                            apg.executive_id, apg.company_id, apg.currency_id
+                    AND aml.account_id IN (
+                        SELECT id FROM account_account WHERE internal_type = 'receivable'
+                    )
+                    GROUP BY apg.id, apg.partner_id, apg.payment_date, apg.name,
+                            apg.x_comercial_id, apg.executive_id, apg.company_id, apg.currency_id
+
 
 
 
