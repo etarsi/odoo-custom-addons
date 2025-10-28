@@ -9,6 +9,8 @@ class ReportDebtCompositionClient(models.Model):
     fecha = fields.Date(string='Fecha', readonly=True)
     fecha_vencimiento = fields.Date(string='Fecha Vencimiento', readonly=True)
     nombre = fields.Char(string='Comprobante', readonly=True)
+    comercial = fields.Many2one('res.users', string="Comercial", readonly=True)
+    ejecutivo = fields.Many2one('res.users', string="Ejecutiva", readonly=True)
     importe_original = fields.Monetary(string='Importe Original', readonly=True)
     importe_residual = fields.Monetary(string='Importe Residual', readonly=True)
     importe_aplicado = fields.Monetary(string='Importe Aplicado', readonly=True)
@@ -33,6 +35,8 @@ class ReportDebtCompositionClient(models.Model):
                         am.invoice_date AS fecha,
                         am.invoice_date_due AS fecha_vencimiento,
                         am.name AS nombre,
+                        am.invoice_user_id as comercial,
+                        am.executive_id as ejecutivo,
                         am.amount_total_signed AS importe_original,
                         am.amount_residual_signed AS importe_residual,
                         (am.amount_total_signed - am.amount_residual_signed) AS importe_aplicado,
@@ -53,6 +57,8 @@ class ReportDebtCompositionClient(models.Model):
                         am.invoice_date AS fecha,
                         am.invoice_date_due AS fecha_vencimiento,
                         am.name AS nombre,
+                        am.invoice_user_id as comercial,
+                        am.executive_id as ejecutivo,
                         am.amount_total_signed AS importe_original,
                         am.amount_residual_signed AS importe_residual,
                         (am.amount_total_signed - am.amount_residual_signed) AS importe_aplicado,
@@ -73,6 +79,8 @@ class ReportDebtCompositionClient(models.Model):
                         apg.payment_date AS fecha,
                         NULL AS fecha_vencimiento,
                         apg.name AS nombre,
+                        apg.x_comercial_id as comercial,
+                        apg.executive_id as ejecutivo,
                         -apg.x_payments_amount AS importe_original,
                         -apg.x_unmatched_amount AS importe_residual,
                         apg.x_payments_amount - apg.x_unmatched_amount AS importe_aplicado,
@@ -89,6 +97,8 @@ class ReportDebtCompositionClient(models.Model):
                     fecha,
                     fecha_vencimiento,
                     nombre,
+                    comercial,
+                    ejecutivo,
                     importe_original,
                     importe_aplicado,
                     importe_residual,

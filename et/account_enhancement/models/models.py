@@ -504,42 +504,22 @@ class AccountPaymentGroupInherit(models.Model):
     )
     is_paid_date_venc_text = fields.Boolean(default=False, copy=False)
     paid_date_venc_text = fields.Text(default='⚠️ EL PAGO A REGISTRAR ESTA FUERA DE FECHA ⚠️')
-    x_unmatched_amount = fields.Float(string="Monto No Conciliado", compute="_compute_unmatched_amount", store=True)
+    x_unmatched_amount = fields.Monetary(string="Monto No Conciliado", currency_field='currency_id')
 
-    
-
-    
-    # @api.depends('unmatched_amount')
-    # def _compute_unmatched_amount(self):
-    #     precision = 2
-    #     for record in self:
-    #         new_value = record.unmatched_amount or 0.0
-    #         if (
-    #             not record.x_unmatched_amount
-    #             or float_compare(record.x_unmatched_amount, new_value, precision_digits=precision) != 0
-    #         ):
-    #             record.invalidate_cache(['x_unmatched_amount'])
-    #             record.sudo().write({'x_unmatched_amount': new_value})
-
-    @api.depends(
-        'state',
-        'payments_amount',
-        )
-    def _compute_matched_amounts(self):
+    @api.depends('payment_ids.l10n_ar_amount_company_currency_signed')
+    def _compute_payments_amount(self):
         for rec in self:
-            rec.matched_amount = 0.0
-            rec.unmatched_amount = 0.0
-            if rec.state != 'posted':
-                continue
-            # damos vuelta signo porque el payments_amount tmb lo da vuelta,
-            # en realidad porque siempre es positivo y se define en funcion
-            # a si es pago entrante o saliente
-            sign = rec.partner_type == 'supplier' and -1.0 or 1.0
-            rec.matched_amount = sign * sum(
-                rec.matched_move_line_ids.with_context(payment_group_id=rec.id).mapped('payment_group_matched_amount'))
-            rec.unmatched_amount = rec.payments_amount - rec.matched_amount
-            rec.x_unmatched_amount = rec.payments_amount - rec.matched_amount
+            # this hac is to make it work when creating payment groups with payments without saving + saved records
+            rec.payments_amount = sum((rec._origin.payment_ids + rec.payment_ids.filtered(lambda x: not x.ids)).mapped(
+                'l10n_ar_amount_company_currency_signed'))
+            
+    #         rec.update_unmatched_amount()
 
+    # def update_unmatched_amount(self):
+    #     for record in self:
+    #         record.write(
+    #             {'x_unmatched_amount': record.unmatched_amount}
+    #         )
 
     
     #### ONCHANGE #####
