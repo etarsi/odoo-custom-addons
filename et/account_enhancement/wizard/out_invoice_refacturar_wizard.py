@@ -122,7 +122,6 @@ class OutInvoiceRefacturarWizard(models.TransientModel):
             price_unit = pricelist.price_get(
                 line.product_id.id,
                 line.quantity or 1.0,
-                partner_id=move_src.partner_id.id,
             )[pricelist.id]
             if not price_unit:
                 price_unit = line.price_unit
