@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from odoo import api, fields, models, _
-from odoo.exceptions import UserError, RedirectWarning
+from odoo.exceptions import RedirectWarning, ValidationError
 import math
 from datetime import timedelta
 
@@ -50,7 +50,7 @@ class OutInvoiceRefacturarWizard(models.TransientModel):
             # quedate solo con facturas cliente
             moves = moves.filtered(lambda m: m.move_type == 'out_invoice')
             if not moves:
-                raise UserError(_("Seleccioná al menos una factura de cliente."))
+                raise ValidationError(_("Seleccioná al menos una factura de cliente."))
             res['account_move_ids'] = [(6, 0, moves.ids)]
         return res
 
@@ -179,14 +179,14 @@ class OutInvoiceRefacturarWizard(models.TransientModel):
 
         for move in self.account_move_ids:
             if move.payment_state == 'reversed':
-                raise UserError(_("La factura %s ya fue refacturada, no se puede volver a refacturar.") % move.name)
+                raise ValidationError(_("La factura %s ya fue refacturada, no se puede volver a refacturar.") % move.name)
             if move.move_type != 'out_invoice':
-                raise UserError(_("La factura %s no es de cliente.") % move.name)
+                raise ValidationError(_("La factura %s no es de cliente.") % move.name)
             if move.state != 'posted':
-                raise UserError(_("La factura %s debe estar Validada.") % move.name)
+                raise ValidationError(_("La factura %s debe estar Validada.") % move.name)
             company_comparacion = self.comparar_company_id(move.company_id)
             if not company_comparacion['company_id']:
-                raise UserError(_("La factura %s debe pertenecer a la compañía seleccionada.") % (company_comparacion['name'],))
+                raise ValidationError(_("La factura %s debe pertenecer a la compañía seleccionada.") % (company_comparacion['name'],))
 
             # 1) Reverso (NC) en la compañía original
             reversal_vals = [{
