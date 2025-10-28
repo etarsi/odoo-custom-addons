@@ -119,11 +119,11 @@ class OutInvoiceRefacturarWizard(models.TransientModel):
 
         for line in move_src.invoice_line_ids.filtered(lambda l: not l.display_type):
             # precio: si hay pricelist, recalculo; si no, dejo el de origen
-            price_unit = self.pricelist_id.price_get(
+            price_unit = pricelist.price_get(
                 line.product_id.id,
                 line.quantity or 1.0,
-                partner_id=partner.id
-            )[self.pricelist_id.id]
+                partner_id=move_src.partner_id.id,
+            )[pricelist.id]
             if not price_unit:
                 price_unit = line.price_unit
 
