@@ -27,23 +27,9 @@ class ReportDebtCompositionClient(models.Model):
 
     def init(self):
         cr = self.env.cr
-        # timeouts cortos (no crítico si falla)
-        try:
-            cr.execute("SET LOCAL lock_timeout = '5s'; SET LOCAL statement_timeout = '60000';")
-        except Exception:
-            pass
-
         # --- 1) Buscar la función por pg_proc (con schema) ---
-        cr.execute("""
-            DO $$
-            BEGIN
-            IF to_regprocedure('refresh_report_debt_composition_client()') IS NOT NULL THEN
-                PERFORM refresh_report_debt_composition_client();
-            END IF;
-            END$$;
-        """)
+        cr.execute("SELECT public.refresh_report_debt_composition_client();")
         _logger.info("Función refresh_report_debt_composition_client() no encontrada en ningún schema; salto el refresh")
-
         # --- 2) Recrear la vista que Odoo lee ---
         tools.drop_view_if_exists(cr, self._table)
         cr.execute(f"""
@@ -63,6 +49,6 @@ class ReportDebtCompositionClient(models.Model):
                 origen,
                 company_id,
                 currency_id
-            FROM report_debt_composition_client_tbl WHERE company_id = 1;
+            FROM report_debt_composition_client_tbl;
         """)
         _logger.info("Vista %s creada/actualizada correctamente", self._table)
