@@ -35,22 +35,14 @@ class ReportDebtCompositionClient(models.Model):
 
         # --- 1) Buscar la función por pg_proc (con schema) ---
         cr.execute("""
-            SELECT n.nspname || '.' || p.proname AS fqname
-            FROM pg_proc p
-            JOIN pg_namespace n ON n.oid = p.pronamespace
-            WHERE p.proname = 'refresh_report_debt_composition_client'
-              AND pg_get_function_identity_arguments(p.oid) = '';
+            DO $$
+            BEGIN
+            IF to_regprocedure('refresh_report_debt_composition_client()') IS NOT NULL THEN
+                PERFORM refresh_report_debt_composition_client();
+            END IF;
+            END$$;
         """)
-        row = cr.fetchone()
-        if row:
-            fqfunc = row[0]  # ej. "public.refresh_report_debt_composition_client"
-            _logger.info("Ejecutando función SQL: %s()", fqfunc)
-            try:
-                cr.execute(f"SELECT {fqfunc}();")
-            except Exception:
-                _logger.info("Falló el refresh_report_debt_composition_client()")
-        else:
-            _logger.info("Función refresh_report_debt_composition_client() no encontrada en ningún schema; salto el refresh")
+        _logger.info("Función refresh_report_debt_composition_client() no encontrada en ningún schema; salto el refresh")
 
         # --- 2) Recrear la vista que Odoo lee ---
         tools.drop_view_if_exists(cr, self._table)
