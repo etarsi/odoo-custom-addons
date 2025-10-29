@@ -24,8 +24,27 @@ class ReportDebtCompositionClient(models.Model):
     currency_id = fields.Many2one('res.currency', string='Moneda', readonly=True)
 
     def init(self):
-        tools.drop_view_if_exists(self.env.cr, self._table)
-        self.env.cr.execute(f"""
+        cr = self.env.cr
+
+        # (Opcional) Evitar bloqueos largos en el refresh
+        try:
+            cr.execute("SET LOCAL lock_timeout = '5s'; SET LOCAL statement_timeout = '60000';")
+        except Exception:
+            pass  # en algunas BDs no tenés permiso para SET LOCAL, no es crítico
+
+        # 1) Refrescar la tabla materializada SOLO si existe la función
+        cr.execute("""
+            DO $$
+            BEGIN
+            IF to_regprocedure('refresh_report_debt_composition_client()') IS NOT NULL THEN
+                PERFORM refresh_report_debt_composition_client();
+            END IF;
+            END$$;
+        """)
+
+        # 2) Recrear la vista que Odoo va a leer
+        tools.drop_view_if_exists(cr, self._table)
+        cr.execute(f"""
             CREATE OR REPLACE VIEW {self._table} AS
             SELECT * FROM report_debt_composition_client_tbl;
         """)
