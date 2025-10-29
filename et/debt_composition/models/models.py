@@ -27,17 +27,7 @@ class ReportDebtCompositionClient(models.Model):
 
     def init(self):
         cr = self.env.cr
-        # 1) Ejecutar la función (con schema) y LOGUEAR el resultado real
-        try:
-            cr.execute("SELECT public.refresh_report_debt_composition_client();")
-            cr.execute("SELECT COUNT(*), MAX(fecha) FROM report_debt_composition_client_tbl;")
-            cnt, maxf = cr.fetchone()
-            _logger.info("RDCC refresh OK: %s filas (max fecha=%s)", cnt, maxf)
-            print("RDCC refresh OK: %s filas (max fecha=%s)" % (cnt, maxf))
-        except Exception:
-            _logger.info("ERROR ejecutando public.refresh_report_debt_composition_client()")
-            print("ERROR ejecutando public.refresh_report_debt_composition_client()")
-        _logger.info("Función refresh_report_debt_composition_client() no encontrada en ningún schema; salto el refresh")
+        cr.execute("SELECT public.refresh_report_debt_composition_client();")
         cr.execute(f"""
             CREATE OR REPLACE VIEW {self._table} AS
             SELECT 
@@ -57,5 +47,3 @@ class ReportDebtCompositionClient(models.Model):
                 currency_id
             FROM report_debt_composition_client_tbl;
         """)
-        _logger.info("Vista %s creada/actualizada correctamente", self._table)
-        print("Vista %s creada/actualizada correctamente" % self._table)
