@@ -46,5 +46,20 @@ class ReportDebtCompositionClient(models.Model):
         tools.drop_view_if_exists(cr, self._table)
         cr.execute(f"""
             CREATE OR REPLACE VIEW {self._table} AS
-            SELECT * FROM report_debt_composition_client_tbl;
+            SELECT 
+                id,
+                partner,
+                fecha,
+                fecha_vencimiento,
+                nombre,
+                comercial,
+                ejecutivo,
+                importe_original,
+                importe_residual,
+                importe_aplicado,
+                saldo_acumulado,
+                origen,
+                company_id,
+                currency_id
+            FROM report_debt_composition_client_tbl;
         """)
