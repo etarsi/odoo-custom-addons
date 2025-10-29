@@ -71,6 +71,6 @@ class ReportDebtCompositionClient(models.Model):
                 origen,
                 company_id,
                 currency_id
-            FROM report_debt_composition_client_tbl;
+            FROM report_debt_composition_client_tbl WHERE company_id = 1;
         """)
         _logger.info("Vista %s creada/actualizada correctamente", self._table)
