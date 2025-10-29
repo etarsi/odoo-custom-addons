@@ -138,6 +138,7 @@ class OutInvoiceRefacturarWizard(models.TransientModel):
             'invoice_origin': move_src.name,
             'payment_reference': move_src.payment_reference or move_src.name,
             'journal_id': journal.id,
+            'invoice_user_id': move_src.invoice_user_id.id,
             'invoice_line_ids': [],
         }
 
