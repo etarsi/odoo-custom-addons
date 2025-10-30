@@ -107,12 +107,13 @@ class OutInvoiceRefacturarWizard(models.TransientModel):
 
     # ---------------- Core helpers ----------------
 
-    def _map_taxes_to_company(self, taxes, company, partner_fp):
+    def _map_taxes_to_company(self, taxes, company, partner_fp, invoice_date):
         """Mapea impuestos a la compañía destino.
         1) mismo nombre en esa compañía; si no,
         2) impuestos del producto en esa compañía; luego
         3) aplica fiscal position.
         """
+        #tengo que comparar la fecha invoice_date con la fecha actual si hay diferencia de 30 dias debe quitar el impuesto de Percepción IIBB CABA Aplicada.
         Tax = self.env['account.tax'].with_company(company)
         mapped = self.env['account.tax']
         for tax in taxes:
@@ -120,6 +121,8 @@ class OutInvoiceRefacturarWizard(models.TransientModel):
                                ('company_id', '=', company.id)], limit=1)
             if cand:
                 mapped |= cand
+        if invoice_date and (fields.Date.from_string(invoice_date) - fields.Date.context_today(self)).days > 30:
+            mapped = mapped.filtered(lambda t: t.name != 'Percepción IIBB CABA Aplicada')
         return partner_fp.map_tax(mapped) if partner_fp and mapped else mapped
 
     def _new_invoice_vals(self, move_src, company, pricelist):
@@ -152,7 +155,7 @@ class OutInvoiceRefacturarWizard(models.TransientModel):
                 price_unit = line.price_unit
 
             # impuestos: mapear por compañía y aplicar FP
-            mapped_taxes = self._map_taxes_to_company(line.tax_ids, company, fp)
+            mapped_taxes = self._map_taxes_to_company(line.tax_ids, company, fp, move_src.invoice_date)
             if not mapped_taxes and line.product_id:
                 # fallback: impuestos del producto en esa compañía
                 prod_taxes = line.product_id.taxes_id.filtered(lambda t: t.company_id == company)
