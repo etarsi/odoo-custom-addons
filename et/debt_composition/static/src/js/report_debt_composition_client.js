@@ -10,7 +10,7 @@ odoo.define('debt_composition.rdcc_reload_patch', function (require) {
                 return this._rpc({
                     model: 'report.debt.composition.client',
                     method: 'action_refresh_sql',
-                    args: [[]],
+                    args: [],
                 }).then(function () {
                     return self._super.apply(self, arguments);
                 });
