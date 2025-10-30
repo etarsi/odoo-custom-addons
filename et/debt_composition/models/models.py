@@ -27,7 +27,7 @@ class ReportDebtCompositionClient(models.Model):
     currency_id = fields.Many2one('res.currency', string='Moneda', readonly=True)
     
     @api.model
-    def action_refresh_sql(self):
+    def action_refresh_sql(self, *args, **kwargs):
         self.env.cr.execute("SELECT public.refresh_report_debt_composition_client();")
         return True
 
