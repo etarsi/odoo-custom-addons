@@ -91,6 +91,7 @@ class HrEnhancementApi(models.AbstractModel):
                             'name': employee_name,
                             'employee_type': 'employee',
                             'state': 'active',
+                            'work_schedule_id': env['hr.work.schedule'].search([('type', '=', 'employee'), ('state', '=', 'active')], limit=1).id,
                         })
                         if check_utc > start_limit_day_inicio_marcado:
                             open_att = hr_attendance.create({
