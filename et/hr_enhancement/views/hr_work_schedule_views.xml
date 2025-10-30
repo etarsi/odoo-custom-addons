@@ -5,6 +5,7 @@
         <field name="model">hr.work.schedule</field>
         <field name="arch" type="xml">
             <tree>
+                <field name="name"/>
                 <field name="type"/>
                 <field name="hour_start" widget="float_time"/>
                 <field name="hour_end" widget="float_time"/>
@@ -23,6 +24,7 @@
                 <sheet>
                     <group>
                         <group string="Información General">
+                            <field name="name"/>
                             <field name="type"/>
                             <field name="hour_start" widget="float_time"/>
                             <field name="hour_end" widget="float_time"/>

@@ -7,6 +7,7 @@ class HrWorkSchedule(models.Model):
     _description = 'Rango de Horario Laboral'
     _inherit = ['mail.thread', 'mail.activity.mixin']
 
+    name = fields.Char(string="Nombre", required=True, tracking=True)
     type = fields.Selection([
         ('employee', 'Empleado'),
         ('eventual', 'Eventual')

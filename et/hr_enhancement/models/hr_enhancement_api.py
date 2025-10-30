@@ -66,6 +66,9 @@ class HrEnhancementApi(models.AbstractModel):
                 p_day_end_limit     = _float_to_time(float(hr_enhancement.get_param('hr_enhancement.hour_end_day_check')) + 3)
                 p_night_start_limit = _float_to_time(float(hr_enhancement.get_param('hr_enhancement.hour_start_night_check')) + 3)
                 p_night_end_limit   = _float_to_time(float(hr_enhancement.get_param('hr_enhancement.hour_end_night_check')) + 3)
+                
+                p_day_start_limit_inicio_marcado = _float_to_time(float(hr_enhancement.get_param('hr_enhancement.hour_start_day_check')) + 1)
+                p_night_start_limit_inicio_marcado = _float_to_time(float(hr_enhancement.get_param('hr_enhancement.hour_start_night_check')) + 1)
 
                 day = check_utc.date()
                 dow = day.weekday()
@@ -73,6 +76,8 @@ class HrEnhancementApi(models.AbstractModel):
                 end_limit_day   = datetime.combine(day, p_day_end_limit)
                 start_limit_night = datetime.combine(day, p_night_start_limit)
                 end_limit_night   = datetime.combine(day, p_night_end_limit)
+                start_limit_day_inicio_marcado = datetime.combine(day, p_day_start_limit_inicio_marcado)
+                start_limit_night_inicio_marcado = datetime.combine(day, p_night_start_limit_inicio_marcado)
                 hr_attendance = env['hr.attendance'].sudo()
                 hr_employee = env['hr.employee'].sudo()
                 employee = hr_employee.search([('id_lector', '=', employee_dni), ('state', '!=', 'inactive')], limit=1)
@@ -87,11 +92,15 @@ class HrEnhancementApi(models.AbstractModel):
                             'employee_type': 'employee',
                             'state': 'active',
                         })
-                        open_att = hr_attendance.create({
-                            'employee_id': employee.id,
-                            'check_in': check_utc,  # naive UT
-                            'create_lector': True,
-                        })
+                        if check_utc > start_limit_day_inicio_marcado:
+                            open_att = hr_attendance.create({
+                                'employee_id': employee.id,
+                                'check_in': check_utc,  # naive UT
+                                'create_lector': True,
+                            })
+                        else:
+                            message += '--asistencia fuera del rango diurno de inicio de marcado'
+                            return {'success': False, 'error': message, 'received': data}
                         message += f'--asistencia abierta: {open_att.id} (empleado en borrador)'
                     else:
                         # Limites del día (para agrupar por día local)
@@ -115,11 +124,15 @@ class HrEnhancementApi(models.AbstractModel):
                             open_att.write({'check_out': check_utc})
                             message += f' (asistencia cerrada: {open_att.id})'
                         else:
-                            open_att = hr_attendance.create({
-                                'employee_id': employee.id,
-                                'check_in': check_utc,
-                                'create_lector': True,
-                            })
+                            if check_utc > start_limit_day_inicio_marcado:
+                                open_att = hr_attendance.create({
+                                    'employee_id': employee.id,
+                                    'check_in': check_utc,
+                                    'create_lector': True,
+                                })
+                            else:
+                                message += '--asistencia fuera del rango diurno de inicio de marcado'
+                                return {'success': False, 'error': message, 'received': data}
                             message += f' (asistencia abierta: {open_att.id})'
                 elif open_method == 'FINGERPRINT':
                     if not employee:
@@ -144,11 +157,15 @@ class HrEnhancementApi(models.AbstractModel):
                                 message += f'--asistencia fuera de rango diurno ({start_limit_day.strftime("%H:%M")}-{end_limit_day.strftime("%H:%M")})'
                                 return {'success': False, 'error': message, 'received': data}
                             else:
-                                open_att = hr_attendance.create({
-                                    'employee_id': employee.id,
-                                    'check_in': check_utc,
-                                    'create_lector': True,
-                                })
+                                if check_utc > start_limit_day_inicio_marcado:
+                                    open_att = hr_attendance.create({
+                                        'employee_id': employee.id,
+                                        'check_in': check_utc,
+                                        'create_lector': True,
+                                    })
+                                else:
+                                    message += '--asistencia fuera del rango diurno de inicio de marcado'
+                                    return {'success': False, 'error': message, 'received': data}
                         else:  # night
                             if check_utc > start_limit_night:
                                 # lo registro en el hr temp attendance
@@ -162,11 +179,15 @@ class HrEnhancementApi(models.AbstractModel):
                                 message += f'--asistencia fuera de rango nocturno ({start_limit_night.strftime("%H:%M")}-{end_limit_night.strftime("%H:%M")})'
                                 return {'success': False, 'error': message, 'received': data}
                             else:
-                                open_att = hr_attendance.create({
-                                    'employee_id': employee.id,
-                                    'check_in': check_utc,
-                                    'create_lector': True,
-                                })
+                                if check_utc > start_limit_night_inicio_marcado:
+                                    open_att = hr_attendance.create({
+                                        'employee_id': employee.id,
+                                        'check_in': check_utc,
+                                        'create_lector': True,
+                                    })
+                                else:
+                                    message += '--asistencia fuera del rango nocturno de inicio de marcado'
+                                    return {'success': False, 'error': message, 'received': data}
                         message += f'--asistencia abierta: {open_att.id} (empleado en borrador)'
                     else:
                         if employee.employee_type == 'eventual':
@@ -232,12 +253,16 @@ class HrEnhancementApi(models.AbstractModel):
                                                 message += f'--asistencia fuera del limite de salida diurno ({end_limit_day.strftime("%H:%M")})'
                                                 return {'success': False, 'error': message, 'received': data}
                                         # Crear asistencia abierta
-                                        open_att = hr_attendance.create({
-                                            'employee_id': employee.id,
-                                            'check_in': check_utc,
-                                            'create_lector': True,
-                                        })
-                                        message += f' (asistencia abierta: {open_att.id})'
+                                        if check_utc > start_limit_day_inicio_marcado:
+                                            open_att = hr_attendance.create({
+                                                'employee_id': employee.id,
+                                                'check_in': check_utc,
+                                                'create_lector': True,
+                                            })
+                                            message += f' (asistencia abierta: {open_att.id})'
+                                        else:
+                                            message += '--asistencia fuera del rango diurno de inicio de marcado'
+                                            return {'success': False, 'error': message, 'received': data}
                                 else:
                                     if dow in [0,1,2,3,4]:  # Lunes a Viernes
                                         if check_utc > start_limit_day:
@@ -262,13 +287,17 @@ class HrEnhancementApi(models.AbstractModel):
                                             })
                                             message += f'--asistencia fuera del limite de salida diurno ({end_limit_day.strftime("%H:%M")})'
                                             return {'success': False, 'error': message, 'received': data}
-                                    # Crear asistencia abierta
-                                    open_att = hr_attendance.create({
-                                        'employee_id': employee.id,
-                                        'check_in': check_utc,
-                                        'create_lector': True,
-                                    })
-                                    message += f' (asistencia abierta: {open_att.id})'
+                                    if check_utc > start_limit_day_inicio_marcado:
+                                        # Crear asistencia abierta
+                                        open_att = hr_attendance.create({
+                                            'employee_id': employee.id,
+                                            'check_in': check_utc,
+                                            'create_lector': True,
+                                        })
+                                        message += f' (asistencia abierta: {open_att.id})'
+                                    else:
+                                        message += '--asistencia fuera del rango diurno de inicio de marcado'
+                                        return {'success': False, 'error': message, 'received': data}
                             elif employee.type_shift == 'night':
                                 if open_att:
                                     # Validar el rango de la salida nocturna
@@ -313,13 +342,17 @@ class HrEnhancementApi(models.AbstractModel):
                                         })
                                         message += f'--asistencia fuera de rango nocturno ({start_limit_night.strftime("%H:%M")}-{end_limit_night.strftime("%H:%M")})'
                                         return {'success': False, 'error': message, 'received': data}
-                                    # Crear asistencia abierta
-                                    open_att = hr_attendance.create({
-                                        'employee_id': employee.id,
-                                        'check_in': check_utc,
-                                        'create_lector': True,
-                                    })
-                                    message += f' (asistencia abierta: {open_att.id})'
+                                    if check_utc > start_limit_night_inicio_marcado:
+                                        # Crear asistencia abierta
+                                        open_att = hr_attendance.create({
+                                            'employee_id': employee.id,
+                                            'check_in': check_utc,
+                                            'create_lector': True,
+                                        })
+                                        message += f' (asistencia abierta: {open_att.id})'
+                                    else:
+                                        message += '--asistencia fuera del rango nocturno de inicio de marcado'
+                                        return {'success': False, 'error': message, 'received': data}
                 return {'success': True, 'message': message, 'status_code': 200, 'received': data}
             except ValidationError as ve:
                 return {'success': False, 'error': str(ve), 'error_class': ve.__class__.__name__, 'received': data, 'status_code': 400}
