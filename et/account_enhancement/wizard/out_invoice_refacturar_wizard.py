@@ -121,8 +121,8 @@ class OutInvoiceRefacturarWizard(models.TransientModel):
                                ('company_id', '=', company.id)], limit=1)
             if cand:
                 mapped |= cand
-        if invoice_date and (fields.Date.from_string(invoice_date) - fields.Date.context_today(self)).days > 30:
-            mapped = mapped.filtered(lambda t: t.name != 'Percepción IIBB CABA Aplicada')
+        #if invoice_date and (fields.Date.from_string(invoice_date) - fields.Date.context_today(self)).days > 30:
+        #    mapped = mapped.filtered(lambda t: t.name != 'Percepción IIBB CABA Aplicada')
         return partner_fp.map_tax(mapped) if partner_fp and mapped else mapped
 
     def _new_invoice_vals(self, move_src, company, pricelist):
