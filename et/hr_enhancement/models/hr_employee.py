@@ -71,6 +71,8 @@ class HrEmployee(models.Model):
     ], string='Tipo de Turno', default='day', tracking=True)
 
     id_lector = fields.Char(string='ID del Lector', tracking=True)
+    #AGREGAR HORARIO LABORAL RELACIONADO
+    work_schedule_id = fields.Many2one('hr.work.schedule', string='Horario Laboral', tracking=True)
 
     _sql_constraints = [
         ('unique_dni', 'UNIQUE(dni)', 'El DNI debe ser único por empleado.'),
