@@ -250,7 +250,8 @@
                             <field name="total_percentage_increase" readonly="1" widget="percentage"/>
                             <field name="work_schedule_id" options="{'no_create': True}" 
                                 attrs="{'required': [('employee_type', '!=', 'eventual')],
-                                        'invisible': [('employee_type', '=', 'eventual')]}" />
+                                        'invisible': [('employee_type', '=', 'eventual')]}"
+                                domain="[('type', '!=', 'eventual')]"/>
                         </group>
                         <group>
                             <field name="employee_type" widget="selection" />
