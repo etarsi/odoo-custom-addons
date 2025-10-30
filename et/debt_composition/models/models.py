@@ -1,4 +1,5 @@
-from odoo import fields, models, tools
+from odoo import fields, models, tools, api
+from odoo.exceptions import AccessError
 import logging
 _logger = logging.getLogger(__name__)
 
@@ -24,6 +25,11 @@ class ReportDebtCompositionClient(models.Model):
     ], string='Origen', readonly=True)
     company_id = fields.Many2one('res.company', string='Compañía', readonly=True)
     currency_id = fields.Many2one('res.currency', string='Moneda', readonly=True)
+    
+    @api.model
+    def action_refresh_sql(self):
+        self.env.cr.execute("SELECT public.refresh_report_debt_composition_client();")
+        return True
 
     def init(self):
         cr = self.env.cr

@@ -25,9 +25,17 @@
     # always loaded
     'data': [
         # 'security/ir.model.access.csv',
+        'data/actions.xml',
+        'data/menu.xml',
         'views/views.xml',
         'views/templates.xml',
     ],
+    # assets are loaded in the backend
+    'assets': {
+        'web.assets_backend': [
+            'debt_composition/static/src/js/report_debt_composition_client.js',
+        ],
+    },
     # only loaded in demonstration mode
     'demo': [
         'demo/demo.xml',

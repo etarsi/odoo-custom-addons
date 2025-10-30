@@ -1,0 +1,12 @@
+<!-- data/menu.xml -->
+<odoo>
+    <record id="action_report_debt_tbl" model="ir.actions.act_window">
+        <field name="name">Composición de deuda</field>
+        <field name="res_model">report.debt.composition.client</field>
+        <field name="view_mode">tree,pivot</field>
+        <field name="context">{'search_default_group_partner': 1}</field>
+    </record>
+
+    <menuitem id="menu_report_debt_tbl" name="Composición de deuda"
+        parent="account.menu_finance_receivables" action="action_report_debt_tbl" sequence="17"/>
+</odoo>
