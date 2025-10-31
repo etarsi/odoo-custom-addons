@@ -758,12 +758,13 @@ class AccountMoveReversalInherit(models.TransientModel):
                 line_tax_ids = line.tax_ids.filtered(lambda t: tax_name not in (t.name or '').lower())
                 if line_tax_ids:
                     line.write({'tax_ids': [(6, 0, line_tax_ids.ids)]})
-        if new_moves and (fields.Date.from_string(new_moves.invoice_date) - fields.Date.context_today(self)).days > 30:
-            tax_name = 'percepción iibb'
-            for line in new_moves.invoice_line_ids:
-                line_tax_ids = line.tax_ids.filtered(lambda t: tax_name not in (t.name or '').lower())
-                if line_tax_ids:
-                    line.write({'tax_ids': [(6, 0, line_tax_ids.ids)]})
+        else:
+            if new_moves and (fields.Date.from_string(new_moves.invoice_date) - fields.Date.context_today(self)).days > 30:
+                tax_name = 'percepción iibb'
+                for line in new_moves.invoice_line_ids:
+                    line_tax_ids = line.tax_ids.filtered(lambda t: tax_name not in (t.name or '').lower())
+                    if line_tax_ids:
+                        line.write({'tax_ids': [(6, 0, line_tax_ids.ids)]})
         new_moves.update_taxes()
         return action
 
