@@ -749,8 +749,8 @@ class AccountMoveReversalInherit(models.TransientModel):
 
     def reverse_moves(self):
         action = super().reverse_moves()
+        new_moves = self.new_move_ids
         if self.refund_method == 'refund':
-            new_moves = self.new_move_ids
             if not new_moves:
                 return action
             tax_name = 'percepción iibb'
