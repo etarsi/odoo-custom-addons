@@ -747,7 +747,6 @@ class AccountPaymentInherit(models.TransientModel):
 class AccountMoveReversalInherit(models.TransientModel):
     _inherit = 'account.move.reversal'
 
-    @api.model
     def reverse_moves(self):
         context = dict(self._context or {})
         active_id = context.get("active_id", False)
@@ -765,8 +764,8 @@ class AccountMoveReversalInherit(models.TransientModel):
                 rec.update(
                     {"selectable_invoice_lines_ids": [(6, 0, line_ids.ids)]}
                 )
-        rec = super(AccountMoveReversalInherit, self).reverse_moves()
-        return rec
+        res = super().reverse_moves()
+        return res
 
 class ResPartner(models.Model):
     _inherit = 'res.partner'
