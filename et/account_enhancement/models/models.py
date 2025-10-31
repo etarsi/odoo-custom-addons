@@ -747,24 +747,19 @@ class AccountPaymentInherit(models.TransientModel):
 class AccountMoveReversalInherit(models.TransientModel):
     _inherit = 'account.move.reversal'
 
-    def reverse_moves(self):
-        context = dict(self._context or {})
-        active_id = context.get("active_id", False)
-        _logger.info("Active ID in context: %s", active_id)
-        _logger.info("Refund Method: %s", self.refund_method)
-        if active_id:
-            inv = self.env["account.move"].browse(active_id)
-            if self.refund_method == 'refund' and inv:
-                #quitar en cada linea el impuesto de Percepción de IIBB CABA Aplicada
-                tax_name = 'percepción iibb'
-                line_ids = inv.invoice_line_ids.filtered(
-                    lambda l: any(tax_name in (t.name or '').lower() for t in l.tax_ids)
-                )
-                self.write(
-                    {"selectable_invoice_lines_ids": [(6, 0, line_ids.ids)]}
-                )
-        res = super().reverse_moves()
-        return res
+    def reverse_moves(self, is_modify=False):
+        action = super().reverse_moves(is_modify=is_modify)
+        new_moves = self.new_move_ids
+        if not new_moves:
+            return action
+        tax_name = 'percepción iibb'
+        product_lines = new_moves.mapped('invoice_line_ids').filtered(lambda l: any(tax_name in (t.name or '').lower() for t in l.tax_ids))
+        if product_lines:
+            product_lines.write({'invoice_line_ids': [(6, 0, product_lines.ids)]})
+        for move in new_moves:
+            move.line_ids.filtered('tax_repartition_line_id').unlink()
+            move._recompute_dynamic_lines(recompute_all_taxes=True)
+        return action
 
 class ResPartner(models.Model):
     _inherit = 'res.partner'
