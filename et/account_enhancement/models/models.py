@@ -788,3 +788,13 @@ class ResPartner(models.Model):
             'default_move_type': 'out_invoice',
         }
         return action
+
+class AccountJournalInherit(models.Model):
+    _inherit = 'account.journal'
+
+    @api.depends("l10n_ar_afip_pos_system")
+    def _compute_afip_ws(self):
+        """Depending on AFIP POS System selected set the proper AFIP WS"""
+        type_mapping = self._get_type_mapping()
+        for rec in self:
+            rec.afip_ws = False
