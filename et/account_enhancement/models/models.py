@@ -4,7 +4,7 @@ from collections import OrderedDict
 from dateutil.relativedelta import relativedelta
 from odoo.exceptions import AccessError, UserError, ValidationError
 import logging, json
-from datetime import date
+from datetime import date, datetime
 from odoo.tools.misc import format_date, format_amount
 from odoo.tools.float_utils import float_compare
 _logger = logging.getLogger(__name__)
@@ -759,7 +759,7 @@ class AccountMoveReversalInherit(models.TransientModel):
                 if line_tax_ids:
                     line.write({'tax_ids': [(6, 0, line_tax_ids.ids)]})
         else:
-            if new_moves and (fields.Date.from_string(new_moves.invoice_date) - fields.Date.context_today(self)).days > 30:
+            if new_moves and (new_moves.invoice_date - fields.Date.context_today(self)).days > 30:
                 tax_name = 'percepción iibb'
                 for line in new_moves.invoice_line_ids:
                     line_tax_ids = line.tax_ids.filtered(lambda t: tax_name not in (t.name or '').lower())
