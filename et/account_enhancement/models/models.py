@@ -760,9 +760,6 @@ class AccountMoveReversalInherit(models.TransientModel):
                 line_tax_ids = line.tax_ids.filtered(lambda t: tax_name not in (t.name or '').lower())
                 if line_tax_ids:
                     line.write({'tax_ids': [(6, 0, line_tax_ids.ids)]})
-            for move in new_moves:
-                move.line_ids.filtered('tax_repartition_line_id').unlink()
-                move._recompute_dynamic_lines(recompute_all_taxes=True)
         return action
 
 class ResPartner(models.Model):
