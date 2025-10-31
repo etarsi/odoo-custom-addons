@@ -760,7 +760,7 @@ class AccountMoveReversalInherit(models.TransientModel):
                 line_ids = inv.invoice_line_ids.filtered(
                     lambda l: any(tax_name in (t.name or '').lower() for t in l.tax_ids)
                 )
-                res.update(
+                self.write(
                     {"selectable_invoice_lines_ids": [(6, 0, line_ids.ids)]}
                 )
         res = super().reverse_moves()
