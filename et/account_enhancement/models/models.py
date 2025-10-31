@@ -747,9 +747,11 @@ class AccountPaymentInherit(models.TransientModel):
 class AccountMoveReversalInherit(models.TransientModel):
     _inherit = 'account.move.reversal'
 
-    def reverse_moves(self, is_modify=False):
-        action = super().reverse_moves(is_modify=is_modify)
+    def reverse_moves(self):
+        action = super().reverse_moves()
         if self.refund_method == 'refund':
+            _logger.info("AccountMoveReversalInherit.reverse_moves - recomputing taxes for new moves")
+            _logger.info("AccountMoveReversalInherit.reverse_moves - new_move_ids: %s", self.new_move_ids.ids)
             new_moves = self.new_move_ids
             if not new_moves:
                 return action
