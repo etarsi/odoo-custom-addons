@@ -750,6 +750,8 @@ class AccountMoveReversalInherit(models.TransientModel):
     def reverse_moves(self):
         action = super().reverse_moves()
         new_moves = self.new_move_ids
+        today = fields.Date.context_today(self)
+        invoice_date = new_moves.invoice_date if new_moves else None
         if self.refund_method == 'refund':
             if not new_moves:
                 return action
@@ -759,7 +761,7 @@ class AccountMoveReversalInherit(models.TransientModel):
                 if line_tax_ids:
                     line.write({'tax_ids': [(6, 0, line_tax_ids.ids)]})
         else:
-            if new_moves and (new_moves.invoice_date - fields.Date.context_today(self)).days > 30:
+            if invoice_date and (invoice_date - today).days > 30:
                 tax_name = 'percepción iibb'
                 for line in new_moves.invoice_line_ids:
                     line_tax_ids = line.tax_ids.filtered(lambda t: tax_name not in (t.name or '').lower())
