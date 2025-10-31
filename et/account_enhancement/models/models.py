@@ -752,25 +752,27 @@ class AccountMoveReversalInherit(models.TransientModel):
         new_moves = self.new_move_ids
         _logger.info("NUEVAS FACTURAS: %s", self.new_move_ids)
         today = fields.Date.context_today(self)
-        invoice_date = new_moves.invoice_date if new_moves else None
-        if self.refund_method == 'refund':
-            if not new_moves:
-                return action
-            tax_name = 'percepción iibb'
-            for line in new_moves.invoice_line_ids:
-                line_tax_ids = line.tax_ids.filtered(lambda t: tax_name not in (t.name or '').lower())
-                if line_tax_ids:
-                    line.write({'tax_ids': [(6, 0, line_tax_ids.ids)]})
-        else:
-            if invoice_date and (today - invoice_date).days > 30:
+        for new_move in new_moves:
+            _logger.info("Nueva factura: %s - Fecha: %s", new_move.name, new_move.invoice_date)
+            invoice_date = new_move.invoice_date if new_move else None
+            if self.refund_method == 'refund':
+                if not new_move:
+                    return action
                 tax_name = 'percepción iibb'
-                for line in new_moves.invoice_line_ids:
+                for line in new_move.invoice_line_ids:
                     line_tax_ids = line.tax_ids.filtered(lambda t: tax_name not in (t.name or '').lower())
                     if line_tax_ids:
                         line.write({'tax_ids': [(6, 0, line_tax_ids.ids)]})
             else:
-                _logger.info("No se modifican impuestos en nota de crédito por fecha o método de reembolso")
-        new_moves.update_taxes()
+                if invoice_date and (today - invoice_date).days > 30:
+                    tax_name = 'percepción iibb'
+                    for line in new_move.invoice_line_ids:
+                        line_tax_ids = line.tax_ids.filtered(lambda t: tax_name not in (t.name or '').lower())
+                        if line_tax_ids:
+                            line.write({'tax_ids': [(6, 0, line_tax_ids.ids)]})
+                else:
+                    _logger.info("No se modifican impuestos en nota de crédito por fecha o método de reembolso")
+            new_move.update_taxes()
         return action
 
 class ResPartner(models.Model):
