@@ -750,9 +750,8 @@ class AccountMoveReversalInherit(models.TransientModel):
     def reverse_moves(self):
         context = dict(self._context or {})
         active_id = context.get("active_id", False)
-        print("ACTIVE ID:", active_id)
-        print("refund_method:", self.refund_method)
-        print("FIELDS:", fields)
+        _logger.info("Active ID in context: %s", active_id)
+        _logger.info("Refund Method: %s", self.refund_method)
         if active_id:
             inv = self.env["account.move"].browse(active_id)
             if self.refund_method == 'refund' and inv:
@@ -761,7 +760,7 @@ class AccountMoveReversalInherit(models.TransientModel):
                 line_ids = inv.invoice_line_ids.filtered(
                     lambda l: any(tax_name in (t.name or '').lower() for t in l.tax_ids)
                 )
-                rec.update(
+                res.update(
                     {"selectable_invoice_lines_ids": [(6, 0, line_ids.ids)]}
                 )
         res = super().reverse_moves()
