@@ -752,6 +752,9 @@ class AccountMoveReversalInherit(models.TransientModel):
         rec = super(AccountMoveReversalInherit, self).default_get(fields)
         context = dict(self._context or {})
         active_id = context.get("active_id", False)
+        print("ACTIVE ID:", active_id)
+        print("refund_method:", self.refund_method)
+        print("FIELDS:", fields)
         if active_id:
             inv = self.env["account.move"].browse(active_id)
             if self.refund_method == 'refund' and inv:
