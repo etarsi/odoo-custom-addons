@@ -756,12 +756,10 @@ class AccountMoveReversalInherit(models.TransientModel):
             if not new_moves:
                 return action
             tax_name = 'percepción iibb'
-            product_lines = new_moves.mapped('invoice_line_ids').filtered(lambda l: any(tax_name in (t.name or '').lower() for t in l.tax_ids))
-            if product_lines:
-                new_moves.write({'invoice_line_ids': [(6, 0, product_lines.ids)]})
-            for move in new_moves:
-                move.line_ids.filtered('tax_repartition_line_id').unlink()
-                move._recompute_dynamic_lines(recompute_all_taxes=True)
+            for line in new_moves.invoice_line_ids:
+                line_tax_ids = line.tax_ids.filtered(lambda t: tax_name in (t.name or '').lower())
+                if line_tax_ids:
+                    line.write({'tax_ids': [(6, 0, line_tax_ids.ids)]})
         return action
 
 class ResPartner(models.Model):
