@@ -747,39 +747,24 @@ class AccountPaymentInherit(models.TransientModel):
 class AccountMoveReversalInherit(models.TransientModel):
     _inherit = 'account.move.reversal'
 
+    @api.model
+    def default_get(self, fields):
+        rec = super(AccountMoveReversalInherit, self).default_get(fields)
+        context = dict(self._context or {})
+        active_id = context.get("active_id", False)
+        if active_id:
+            inv = self.env["account.move"].browse(active_id)
+            if self.refund_method == 'refund' and inv:
+                #quitar en cada linea el impuesto de Percepción de IIBB CABA Aplicada
+                tax_name = 'percepción iibb'
+                line_ids = inv.invoice_line_ids.filtered(
+                    lambda l: any(tax_name in (t.name or '').lower() for t in l.tax_ids)
+                )
+                rec.update(
+                    {"selectable_invoice_lines_ids": [(6, 0, line_ids.ids)]}
+                )
+        return rec
 
-    # def _prepare_default_reversal(self, move):
-    #     vals = super()._prepare_default_reversal(move)
-    #     # Forzamos borrador sí o sí
-    #     vals['auto_post'] = False
-    #     vals['state'] = 'draft'
-    #     # Opcional: filtrar percepciones aquí también, como antes
-    #     invoice_lines = []
-    #     if move.is_invoice(include_receipts=True) and move.move_type == 'out_refund':
-    #         for line in move.invoice_line_ids:
-    #             new_line_vals = line.copy_data()[0]
-    #             tax_ids = new_line_vals.get('tax_ids', [])
-    #             if tax_ids:
-    #                 percep_ids = self.env['account.tax'].search([('name', 'ilike', 'perc')]).ids
-    #                 if tax_ids and isinstance(tax_ids[0], (list, tuple)):
-    #                     tid_list = tax_ids[0][2]
-    #                 else:
-    #                     tid_list = tax_ids
-    #                 new_line_vals['tax_ids'] = [(6, 0, [tid for tid in tid_list if tid not in percep_ids])]
-    #             invoice_lines.append((0, 0, new_line_vals))
-    #         vals['invoice_line_ids'] = invoice_lines
-    #     return vals
-
-    # def reverse_moves(self):
-    #     res = super().reverse_moves()
-    #     for move in self.new_move_ids:
-    #         # Limpiá percepciones si quedara alguna
-    #         for line in move.invoice_line_ids:
-    #             line.tax_ids = line.tax_ids.filtered(lambda t: not t.name.lower().startswith('perc'))
-    #         # Ahora publicá (posteá) la NC, así se va a AFIP
-    #         move.action_post()
-    #     return res
-    
 class ResPartner(models.Model):
     _inherit = 'res.partner'
 
