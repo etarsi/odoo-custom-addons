@@ -750,6 +750,7 @@ class AccountMoveReversalInherit(models.TransientModel):
     def reverse_moves(self):
         action = super().reverse_moves()
         new_moves = self.new_move_ids
+        _logger.info("NUEVAS FACTURAS: %s", self.new_move_ids)
         today = fields.Date.context_today(self)
         invoice_date = new_moves.invoice_date if new_moves else None
         if self.refund_method == 'refund':
