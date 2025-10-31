@@ -761,12 +761,14 @@ class AccountMoveReversalInherit(models.TransientModel):
                 if line_tax_ids:
                     line.write({'tax_ids': [(6, 0, line_tax_ids.ids)]})
         else:
-            if invoice_date and (invoice_date - today).days > 30:
+            if invoice_date and (today - invoice_date).days > 30:
                 tax_name = 'percepción iibb'
                 for line in new_moves.invoice_line_ids:
                     line_tax_ids = line.tax_ids.filtered(lambda t: tax_name not in (t.name or '').lower())
                     if line_tax_ids:
                         line.write({'tax_ids': [(6, 0, line_tax_ids.ids)]})
+            else:
+                _logger.info("No se modifican impuestos en nota de crédito por fecha o método de reembolso")
         new_moves.update_taxes()
         return action
 
