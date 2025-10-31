@@ -749,16 +749,17 @@ class AccountMoveReversalInherit(models.TransientModel):
 
     def reverse_moves(self, is_modify=False):
         action = super().reverse_moves(is_modify=is_modify)
-        new_moves = self.new_move_ids
-        if not new_moves:
-            return action
-        tax_name = 'percepción iibb'
-        product_lines = new_moves.mapped('invoice_line_ids').filtered(lambda l: any(tax_name in (t.name or '').lower() for t in l.tax_ids))
-        if product_lines:
-            product_lines.write({'invoice_line_ids': [(6, 0, product_lines.ids)]})
-        for move in new_moves:
-            move.line_ids.filtered('tax_repartition_line_id').unlink()
-            move._recompute_dynamic_lines(recompute_all_taxes=True)
+        if self.refund_method == 'refund':
+            new_moves = self.new_move_ids
+            if not new_moves:
+                return action
+            tax_name = 'percepción iibb'
+            product_lines = new_moves.mapped('invoice_line_ids').filtered(lambda l: any(tax_name in (t.name or '').lower() for t in l.tax_ids))
+            if product_lines:
+                product_lines.write({'invoice_line_ids': [(6, 0, product_lines.ids)]})
+            for move in new_moves:
+                move.line_ids.filtered('tax_repartition_line_id').unlink()
+                move._recompute_dynamic_lines(recompute_all_taxes=True)
         return action
 
 class ResPartner(models.Model):
