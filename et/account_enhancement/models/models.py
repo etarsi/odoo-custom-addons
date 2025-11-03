@@ -791,18 +791,10 @@ class AccountMoveReversalInherit(models.TransientModel):
             if self.refund_method == 'refund':
                 if not new_move:
                     return action
-                tax_name = 'percepción iibb'
-                for line in new_move.invoice_line_ids:
-                    line_tax_ids = line.tax_ids.filtered(lambda t: tax_name not in (t.name or '').lower())
-                    if line_tax_ids:
-                        line.write({'tax_ids': [(6, 0, line_tax_ids.ids)]})
+                self._delete_impuestos_perceppcion_iibb(new_move)
             else:
                 if int(rango_fecha) > 30:
-                    tax_name = 'percepción iibb'
-                    for line in new_move.invoice_line_ids:
-                        line_tax_ids = line.tax_ids.filtered(lambda t: tax_name not in (t.name or '').lower())
-                        if line_tax_ids:
-                            line.write({'tax_ids': [(6, 0, line_tax_ids.ids)]})
+                    self._delete_impuestos_perceppcion_iibb(new_move)
             new_move.update_taxes()
         return action
     
