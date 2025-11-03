@@ -22,8 +22,9 @@
         <field name="arch" type="xml">
             <tree create="false" edit="false" delete="true">
                 <field name="product_id"/>
-                <field name="download_mark"/>
+                <field name="date"/>
                 <field name="description"/>
+                <field name="download_mark"/>
             </tree>
         </field>
     </record>
