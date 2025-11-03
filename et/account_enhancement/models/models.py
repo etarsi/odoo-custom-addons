@@ -766,7 +766,7 @@ class AccountMoveReversalInherit(models.TransientModel):
         invoice_date = None
         for move in self.move_ids:
             invoice_date = move.invoice_date
-
+        _logger.info("FECHA FACTURA ORIGINAL: %s", invoice_date)
         if credit_notes:
             _logger.info("NOTAS DE CRÉDITO RELACIONADAS: %s", credit_notes)
             _logger.info("NOTA DE CREDITO ESTADO: %s", credit_notes.state)
