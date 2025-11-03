@@ -6,6 +6,9 @@ import logging
 import zipfile
 from datetime import datetime
 
+from googleapiclient.errors import HttpError
+import unicodedata
+from functools import lru_cache
 from google.oauth2 import service_account
 from googleapiclient.discovery import build
 from googleapiclient.http import MediaIoBaseDownload
@@ -23,6 +26,10 @@ def _is_image(file_obj):
     name = (file_obj.get("name") or "").lower()
     return (mime in ALLOWED_IMAGE_MIMES) or name.endswith(ALLOWED_IMAGE_EXTS)
 
+def _nfc(s):
+    """Normaliza Unicode (acentos/ñ) para comparaciones en Python."""
+    return unicodedata.normalize("NFC", s or "")
+
 class ProductTemplate(models.Model):
     _inherit = "product.template"
 
@@ -33,10 +40,43 @@ class ProductTemplate(models.Model):
 
     # --------- Google Drive helpers ---------
     def _build_gdrive_service(self):
-        sa_path = "/opt/odoo15/drive-api/service_account.json"  # tu ruta fija
+        sa_path = "/opt/odoo15/drive-api/service_account.json"
         scopes = ["https://www.googleapis.com/auth/drive.readonly"]
         creds = service_account.Credentials.from_service_account_file(sa_path, scopes=scopes)
         return build("drive", "v3", credentials=creds, cache_discovery=False)
+
+    @lru_cache(maxsize=4096)
+    def _get_parents_cached(self, service, file_id):
+        """Devuelve la lista de padres (IDs) de un file/folder, cacheado."""
+        try:
+            meta = service.files().get(
+                fileId=file_id,
+                fields="parents",
+                supportsAllDrives=True,
+            ).execute()
+        except HttpError:
+            return []
+        return meta.get("parents", []) or []
+
+    def _is_descendant_of(self, service, folder_id, ancestor_id):
+        """
+        True si folder_id es la misma que ancestor_id o está debajo (en cualquier nivel).
+        Recorre padres hacia arriba (My Drive o Shared Drive) usando 'parents'.
+        """
+        seen = set()
+        current = [folder_id]
+        while current:
+            nxt = []
+            for fid in current:
+                if fid in seen:
+                    continue
+                seen.add(fid)
+                if fid == ancestor_id:
+                    return True
+                parents = self._get_parents_cached(service, fid)
+                nxt.extend(parents)
+            current = nxt
+        return False
 
     def _gdrive_list_folder_items(self, service, folder_id):
         items = []
@@ -74,43 +114,79 @@ class ProductTemplate(models.Model):
         return file_obj
 
     def _find_subfolder_for_code(self, service, main_folder_id, code):
-        code_str = (code or "").strip()
+        """
+        Busca carpetas por nombre en TODO el Drive (incluye Shared Drives y shortcuts),
+        y filtra solo las que sean descendientes de main_folder_id.
+        Devuelve el mejor match usando un scoring similar al tuyo.
+        """
+        code_str = _nfc((code or "").strip())
         if not code_str:
             return None
 
-        # ESCAPAR comillas simples en el nombre para la query de Drive
-        code_escaped = code_str.replace("'", r"\'")
+        def _search_folders(name, exact):
+            # Incluimos shortcuts y luego resolvemos si apuntan a carpeta
+            op = "=" if exact else "contains"
+            name_q = name.replace("'", r"\'")
+            q = (
+                "trashed=false and ("
+                f"(mimeType='application/vnd.google-apps.folder' and name {op} '{name_q}') "
+                "or "
+                f"(mimeType='application/vnd.google-apps.shortcut' and name {op} '{name_q}')"
+                ")"
+            )
+            results = []
+            page_token = None
+            while True:
+                resp = service.files().list(
+                    q=q,
+                    fields=("nextPageToken, files("
+                            "id,name,mimeType,parents,"
+                            "shortcutDetails(targetId,targetMimeType))"),
+                    pageSize=200,
+                    pageToken=page_token,
+                    supportsAllDrives=True,
+                    includeItemsFromAllDrives=True,
+                ).execute()
+                results.extend(resp.get("files", []))
+                page_token = resp.get("nextPageToken")
+                if not page_token:
+                    break
+            return results
 
-        # IMPORTANTE: el folder_id debe ir ENTRE COMILLAS en la query
-        q = (
-            f"'{main_folder_id}' in parents and trashed=false "
-            f"and mimeType='application/vnd.google-apps.folder' "
-            f"and name contains '{code_escaped}'"
-        )
-        _logger.debug("Drive list (buscando subcarpeta por código) q=%s", q)
-
-        folders = []
-        page_token = None
-        while True:
-            resp = service.files().list(
-                q=q,
-                fields="nextPageToken, files(id, name, mimeType)",
-                pageSize=100,
-                pageToken=page_token,
-                supportsAllDrives=True,
-                includeItemsFromAllDrives=True,
-            ).execute()
-            folders.extend(resp.get("files", []))
-            page_token = resp.get("nextPageToken")
-            if not page_token:
-                break
-
-        if not folders:
+        def _candidate_real_folder_id(file_obj):
+            mt = file_obj.get("mimeType")
+            if mt == "application/vnd.google-apps.folder":
+                return file_obj["id"]
+            if mt == "application/vnd.google-apps.shortcut":
+                sd = (file_obj.get("shortcutDetails") or {})
+                if sd.get("targetMimeType") == "application/vnd.google-apps.folder":
+                    return sd.get("targetId")  # puede ser None si faltan permisos
             return None
 
-        # Scoring: exact == 3, startswith == 2, contains == 1; luego por nombre más corto
+        candidates = []
+        # 1) Primero exactos, luego contains
+        for exact in (True, False):
+            found = _search_folders(code_str, exact)
+            for f in found:
+                real_id = _candidate_real_folder_id(f)
+                if not real_id:
+                    continue
+                # Filtrar para quedarnos solo con las que estén debajo de main_folder_id
+                if self._is_descendant_of(service, real_id, main_folder_id):
+                    # Para el scoring usamos el 'name' visible del file (shortcut o folder)
+                    candidates.append({
+                        "id": real_id,
+                        "name": f.get("name"),
+                    })
+            if candidates:
+                break
+
+        if not candidates:
+            return None
+
+        # Scoring: exact == 3, empieza con "<code> " o "<code>-" o "<code>_" == 2, contains == 1
         def score(f):
-            name = (f.get("name") or "").strip()
+            name = _nfc(f.get("name") or "")
             if name == code_str:
                 return (3, -len(name))
             if name.lower().startswith((code_str + " ").lower()) \
@@ -119,11 +195,9 @@ class ProductTemplate(models.Model):
                 return (2, -len(name))
             return (1, -len(name))
 
-        folders.sort(key=score, reverse=True)
-        best = folders[0]
-        if best and (best.get("name") or "").strip() != code_str:
-            _logger.info("Subcarpeta elegida por coincidencia parcial: %s (code=%s)", best.get("name"), code_str)
-        return best
+        candidates.sort(key=score, reverse=True)
+        # Devolvemos con el formato que espera tu código (dict con id y name)
+        return {"id": candidates[0]["id"], "name": candidates[0]["name"]}
 
     # --------- Acción: ZIP por default_code ---------
     def action_zip_by_default_code_from_main_folder(self):
@@ -185,16 +259,16 @@ class ProductTemplate(models.Model):
                     main_id = (sheet_drive_folder_path or "").strip()
                     if not main_id:
                         _logger.info("No está configurado el ID de la carpeta principal en Drive (Settings > Configuración de Google Drive).")
-                        raise UserError(_("Se produjo un error al obtener las imagenes, por favor contáctese a soporte."))
+                        raise UserError(_("No está configurado el ID de la carpeta principal en Drive (Settings > Configuración de Google Drive)."))
                     code = (tmpl.default_code or "").strip()
                     if not code:
                         _logger.info("No está configurado el default_code para el producto '%s'." % tmpl.display_name)
-                        raise UserError(_("Se produjo un error al obtener las imagenes, por favor contáctese a soporte."))
+                        raise UserError(_("No está configurado el default_code para el producto '%s'." % tmpl.display_name))
 
                     sub = self._find_subfolder_for_code(service, main_id, code)
                     if not sub:
                         _logger.info("No se encontró subcarpeta para el código '%s' dentro de la carpeta principal." % code)
-                        raise UserError(_("Se produjo un error al obtener las imagenes, por favor contáctese a soporte."))
+                        raise UserError(_("No se encontró subcarpeta para el código '%s' dentro de la carpeta principal." % code))
                     target_folder_id = sub["id"]
                     root_prefix = (sub.get("name") or code).strip().replace("/", "_")
                 else:
@@ -205,23 +279,22 @@ class ProductTemplate(models.Model):
                 main_id = (sheet_drive_folder_path or "").strip()
                 if not main_id:
                     _logger.info("No está configurado el ID de la carpeta principal en Drive (Settings > Configuración de Google Drive).")
-                    raise UserError(_("Se produjo un error al obtener las imagenes, por favor contáctese a soporte."))
+                    raise UserError(_("No está configurado el ID de la carpeta principal en Drive (Settings > Configuración de Google Drive)."))
                 code = (tmpl.default_code or "").strip()
                 if not code:
                     _logger.info("No está configurado el default_code para el producto '%s'." % tmpl.display_name)
-                    raise UserError(_("Se produjo un error al obtener las imagenes, por favor contáctese a soporte."))
+                    raise UserError(_("No está configurado el default_code para el producto '%s'." % tmpl.display_name))
 
                 sub = self._find_subfolder_for_code(service, main_id, code)
                 if not sub:
                     _logger.info("No se encontró subcarpeta para el código '%s' dentro de la carpeta principal." % code)
-                    raise UserError(_("Se produjo un error al obtener las imagenes, por favor contáctese a soporte."))
+                    raise UserError(_("No se encontró subcarpeta para el código '%s' dentro de la carpeta principal." % code))
                 target_folder_id = sub["id"]
                 root_prefix = (sub.get("name") or code).strip().replace("/", "_")   
             # Armar ZIP SOLO de esa subcarpeta
             mem = io.BytesIO()
             with zipfile.ZipFile(mem, mode="w", compression=zipfile.ZIP_STORED) as zipf:
-                root_prefix = (sub.get("name") or code).strip().replace("/", "_")
-                _walk_and_zip(zipf, sub["id"], root_prefix)
+                _walk_and_zip(zipf, target_folder_id, root_prefix)
             mem.seek(0)
             data_b64 = base64.b64encode(mem.getvalue()).decode()
             zip_name = f"{(tmpl.name or code).strip().replace('/', '_')}_imagenes.zip"
