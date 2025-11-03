@@ -14,7 +14,7 @@
     'website': "http://www.one.sebigus.com.ar",
     'category': 'Uncategorized',
     'version': '0.1',
-    'depends': ['base', 'web', 'website', 'product', 'base_setup'],
+    'depends': ['base', 'web', 'website', 'product', 'base_setup', 'stock'],
 
     # always loaded
     'data': [
@@ -25,6 +25,8 @@
         'views/shop_gate.xml',
         'views/views.xml',
         'views/res_config_views.xml',
+        'views/product_download_mark_views.xml',
+        'views/menu_stock.xml',
         'views/templates.xml',
     ],
     'demo': [

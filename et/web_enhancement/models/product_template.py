@@ -199,6 +199,14 @@ class ProductTemplate(models.Model):
         # Devolvemos con el formato que espera tu código (dict con id y name)
         return {"id": candidates[0]["id"], "name": candidates[0]["name"]}
 
+    def _create_product_download_mark(self, description=None):
+        self.env['product.download.mark'].create({
+            'product_id': self.id,
+            'download_mark': True,
+            'description': description,
+            'date': datetime.now(),
+        })
+
     # --------- Acción: ZIP por default_code ---------
     def action_zip_by_default_code_from_main_folder(self):
         self.ensure_one()
@@ -208,6 +216,8 @@ class ProductTemplate(models.Model):
         sheet_drive_folder_path = self.env['ir.config_parameter'].get_param('web_enhancement.sheet_drive_folder_path')
         if not sheet_drive_folder_path:
             _logger.info("No está configurado el ID de la carpeta principal en Drive (Settings > Configuración de Google Drive).")
+            #crear un registro en el product download mark
+            self._create_product_download_mark(description="No está configurado el ID de la carpeta principal en Drive (Settings > Configuración de Google Drive).")
             raise UserError(_("Se produjo un error al obtener las imagenes, por favor contáctese a soporte."))
         
         def _add_file_to_zip(zipf, file_obj, arc_prefix):
@@ -258,15 +268,18 @@ class ProductTemplate(models.Model):
                 if not sub:
                     main_id = (sheet_drive_folder_path or "").strip()
                     if not main_id:
+                        self._create_product_download_mark(description="No está configurado el ID de la carpeta principal en Drive (Settings > Configuración de Google Drive).")
                         _logger.info("No está configurado el ID de la carpeta principal en Drive (Settings > Configuración de Google Drive).")
                         raise UserError(_("No está configurado el ID de la carpeta principal en Drive (Settings > Configuración de Google Drive)."))
                     code = (tmpl.default_code or "").strip()
                     if not code:
+                        self._create_product_download_mark(description="No está configurado el default_code para el producto '%s'." % tmpl.display_name)
                         _logger.info("No está configurado el default_code para el producto '%s'." % tmpl.display_name)
                         raise UserError(_("No está configurado el default_code para el producto '%s'." % tmpl.display_name))
 
                     sub = self._find_subfolder_for_code(service, main_id, code)
                     if not sub:
+                        self._create_product_download_mark(description="No se encontró subcarpeta para el código '%s' dentro de la carpeta principal." % code)
                         _logger.info("No se encontró subcarpeta para el código '%s' dentro de la carpeta principal." % code)
                         raise UserError(_("No se encontró subcarpeta para el código '%s' dentro de la carpeta principal." % code))
                     target_folder_id = sub["id"]
@@ -278,15 +291,18 @@ class ProductTemplate(models.Model):
                 # Caso 2: usar carpeta principal global y buscar subcarpeta por default_code
                 main_id = (sheet_drive_folder_path or "").strip()
                 if not main_id:
+                    self._create_product_download_mark(description="No está configurado el ID de la carpeta principal en Drive (Settings > Configuración de Google Drive).")
                     _logger.info("No está configurado el ID de la carpeta principal en Drive (Settings > Configuración de Google Drive).")
                     raise UserError(_("No está configurado el ID de la carpeta principal en Drive (Settings > Configuración de Google Drive)."))
                 code = (tmpl.default_code or "").strip()
                 if not code:
+                    self._create_product_download_mark(description="No está configurado el default_code para el producto '%s'." % tmpl.display_name)
                     _logger.info("No está configurado el default_code para el producto '%s'." % tmpl.display_name)
                     raise UserError(_("No está configurado el default_code para el producto '%s'." % tmpl.display_name))
 
                 sub = self._find_subfolder_for_code(service, main_id, code)
                 if not sub:
+                    self._create_product_download_mark(description="No se encontró subcarpeta para el código '%s' dentro de la carpeta principal." % code)
                     _logger.info("No se encontró subcarpeta para el código '%s' dentro de la carpeta principal." % code)
                     raise UserError(_("No se encontró subcarpeta para el código '%s' dentro de la carpeta principal." % code))
                 target_folder_id = sub["id"]

@@ -1,0 +1,8 @@
+<odoo>
+    <menuitem id="menu_marketing" name="Marketing" 
+                parent="stock.menu_stock_root"  sequence="30"/>
+    <menuitem id="menu_stock_download_image" 
+                name="Productos que faltan Imagenes" parent="menu_marketing" 
+                action="action_product_download_mark"
+                sequence="10"/>
+</odoo>

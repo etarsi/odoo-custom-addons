@@ -1,2 +1,3 @@
 id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
 access_web_enhancement_web_enhancement,web_enhancement.web_enhancement,model_web_enhancement_web_enhancement,base.group_user,1,1,1,1
+access_web_enhancement_product_download_mark,web_enhancement.product_download_mark,model_web_enhancement_product_download_mark,base.group_user,1,1,1,1

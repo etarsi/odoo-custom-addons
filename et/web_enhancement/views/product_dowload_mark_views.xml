@@ -1,0 +1,41 @@
+<?xml version='1.0' encoding='utf-8'?>
+<odoo>
+    <record id="product_download_mark_views" model="ir.ui.view">
+        <field name="name">product.download.mark.form</field>
+        <field name="model">product.download.mark</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group>
+                        <field name="product_id"/>
+                        <field name="download_mark"/>
+                        <field name="description"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="product_download_mark_tree_view" model="ir.ui.view">
+        <field name="name">product.download.mark.tree</field>
+        <field name="model">product.download.mark</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="product_id"/>
+                <field name="download_mark"/>
+                <field name="description"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="action_product_download_mark" model="ir.actions.act_window">
+        <field name="name">Productos que faltan Imagenes</field>
+        <field name="res_model">product.download.mark</field>
+        <field name="view_mode">tree,form</field>
+        <field name="help" type="html">
+            <p class="oe_view_nocontent_create">
+                Crea registros de productos que no tienen imagenes.
+            </p>
+        </field>
+    </record>
+</odoo>
