@@ -760,7 +760,7 @@ class AccountMoveReversalInherit(models.TransientModel):
         today = fields.Date.context_today(self)
         credit_notes = self.env['account.move'].search([
             ('reversed_entry_id', 'in', self.move_ids.ids),
-            ('move_type', 'in', ('out_refund', 'in_refund')),
+            ('move_type', 'in', ('out_refund')),
         ], limit=1)
 
         invoice_date = None
@@ -770,7 +770,7 @@ class AccountMoveReversalInherit(models.TransientModel):
         _logger.info("FECHA FACTURA ORIGINAL: %s", invoice_date)
         _logger.info("HOY: %s", today)
         _logger.info("RANGO DE FECHA: %s", rango_fecha)
-        if credit_notes:
+        if credit_notes and self.refund_method == 'modify':
             _logger.info("NOTAS DE CRÉDITO RELACIONADAS: %s", credit_notes)
             _logger.info("NOTA DE CREDITO ESTADO: %s", credit_notes.state)
             if int(rango_fecha) > 30:
@@ -780,6 +780,20 @@ class AccountMoveReversalInherit(models.TransientModel):
                 credit_notes._compute_amount()
                 credit_notes.action_post()
                 _logger.info("NOTA DE CREDITO ESTADO: %s", credit_notes.state)
+                # Conciliación entre factura original y NC (para que cambie el payment_state)
+                for origin in self.move_ids:
+                    cns = credit_notes.filtered(lambda m: m.reversed_entry_id == origin and m.state == 'posted')
+                    if not cns:
+                        continue
+                    receiv_pay_lines = (origin.line_ids + cns.line_ids).filtered(
+                        lambda l: l.account_id.internal_type in ('receivable', 'payable') and not l.reconciled
+                    )
+                    if receiv_pay_lines:
+                        if hasattr(receiv_pay_lines, 'auto_reconcile_lines'):
+                            receiv_pay_lines.auto_reconcile_lines()
+                        else:
+                            receiv_pay_lines.reconcile()
+                
         for new_move in new_moves:
             _logger.info("Nueva factura: %s - Fecha: %s", new_move.name, new_move.invoice_date)
             invoice_date = new_move.invoice_date if new_move else None
