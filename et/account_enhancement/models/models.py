@@ -752,6 +752,13 @@ class AccountMoveReversalInherit(models.TransientModel):
         new_moves = self.new_move_ids
         _logger.info("NUEVAS FACTURAS: %s", self.new_move_ids)
         today = fields.Date.context_today(self)
+        credit_notes = self.env['account.move'].search([
+            ('reversed_entry_id', 'in', self.move_ids.ids),
+            ('move_type', 'in', ('out_refund', 'in_refund')),
+        ], limit=1)
+        if credit_notes:
+            _logger.info("NOTAS DE CRÉDITO RELACIONADAS: %s", credit_notes)
+            _logger.info("NOTA DE CREDITO ESTADO: %s", credit_notes.state)
         for new_move in new_moves:
             _logger.info("Nueva factura: %s - Fecha: %s", new_move.name, new_move.invoice_date)
             invoice_date = new_move.invoice_date if new_move else None
