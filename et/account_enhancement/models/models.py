@@ -762,9 +762,19 @@ class AccountMoveReversalInherit(models.TransientModel):
             ('reversed_entry_id', 'in', self.move_ids.ids),
             ('move_type', 'in', ('out_refund', 'in_refund')),
         ], limit=1)
+
+        invoice_date = None
+        for move in self.move_ids:
+            invoice_date = move.invoice_date
+
         if credit_notes:
             _logger.info("NOTAS DE CRÉDITO RELACIONADAS: %s", credit_notes)
             _logger.info("NOTA DE CREDITO ESTADO: %s", credit_notes.state)
+            if invoice_date and (today - invoice_date).days > 30:
+                self._delete_impuestos_perceppcion_iibb(credit_notes)
+                credit_notes.update_taxes()
+                credit_notes._compute_amount()
+                credit_notes.action_post()
         for new_move in new_moves:
             _logger.info("Nueva factura: %s - Fecha: %s", new_move.name, new_move.invoice_date)
             invoice_date = new_move.invoice_date if new_move else None
@@ -787,6 +797,13 @@ class AccountMoveReversalInherit(models.TransientModel):
                     _logger.info("No se modifican impuestos en nota de crédito por fecha o método de reembolso")
             new_move.update_taxes()
         return action
+    
+    def _delete_impuestos_perceppcion_iibb(self, move):
+        tax_name = 'percepción iibb'
+        for line in move.invoice_line_ids:
+            line_tax_ids = line.tax_ids.filtered(lambda t: tax_name not in (t.name or '').lower())
+            if line_tax_ids:
+                line.write({'tax_ids': [(6, 0, line_tax_ids.ids)]})
 
 class ResPartner(models.Model):
     _inherit = 'res.partner'
