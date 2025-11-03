@@ -760,8 +760,7 @@ class AccountMoveReversalInherit(models.TransientModel):
         today = fields.Date.context_today(self)
         credit_notes = self.env['account.move'].search([
             ('reversed_entry_id', 'in', self.move_ids.ids),
-            ('move_type', 'in', ('out_refund')),
-        ], limit=1)
+            ('move_type', '=', 'out_refund')], limit=1)
 
         invoice_date = None
         for move in self.move_ids:
