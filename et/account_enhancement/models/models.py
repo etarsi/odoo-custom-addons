@@ -766,11 +766,14 @@ class AccountMoveReversalInherit(models.TransientModel):
         invoice_date = None
         for move in self.move_ids:
             invoice_date = move.invoice_date
+        rango_fecha = invoice_date and (today - invoice_date).days
         _logger.info("FECHA FACTURA ORIGINAL: %s", invoice_date)
+        _logger.info("HOY: %s", today)
+        _logger.info("RANGO DE FECHA: %s", rango_fecha)
         if credit_notes:
             _logger.info("NOTAS DE CRÉDITO RELACIONADAS: %s", credit_notes)
             _logger.info("NOTA DE CREDITO ESTADO: %s", credit_notes.state)
-            if invoice_date and (today - invoice_date).days > 30:
+            if rango_fecha > 30:
                 self._delete_impuestos_perceppcion_iibb(credit_notes)
                 credit_notes.update_taxes()
                 credit_notes._compute_amount()
