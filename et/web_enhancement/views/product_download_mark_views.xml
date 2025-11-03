@@ -20,7 +20,7 @@
         <field name="name">product.download.mark.tree</field>
         <field name="model">product.download.mark</field>
         <field name="arch" type="xml">
-            <tree>
+            <tree create="false" edit="false" delete="true">
                 <field name="product_id"/>
                 <field name="download_mark"/>
                 <field name="description"/>
