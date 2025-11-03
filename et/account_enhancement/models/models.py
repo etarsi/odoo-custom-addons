@@ -826,12 +826,14 @@ class ResPartner(models.Model):
         }
         return action
 
-class AccountJournalInherit(models.Model):
-    _inherit = 'account.journal'
 
-    @api.depends("l10n_ar_afip_pos_system")
-    def _compute_afip_ws(self):
-        """Depending on AFIP POS System selected set the proper AFIP WS"""
-        type_mapping = self._get_type_mapping()
-        for rec in self:
-            rec.afip_ws = False
+#SOLO DEBERIA ESTAR ACTIVO PARA EL SERVIDOR DE TEST PARA HACER PRUEBAS CON AFIP
+#class AccountJournalInherit(models.Model):
+#    _inherit = 'account.journal'
+
+#    @api.depends("l10n_ar_afip_pos_system")
+#    def _compute_afip_ws(self):
+#        """Depending on AFIP POS System selected set the proper AFIP WS"""
+#        type_mapping = self._get_type_mapping()
+#        for rec in self:
+#            rec.afip_ws = False
