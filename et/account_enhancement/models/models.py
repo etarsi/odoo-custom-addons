@@ -774,10 +774,12 @@ class AccountMoveReversalInherit(models.TransientModel):
             _logger.info("NOTAS DE CRÉDITO RELACIONADAS: %s", credit_notes)
             _logger.info("NOTA DE CREDITO ESTADO: %s", credit_notes.state)
             if rango_fecha > 30:
+                _logger.info("El rango de fecha es mayor a 30 días, se eliminan impuestos de percepción iibb")
                 self._delete_impuestos_perceppcion_iibb(credit_notes)
                 credit_notes.update_taxes()
                 credit_notes._compute_amount()
                 credit_notes.action_post()
+                _logger.info("NOTA DE CREDITO ESTADO: %s", credit_notes.state)
         for new_move in new_moves:
             _logger.info("Nueva factura: %s - Fecha: %s", new_move.name, new_move.invoice_date)
             invoice_date = new_move.invoice_date if new_move else None
@@ -790,7 +792,7 @@ class AccountMoveReversalInherit(models.TransientModel):
                     if line_tax_ids:
                         line.write({'tax_ids': [(6, 0, line_tax_ids.ids)]})
             else:
-                if invoice_date and (today - invoice_date).days > 30:
+                if rango_fecha > 30:
                     tax_name = 'percepción iibb'
                     for line in new_move.invoice_line_ids:
                         line_tax_ids = line.tax_ids.filtered(lambda t: tax_name not in (t.name or '').lower())
