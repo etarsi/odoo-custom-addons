@@ -2,7 +2,7 @@ import csv
 
 # Archivos de entrada y salida
 archivo_contactos = 'contactos_odoo.csv'
-archivo_txt = '/opt/odoo15/odoo-custom-addos/et/custom_scripts/agip/noviembre/ARDJU008112025.TXT'
+archivo_txt = '/opt/odoo15/odoo-custom-addons/et/custom_scripts/agip/noviembre/ARDJU008112025.TXT'
 archivo_salida = 'coincidencias_agip.csv'
 
 def parse_float(valor):
