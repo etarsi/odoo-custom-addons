@@ -294,8 +294,7 @@ class ProductTemplate(models.Model):
             # Armar ZIP SOLO de esa subcarpeta
             mem = io.BytesIO()
             with zipfile.ZipFile(mem, mode="w", compression=zipfile.ZIP_STORED) as zipf:
-                root_prefix = (sub.get("name") or code).strip().replace("/", "_")
-                _walk_and_zip(zipf, sub["id"], root_prefix)
+                _walk_and_zip(zipf, target_folder_id, root_prefix)
             mem.seek(0)
             data_b64 = base64.b64encode(mem.getvalue()).decode()
             zip_name = f"{(tmpl.name or code).strip().replace('/', '_')}_imagenes.zip"
