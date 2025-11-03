@@ -779,8 +779,20 @@ class AccountMoveReversalInherit(models.TransientModel):
                 credit_notes._compute_amount()
                 credit_notes.action_post()
                 _logger.info("NOTA DE CREDITO ESTADO: %s", credit_notes.state)
-                credit_notes.write({'payment_state': 'reversed'})
-                
+                # Conciliación entre factura original y NC (para que cambie el payment_state)
+                for origin in self.move_ids:
+                    cns = credit_notes.filtered(lambda m: m.reversed_entry_id == origin and m.state == 'posted')
+                    if not cns:
+                        continue
+                    receiv_pay_lines = (origin.line_ids + cns.line_ids).filtered(
+                        lambda l: l.account_id.internal_type in ('receivable', 'payable') and not l.reconciled
+                    )
+                    if receiv_pay_lines:
+                        if hasattr(receiv_pay_lines, 'auto_reconcile_lines'):
+                            receiv_pay_lines.auto_reconcile_lines()
+                        else:
+                            receiv_pay_lines.reconcile()
+                    origin.write({'payment_state': 'reversed'})
         for new_move in new_moves:
             _logger.info("Nueva factura: %s - Fecha: %s", new_move.name, new_move.invoice_date)
             invoice_date = new_move.invoice_date if new_move else None
