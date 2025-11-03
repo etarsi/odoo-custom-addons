@@ -747,6 +747,12 @@ class AccountPaymentInherit(models.TransientModel):
 class AccountMoveReversalInherit(models.TransientModel):
     _inherit = 'account.move.reversal'
 
+
+    def _prepare_default_reversal(self, move):
+        vals = super()._prepare_default_reversal(move)
+        vals['auto_post'] = 'no' 
+        return vals
+
     def reverse_moves(self):
         action = super().reverse_moves()
         new_moves = self.new_move_ids
