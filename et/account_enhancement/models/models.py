@@ -756,29 +756,22 @@ class AccountMoveReversalInherit(models.TransientModel):
     def reverse_moves(self):
         action = super().reverse_moves()
         new_moves = self.new_move_ids
-        _logger.info("NUEVAS FACTURAS: %s", self.new_move_ids)
+
         today = fields.Date.context_today(self)
         credit_notes = self.env['account.move'].search([
             ('reversed_entry_id', 'in', self.move_ids.ids),
             ('move_type', '=', 'out_refund')], limit=1)
-
+        
         invoice_date = None
         for move in self.move_ids:
             invoice_date = move.invoice_date
         rango_fecha = invoice_date and (today - invoice_date).days
-        _logger.info("FECHA FACTURA ORIGINAL: %s", invoice_date)
-        _logger.info("HOY: %s", today)
-        _logger.info("RANGO DE FECHA: %s", rango_fecha)
         if credit_notes and self.refund_method == 'modify':
-            _logger.info("NOTAS DE CRÉDITO RELACIONADAS: %s", credit_notes)
-            _logger.info("NOTA DE CREDITO ESTADO: %s", credit_notes.state)
             if int(rango_fecha) > 30:
-                _logger.info("El rango de fecha es mayor a 30 días, se eliminan impuestos de percepción iibb")
                 self._delete_impuestos_perceppcion_iibb(credit_notes)
                 credit_notes.update_taxes()
                 credit_notes._compute_amount()
                 credit_notes.action_post()
-                _logger.info("NOTA DE CREDITO ESTADO: %s", credit_notes.state)
                 # Conciliación entre factura original y NC (para que cambie el payment_state)
                 for origin in self.move_ids:
                     cns = credit_notes.filtered(lambda m: m.reversed_entry_id == origin and m.state == 'posted')
@@ -794,7 +787,6 @@ class AccountMoveReversalInherit(models.TransientModel):
                             receiv_pay_lines.reconcile()
                     origin.write({'payment_state': 'reversed'})
         for new_move in new_moves:
-            _logger.info("Nueva factura: %s - Fecha: %s", new_move.name, new_move.invoice_date)
             invoice_date = new_move.invoice_date if new_move else None
             if self.refund_method == 'refund':
                 if not new_move:
@@ -811,8 +803,6 @@ class AccountMoveReversalInherit(models.TransientModel):
                         line_tax_ids = line.tax_ids.filtered(lambda t: tax_name not in (t.name or '').lower())
                         if line_tax_ids:
                             line.write({'tax_ids': [(6, 0, line_tax_ids.ids)]})
-                else:
-                    _logger.info("No se modifican impuestos en nota de crédito por fecha o método de reembolso")
             new_move.update_taxes()
         return action
     
