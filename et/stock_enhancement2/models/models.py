@@ -158,7 +158,6 @@ class StockPickingInherit(models.Model):
     
 
     ### STOCK
-
     def consume_stock(self):
         for record in self:
             vals_list = []
