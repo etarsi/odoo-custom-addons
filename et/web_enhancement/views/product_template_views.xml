@@ -5,15 +5,12 @@
         <field name="model">product.template</field>
         <field name="inherit_id" ref="product.product_template_only_form_view"/>
         <field name="arch" type="xml">
-            <!-- Botón para descargar ZIP por código 
             <xpath expr="//header" position="inside">
-                <button name="action_zip_by_default_code_from_main_folder"
+                <button name="_update_image_from_gdrive"
                         type="object"
-                        string="ZIP por Código"
+                        string="Actualizar Imágenes desde Google Drive"
                         class="oe_highlight"/>
             </xpath>
-            -->
-
             <!-- Campo para pegar el Folder ID principal -->
             <xpath expr="//group/group" position="inside">
                 <field name="gdrive_folder_id" readonly="1"/>

@@ -342,3 +342,48 @@ class ProductTemplate(models.Model):
                 "url": url,
                 "target": "self",
             }
+
+
+    def update_image_product_web(self):
+        for template in self:
+            # Actualizar imagenes del producto desde el drive si tiene carpeta asignada y tambien en la tabla product.image
+            if template.gdrive_folder_id:
+                template._update_image_from_gdrive()
+                
+    def _update_image_from_gdrive(self):
+        self.ensure_one()
+        self = self.sudo()
+        service = self._build_gdrive_service()
+        folder_id = self.gdrive_folder_id.strip()
+        if not folder_id:
+            return
+        items = self._gdrive_list_folder_items(service, folder_id)
+        image_files = []
+        for it in items:
+            it = self._gdrive_resolve_shortcut(service, it)
+            if _is_image(it):
+                image_files.append(it)
+        if not image_files:
+            return
+        # Borrar imágenes actuales
+        self.image_ids.unlink()
+        # Descargar e insertar nuevas imágenes
+        for file_obj in image_files:
+            file_id = file_obj["id"]
+            file_name = file_obj.get("name") or file_id
+            buf = io.BytesIO()
+            req = service.files().get_media(fileId=file_id)
+            downloader = MediaIoBaseDownload(buf, req, chunksize=8*1024*1024)
+            done = False
+            while not done:
+                status, done = downloader.next_chunk()
+            data = buf.getvalue()
+            if not data:
+                _logger.warning("Archivo vacío al actualizar imagen: %s (%s)", file_name, file_id)
+                continue
+            data_b64 = base64.b64encode(data).decode()
+            self.env['product.image'].create({
+                'product_tmpl_id': self.id,
+                'image': data_b64,
+                'name': file_name,
+            })
