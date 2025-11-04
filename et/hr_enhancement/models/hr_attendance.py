@@ -194,22 +194,38 @@ class HrAttendance(models.Model):
                 day = att.check_in.date()
                 start_dt = datetime.combine(day, start_t)
                 end_dt   = datetime.combine(day, end_t)
-
+                #sacar los dias
+                dow = day.weekday()
                 if end_dt <= start_dt:
                     end_dt = end_dt + timedelta(days=1)
-                # ========= REGLA SOLICITADA PARA check_in =========
-                ci_floor = att.check_in.replace(minute=0, second=0, microsecond=0)
-                eff_check_in = max(ci_floor, start_dt)
-                eff_check_out = att.check_out
-                base_secs = self._overlap_seconds(eff_check_in, eff_check_out, start_dt, end_dt)
-                base_hours_int = float(self._round_30_up_to_int_hours(base_secs))
-                overtime_secs = 0.0
-                if eff_check_out and eff_check_out > end_dt:
-                    overtime_secs = (eff_check_out - max(eff_check_in, end_dt)).total_seconds()
-                overtime_int = float(self._round_30_up_to_int_hours(overtime_secs))
-                att.worked_hours = base_hours_int
-                att.overtime = overtime_int
-                att.holiday_hours = 0.0
+                if dow in (4, 5):  # Viernes o Sábado
+                    # ========= REGLA SOLICITADA PARA check_in =========
+                    ci_floor = att.check_in.replace(minute=0, second=0, microsecond=0)
+                    eff_check_in = max(ci_floor, start_dt)
+                    eff_check_out = att.check_out
+                    base_secs = self._overlap_seconds(eff_check_in, eff_check_out, start_dt, end_dt)
+                    base_hours_int = float(self._round_30_up_to_int_hours(base_secs))
+                    overtime_secs = 0.0
+                    if eff_check_out and eff_check_out > end_dt:
+                        overtime_secs = (eff_check_out - max(eff_check_in, end_dt)).total_seconds()
+                    overtime_int = float(self._round_30_up_to_int_hours(overtime_secs))
+                    att.worked_hours = 0.0
+                    att.overtime = 0.0
+                    att.holiday_hours = base_hours_int + overtime_int
+                else:
+                    # ========= REGLA SOLICITADA PARA check_in =========
+                    ci_floor = att.check_in.replace(minute=0, second=0, microsecond=0)
+                    eff_check_in = max(ci_floor, start_dt)
+                    eff_check_out = att.check_out
+                    base_secs = self._overlap_seconds(eff_check_in, eff_check_out, start_dt, end_dt)
+                    base_hours_int = float(self._round_30_up_to_int_hours(base_secs))
+                    overtime_secs = 0.0
+                    if eff_check_out and eff_check_out > end_dt:
+                        overtime_secs = (eff_check_out - max(eff_check_in, end_dt)).total_seconds()
+                    overtime_int = float(self._round_30_up_to_int_hours(overtime_secs))
+                    att.worked_hours = base_hours_int
+                    att.overtime = overtime_int
+                    att.holiday_hours = 0.0
 
     # ===================== VALIDACIONES =====================
     @api.constrains('overtime', 'holiday_hours')
