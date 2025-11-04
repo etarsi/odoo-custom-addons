@@ -6,7 +6,7 @@
         <field name="inherit_id" ref="product.product_template_only_form_view"/>
         <field name="arch" type="xml">
             <xpath expr="//header" position="inside">
-                <button name="_update_image_from_gdrive"
+                <button name="update_image_product_web"
                         type="object"
                         string="Actualizar Imágenes desde Google Drive"
                         class="oe_highlight"/>
