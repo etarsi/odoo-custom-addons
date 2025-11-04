@@ -221,6 +221,7 @@ class HrPayrollSalary(models.Model):
                     ('employee_id', '=', emp.id),
                     ('check_in', '>=', record.date_start),
                     ('check_in', '<=', record.date_end),
+                    ('check_out', '!=', False),
                 ])
                 if attendances:
                     total_hours = sum(a.worked_hours for a in attendances)
@@ -566,16 +567,18 @@ class HrPayrollSalaryLine(models.Model):
                 attendances = self.env['hr.attendance'].search([
                     ('employee_id', '=', rec.employee_id.id),
                     ('check_in', '>=', rec.payroll_id.date_start),
-                    ('check_out', '<=', rec.payroll_id.date_end),
+                    ('check_in', '<=', rec.payroll_id.date_end),
+                    ('check_out', '!=', False),
                 ])
-                if not attendances:
-                    raise ValidationError('No se encontraron asistencias para el empleado %s en el período seleccionado.' % rec.employee_id.name)
-                # Calcular horas trabajadas, días trabajados, horas extras y horas de vacaciones
-                for att in attendances:
-                    rec.worked_days += 1
-                    rec.worked_hours += att.worked_hours
-                    rec.overtime += att.overtime
-                    rec.holiday_hours += att.holiday_hours
+                if  attendances:
+                    # Calcular horas trabajadas, días trabajados, horas extras y horas de vacaciones
+                    for att in attendances:
+                        rec.worked_days += 1
+                        rec.worked_hours += att.worked_hours
+                        rec.overtime += att.overtime
+                        rec.holiday_hours += att.holiday_hours
+                else:
+                    raise ValidationError(f'No se encontraron registros de asistencia para el empleado {rec.employee_id.name} en el período de la planilla.')
 
     def action_paid(self):
         self.ensure_one()
