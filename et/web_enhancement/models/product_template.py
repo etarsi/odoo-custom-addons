@@ -366,7 +366,8 @@ class ProductTemplate(models.Model):
         if not image_files:
             return
         # Borrar imágenes actuales
-        self.image_ids.unlink()
+        if self.product_template_image_ids:
+            self.product_template_image_ids.unlink()
         # Descargar e insertar nuevas imágenes
         for file_obj in image_files:
             file_id = file_obj["id"]
