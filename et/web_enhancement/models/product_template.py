@@ -382,7 +382,7 @@ class ProductTemplate(models.Model):
             if not data:
                 _logger.warning("Archivo vacío al actualizar imagen: %s (%s)", file_name, file_id)
                 continue
-            data_b64 = base64.b64encode(data).decode()
+            data_b64 = base64.b64encode(data)
             image_extra = data_b64.decode('ascii')
             self.env['product.image'].create({
                 'product_tmpl_id': self.id,
