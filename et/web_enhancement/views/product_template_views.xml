@@ -5,12 +5,14 @@
         <field name="model">product.template</field>
         <field name="inherit_id" ref="product.product_template_only_form_view"/>
         <field name="arch" type="xml">
-            <xpath expr="//header" position="inside">
-                <button name="update_image_product_web"
-                        type="object"
-                        string="Actualizar Imágenes desde Google Drive"
-                        class="oe_highlight"/>
-            </xpath>
+            <!--
+                <xpath expr="//header" position="inside">
+                    <button name="update_image_product_web"
+                            type="object"
+                            string="Actualizar Imágenes desde Google Drive"
+                            class="oe_highlight"/>
+                </xpath>
+            -->
             <!-- Campo para pegar el Folder ID principal -->
             <xpath expr="//group/group" position="inside">
                 <field name="gdrive_folder_id" readonly="1"/>

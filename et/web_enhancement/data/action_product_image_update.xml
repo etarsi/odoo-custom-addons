@@ -1,0 +1,13 @@
+<odoo>
+    <record id="action_product_image_update" model="ir.actions.server">
+        <field name="name">Actualizar Imagen del Producto</field>
+        <!-- Modelo destino -->
+        <field name="model_id" ref="model_product_template"/>
+        <!-- Llamamos a tu método Python -->
+        <field name="state">code</field>
+        <field name="code">action = records.update_image_product_web()</field>
+        <!-- Enlazar a Action menu del modelo -->
+        <field name="binding_model_id" ref="model_product_template"/>
+        <field name="binding_type">action</field>
+    </record>
+</odoo>
