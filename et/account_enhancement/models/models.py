@@ -750,7 +750,8 @@ class AccountMoveReversalInherit(models.TransientModel):
 
     def _prepare_default_reversal(self, move):
         vals = super()._prepare_default_reversal(move)
-        vals['auto_post'] = 'no' 
+        if self.refund_method in ['modify', 'cancel']:
+            vals['auto_post'] = 'no' 
         return vals
 
     def reverse_moves(self):
