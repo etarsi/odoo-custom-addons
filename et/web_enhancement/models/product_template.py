@@ -368,6 +368,7 @@ class ProductTemplate(models.Model):
         # Borrar imágenes actuales
         if self.product_template_image_ids:
             self.product_template_image_ids.unlink()
+        self._actualizar_foto_principal_desde_gdrive(image_files, service)
         # Descargar e insertar nuevas imágenes
         for file_obj in image_files:
             file_id = file_obj["id"]
@@ -389,3 +390,23 @@ class ProductTemplate(models.Model):
                 'image_1920': image_extra,
                 'name': self.id,
             })
+    def _actualizar_foto_principal_desde_gdrive(self, image_files, service):
+        # Actualiza la foto principal (image_1920) del producto con la primera imagen encontrada en Drive
+        if not image_files:
+            return
+        first_image = image_files[0]
+        file_id = first_image["id"]
+        file_name = first_image.get("name") or file_id
+        buf = io.BytesIO()
+        req = service.files().get_media(fileId=file_id)
+        downloader = MediaIoBaseDownload(buf, req, chunksize=8*1024*1024)
+        done = False
+        while not done:
+            status, done = downloader.next_chunk()
+        data = buf.getvalue()
+        if not data:
+            _logger.warning("Archivo vacío al actualizar foto principal: %s (%s)", file_name, file_id)
+            return
+        data_b64 = base64.b64encode(data)
+        image_1920 = data_b64.decode('ascii')
+        self.write({'image_1920': image_1920})
