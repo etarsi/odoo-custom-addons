@@ -22,7 +22,6 @@
             <xpath expr="//field[@name='worked_hours']" position="after">
                 <field name="overtime" sum="Horas Extras" digits="[16, 0]" optional="show"/>
                 <field name="holiday_hours" widget="float_time" sum="Horas Feriado" optional="show"/>
-                <field name="employee_type" widget="badge" decoration-success="employee_type == 'employee'" decoration-danger="employee_type == 'eventual'" optional="show"/>
                 <field name="employee_type_shift" widget="badge" decoration-warning="employee_type_shift == 'day'" decoration-info="employee_type_shift == 'night'" optional="show"/>
             </xpath>
         </field>
@@ -39,7 +38,6 @@
                 <field name="check_in" optional="show"/>
                 <field name="check_out" optional="show"/>
                 <field name="worked_hours" optional="show" widget="float_time" sum="Horas Trabajadas"/>
-                <!-- Si agregaste estos campos personalizados, los podés mostrar también: -->
                 <field name="overtime" optional="show" widget="float_time" sum="Horas al 50%"/>
                 <field name="holiday_hours" optional="show" widget="float_time" sum="Horas al 100%"/>
             </tree>
@@ -51,11 +49,8 @@
         <field name="name">Mis Asistencias</field>
         <field name="res_model">hr.attendance</field>
         <field name="view_mode">tree</field>
-        <!-- Forzamos usar nuestras vistas read-only -->
         <field name="view_id" ref="hr_enhancement.view_hr_attendance_tree_readonly_self"/>
-        <!-- Mostrar solo asistencias del empleado del usuario -->
         <field name="domain">[('employee_id.user_id', '=', uid)]</field>
-        <!-- Al crear (si hubiera otro botón), preselecciona su empleado. Igual está bloqueado por las vistas. -->
         <field name="context">{'search_default_today': 1}</field>
         <field name="help" type="html">
             <p class="o_view_nocontent_empty_folder">
@@ -91,12 +86,14 @@
         <field name="arch" type="xml">
             <tree string="Asistencias Eventuales" sample="1">
                 <field name="employee_id" optional="show" domain="[('employee_type', '=', 'eventual')]"/>
-                <field name="employee_type" optional="show"/>
                 <field name="check_in" optional="show"/>
                 <field name="check_out" optional="show"/>
+                <field name="day_of_week" sum="Día Trabajado" optional="show"/>
+                <field name="justification" attrs="{'required': [('create_lector', '=', False)]}" widget="text" class="o_field_text" optional="show"/>
                 <field name="worked_hours" optional="show" digits="[16, 0]" sum="Horas Trabajadas"/>
                 <field name="overtime" optional="show" digits="[16, 0]" sum="Horas al 50%"/>
                 <field name="holiday_hours" optional="show" digits="[16, 0]" sum="Horas al 100%"/>
+                <field name="employee_type_shift" widget="badge" decoration-warning="employee_type_shift == 'day'" decoration-info="employee_type_shift == 'night'" optional="show"/>
             </tree>
         </field>
     </record>
