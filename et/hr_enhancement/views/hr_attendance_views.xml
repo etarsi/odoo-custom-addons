@@ -90,7 +90,7 @@
         <field name="model">hr.attendance</field>
         <field name="arch" type="xml">
             <tree string="Asistencias Eventuales" sample="1">
-                <field name="employee_id" optional="show" domain="[('employee_id.employee_type', '=', 'eventual')]"/>
+                <field name="employee_id" optional="show" domain="[('employee_type', '=', 'eventual')]"/>
                 <field name="employee_type" optional="show"/>
                 <field name="check_in" optional="show"/>
                 <field name="check_out" optional="show"/>
