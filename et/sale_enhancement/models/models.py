@@ -323,14 +323,18 @@ class SaleOrderInherit(models.Model):
 
     def check_price_list(self):
         for record in self:
+            _logger.info(f"Checking pricelist for order {record.name} and partner {record.partner_id.name}")
             if record.condicion_m2m.name == 'TIPO 3':
-                pricelist = self.env['product.pricelist'].search([('list_default_b','=', True)])
+                pricelist = self.env['product.pricelist'].search([('list_default_b','=', True)], limit=1)
                 if pricelist:
+                    _logger.info(f"Setting pricelist {pricelist.name} for order {record.name}")
                     record.pricelist_id = pricelist.id
             else:
-                pricelist = self.env['product.pricelist'].search([('is_default','=', True)])
+                pricelist = self.env['product.pricelist'].search([('is_default','=', True)], limit=1)
                 if pricelist:
+                    _logger.info(f"Setting default pricelist {pricelist.name} for order {record.name}")
                     record.pricelist_id = pricelist.id
+            _logger.info(f"Pricelist for order {record.name} set to {record.pricelist_id.name}")
 
     def update_lines_prices(self):
         for record in self:
