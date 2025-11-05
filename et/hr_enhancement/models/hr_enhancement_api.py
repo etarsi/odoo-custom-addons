@@ -132,6 +132,25 @@ class HrEnhancementApi(models.AbstractModel):
                                     'create_lector': True,
                                 })
                                 message += f'--asistencia abierta: {open_att.id} (empleado en borrador)'
+                        else:
+                            if check_utc > start_limit_day_inicio_marcado:
+                                # Crear asistencia abierta
+                                open_att = hr_attendance.create({
+                                    'employee_id': employee.id,
+                                    'check_in': check_utc,
+                                    'create_lector': True,
+                                })
+                                message += f'--asistencia abierta: {open_att.id} empleado: {employee.name}'
+                            else:
+                                message += '--asistencia fuera del rango diurno de inicio de marcado'
+                                env['hr.temp.attendance'].sudo().create({
+                                    'employee_id': employee.id,
+                                    'check_date': check_utc,
+                                    'employee_type': employee.employee_type,
+                                    'employee_type_shift': employee.type_shift,
+                                    'notes': 'Intento marcar Entrada fuera del rango diurno (%s-%s)' % (start_limit_day.strftime("%H:%M"), end_limit_day.strftime("%H:%M")),
+                                })
+                                return {'success': False, 'error': message, 'received': data}
                 elif open_method == 'FINGERPRINT':
                     if not employee:
                         employee = hr_employee.create({
