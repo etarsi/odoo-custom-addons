@@ -101,25 +101,6 @@
         </field>
     </record>
 
-    <!-- ====== ACCIÓN DE ASISTENCIAS EVENTUALES ====== -->
-    <record id="action_attendance_eventual" model="ir.actions.act_window">
-        <field name="name">Asistencias Eventuales</field>
-        <field name="res_model">hr.attendance</field>
-        <field name="view_mode">tree</field>
-        <field name="view_id" ref="hr_enhancement.view_hr_attendance_tree_eventual"/>
-        <field name="domain">[('employee_id.employee_type', '=', 'eventual')] </field>
-        <field name="context">{'search_default_today': 1}</field>
-        <field name="search_view_id" ref="hr_attendance_view_filter_eventual"/>
-        <field name="help" type="html">
-            <p class="o_view_nocontent_empty_folder">
-                No se encontraron asistencias de empleados eventuales.
-            </p>
-            <p>
-                Aquí se muestran únicamente tus registros de asistencia de empleados eventuales, en modo consulta.
-            </p>
-        </field>
-    </record>
-
     <!-- SEARCH NUEVO PARA EVENTUALES -->
     <record id="hr_attendance_view_filter_eventual" model="ir.ui.view">
         <field name="name">hr_attendance_view_filter_eventual</field>
@@ -142,6 +123,25 @@
                     <filter name="employee_type_shift" string="Turno Asignado" context="{'group_by': 'employee_type_shift'}"/>
                 </group>
             </search>
+        </field>
+    </record>
+
+    <!-- ====== ACCIÓN DE ASISTENCIAS EVENTUALES ====== -->
+    <record id="action_attendance_eventual" model="ir.actions.act_window">
+        <field name="name">Asistencias Eventuales</field>
+        <field name="res_model">hr.attendance</field>
+        <field name="view_mode">tree</field>
+        <field name="view_id" ref="hr_enhancement.view_hr_attendance_tree_eventual"/>
+        <field name="domain">[('employee_id.employee_type', '=', 'eventual')] </field>
+        <field name="context">{'search_default_today': 1}</field>
+        <field name="search_view_id" ref="hr_attendance_view_filter_eventual"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_empty_folder">
+                No se encontraron asistencias de empleados eventuales.
+            </p>
+            <p>
+                Aquí se muestran únicamente tus registros de asistencia de empleados eventuales, en modo consulta.
+            </p>
         </field>
     </record>
 </odoo>
