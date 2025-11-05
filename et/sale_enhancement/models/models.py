@@ -91,7 +91,6 @@ class SaleOrderInherit(models.Model):
     @api.onchange('partner_id')
     def _onchange_partner_id(self):
         for record in self:
-
             if record.partner_id:
                 record.check_price_list()
 
@@ -111,7 +110,7 @@ class SaleOrderInherit(models.Model):
     def _onchange_condicion_m2m(self):
         for record in self:
             if record.condicion_m2m.name == 'TIPO 3':
-                pricelist = self.env['product.pricelist'].search([('is_default','=', True)])
+                pricelist = self.env['product.pricelist'].search([('list_default_b','=', True)])
                 if pricelist:
                     record.pricelist_id = pricelist.id
                     discounts = {}
@@ -218,7 +217,7 @@ class SaleOrderInherit(models.Model):
                 picking.origin = record.name
 
             if company_letter == 'P':               
-                pricelist = self.env['product.pricelist'].search([('is_default','=', True)])
+                pricelist = self.env['product.pricelist'].search([('list_default_b','=', True)])
                 if pricelist:
                     record.pricelist_id = pricelist.id
                     discounts = {}
@@ -325,10 +324,13 @@ class SaleOrderInherit(models.Model):
     def check_price_list(self):
         for record in self:
             if record.condicion_m2m.name == 'TIPO 3':
+                pricelist = self.env['product.pricelist'].search([('list_default_b','=', True)])
+                if pricelist:
+                    record.pricelist_id = pricelist.id
+            else:
                 pricelist = self.env['product.pricelist'].search([('is_default','=', True)])
                 if pricelist:
                     record.pricelist_id = pricelist.id
-                    
 
     def update_lines_prices(self):
         for record in self:
@@ -757,17 +759,28 @@ class ProductPricelist(models.Model):
     _inherit = "product.pricelist"
     
     is_default = fields.Boolean(
-        string="Lista B por defecto",
+        string="Lista por defecto",
         default=False,
         copy=False,
         index=True,
         help="Si está marcada, será la lista de precios por defecto."
+    )
+    
+    list_default_b = fields.Boolean(
+        string="Lista por defecto B",
+        default=False,
+        copy=False,
+        index=True,
+        help="Si está marcada, será la lista de precios por defecto B."
     )
 
     @api.model_create_multi
     def create(self, vals_list):
         records = super().create(vals_list)
         to_enforce = records.filtered('is_default')
+        is_default_b = records.filtered('list_default_b')
+        if is_default_b:
+            is_default_b._clear_others_default_b()
         if to_enforce:
             to_enforce._clear_others_default()
         return records
@@ -776,10 +789,11 @@ class ProductPricelist(models.Model):
         res = super().write(vals)
         if vals.get('is_default'):
             self.filtered('is_default')._clear_others_default()
+        if vals.get('list_default_b'):
+            self.filtered('list_default_b')._clear_others_default_b()
         return res
 
     def _clear_others_default(self):
-        """Desmarca todas las listas Principal excepto estas."""
         if self.env.context.get('pricelist_toggle_guard'):
             return
         others = self.sudo().search([
@@ -788,3 +802,13 @@ class ProductPricelist(models.Model):
         ])
         if others:
             others.with_context(pricelist_toggle_guard=True).write({'is_default': False})
+
+    def _clear_others_default_b(self):
+        if self.env.context.get('pricelist_toggle_guard_b'):
+            return
+        others = self.sudo().search([
+            ('list_default_b', '=', True),
+            ('id', 'not in', self.ids),
+        ])
+        if others:
+            others.with_context(pricelist_toggle_guard_b=True).write({'list_default_b': False})
