@@ -23,7 +23,7 @@ class StockMovesERP(models.Model):
     picking_id = fields.Many2one('stock.picking')
     product_id = fields.Many2one('product.product')
     quantity = fields.Integer()
-    quantity_delivered = fields.Integer()
+    quantity_delivered = fields.Integer("Cantidad entregada")
     bultos = fields.Float(compute="_compute_bultos")
     uxb = fields.Integer()
     type = fields.Selection(selection=[('reserve', 'Reserva'), ('delivery', 'Entrega'), ('preparation', 'Preparación')])

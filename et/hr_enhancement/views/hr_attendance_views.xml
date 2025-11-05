@@ -1,5 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <odoo>
+    <!-- ====== MODIFICACIÓN DE LA VISTA DE ASISTENCIAS EMPLEADOS ====== -->
+    <record id="hr_attendance.hr_attendance_action" model="ir.actions.act_window">
+        <field name="domain">[('employee_id.employee_type', '=', 'employee')]</field>
+    </record>
+
     <record id="view_attendance_tree_inherit_overtime" model="ir.ui.view">
         <field name="name">hr.attendance.tree.inherit.overtime</field>
         <field name="model">hr.attendance</field>
@@ -33,10 +38,10 @@
                 <field name="employee_type" optional="show"/>
                 <field name="check_in" optional="show"/>
                 <field name="check_out" optional="show"/>
-                <field name="worked_hours" optional="show" sum="Horas Trabajadas"/>
+                <field name="worked_hours" optional="show" widget="float_time" sum="Horas Trabajadas"/>
                 <!-- Si agregaste estos campos personalizados, los podés mostrar también: -->
-                <field name="overtime" optional="show" sum="Horas al 50%"/>
-                <field name="holiday_hours" optional="show" sum="Horas al 100%"/>
+                <field name="overtime" optional="show" widget="float_time" sum="Horas al 50%"/>
+                <field name="holiday_hours" optional="show" widget="float_time" sum="Horas al 100%"/>
             </tree>
         </field>
     </record>
@@ -69,16 +74,74 @@
         <field name="inherit_id" ref="hr_attendance.hr_attendance_view_filter"/>
         <field name="arch" type="xml">
             <xpath expr="//filter[@name='myattendances']" position="after">
-                <filter name="employee_type" string="Empleado" domain="[('employee_type', '=', 'employee')]"/>
-                <filter name="employee_type_eventual" string="Eventual" domain="[('employee_type', '=', 'eventual')]"/>
                 <filter name="type_shift_day" string="Turno Día" domain="[('employee_id.type_shift', '=', 'day')]"/>
                 <filter name="type_shift_night" string="Turno Noche" domain="[('employee_id.type_shift', '=', 'night')]"/>
             </xpath>
             <xpath expr="//filter[@name='employee']" position="after">
-                <filter string="Tipo de Empleado" name="employee_type" context="{'group_by': 'employee_type'}"/>
                 <filter name="employee_type_shift" string="Turno Asignado" context="{'group_by': 'employee_type_shift'}"/>
                 <separator/>
             </xpath>
+        </field>
+    </record>
+
+    <!-- ====== VISTAS DE ASISTENCIAS EVENTUALES ====== -->
+    <record id="view_hr_attendance_tree_eventual" model="ir.ui.view">
+        <field name="name">hr.attendance.tree.eventual</field>
+        <field name="model">hr.attendance</field>
+        <field name="arch" type="xml">
+            <tree string="Asistencias Eventuales" sample="1">
+                <field name="employee_id" optional="show" domain="[('employee_id.employee_type', '=', 'eventual')]"/>
+                <field name="employee_type" optional="show"/>
+                <field name="check_in" optional="show"/>
+                <field name="check_out" optional="show"/>
+                <field name="worked_hours" optional="show" digits="[16, 0]" sum="Horas Trabajadas"/>
+                <field name="overtime" optional="show" digits="[16, 0]" sum="Horas al 50%"/>
+                <field name="holiday_hours" optional="show" digits="[16, 0]" sum="Horas al 100%"/>
+            </tree>
+        </field>
+    </record>
+
+    <!-- ====== ACCIÓN DE ASISTENCIAS EVENTUALES ====== -->
+    <record id="action_attendance_eventual" model="ir.actions.act_window">
+        <field name="name">Asistencias Eventuales</field>
+        <field name="res_model">hr.attendance</field>
+        <field name="view_mode">tree</field>
+        <field name="view_id" ref="hr_enhancement.view_hr_attendance_tree_eventual"/>
+        <field name="domain">[('employee_id.employee_type', '=', 'eventual')] </field>
+        <field name="context">{'search_default_today': 1}</field>
+        <field name="search_view_id" ref="hr_attendance_view_filter_eventual"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_empty_folder">
+                No se encontraron asistencias de empleados eventuales.
+            </p>
+            <p>
+                Aquí se muestran únicamente tus registros de asistencia de empleados eventuales, en modo consulta.
+            </p>
+        </field>
+    </record>
+
+    <!-- SEARCH NUEVO PARA EVENTUALES -->
+    <record id="hr_attendance_view_filter_eventual" model="ir.ui.view">
+        <field name="name">hr_attendance_view_filter_eventual</field>
+        <field name="model">hr.attendance</field>
+        <field name="arch" type="xml">
+            <search string="Asistencias Eventuales">
+                <field name="check_in"/>
+                <separator/>
+                <filter name="check_out_false" string="No tiene registro de salida" domain="[('check_out', '=', False)]"/>
+                <filter string="Fecha" name="check_in_filter" date="check_in"/>
+                <separator/>
+                <filter string="Últimos 3 Meses" name="last_three_months" domain="[(
+                    'check_in','&gt;=', (
+                        context_today() + datetime.timedelta(days=-90)
+                        )
+                    )]"/>
+                <group expand="0" string="Agrupar Por">
+                    <filter string="Empleado" name="employee" context="{'group_by': 'employee_id'}"/>
+                    <filter string="Fecha" name="groupby_name" context="{'group_by': 'check_in:month'}"/>
+                    <filter name="employee_type_shift" string="Turno Asignado" context="{'group_by': 'employee_type_shift'}"/>
+                </group>
+            </search>
         </field>
     </record>
 </odoo>
