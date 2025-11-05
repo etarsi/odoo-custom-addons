@@ -84,7 +84,7 @@
         <field name="name">hr.attendance.tree.eventual</field>
         <field name="model">hr.attendance</field>
         <field name="arch" type="xml">
-            <tree string="Asistencias Eventuales" sample="1" edit="0">
+            <tree string="Asistencias Eventuales" editable="bottom" create="true" edit="true" delete="true">
                 <field name="employee_id" optional="show" domain="[('employee_type', '=', 'eventual')]"/>
                 <field name="check_in" optional="show"/>
                 <field name="check_out" optional="show"/>
@@ -129,6 +129,10 @@
         <field name="view_id" ref="hr_enhancement.view_hr_attendance_tree_eventual"/>
         <field name="domain">[('employee_id.employee_type', '=', 'eventual')] </field>
         <field name="context">{'search_default_today': 1}</field>
+        <field name="views">
+            [(ref('hr_enhancement.view_hr_attendance_tree_eventual'), 'tree'),
+            (ref('hr.hr_attendance_view_form'), 'form')]
+        </field>
         <field name="search_view_id" ref="hr_attendance_view_filter_eventual"/>
         <field name="help" type="html">
             <p class="o_view_nocontent_empty_folder">
