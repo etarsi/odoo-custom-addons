@@ -37,7 +37,7 @@
         id="hr_enhancement.menu_hr_attendance_enhancements_eventual"
         name="Asistencias de Eventuales"
         parent="hr_enhancement.menu_hr_attendance"
-        action="hr_attendance.action_attendance_eventual"
+        action="hr_enhancement.action_attendance_eventual"
         sequence="3"
         groups="hr_enhancement.group_hr_supervisor,hr_enhancement.group_hr_administrador"/>
 
