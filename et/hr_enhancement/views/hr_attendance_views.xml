@@ -16,11 +16,11 @@
             </xpath>
             <xpath expr="//field[@name='worked_hours']" position="before">
                 <field name="create_lector" optional="hide" />
-                <field name="justification" attrs="{'required': [('create_lector', '=', False)]}" widget="text" class="o_field_text" optional="show"/>
                 <field name="day_of_week" sum="Día Trabajado"  optional="show"/>
+                <field name="justification" attrs="{'required': [('create_lector', '=', False)]}" widget="text" class="o_field_text" optional="show"/>
             </xpath>
             <xpath expr="//field[@name='worked_hours']" position="after">
-                <field name="overtime" sum="Horas Extras" digits="[16, 0]" optional="show"/>
+                <field name="overtime" sum="Horas Extras" widget="float_time" optional="show"/>
                 <field name="holiday_hours" widget="float_time" sum="Horas Feriado" optional="show"/>
                 <field name="employee_type_shift" widget="badge" decoration-warning="employee_type_shift == 'day'" decoration-info="employee_type_shift == 'night'" optional="show"/>
             </xpath>
@@ -110,14 +110,11 @@
                 <filter name="check_out_false" string="No tiene registro de salida" domain="[('check_out', '=', False)]"/>
                 <filter string="Fecha" name="check_in_filter" date="check_in"/>
                 <separator/>
-                <filter string="Últimos 3 Meses" name="last_three_months" domain="[(
-                    'check_in','&gt;=', (
-                        context_today() + datetime.timedelta(days=-90)
-                        )
-                    )]"/>
+                <filter string="Últimos 3 meses" name="last_three_months"
+                        domain="[('check_in', '>=', (context_today() - relativedelta(months=3)))]"/>
                 <group expand="0" string="Agrupar Por">
                     <filter string="Empleado" name="employee" context="{'group_by': 'employee_id'}"/>
-                    <filter string="Fecha" name="groupby_name" context="{'group_by': 'check_in:month'}"/>
+                    <filter name="groupby_checkin_month" string="Fecha" context="{'group_by': 'check_in:month'}"/>
                     <filter name="employee_type_shift" string="Turno Asignado" context="{'group_by': 'employee_type_shift'}"/>
                 </group>
             </search>
