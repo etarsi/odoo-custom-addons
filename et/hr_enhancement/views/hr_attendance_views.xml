@@ -88,6 +88,7 @@
                 <field name="employee_id" optional="show" domain="[('employee_type', '=', 'eventual')]"/>
                 <field name="check_in" optional="show"/>
                 <field name="check_out" optional="show"/>
+                <field name="create_lector" optional="hide" invisible="1"/>
                 <field name="day_of_week" sum="Día Trabajado" optional="show"/>
                 <field name="justification" attrs="{'required': [('create_lector', '=', False)]}" widget="text" class="o_field_text" optional="show"/>
                 <field name="worked_hours" optional="show" digits="[16, 0]" sum="Horas Trabajadas"/>
