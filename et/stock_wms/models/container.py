@@ -27,7 +27,7 @@ class Container(models.Model):
     state = fields.Selection(selection=[('draft', 'Borrador'), ('sent', 'Enviado'), ('received', 'Recibido'), ('confirmed', 'Confirmado')], default='draft')
     wms_code = fields.Char()
     product_ids = fields.Many2many('product.product', compute='_compute_product_ids', string='Productos')
-    product_categ_ids = fields.Many2many('product.category', compute="_compute_product_categ", store=True)
+    # product_categ_ids = fields.Many2many('product.category', compute="_compute_product_categ", store=True)
     bultos_totales = fields.Float(string="Total Bultos", compute="_compute_bultos_totales", store=True)
 
     @api.depends('lines.product_id')
