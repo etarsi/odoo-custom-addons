@@ -126,6 +126,10 @@ class SaleOrderInherit(models.Model):
                             line.discount = discounts[line.id]
                 else: 
                     raise UserError("No se encontró precio de lista con ID 46")
+            else:
+                pricelist = self.env['product.pricelist'].search([('is_default','=', True)])
+                if pricelist:
+                    record.pricelist_id = pricelist.id
 
 
     @api.onchange('global_discount')
