@@ -27,7 +27,9 @@ class Container(models.Model):
     state = fields.Selection(selection=[('draft', 'Borrador'), ('sent', 'Enviado'), ('received', 'Recibido'), ('confirmed', 'Confirmado')], default='draft')
     wms_code = fields.Char()
     product_ids = fields.Many2many('product.product', compute='_compute_product_ids', string='Productos')
-    # product_categ_ids = fields.Many2many('product.category', compute="_compute_product_categ", store=True)
+    items_ids = fields.Many2many(
+        'product.category', string='Rubros', compute='_compute_items_ids', store=True, readonly=False,
+    )
     bultos_totales = fields.Float(string="Total Bultos", compute="_compute_bultos_totales", store=True)
 
     @api.depends('lines.product_id')
@@ -218,6 +220,15 @@ class Container(models.Model):
         for record in self:
             record.bultos_totales = sum(record.lines.mapped('bultos'))
 
+    @api.depends('lines.product_id')
+    def _compute_items_ids(self):
+        for record in self:
+            if record.order_line:
+                items = record.order_line.mapped('product_id.categ_id.parent_id')
+                items = items.filtered(lambda c: c and c.id).ids
+                record.items_ids = [(6, 0, items)]
+            else:
+                record.items_ids = [(5, 0, 0)]
 
 
 class ContainerLine(models.Model):
