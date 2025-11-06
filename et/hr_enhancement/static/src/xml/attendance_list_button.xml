@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates id="template" xml:space="preserve">
+  <!-- Inserta nuestro botón después del botón Crear -->
+  <t t-extend="ListView.buttons">
+    <t t-jquery="button.o_list_button_add" t-operation="after">
+      <button type="button" class="btn btn-secondary o_btn_attendance_wizard">
+        Nueva asistencia (modal)
+      </button>
+    </t>
+  </t>
+</templates>

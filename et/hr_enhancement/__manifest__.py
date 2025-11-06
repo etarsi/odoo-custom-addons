@@ -60,7 +60,10 @@
     'assets': {
         'web.assets_backend': [
             'hr_enhancement/static/src/scss/style.scss',
-            'hr_enhancement/static/src/js/add_attendance_button.js',
+            'hr_enhancement/static/src/js/attendance_list_button.js',
         ],
+        'web.assets_qweb': [ 
+            'hr_enhancement/static/src/xml/attendance_list_button.xml',
+        ], 
     },
 }

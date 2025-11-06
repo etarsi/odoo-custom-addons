@@ -84,7 +84,8 @@
         <field name="name">hr.attendance.tree.eventual</field>
         <field name="model">hr.attendance</field>
         <field name="arch" type="xml">
-            <tree string="Asistencias Eventuales">
+
+            <tree string="Asistencias Eventuales" class="js_class">
                 <field name="employee_id" optional="show" domain="[('employee_type', '=', 'eventual')]"/>
                 <field name="check_in" optional="show"/>
                 <field name="check_out" optional="show"/>
