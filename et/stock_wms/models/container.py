@@ -27,6 +27,8 @@ class Container(models.Model):
     state = fields.Selection(selection=[('draft', 'Borrador'), ('sent', 'Enviado'), ('received', 'Recibido'), ('confirmed', 'Confirmado')], default='draft')
     wms_code = fields.Char()
     product_ids = fields.Many2many('product.product', compute='_compute_product_ids', string='Productos')
+    product_categ_ids = fields.Many2many('product.category', compute="_compute_product_categ", store=True)
+    bultos_totales = fields.Float(string="Total Bultos", compute="_compute_bultos_totales", store=True)
 
     @api.depends('lines.product_id')
     def _compute_product_ids(self):
@@ -211,7 +213,10 @@ class Container(models.Model):
 
             return product_list
 
-
+    @api.depends('lines.bultos', 'state')
+    def _compute_bultos_totales(self):
+        for record in self:
+            record.bultos_totales = sum(record.lines.mapped('bultos'))
 
 
 
