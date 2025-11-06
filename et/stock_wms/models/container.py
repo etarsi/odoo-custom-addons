@@ -223,8 +223,8 @@ class Container(models.Model):
     @api.depends('lines.product_id')
     def _compute_items_ids(self):
         for record in self:
-            if record.order_line:
-                items = record.order_line.mapped('product_id.categ_id.parent_id')
+            if record.lines:
+                items = record.lines.mapped('product_id.categ_id.parent_id')
                 items = items.filtered(lambda c: c and c.id).ids
                 record.items_ids = [(6, 0, items)]
             else:
