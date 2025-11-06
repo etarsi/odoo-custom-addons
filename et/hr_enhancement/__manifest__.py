@@ -59,6 +59,7 @@
     'assets': {
         'web.assets_backend': [
             'hr_enhancement/static/src/scss/style.scss',
+            'hr_enhancement/static/src/js/attendance_create_wizard.js',
         ],
     },
 }
