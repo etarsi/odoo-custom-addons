@@ -85,18 +85,15 @@ class SaleOrderInherit(models.Model):
                 picking.state = 'draft'
                 picking.unlink()
 
-    @api.depends('partner_id', 'company_id')
-    def _compute_pricelist_id(self):
-        for order in self:
-            if order.state != 'draft':
-                continue
-            if not order.partner_id:
-                order.pricelist_id = False
-                continue
-            order = order.with_company(order.company_id)
-            order.check_price_list()
-
-
+    # OVERRIDE DE ONCHANGE
+    @api.onchange("partner_id")
+    def onchange_partner_id(self):
+        res = super().onchange_partner_id()
+        if self.partner_id:
+            self.check_price_list()
+        self.condicion_venta = self.partner_id.condicion_venta
+        self.condicion_m2m_numeric = False
+        return res
 
     @api.onchange('partner_shipping_id')
     def _onchange_partner_shipping_id(self):
