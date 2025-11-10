@@ -1,18 +1,37 @@
-odoo.define('hr_enhancement.attendance_list_buttons', function (require) {
-  'use strict';
-  const ListController = require('web.ListController');
+odoo.define('hr_enhancement.tree_button', function (require) { 
+  "use strict"; 
 
-  ListController.include({
-    events: Object.assign({}, ListController.prototype.events, {
-      'click .o_btn_attendance_wizard': '_openAttendanceWizard',
-    }),
+  var ListController = require('web.ListController'); 
+  var ListView = require('web.ListView'); 
+  var viewRegistry = require('web.view_registry'); 
+  var TreeButton = ListController.extend({ 
+    buttons_template: 'hr_enhancement.buttons', 
+    events: _.extend({}, ListController.prototype.events, { 
+        'click .open_wizard_action': '_OpenWizard', 
+    }), 
 
-    _openAttendanceWizard: function (ev) {
-      ev.preventDefault();
-      const state = (this.model && this.model.get && this.model.get(this.handle, { raw: true })) || {};
-      const model = state.model || this.modelName;
-      if (model !== 'hr.attendance') return;
-      this.do_action('hr_enhancement.action_hr_attendance_create_wizard');
+    _OpenWizard: function () { 
+
+      var self = this; 
+        this.do_action({ 
+          type: 'ir.actions.act_window', 
+          res_model: 'hr.attendance.create.wizard', 
+          name :'Registrar Asistencia', 
+          view_mode: 'form', 
+          view_type: 'form', 
+          views: [[false, 'form']], 
+          target: 'new', 
+          res_id: false, 
+
+      }); 
     },
-  });
+  }); 
+
+  var SaleOrderListView = ListView.extend({ 
+    config: _.extend({}, ListView.prototype.config, { 
+      Controller: TreeButton, 
+    }), 
+  }); 
+
+  viewRegistry.add('button_in_tree', SaleOrderListView); 
 });
