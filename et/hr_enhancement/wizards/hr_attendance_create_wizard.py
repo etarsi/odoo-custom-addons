@@ -36,6 +36,14 @@ class HrAttendanceCreateWizard(models.TransientModel):
 
     def action_confirm(self):
         self.ensure_one()
+        #validar si esta en el grupo de RRHH
+        is_allowed = (
+            self.env.user.has_group('hr_enhancement.group_hr_administrador') or
+            self.env.user.has_group('hr_enhancement.group_hr_supervisor')
+        )
+        if not is_allowed:
+            # Podrías usar ValidationError, pero semánticamente AccessError calza mejor
+            raise ValidationError(_("No tienes permisos para realizar esta acción."))
         emp = self.employee_id
         dt = self.check_date_hour
         attendance = self.env['hr.attendance']
