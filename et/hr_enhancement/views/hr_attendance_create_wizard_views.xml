@@ -29,7 +29,7 @@
         <field name="context">
             {
                 'add_attendance_wizard_button': True,
-                'default_employee_id': user.employee_id and user.employee_id.id or False
+                'default_employee_id': False
             }
         </field>
     </record>
