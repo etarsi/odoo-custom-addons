@@ -82,6 +82,6 @@ class HrAttendanceCreateWizard(models.TransientModel):
             'type': 'ir.actions.act_window',
             'res_model': 'hr.attendance',
             'res_id': rec.id,
-            'view_mode': 'form',
+            'view_mode': 'tree,form',
             'target': 'current',
         }
