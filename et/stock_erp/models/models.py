@@ -73,7 +73,16 @@ class StockERP(models.Model):
     
     def _action_update_cantidad_entregada_line(self):
         self.update_cantidad_entregada_line()
-        return True
+        return {
+            'type': 'ir.actions.client',
+            'tag': 'display_notification',
+            'params': {
+                'title': 'Listo',
+                'message': 'Se recalcularon las entregas (reserve/preparation) desde las deliveries.',
+                'type': 'success',
+                'sticky': False,
+            }
+        }
 
     def update_comprometido_line(self):
         for record in self:
@@ -84,8 +93,16 @@ class StockERP(models.Model):
     
     def _action_update_comprometido_line(self):
         self.update_comprometido_line()
-        return True
-        
+        return {
+            'type': 'ir.actions.client',
+            'tag': 'display_notification',
+            'params': {
+                'title': 'Listo',
+                'message': 'Se actualizaron las líneas comprometidas desde las órdenes de venta.',
+                'type': 'success',
+                'sticky': False,
+            }
+        }
 
     def update_digip_stock(self):
 
