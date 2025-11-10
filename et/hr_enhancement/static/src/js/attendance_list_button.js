@@ -8,21 +8,17 @@ odoo.define('hr_enhancement.tree_button', function (require) {
    buttons_template: 'button_near_create.buttons', 
 
     events: _.extend({}, ListController.prototype.events, { 
-      'click.open_wizard_button': '_openWizard', 
+      'click .open_wizard_button': '_openAttendanceWizard', 
     }), 
 
-    _openWizard: function (ev) { 
-      var self = this;
-      this.do_action({
-        type: 'ir.actions.act_window',
-        res_model: 'hr.attendance.create.wizard',
-        name: 'Registrar Asistencia',
-        views: [[false, 'form']],
-        view_mode: 'form',
-        view_type: 'form',
-        target: 'new',
-        res_id: false
-      });
+    _openAttendanceWizard: function (ev) { 
+      ev.preventDefault();
+      const state = (this.model && this.model.get && this.model.get(this.handle, { raw: true })) || {};
+      const model = state.model || this.modelName;
+      if (model !== 'hr.attendance') {
+        return;
+      }
+      this.do_action('hr_enhancement.hr_attendance_create_wizard_action');
     },
   }); 
 
