@@ -1,14 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <templates id="template" xml:space="preserve">
-  <t t-extend="ListView.buttons">
-    <!-- Insertar nuestro botón después del botón Crear -->
-    <t t-jquery="button.o_list_button_add" t-operation="after">
-      <!-- OJO: las condiciones son JS, no Python -->
-      <t t-if="widget && widget.modelName === 'hr.attendance' && (!widget.context || widget.context.add_attendance_wizard_button === true)">
-        <button type="button" class="btn btn-secondary o_btn_attendance_wizard">
-          Nueva asistencia (modal)
-        </button>
-      </t>
+    <!-- Extiende los botones del ListView -->
+    <t t-extend="ListView.buttons">
+        <!-- Insertar nuestro botón luego de "Crear" -->
+        <t t-jquery="button.o_list_button_add" t-operation="after">
+            <!-- Mostramos el botón SOLO en hr.attendance (y opcionalmente si viene el flag de contexto) -->
+            <button type="button" class="btn btn-secondary o_btn_attendance_wizard">
+                <!-- Si usás web_responsive -->
+                <t t-call="web_responsive.icon_button">
+                    <t t-set="icon" t-value="'plus'"/>
+                    <t t-set="label">Nueva asistencia (modal)</t>
+                </t>
+            </button>
+            </t>
+        </t>
     </t>
-  </t>
 </templates>
