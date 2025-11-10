@@ -8,13 +8,15 @@ odoo.define('hr_enhancement.tree_button', function (require) {
     renderButtons: function () {
       this._super.apply(this, arguments);
       if (this.$buttons) {
+        console.log('attendance_list_button loaded 1');
+        console.log('attendance_list_button loaded 2');
         // Evitar duplicar handlers al re-renderizar
-        this.$buttons.off('click', '.open_wizard_action');
+        this.$buttons.off('click', '.open_wizard_button');
         this.$buttons.on('click', '.open_wizard_button', this._openWizard.bind(this));
       }
     },
     _openWizard: function (ev) { 
-
+      console.log('attendance_list_button loaded 3');
       if (ev) ev.preventDefault();
 
       return this.do_action({
