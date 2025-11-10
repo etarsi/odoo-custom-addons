@@ -45,5 +45,5 @@ odoo.define('hr_enhancement.tree_button', function (require) {
     }), 
   }); 
 
-  viewRegistry.add('view_attendance_tree', AttendanceListView); 
+  viewRegistry.add('o_hr_attendance_eventual_tree', AttendanceListView); 
 });
