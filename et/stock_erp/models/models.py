@@ -48,7 +48,7 @@ class StockERP(models.Model):
     entrante_licencia = fields.Char('Licencia')
     digip_unidades = fields.Integer('Digip Unidades')
 
-    def _action_update_cantidad_entregada_line(self):
+    def update_cantidad_entregada_line(self):
         for record in self:
             if record.move_lines_reserved:
                 for line in record.move_lines_reserved:
@@ -70,14 +70,22 @@ class StockERP(models.Model):
                         line.write({'quantity_delivered': total_entregado})
                     else:
                         line.write({'quantity_delivered': 0})   
-            return True
+    
+    def _action_update_cantidad_entregada_line(self):
+        self.update_cantidad_entregada_line()
+        return True
 
-    def _action_update_comprometido_line(self):
+    def update_comprometido_line(self):
         for record in self:
             if record.move_lines_reserved:
                 for line in record.move_lines_reserved:
                     if line.sale_line_id.product_uom_qty != line.quantity:
                         line.write({'quantity': line.sale_line_id.product_uom_qty})
+    
+    def _action_update_comprometido_line(self):
+        self.update_comprometido_line()
+        return True
+        
 
     def update_digip_stock(self):
 
