@@ -11,9 +11,9 @@ class HrAttendanceCreateWizard(models.TransientModel):
     _name = 'hr.attendance.create.wizard'
     _description = 'Asistente para crear registros de asistencia'
 
-    employee_id = fields.Many2one('hr.employee', string='Empleado')
-    check_date_hour = fields.Datetime(string='Ingreso/Salida', default=fields.Datetime.now)
-    justificacion = fields.Text(string='Justificación')
+    employee_id = fields.Many2one('hr.employee', string='Empleado', required=True)
+    check_date_hour = fields.Datetime(string='Ingreso/Salida', default=fields.Datetime.now, required=True)
+    justificacion = fields.Text(string='Justificación', required=True)
 
 
     def _set_justification_vals(self, vals, current_attendance=None):
