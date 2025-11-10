@@ -5,15 +5,15 @@
         <field name="model">hr.attendance.create.wizard</field>
         <field name="arch" type="xml">
             <form string="Registro de Asistencia">
-            <group>
-                <field name="employee_id" options="{'no_create_edit': True, 'no_open': True}"/>
-                <field name="check_date_hour"/>
-                <field name="justificacion" placeholder="Opcional — se concatenará a 'justification' con /"/>
-            </group>
-            <footer>
-                <button name="action_confirm" type="object" string="Confirmar" class="btn-primary"/>
-                <button special="cancel" string="Cancelar"/>
-            </footer>
+                <group>
+                    <field name="employee_id" options="{'no_create_edit': True, 'no_open': True}"/>
+                    <field name="check_date_hour"/>
+                    <field name="justificacion" placeholder="Opcional — se concatenará a 'justification' con /"/>
+                </group>
+                <footer>
+                    <button name="action_confirm" type="object" string="Confirmar" class="btn-primary"/>
+                    <button special="cancel" string="Cancelar"/>
+                </footer>
             </form>
         </field>
     </record>
