@@ -5,11 +5,9 @@
         <!-- Insertar nuestro botón luego de "Crear" -->
         <t t-jquery="button.o_list_button_add" t-operation="after">
             <!-- Mostramos el botón SOLO en hr.attendance (y opcionalmente si viene el flag de contexto) -->
-            <t t-if="view.model === 'hr.attendance' &amp;&amp; (context.add_attendance_wizard_button === true || true)">
-                <button type="button" class="btn btn-primary open_wizard_button">
-                    Nueva asistencia (modal)
-                </button>
-            </t>
+            <button type="button" class="btn btn-primary open_wizard_button">
+                Nueva asistencia (modal)
+            </button>
         </t>
     </t>
 </templates>
