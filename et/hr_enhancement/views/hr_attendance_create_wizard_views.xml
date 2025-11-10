@@ -6,9 +6,13 @@
         <field name="arch" type="xml">
             <form string="Registro de Asistencia">
                 <group>
-                    <field name="employee_id" options="{'no_create_edit': True, 'no_open': True}"/>
-                    <field name="check_date_hour"/>
-                    <field name="justificacion" placeholder="Opcional — se concatenará a 'justification' con /"/>
+                    <group name="attendance_info" string="Información de Asistencia">
+                        <field name="employee_id" options="{'no_create_edit': True, 'no_open': True}"/>
+                        <field name="check_date_hour"/>
+                        <field name="justificacion" placeholder="Opcional — se concatenará a 'justification' con /"/>
+                    </group>
+                    <group>
+                    </group>
                 </group>
                 <footer>
                     <button name="action_confirm" type="object" string="Confirmar" class="btn-primary"/>
