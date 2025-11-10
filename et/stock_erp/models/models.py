@@ -57,9 +57,9 @@ class StockERP(models.Model):
                         ('type', '=', 'delivery')])
                     if lineas_entregadas:
                         total_entregado = sum(lineas_entregadas.mapped('quantity'))
-                        line.write({'qty_delivered': total_entregado})
+                        line.write({'quantity_delivered': total_entregado})
                     else:
-                        line.write({'qty_delivered': 0})
+                        line.write({'quantity_delivered': 0})
             if record.move_lines_prepared:
                 for line in record.move_lines_prepared:
                     lineas_entregadas = self.env['stock.moves.erp'].search([
@@ -67,9 +67,9 @@ class StockERP(models.Model):
                         ('type', '=', 'delivery')])
                     if lineas_entregadas:
                         total_entregado = sum(lineas_entregadas.mapped('quantity'))
-                        line.write({'qty_delivered': total_entregado})
+                        line.write({'quantity_delivered': total_entregado})
                     else:
-                        line.write({'qty_delivered': 0})   
+                        line.write({'quantity_delivered': 0})   
             return True
 
     def _update_comprometido_line(self):
