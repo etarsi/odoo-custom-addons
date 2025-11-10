@@ -4,34 +4,34 @@ odoo.define('hr_enhancement.tree_button', function (require) {
   var ListController = require('web.ListController'); 
   var ListView = require('web.ListView'); 
   var viewRegistry = require('web.view_registry'); 
-  var TreeButton = ListController.extend({ 
-    buttons_template: 'hr_enhancement.buttons', 
-    events: _.extend({}, ListController.prototype.events, { 
-        'click .open_wizard_button': '_OpenWizard', 
-    }), 
+  var AttendanceListController = ListController.extend({ 
+    renderButtons: function () {
+      this._super.apply(this, arguments);
+      if (this.$buttons) {
+        // Evitar duplicar handlers al re-renderizar
+        this.$buttons.off('click', '.open_wizard_action');
+        this.$buttons.on('click', '.open_wizard_button', this._openWizard.bind(this));
+      }
+    },
+    _openWizard: function (ev) { 
 
-    _OpenWizard: function () { 
+      if (ev) ev.preventDefault();
 
-      var self = this; 
-        this.do_action({ 
-          type: 'ir.actions.act_window', 
-          res_model: 'hr.attendance.create.wizard',
-          name :'Registrar Asistencia', 
-          view_mode: 'form', 
-          view_type: 'form', 
-          views: [[false, 'form']], 
-          target: 'new', 
-          res_id: false, 
-
-      }); 
+      return this.do_action({
+        type: 'ir.actions.act_window',
+        res_model: 'hr.attendance.create.wizard',
+        name: 'Registrar Asistencia',
+        views: [[false, 'form']],
+        target: 'new',
+      });
     },
   }); 
 
-  var SaleOrderListView = ListView.extend({ 
+  const AttendanceListView = ListView.extend({ 
     config: _.extend({}, ListView.prototype.config, { 
-      Controller: TreeButton, 
+      Controller: AttendanceListController, 
     }), 
   }); 
 
-  viewRegistry.add('button_in_tree', SaleOrderListView); 
+  viewRegistry.add('button_in_tree', AttendanceListView); 
 });
