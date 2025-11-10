@@ -7,7 +7,7 @@ odoo.define('hr_enhancement.tree_button', function (require) {
   var TreeButton = ListController.extend({ 
     buttons_template: 'hr_enhancement.buttons', 
     events: _.extend({}, ListController.prototype.events, { 
-        'click .open_wizard_action': '_OpenWizard', 
+        'click .open_wizard_button': '_OpenWizard', 
     }), 
 
     _OpenWizard: function () { 
@@ -15,7 +15,7 @@ odoo.define('hr_enhancement.tree_button', function (require) {
       var self = this; 
         this.do_action({ 
           type: 'ir.actions.act_window', 
-          res_model: 'hr.attendance.create.wizard', 
+          res_model: 'hr.attendance.create.wizard',
           name :'Registrar Asistencia', 
           view_mode: 'form', 
           view_type: 'form', 
