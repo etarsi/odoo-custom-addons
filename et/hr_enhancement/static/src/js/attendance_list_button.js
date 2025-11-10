@@ -17,7 +17,7 @@ odoo.define('hr_enhancement.tree_button', function (require) {
       if (model !== 'hr.attendance') {
         return;
       }
-      this.do_action('hr_enhancement.hr_attendance_create_wizard_action');
+      this.do_action('hr_enhancement.action_hr_attendance_create_wizard');
     },
   }); 
 
