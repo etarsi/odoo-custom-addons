@@ -5,10 +5,12 @@
         <!-- Insertar nuestro botón luego de "Crear" y que solo se vea en hr.attendance -->
         <t t-jquery="button.o_list_button_add" t-operation="after">
             <!-- Mostramos el botón SOLO en hr.attendance (y opcionalmente si viene el flag de contexto) -->
-            <button type="button" class="btn btn-primary open_wizard_button">
-                <i class="fa fa-plus mr-1"/>
-                Registrar Asistencia
-            </button>
+            <t t-if="widget.modelName === 'hr.attendance'">
+                <button type="button" class="btn btn-primary open_wizard_button">
+                    <i class="fa fa-plus mr-1"/>
+                    Registrar Asistencia
+                </button>
+            </t>
         </t>
     </t>
 </templates>
