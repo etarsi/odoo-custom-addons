@@ -21,6 +21,7 @@
     <!-- Acción que abre el wizard como modal -->
     <record id="action_hr_attendance_create_wizard" model="ir.actions.act_window">
         <field name="name">Registro de Asistencia</field>
+        <field name="type">ir.actions.act_window</field>
         <field name="res_model">hr.attendance.create.wizard</field>
         <field name="view_mode">form</field>
         <field name="view_id" ref="view_hr_attendance_create_wizard_form"/>
