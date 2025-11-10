@@ -46,9 +46,38 @@ class StockERP(models.Model):
 
     entrante_fecha = fields.Date('ETA')
     entrante_licencia = fields.Char('Licencia')
-
-
     digip_unidades = fields.Integer('Digip Unidades')
+
+    def _update_cantidad_entregada_line(self):
+        for record in self:
+            if record.move_lines_reserved:
+                for line in record.move_lines_reserved:
+                    lineas_entregadas = self.env['stock.moves.erp'].search([
+                        ('sale_line_id', '=', line.sale_line_id.id),
+                        ('type', '=', 'delivery')])
+                    if lineas_entregadas:
+                        total_entregado = sum(lineas_entregadas.mapped('quantity'))
+                        line.write({'qty_delivered': total_entregado})
+                    else:
+                        line.write({'qty_delivered': 0})
+            if record.move_lines_prepared:
+                for line in record.move_lines_prepared:
+                    lineas_entregadas = self.env['stock.moves.erp'].search([
+                        ('sale_line_id', '=', line.sale_line_id.id),
+                        ('type', '=', 'delivery')])
+                    if lineas_entregadas:
+                        total_entregado = sum(lineas_entregadas.mapped('quantity'))
+                        line.write({'qty_delivered': total_entregado})
+                    else:
+                        line.write({'qty_delivered': 0})   
+            return True
+
+    def _update_comprometido_line(self):
+        for record in self:
+            if record.move_lines_reserved:
+                for line in record.move_lines_reserved:
+                    if line.sale_line_id.product_uom_qty != line.quantity:
+                        line.write({'quantity': line.sale_line_id.product_uom_qty})
 
     def update_digip_stock(self):
 
