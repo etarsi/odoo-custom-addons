@@ -83,5 +83,6 @@ class HrAttendanceCreateWizard(models.TransientModel):
             'res_model': 'hr.attendance',
             'res_id': rec.id,
             'view_mode': 'tree,form',
+            'name': _('Asistencia asignada'),
             'target': 'current',
         }
