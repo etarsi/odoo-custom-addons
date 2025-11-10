@@ -60,16 +60,6 @@ class StockERP(models.Model):
                         line.write({'quantity_delivered': total_entregado})
                     else:
                         line.write({'quantity_delivered': 0})
-            if record.move_lines_prepared:
-                for line in record.move_lines_prepared:
-                    lineas_entregadas = self.env['stock.moves.erp'].search([
-                        ('sale_line_id', '=', line.sale_line_id.id),
-                        ('type', '=', 'delivery')])
-                    if lineas_entregadas:
-                        total_entregado = sum(lineas_entregadas.mapped('quantity'))
-                        line.write({'quantity_delivered': total_entregado})
-                    else:
-                        line.write({'quantity_delivered': 0})   
     
     def _action_update_cantidad_entregada_line(self):
         self.update_cantidad_entregada_line()
