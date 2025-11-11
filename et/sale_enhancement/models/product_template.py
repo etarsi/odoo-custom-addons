@@ -21,7 +21,7 @@ class ProductTemplateInherit(models.Model):
     
     def action_update_company_ids_value(self):
         self.ensure_one()
-        products = self.env['product.product'].search([('sale_ok', '=', True)])
+        products = self.env['product.template'].search([('sale_ok', '=', True)])
         if products:
             for product in products:
                 product.update_company_ids_value()
