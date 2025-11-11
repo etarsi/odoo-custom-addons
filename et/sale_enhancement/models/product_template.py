@@ -34,7 +34,7 @@ class ProductTemplateInherit(models.Model):
         if categorias:
             for categoria in categorias:
                 _logger.info(f"Checking category {categoria.name} with ID {categoria.id} against product category {self.categ_id.name} with parent ID {self.categ_id.parent_id}")
-                if self.categ_id.parent_id == categoria.id:
+                if self.categ_id.parent_id and self.categ_id.parent_id.id == categoria.id:
                     _logger.info(f"Category match found: {categoria.name}")
                     rubro = categoria.name.upper().strip()
                     if rubro in RUBRO_COMPANY_MAPPING:
