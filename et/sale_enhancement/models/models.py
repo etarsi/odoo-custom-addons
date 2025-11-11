@@ -169,6 +169,7 @@ class SaleOrderInherit(models.Model):
         force_company = (cond_name.strip().upper() == 'TIPO 3')
         company_produccion_b = self.env['res.company'].browse(1)
         current_company_id = vals.get('company_id')
+        #Ajustar compañía si es TIPO 3
         if force_company and current_company_id != company_produccion_b.id:
             wh = self.env['stock.warehouse'].search([('company_id', '=', company_produccion_b.id)], limit=1)
             if not wh:
@@ -181,6 +182,7 @@ class SaleOrderInherit(models.Model):
             # Crear bajo el contexto/compañía destino para evitar conflictos multi-company
             self.with_context(allowed_company_ids=[company_produccion_b.id]).with_company(company_produccion_b)
             order = super().create(vals)    
+        # Si no es TIPO 3, inferir compañía por productos
         else:
             line_cmds = vals.get('order_line') or []
             product_ids = set()
@@ -189,15 +191,15 @@ class SaleOrderInherit(models.Model):
                 if not isinstance(cmd, (list, tuple)) or not cmd:
                     continue
                 op = cmd[0]
-                if op == 0 and len(cmd) >= 3:               # (0, 0, vals_line)
+                if op == 0 and len(cmd) >= 3:
                     pid = (cmd[2] or {}).get('product_id')
                     if pid:
                         product_ids.add(pid)
-                elif op in (1, 4) and len(cmd) >= 2:        # (1, id, vals) ó (4, id)
+                elif op in (1, 4) and len(cmd) >= 2:
                     line = self.env['sale.order.line'].browse(cmd[1])
                     if line.exists():
                         product_ids.add(line.product_id.id)
-                elif op == 6 and len(cmd) >= 3:             # (6, 0, [ids])
+                elif op == 6 and len(cmd) >= 3:
                     for line_id in (cmd[2] or []):
                         line = self.env['sale.order.line'].browse(line_id)
                         if line.exists():
@@ -228,7 +230,7 @@ class SaleOrderInherit(models.Model):
                     common = set.intersection(*company_sets)
                     if not common:
                         # Agrupar por conjunto de compañías del producto
-                        by_set = defaultdict(list)  # key = tuple(sorted(company_ids)) (vacío = compartido)
+                        by_set = defaultdict(list)
                         for p in prods:
                             code = p.default_code or p.display_name
                             if getattr(p, 'company_ids', False) and p.company_ids:
@@ -236,8 +238,7 @@ class SaleOrderInherit(models.Model):
                             elif p.company_id:
                                 ids_tuple = (p.company_id.id,)
                             else:
-                                ids_tuple = tuple()  # (compartido) → sin restricción
-
+                                ids_tuple = tuple()
                             by_set[ids_tuple].append(code)
 
                         def set_label(ids_tuple):
@@ -245,13 +246,11 @@ class SaleOrderInherit(models.Model):
                                 return _('(compartido)')
                             comps = self.env['res.company'].browse(list(ids_tuple))
                             return ', '.join(comps.mapped('name'))
-
                         # Construir líneas agrupadas: "códigos → compañías"
                         lines = "\n".join(
                             f"---- ({', '.join(sorted(codes))} → {set_label(ids_tuple)})"
                             for ids_tuple, codes in sorted(by_set.items(), key=lambda it: (len(it[0]) or 0, it[0]))
                         )
-
                         raise UserError(_(
                             "No se puede crear el pedido: las líneas no comparten una compañía común.\n%s\n"
                             "Asegurate de que todos los productos compartan al menos una misma compañía."
@@ -273,18 +272,11 @@ class SaleOrderInherit(models.Model):
                         vals['warehouse_id'] = wh.id
                         target_company = self.env['res.company'].browse(target_company_id)
                         self = self.with_context(allowed_company_ids=[target_company_id]).with_company(target_company)
-
-            # 4) Crear el pedido en la compañía/contexto resuelto
             order = super(SaleOrderInherit, self).create(vals)
-
-            # 5) Alinear compañía en líneas y validar compatibilidad producto↔compañía
             if order.order_line:
-                # Forzar company_id de la línea = company del pedido
                 order.order_line.filtered(lambda l: l.company_id != order.company_id).write({
                     'company_id': order.company_id.id
                 })
-
-                # Extra: validar que el producto sea utilizable en esa compañía
                 bad_lines = order.order_line.filtered(
                     lambda l: (
                         hasattr(l.product_id, 'company_ids') and l.product_id.company_ids and order.company_id not in l.product_id.company_ids
