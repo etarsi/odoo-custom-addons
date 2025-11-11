@@ -247,7 +247,7 @@ class SaleOrderInherit(models.Model):
 
                         # Construir líneas agrupadas: "códigos → compañías"
                         lines = "\n".join(
-                            f"- {', '.join(sorted(codes))} → {set_label(ids_tuple)}"
+                            f"---- ({', '.join(sorted(codes))} → {set_label(ids_tuple)})"
                             for ids_tuple, codes in sorted(by_set.items(), key=lambda it: (len(it[0]) or 0, it[0]))
                         )
 
