@@ -226,34 +226,72 @@ class SaleOrderInherit(models.Model):
                     # intersección de TODAS las compañías de los productos con restricción
                     common = set.intersection(*company_sets)
                     if not common:
-                        # Agrupar por conjunto de compañías del producto
-                        by_set = defaultdict(list)  # key = tuple(sorted(company_ids)) (vacío = compartido)
+                        # ---- Agrupar por conectividad de compañías (overlap ≡ mismo grupo) ----
+                        # 1) armar lista de productos con su set de compañías
+                        prod_recs = []  # [{'code': 'ABC', 'comps': {1,3}}, ...]
                         for p in prods:
                             code = p.default_code or p.display_name
                             if getattr(p, 'company_ids', False) and p.company_ids:
-                                ids_tuple = tuple(sorted(p.company_ids.ids))
+                                comp_ids = set(p.company_ids.ids)
                             elif p.company_id:
-                                ids_tuple = (p.company_id.id,)
+                                comp_ids = {p.company_id.id}
                             else:
-                                ids_tuple = tuple()  # (compartido) → sin restricción
+                                comp_ids = set()  # compartido / sin restricción
+                            prod_recs.append({'code': code, 'comps': comp_ids})
 
-                            by_set[ids_tuple].append(code)
+                        # 2) Union-Find por compañía: productos que comparten alguna compañía van al mismo grupo
+                        parent = {i: i for i in range(len(prod_recs))}
 
-                        def set_label(ids_tuple):
-                            if not ids_tuple:
+                        def find(i):
+                            while parent[i] != i:
+                                parent[i] = parent[parent[i]]
+                                i = parent[i]
+                            return i
+
+                        def union(i, j):
+                            ri, rj = find(i), find(j)
+                            if ri != rj:
+                                parent[rj] = ri
+
+                        # Mapa compañía -> índices de productos que la tienen
+                        by_company = defaultdict(list)
+                        for idx, rec in enumerate(prod_recs):
+                            for cid in rec['comps']:
+                                by_company[cid].append(idx)
+
+                        # Unir todos los productos que comparten cada compañía
+                        for _, idxs in by_company.items():
+                            base = idxs[0]
+                            for j in idxs[1:]:
+                                union(base, j)
+
+                        # 3) Construir grupos finales por raíz
+                        groups = defaultdict(list)
+                        for idx, rec in enumerate(prod_recs):
+                            groups[find(idx)].append(rec)
+
+                        # 4) Etiqueta de compañías por grupo (unión de compañías del grupo)
+                        def label_companies(recs):
+                            comp_ids = set()
+                            for r in recs:
+                                comp_ids |= r['comps']
+                            if not comp_ids:
                                 return _('(compartido)')
-                            comps = self.env['res.company'].browse(list(ids_tuple))
+                            comps = self.env['res.company'].browse(list(comp_ids))
                             return ', '.join(comps.mapped('name'))
 
-                        # Construir líneas agrupadas: "códigos → compañías"
+                        # 5) Mensaje agrupado
                         lines = "\n".join(
-                            f"---- ({', '.join(sorted(codes))} → {set_label(ids_tuple)})"
-                            for ids_tuple, codes in sorted(by_set.items(), key=lambda it: (len(it[0]) or 0, it[0]))
+                            "- [%s] %s" % (
+                                label_companies(recs),
+                                ", ".join(sorted(r['code'] for r in recs))
+                            )
+                            for recs in sorted(groups.values(), key=lambda rs: (-len(rs), [r['code'] for r in rs]))
                         )
 
                         raise UserError(_(
-                            "No se puede crear el pedido: las líneas no comparten una compañía común.\n%s\n"
-                            "Asegurate de que todos los productos compartan al menos una misma compañía."
+                            "No se puede crear el pedido: las líneas se dividen en grupos sin una compañía común única.\n%s\n"
+                            "Asegurate de que todas las líneas compartan al menos una misma compañía."
                         ) % lines)
                     current_company_id = vals.get('company_id')
                     if current_company_id in common:
