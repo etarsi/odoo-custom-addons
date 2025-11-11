@@ -163,15 +163,11 @@ class SaleOrderInherit(models.Model):
     @api.model
     def create(self, vals):
         self.check_partner_origin()
-        # --- Config compañía destino ---
-        company_produccion_b = self.env['res.company'].browse(1)
-        # --- Resolver condición (Many2one) ---
-        cond_model = self.env['condicion.venta']  # ajustá el modelo si se llama distinto
+        cond_model = self.env['condicion.venta']
         cond_name = cond_model.browse(vals.get('condicion_m2m')).name or ''
-        # --- Forzar compañía/depósito en vals si corresponde (TIPO 3) ---
         force_company = (cond_name.strip().upper() == 'TIPO 3')
+        company_produccion_b = self.env['res.company'].browse(1)
         current_company_id = vals.get('company_id')
-
         if force_company and current_company_id != company_produccion_b.id:
             wh = self.env['stock.warehouse'].search([('company_id', '=', company_produccion_b.id)], limit=1)
             if not wh:
@@ -182,7 +178,105 @@ class SaleOrderInherit(models.Model):
             vals['warehouse_id'] = wh.id
 
             # Crear bajo el contexto/compañía destino para evitar conflictos multi-company
-            env_create = self.with_context(allowed_company_ids=[company_produccion_b.id]).with_company(company_produccion_b)
+            self.with_context(allowed_company_ids=[company_produccion_b.id]).with_company(company_produccion_b)
+        else:
+            line_cmds = vals.get('order_line') or []
+            product_ids = set()
+
+            # Parseo de comandos ORM en order_line
+            for cmd in line_cmds:
+                if not isinstance(cmd, (list, tuple)) or not cmd:
+                    continue
+                op = cmd[0]
+                if op == 0 and len(cmd) >= 3:
+                    # (0, 0, vals_line)
+                    line_vals = cmd[2] or {}
+                    pid = line_vals.get('product_id')
+                    if pid:
+                        product_ids.add(pid)
+                elif op in (1, 4) and len(cmd) >= 2:
+                    # (1, id, vals_update) ó (4, id)
+                    line = self.env['sale.order.line'].browse(cmd[1])
+                    if line.exists():
+                        product_ids.add(line.product_id.id)
+                elif op == 6 and len(cmd) >= 3:
+                    # (6, 0, [ids])
+                    for line_id in cmd[2] or []:
+                        line = self.env['sale.order.line'].browse(line_id)
+                        if line.exists():
+                            product_ids.add(line.product_id.id)
+
+            # Si hay productos en las líneas, infiero compañía
+            if product_ids:
+                prods = self.env['product.product'].browse(list(product_ids))
+
+                # Conjunto de compañías “de” los productos:
+                # - si tienen company_ids (M2M), uso esas
+                # - si no, uso company_id (M2O)
+                # - si no tienen nada → compartido (no restringe)
+                companies_union = set()
+                detailed = []  # para armar mensaje de error útil
+
+                for p in prods:
+                    comp_ids = set()
+                    if hasattr(p, 'company_ids') and p.company_ids:
+                        comp_ids = set(p.company_ids.ids)
+                        comp_names = ', '.join(p.company_ids.mapped('name'))
+                    elif p.company_id:
+                        comp_ids = {p.company_id.id}
+                        comp_names = p.company_id.display_name
+                    else:
+                        comp_names = _('(compartido)')
+
+                    if comp_ids:
+                        companies_union |= comp_ids
+                    detailed.append((p.display_name, comp_names))
+
+                if companies_union:
+                    if len(companies_union) == 1:
+                        # Todos los productos apuntan a la MISMA compañía → usarla
+                        target_company_id = next(iter(companies_union))
+                        if vals.get('company_id') != target_company_id:
+                            wh = self.env['stock.warehouse'].search([('company_id', '=', target_company_id)], limit=1)
+                            if not wh:
+                                raise UserError(_("No se encontró un depósito para la compañía con ID %s.") % target_company_id)
+                            vals = dict(vals)
+                            vals['company_id'] = target_company_id
+                            vals['warehouse_id'] = wh.id
+                            target_company = self.env['res.company'].browse(target_company_id)
+                            self = self.with_context(allowed_company_ids=[target_company_id]).with_company(target_company)
+                    else:
+                        # Hay mezcla de compañías entre los productos → error
+                        lines = "\n".join(f"- {name} → {comps}" for name, comps in detailed)
+                        raise UserError(_(
+                            "No se puede crear el pedido: las líneas contienen productos de compañías distintas.\n%s\n"
+                            "Asegurate de que todos los productos pertenezcan a la misma compañía."
+                        ) % lines)
+                # Si companies_union está vacío: todos los productos son compartidos → no forzamos nada
+
+        # 4) Crear el pedido en la compañía/contexto resuelto
+        order = super(SaleOrderInherit, self).create(vals)
+
+        # 5) Alinear compañía en líneas y validar compatibilidad producto↔compañía
+        if order.order_line:
+            # Forzar company_id de la línea = company del pedido
+            order.order_line.filtered(lambda l: l.company_id != order.company_id).write({
+                'company_id': order.company_id.id
+            })
+
+            # Extra: validar que el producto sea utilizable en esa compañía
+            bad_lines = order.order_line.filtered(
+                lambda l: (
+                    hasattr(l.product_id, 'company_ids') and l.product_id.company_ids and order.company_id not in l.product_id.company_ids
+                ) or (
+                    l.product_id.company_id and l.product_id.company_id != order.company_id
+                )
+            )
+            if bad_lines:
+                names = ", ".join(bad_lines.mapped('product_id.display_name')[:5])
+                raise UserError(_(
+                    "Hay líneas con productos que no pertenecen a la compañía del pedido (%s). Ejemplos: %s"
+                ) % (order.company_id.display_name, names + ('...' if len(bad_lines) > 5 else '')))
         order = super().create(vals)
         order.check_order()
         if not order.message_ids:
