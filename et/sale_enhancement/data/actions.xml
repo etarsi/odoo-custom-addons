@@ -1,0 +1,10 @@
+<odoo>
+    <record id="action_update_company_ids_value" model="ir.actions.server">
+        <field name="name">Actualizar las compañias permitidas del producto</field>
+        <field name="model_id" ref="sale_enhancement.model_product_template"/>
+        <field name="state">code</field>
+        <field name="code">action = records.action_update_company_ids_value()</field>
+        <field name="binding_model_id" ref="sale_enhancement.model_product_template"/>
+        <field name="binding_type">action</field>
+    </record>
+</odoo>

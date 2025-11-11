@@ -10,16 +10,16 @@ class SaleOrderInherit(models.Model):
     _inherit = 'sale.order'
 
     RUBRO_COMPANY_MAPPING = {
-        'JUGUETES': 3,
-        'CARPAS': 3,
-        'RODADOS INFANTILES': 3,
-        'PISTOLA DE AGUA': 4,
-        'INFLABLES': 4,
-        'PELOTAS': 4,
-        'VEHICULOS A BATERIA': 4,
-        'RODADOS': 2,
-        'MAQUILLAJE': 2,
-        'CABALLITOS SALTARINES': 2,
+        'JUGUETES': 3,                  #BECHAR SRL
+        'CARPAS': 3,                    #BECHAR SRL
+        'RODADOS INFANTILES': 3,        #BECHAR SRL
+        'PISTOLA DE AGUA': 4,           #FUN TOYS SRL
+        'INFLABLES': 4,                 #FUN TOYS SRL
+        'PELOTAS': 4,                   #FUN TOYS SRL
+        'VEHICULOS A BATERIA': 4,       #FUN TOYS SRL
+        'RODADOS': 2,                   #SEBIGUS SRL
+        'MAQUILLAJE': 2,                #SEBIGUS SRL
+        'CABALLITOS SALTARINES': 2,     #SEBIGUS SRL
     }
 
     # inherited
@@ -42,7 +42,8 @@ class SaleOrderInherit(models.Model):
         'product.category', string='Rubros', compute='_compute_items_ids', store=True, readonly=False,
         help="Rubros de los productos en la orden de venta. Se usa para filtrar productos en la vista de formulario."
     )
-
+    special_sale = fields.Booleand('Venta Especial')
+    
     def unlink(self):
         for order in self:
             if order.state not in ['draft']:
