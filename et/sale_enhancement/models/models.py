@@ -42,7 +42,7 @@ class SaleOrderInherit(models.Model):
         'product.category', string='Rubros', compute='_compute_items_ids', store=True, readonly=False,
         help="Rubros de los productos en la orden de venta. Se usa para filtrar productos en la vista de formulario."
     )
-    #special_sale = fields.Booleand('Venta Especial')
+    special_sale = fields.Boolean('Venta Especial')
     
     def unlink(self):
         for order in self:
