@@ -230,7 +230,7 @@ class SaleOrderInherit(models.Model):
 
                     if comp_ids:
                         companies_union |= comp_ids
-                    detailed.append((p.display_name, comp_names))
+                    detailed.append((p.default_code or p.display_name, comp_names))
 
                 if companies_union:
                     if len(companies_union) == 1:
