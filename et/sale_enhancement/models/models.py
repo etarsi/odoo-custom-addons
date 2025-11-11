@@ -260,7 +260,7 @@ class SaleOrderInherit(models.Model):
                                 by_company[cid].append(idx)
 
                         # Unir todos los productos que comparten cada compañía
-                        for _, idxs in by_company.items():
+                        for cid, idxs in by_company.items():  # usar 'cid' en vez de '_'
                             base = idxs[0]
                             for j in idxs[1:]:
                                 union(base, j)
