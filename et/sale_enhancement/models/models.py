@@ -1,5 +1,6 @@
 from odoo import models, fields, api, _
 from odoo.exceptions import UserError, ValidationError
+from collections import defaultdict
 from odoo.tools import float_round, float_compare  # Importa float_round si lo necesitas
 # from odoo.tools import float_compare  # Elimina esta línea si no usas float_compare
 import math 
@@ -225,12 +226,35 @@ class SaleOrderInherit(models.Model):
                     # intersección de TODAS las compañías de los productos con restricción
                     common = set.intersection(*company_sets)
                     if not common:
-                        lines = "\n".join(f"- {name} → {comps}" for name, comps in detailed)
+                        # Agrupar por conjunto de compañías del producto
+                        by_set = defaultdict(list)  # key = tuple(sorted(company_ids)) (vacío = compartido)
+                        for p in prods:
+                            code = p.default_code or p.display_name
+                            if getattr(p, 'company_ids', False) and p.company_ids:
+                                ids_tuple = tuple(sorted(p.company_ids.ids))
+                            elif p.company_id:
+                                ids_tuple = (p.company_id.id,)
+                            else:
+                                ids_tuple = tuple()  # (compartido) → sin restricción
+
+                            by_set[ids_tuple].append(code)
+
+                        def set_label(ids_tuple):
+                            if not ids_tuple:
+                                return _('(compartido)')
+                            comps = self.env['res.company'].browse(list(ids_tuple))
+                            return ', '.join(comps.mapped('name'))
+
+                        # Construir líneas agrupadas: "códigos → compañías"
+                        lines = "\n".join(
+                            f"- {', '.join(sorted(codes))} → {set_label(ids_tuple)}"
+                            for ids_tuple, codes in sorted(by_set.items(), key=lambda it: (len(it[0]) or 0, it[0]))
+                        )
+
                         raise UserError(_(
-                            "No se puede crear el pedido: las líneas contienen productos sin compañía común.\n%s\n"
+                            "No se puede crear el pedido: las líneas no comparten una compañía común.\n%s\n"
                             "Asegurate de que todos los productos compartan al menos una misma compañía."
                         ) % lines)
-
                     current_company_id = vals.get('company_id')
                     if current_company_id in common:
                         target_company_id = current_company_id
