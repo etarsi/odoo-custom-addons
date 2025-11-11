@@ -183,76 +183,71 @@ class SaleOrderInherit(models.Model):
             line_cmds = vals.get('order_line') or []
             product_ids = set()
 
-            # Parseo de comandos ORM en order_line
             for cmd in line_cmds:
                 if not isinstance(cmd, (list, tuple)) or not cmd:
                     continue
                 op = cmd[0]
-                if op == 0 and len(cmd) >= 3:
-                    # (0, 0, vals_line)
-                    line_vals = cmd[2] or {}
-                    pid = line_vals.get('product_id')
+                if op == 0 and len(cmd) >= 3:               # (0, 0, vals_line)
+                    pid = (cmd[2] or {}).get('product_id')
                     if pid:
                         product_ids.add(pid)
-                elif op in (1, 4) and len(cmd) >= 2:
-                    # (1, id, vals_update) ó (4, id)
+                elif op in (1, 4) and len(cmd) >= 2:        # (1, id, vals) ó (4, id)
                     line = self.env['sale.order.line'].browse(cmd[1])
                     if line.exists():
                         product_ids.add(line.product_id.id)
-                elif op == 6 and len(cmd) >= 3:
-                    # (6, 0, [ids])
-                    for line_id in cmd[2] or []:
+                elif op == 6 and len(cmd) >= 3:             # (6, 0, [ids])
+                    for line_id in (cmd[2] or []):
                         line = self.env['sale.order.line'].browse(line_id)
                         if line.exists():
                             product_ids.add(line.product_id.id)
-
             # Si hay productos en las líneas, infiero compañía
             if product_ids:
                 prods = self.env['product.product'].browse(list(product_ids))
-
-                # Conjunto de compañías “de” los productos:
-                # - si tienen company_ids (M2M), uso esas
-                # - si no, uso company_id (M2O)
-                # - si no tienen nada → compartido (no restringe)
-                companies_union = set()
-                detailed = []  # para armar mensaje de error útil
+                detailed = []
+                company_sets = []
 
                 for p in prods:
                     comp_ids = set()
-                    if hasattr(p, 'company_ids') and p.company_ids:
+                    if getattr(p, 'company_ids', False) and p.company_ids:
                         comp_ids = set(p.company_ids.ids)
                         comp_names = ', '.join(p.company_ids.mapped('name'))
                     elif p.company_id:
                         comp_ids = {p.company_id.id}
                         comp_names = p.company_id.display_name
                     else:
+                        # compartido ⇒ no restringe
                         comp_names = _('(compartido)')
-
                     if comp_ids:
-                        companies_union |= comp_ids
+                        company_sets.append(comp_ids)
                     detailed.append((p.default_code or p.display_name, comp_names))
 
-                if companies_union:
-                    if len(companies_union) == 1:
-                        # Todos los productos apuntan a la MISMA compañía → usarla
-                        target_company_id = next(iter(companies_union))
-                        if vals.get('company_id') != target_company_id:
-                            wh = self.env['stock.warehouse'].search([('company_id', '=', target_company_id)], limit=1)
-                            if not wh:
-                                raise UserError(_("No se encontró un depósito para la compañía con ID %s.") % target_company_id)
-                            vals = dict(vals)
-                            vals['company_id'] = target_company_id
-                            vals['warehouse_id'] = wh.id
-                            target_company = self.env['res.company'].browse(target_company_id)
-                            self = self.with_context(allowed_company_ids=[target_company_id]).with_company(target_company)
-                    else:
-                        # Hay mezcla de compañías entre los productos → error
+                if company_sets:
+                    # intersección de TODAS las compañías de los productos con restricción
+                    common = set.intersection(*company_sets)
+                    if not common:
                         lines = "\n".join(f"- {name} → {comps}" for name, comps in detailed)
                         raise UserError(_(
-                            "No se puede crear el pedido: las líneas contienen productos de compañías distintas.\n%s\n"
-                            "Asegurate de que todos los productos pertenezcan a la misma compañía."
+                            "No se puede crear el pedido: las líneas contienen productos sin compañía común.\n%s\n"
+                            "Asegurate de que todos los productos compartan al menos una misma compañía."
                         ) % lines)
-                # Si companies_union está vacío: todos los productos son compartidos → no forzamos nada
+
+                    current_company_id = vals.get('company_id')
+                    if current_company_id in common:
+                        target_company_id = current_company_id
+                    elif 1 in common:
+                        target_company_id = 1
+                    else:
+                        target_company_id = min(common)
+
+                    if vals.get('company_id') != target_company_id:
+                        wh = self.env['stock.warehouse'].search([('company_id', '=', target_company_id)], limit=1)
+                        if not wh:
+                            raise UserError(_("No se encontró un depósito para la compañía con ID %s.") % target_company_id)
+                        vals = dict(vals)
+                        vals['company_id'] = target_company_id
+                        vals['warehouse_id'] = wh.id
+                        target_company = self.env['res.company'].browse(target_company_id)
+                        self = self.with_context(allowed_company_ids=[target_company_id]).with_company(target_company)
 
         # 4) Crear el pedido en la compañía/contexto resuelto
         order = super(SaleOrderInherit, self).create(vals)
