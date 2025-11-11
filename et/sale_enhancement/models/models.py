@@ -13,7 +13,7 @@ class SaleOrderInherit(models.Model):
         'JUGUETES': 3,                  #BECHAR SRL
         'CARPAS': 3,                    #BECHAR SRL
         'RODADOS INFANTILES': 3,        #BECHAR SRL
-        'PISTOLA DE AGUA': 4,           #FUN TOYS SRL
+        'PISTOLAS DE AGUA': 4,          #FUN TOYS SRL
         'INFLABLES': 4,                 #FUN TOYS SRL
         'PELOTAS': 4,                   #FUN TOYS SRL
         'VEHICULOS A BATERIA': 4,       #FUN TOYS SRL
