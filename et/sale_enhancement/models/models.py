@@ -273,29 +273,29 @@ class SaleOrderInherit(models.Model):
                         target_company = self.env['res.company'].browse(target_company_id)
                         self = self.with_context(allowed_company_ids=[target_company_id]).with_company(target_company)
 
-        # 4) Crear el pedido en la compañía/contexto resuelto
-        order = super(SaleOrderInherit, self).create(vals)
+            # 4) Crear el pedido en la compañía/contexto resuelto
+            order = super(SaleOrderInherit, self).create(vals)
 
-        # 5) Alinear compañía en líneas y validar compatibilidad producto↔compañía
-        if order.order_line:
-            # Forzar company_id de la línea = company del pedido
-            order.order_line.filtered(lambda l: l.company_id != order.company_id).write({
-                'company_id': order.company_id.id
-            })
+            # 5) Alinear compañía en líneas y validar compatibilidad producto↔compañía
+            if order.order_line:
+                # Forzar company_id de la línea = company del pedido
+                order.order_line.filtered(lambda l: l.company_id != order.company_id).write({
+                    'company_id': order.company_id.id
+                })
 
-            # Extra: validar que el producto sea utilizable en esa compañía
-            bad_lines = order.order_line.filtered(
-                lambda l: (
-                    hasattr(l.product_id, 'company_ids') and l.product_id.company_ids and order.company_id not in l.product_id.company_ids
-                ) or (
-                    l.product_id.company_id and l.product_id.company_id != order.company_id
+                # Extra: validar que el producto sea utilizable en esa compañía
+                bad_lines = order.order_line.filtered(
+                    lambda l: (
+                        hasattr(l.product_id, 'company_ids') and l.product_id.company_ids and order.company_id not in l.product_id.company_ids
+                    ) or (
+                        l.product_id.company_id and l.product_id.company_id != order.company_id
+                    )
                 )
-            )
-            if bad_lines:
-                names = ", ".join(bad_lines.mapped('product_id.display_name')[:5])
-                raise UserError(_(
-                    "Hay líneas con productos que no pertenecen a la compañía del pedido (%s). Ejemplos: %s"
-                ) % (order.company_id.display_name, names + ('...' if len(bad_lines) > 5 else '')))
+                if bad_lines:
+                    names = ", ".join(bad_lines.mapped('product_id.display_name')[:5])
+                    raise UserError(_(
+                        "Hay líneas con productos que no pertenecen a la compañía del pedido (%s): %s"
+                    ) % (order.company_id.display_name, names + ('...' if len(bad_lines) > 5 else '')))
         order = super().create(vals)
         order.check_order()
         if not order.message_ids:
