@@ -180,6 +180,7 @@ class SaleOrderInherit(models.Model):
 
             # Crear bajo el contexto/compañía destino para evitar conflictos multi-company
             self.with_context(allowed_company_ids=[company_produccion_b.id]).with_company(company_produccion_b)
+            order = super().create(vals)    
         else:
             line_cmds = vals.get('order_line') or []
             product_ids = set()
@@ -296,7 +297,6 @@ class SaleOrderInherit(models.Model):
                     raise UserError(_(
                         "Hay líneas con productos que no pertenecen a la compañía del pedido (%s): %s"
                     ) % (order.company_id.display_name, names + ('...' if len(bad_lines) > 5 else '')))
-        order = super().create(vals)
         order.check_order()
         if not order.message_ids:
             order.message_post(body=_("Orden de venta creada."))
