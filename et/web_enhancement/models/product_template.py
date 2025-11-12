@@ -7,12 +7,11 @@ import zipfile
 from datetime import datetime
 
 from googleapiclient.errors import HttpError
-import unicodedata
+import unicodedata, re
 from functools import lru_cache
 from google.oauth2 import service_account
 from googleapiclient.discovery import build
 from googleapiclient.http import MediaIoBaseDownload
-
 from odoo import api, fields, models, _
 from odoo.exceptions import UserError
 
@@ -27,8 +26,17 @@ def _is_image(file_obj):
     return (mime in ALLOWED_IMAGE_MIMES) or name.endswith(ALLOWED_IMAGE_EXTS)
 
 def _nfc(s):
-    """Normaliza Unicode (acentos/ñ) para comparaciones en Python."""
     return unicodedata.normalize("NFC", s or "")
+
+def _starts_with_code(name, code):
+    """True si el nombre comienza con <code> (exacto o seguido de separador)."""
+    n = _nfc((name or "").strip())
+    c = _nfc((code or "").strip())
+    if not c:
+        return False
+    # inicio + code + (fin o separador típico)
+    pat = r'^\s*' + re.escape(c) + r'(?:\b|[\s\-\._–—/|])'
+    return re.match(pat, n, flags=re.IGNORECASE) is not None
 
 class ProductTemplate(models.Model):
     _inherit = "product.template"
@@ -172,12 +180,14 @@ class ProductTemplate(models.Model):
                 if not real_id:
                     continue
                 # Filtrar para quedarnos solo con las que estén debajo de main_folder_id
-                if self._is_descendant_of(service, real_id, main_folder_id):
-                    # Para el scoring usamos el 'name' visible del file (shortcut o folder)
-                    candidates.append({
-                        "id": real_id,
-                        "name": f.get("name"),
-                    })
+                if not self._is_descendant_of(service, real_id, main_folder_id):
+                    continue
+                if not _starts_with_code(f.get("name"), code_str):
+                    continue
+                candidates.append({
+                    "id": real_id,
+                    "name": f.get("name"),
+                })
             if candidates:
                 break
 
@@ -187,16 +197,11 @@ class ProductTemplate(models.Model):
         # Scoring: exact == 3, empieza con "<code> " o "<code>-" o "<code>_" == 2, contains == 1
         def score(f):
             name = _nfc(f.get("name") or "")
-            if name == code_str:
+            if name.strip().lower() == code_str.lower():
                 return (3, -len(name))
-            if name.lower().startswith((code_str + " ").lower()) \
-            or name.lower().startswith((code_str + "-").lower()) \
-            or name.lower().startswith((code_str + "_").lower()):
-                return (2, -len(name))
-            return (1, -len(name))
+            return (2, -len(name))
 
         candidates.sort(key=score, reverse=True)
-        # Devolvemos con el formato que espera tu código (dict con id y name)
         return {"id": candidates[0]["id"], "name": candidates[0]["name"]}
 
     def _create_product_download_mark(self, description=None):
