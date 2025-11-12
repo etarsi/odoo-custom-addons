@@ -6,7 +6,7 @@ from datetime import timedelta
 
 class SaleRefacturarAccountWizard(models.TransientModel):
     _name = 'sale.refacturar.account.wizard'
-    _description = 'Wizard: Refacturar Facturación desde Pedido de Venta'
+    _description = 'Wizard: Factura sin Despachar del Pedido'
 
     sale_id = fields.Many2one('sale.order', string='Pedido de venta', required=True)
     partner_id = fields.Many2one('res.partner', string='Cliente', required=True)

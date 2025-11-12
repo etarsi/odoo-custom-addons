@@ -60,7 +60,7 @@
         <field name="name">sale.refacturar.account.wizard.form</field>
         <field name="model">sale.refacturar.account.wizard</field>
         <field name="arch" type="xml">
-            <form string="Refacturar pedido">
+            <form string="Factura sin Despachar del Pedido">
                 <group string="Datos del pedido original">
                     <group>
                         <field name="sale_id" readonly="1" force_save="1"/>
@@ -89,8 +89,7 @@
                 <button
                     name="action_open_refacturar_wizard"
                     type="object"
-                    icon="fa fa-file-invoice"
-                    string="Refacturar"
+                    string="Factura sin Despachar"
                     class="oe_highlight"
                     attrs="{'invisible': [('state','not in', ['draft','sent'])]}"
                 />
