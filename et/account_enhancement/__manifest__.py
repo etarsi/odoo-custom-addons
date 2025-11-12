@@ -26,7 +26,7 @@
         ],
     },
     # any module necessary for this one to work correctly
-    'depends': ['base', 'account_check_printing', 'account_payment_group', 'l10n_latam_check', 'l10n_ar', 'l10n_ar_reports','l10n_ar_afipws_fe', 'account', 'mail', 'sale', 'product'],
+    'depends': ['base', 'account_check_printing', 'account_payment_group', 'l10n_latam_check', 'l10n_ar', 'l10n_ar_reports','l10n_ar_afipws_fe', 'account', 'mail', 'sale', 'product', 'sale_enhancement'],
 
     # always loaded
     'data': [
