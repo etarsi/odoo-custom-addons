@@ -122,58 +122,42 @@ class HrEnhancementApi(models.AbstractModel):
                                 min_minutes = 60
                                 delta_minutes = (check_utc - open_att.check_in).total_seconds() / 60.0
                                 if delta_minutes < min_minutes:
-                                    env['hr.temp.attendance'].sudo().create({
-                                        'employee_id': employee.id,
-                                        'check_date': check_utc,
-                                        'employee_type': employee.employee_type,
-                                        'employee_type_shift': employee.type_shift, 
-                                        'notes': 'Intento marcar la salida, debe ser al menos %d minutos después de la entrada (%s)' % (min_minutes, open_att.check_in.strftime("%Y-%m-%d %H:%M")),
-                                    })
+                                    self._create_temp_attendance_record(employee.id, check_utc, 'Intento marcar la salida antes de %d minutos de la entrada (%s)' % (min_minutes, open_att.check_in.strftime("%Y-%m-%d %H:%M")))
                                     message += f'--la salida debe ser al menos {min_minutes} minutos después de la entrada ({open_att.check_in.strftime("%Y-%m-%d %H:%M")})'
                                     return {'success': False, 'error': message, 'received': data}
                                 open_att.write({'check_out': check_utc})
                                 message += f' (asistencia cerrada: {open_att.id})'
                             else:
-                                #bloquear la asistencia abierta anterior y colocar el check_out con fecha que tiene el check_in pero la hora 17:00
-                                open_att.write({'blocked': True, 'check_out': open_att.check_in.replace(hour=17, minute=0, second=0, microsecond=0), 'notes': 'Asistencia bloqueada y cerrada automáticamente con la hora 17:00 por nuevo ingreso'})
+                                justification_text = ''
+                                if open_att.justification:
+                                    justification_text = open_att.justification
+                                open_att.write({'blocked': True, 'check_out': open_att.check_in.replace(hour=17, minute=0, second=0, microsecond=0), 'justification': f'{justification_text} / Bloqueo automático por nuevo ingreso desde lector facial. y cierre a las 17:00 hrs.'})
                                 # Crear asistencia abierta
                                 if check_utc > start_limit_day_inicio_marcado_employee:
+                                    self._create_temp_attendance_record(employee.id, check_utc, 'Intento marcar Entrada fuera del rango diurno (%s-%s)' % (start_limit_day.strftime("%H:%M"), end_limit_day.strftime("%H:%M")))
+                                    message += '--asistencia fuera del rango diurno de inicio de marcado'
+                                    return {'success': False, 'error': message, 'received': data}
+                                else:
                                     open_att = hr_attendance.create({
                                         'employee_id': employee.id,
                                         'check_in': check_utc,
                                         'create_lector': True,
                                     })
                                     message += f'--asistencia abierta: {open_att.id} (empleado en borrador)'
-                                else:
-                                    env['hr.temp.attendance'].sudo().create({
-                                        'employee_id': employee.id,
-                                        'check_date': check_utc,
-                                        'employee_type': employee.employee_type,
-                                        'employee_type_shift': employee.type_shift,
-                                        'notes': 'Intento marcar Entrada fuera del rango diurno (%s-%s)' % (start_limit_day.strftime("%H:%M"), end_limit_day.strftime("%H:%M")),
-                                    })
-                                    message += '--asistencia fuera del rango diurno de inicio de marcado'
-                                    return {'success': False, 'error': message, 'received': data}
+                                    return {'success': True, 'message': message, 'status_code': 200, 'received': data}
                         else:
                             if check_utc > start_limit_day_inicio_marcado_employee:
-                                # Crear asistencia abierta
+                                self._create_temp_attendance_record(employee.id, check_utc, 'Intento marcar Entrada fuera del rango diurno (%s-%s)' % (start_limit_day.strftime("%H:%M"), end_limit_day.strftime("%H:%M")))
+                                message += '--asistencia fuera del rango diurno de inicio de marcado'
+                                return {'success': False, 'error': message, 'received': data}
+                            else:
                                 open_att = hr_attendance.create({
                                     'employee_id': employee.id,
                                     'check_in': check_utc,
                                     'create_lector': True,
                                 })
-                                message += f'--asistencia abierta: {open_att.id} empleado: {employee.name}'
+                                message += f'--asistencia abierta: {open_att.id}, {open_att.employee_id.name}'
                                 return {'success': True, 'message': message, 'status_code': 200, 'received': data}
-                            else:
-                                message += '--asistencia fuera del rango diurno de inicio de marcado'
-                                env['hr.temp.attendance'].sudo().create({
-                                    'employee_id': employee.id,
-                                    'check_date': check_utc,
-                                    'employee_type': employee.employee_type,
-                                    'employee_type_shift': employee.type_shift,
-                                    'notes': 'Intento marcar Entrada fuera del rango diurno (%s-%s)' % (start_limit_day.strftime("%H:%M"), end_limit_day.strftime("%H:%M")),
-                                })
-                                return {'success': False, 'error': message, 'received': data}
                 elif open_method == 'FINGERPRINT':
                     if not employee:
                         employee = hr_employee.create({
@@ -188,45 +172,26 @@ class HrEnhancementApi(models.AbstractModel):
                             if dow in [0,1,2,3,4]:  # Lunes a Viernes
                                 if check_utc > start_limit_day:
                                     # lo registro en el hr temp attendance
-                                    env['hr.temp.attendance'].sudo().create({
-                                        'employee_id': employee.id,
-                                        'check_date': check_utc,
-                                        'employee_type': employee.employee_type,
-                                        'employee_type_shift': employee.type_shift,
-                                        'notes': 'Intento marcar Entrada fuera del rango diurno (%s-%s)' % (start_limit_day.strftime("%H:%M"), end_limit_day.strftime("%H:%M")),
-                                    })
+                                    self._create_temp_attendance_record(employee.id, check_utc, 'Intento marcar Entrada fuera del rango diurno (%s-%s)' % (start_limit_day.strftime("%H:%M"), end_limit_day.strftime("%H:%M")))
                                     message += f'--asistencia fuera de rango diurno ({start_limit_day.strftime("%H:%M")}-{end_limit_day.strftime("%H:%M")})'
                                     return {'success': False, 'error': message, 'received': data}
                             elif dow == 5:  # Sábado
                                 start_limit_day = start_limit_day + timedelta(hours=1)
                                 if check_utc > end_limit_day:
                                     # lo registro en el hr temp attendance
-                                    env['hr.temp.attendance'].sudo().create({
-                                        'employee_id': employee.id,
-                                        'check_date': check_utc,
-                                        'employee_type': employee.employee_type,
-                                        'employee_type_shift': employee.type_shift,
-                                        'notes': 'Intento marcar Entrada fuera del rango diurno (%s-%s)' % (start_limit_day.strftime("%H:%M"), end_limit_day.strftime("%H:%M")),
-                                    })
+                                    self._create_temp_attendance_record(employee.id, check_utc, 'Intento marcar Entrada fuera del rango diurno (%s-%s)' % (start_limit_day.strftime("%H:%M"), end_limit_day.strftime("%H:%M")))
                                     message += f'--asistencia fuera de rango diurno ({start_limit_day.strftime("%H:%M")}-{end_limit_day.strftime("%H:%M")})'
                                     return {'success': False, 'error': message, 'received': data}
-                            else:
-                                open_att = hr_attendance.create({
-                                    'employee_id': employee.id,
-                                    'check_in': check_utc,
-                                    'create_lector': True,
-                                })
-                                message += f'--asistencia abierta: {open_att.id}, {open_att.employee_id.name}(empleado en borrador)'
+                            open_att = hr_attendance.create({
+                                'employee_id': employee.id,
+                                'check_in': check_utc,
+                                'create_lector': True,
+                            })
+                            message += f'--asistencia abierta: {open_att.id}, {open_att.employee_id.name}'
                         elif employee.type_shift == 'night':
                             if check_utc > start_limit_night:
                                 # lo registro en el hr temp attendance
-                                env['hr.temp.attendance'].sudo().create({
-                                    'employee_id': employee.id,
-                                    'check_date': check_utc,
-                                    'employee_type': employee.employee_type,
-                                    'employee_type_shift': employee.type_shift,
-                                    'notes': 'Intento marcar Entrada fuera del rango nocturno (%s-%s)' % (start_limit_night.strftime("%H:%M"), end_limit_night.strftime("%H:%M")),
-                                })
+                                self._create_temp_attendance_record(employee.id, check_utc, 'Intento marcar Entrada fuera del rango nocturno (%s-%s)' % (start_limit_night.strftime("%H:%M"), end_limit_night.strftime("%H:%M")))
                                 message += f'--asistencia fuera de rango nocturno ({start_limit_night.strftime("%H:%M")}-{end_limit_night.strftime("%H:%M")})'
                                 return {'success': False, 'error': message, 'received': data}
                             open_att = hr_attendance.create({
@@ -234,7 +199,7 @@ class HrEnhancementApi(models.AbstractModel):
                                 'check_in': check_utc,
                                 'create_lector': True,
                             })
-                            message += f'--asistencia abierta: {open_att.id}, {open_att.employee_id.name} (empleado en borrador)'
+                            message += f'--asistencia abierta: {open_att.id}, {open_att.employee_id.name}'
                     else:
                         if employee.employee_type == 'eventual':
                             # Limites del día (para agrupar por día local)
@@ -248,102 +213,65 @@ class HrEnhancementApi(models.AbstractModel):
                                         min_minutes = 60
                                         delta_minutes = (check_utc - open_att.check_in).total_seconds() / 60.0
                                         if delta_minutes < min_minutes:
+                                            self._create_temp_attendance_record(employee.id, check_utc, 'Intento marcar la salida antes de %d minutos de la entrada (%s)' % (min_minutes, open_att.check_in.strftime("%Y-%m-%d %H:%M")))    
                                             message += f'--la salida debe ser al menos {min_minutes} minutos después de la entrada ({open_att.check_in.strftime("%Y-%m-%d %H:%M")})'
                                             return {'success': False, 'error': message, 'received': data}
                                         if dow == 5:  # Sábado
                                             end_limit_day = end_limit_day - timedelta(hours=2)
                                             if check_utc > end_limit_day:
-                                                env['hr.temp.attendance'].sudo().create({
-                                                    'employee_id': employee.id,
-                                                    'check_date': check_utc,
-                                                    'employee_type': employee.employee_type,
-                                                    'employee_type_shift': employee.type_shift,
-                                                    'notes': 'Intento marcar la salida fuera del rango diurno (%s-%s)' % (start_limit_day.strftime("%H:%M"), end_limit_day.strftime("%H:%M")),
-                                                })
+                                                self._create_temp_attendance_record(employee.id, check_utc, 'Intento marcar la salida fuera del rango diurno (%s-%s)' % (start_limit_day.strftime("%H:%M"), end_limit_day.strftime("%H:%M")))
                                                 message += f'--asistencia fuera del limite de salida diurno ({end_limit_day.strftime("%H:%M")})'
                                                 return {'success': False, 'error': message, 'received': data}
                                         if dow in [0,1,2,3,4]:  # Lunes a Viernes
                                             if check_utc > end_limit_day:
-                                                env['hr.temp.attendance'].sudo().create({
-                                                    'employee_id': employee.id,
-                                                    'check_date': check_utc,
-                                                    'employee_type': employee.employee_type,
-                                                    'employee_type_shift': employee.type_shift,
-                                                    'notes': 'Intento marcar la salida fuera del rango diurno (%s-%s)' % (start_limit_day.strftime("%H:%M"), end_limit_day.strftime("%H:%M")),
-                                                })
+                                                self._create_temp_attendance_record(employee.id, check_utc, 'Intento marcar la salida fuera del rango diurno (%s-%s)' % (start_limit_day.strftime("%H:%M"), end_limit_day.strftime("%H:%M")))
                                                 message += f'--asistencia fuera del limite de salida diurno ({end_limit_day.strftime("%H:%M")})'
                                                 return {'success': False, 'error': message, 'received': data}
                                         # Cerrar asistencia abierta
                                         open_att.write({'check_out': check_utc})
-                                        message += f' (asistencia cerrada: {open_att.id})'
+                                        message += f' (asistencia cerrada: {open_att.id}, {employee.name})'
                                     else:
                                         #bloquear la asistencia abierta anterior
-                                        open_att.write({'blocked': True})
+                                        justification_text = ''
+                                        if open_att.justification:
+                                            justification_text = open_att.justification + ' | '
+                                        open_att.write({'blocked': True, 'check_out': open_att.check_in.replace(hour=17, minute=0, second=0, microsecond=0), 'justification': justification_text + 'Bloqueo automático por nuevo ingreso desde lector huella y cierre a las 17:00 hrs.'})
                                         if dow in [0,1,2,3,4]:  # Lunes a Viernes
                                             if check_utc > start_limit_day:
-                                                env['hr.temp.attendance'].sudo().create({
-                                                    'employee_id': employee.id,
-                                                    'check_date': check_utc,
-                                                    'employee_type': employee.employee_type,
-                                                })
+                                                self._create_temp_attendance_record(employee.id, check_utc, 'Intento marcar la salida fuera del rango diurno (%s-%s)' % (start_limit_day.strftime("%H:%M"), end_limit_day.strftime("%H:%M")))
                                                 message += f'--asistencia fuera del limite de ingreso diurno ({start_limit_day.strftime("%H:%M")})'
                                                 return {'success': False, 'error': message, 'received': data}
                                         elif dow == 5:  # Sábado
                                             start_limit_day = start_limit_day + timedelta(hours=1)
                                             if check_utc > start_limit_day:
-                                                env['hr.temp.attendance'].sudo().create({
-                                                    'employee_id': employee.id,
-                                                    'check_date': check_utc,
-                                                    'employee_type': employee.employee_type,
-                                                })
+                                                self._create_temp_attendance_record(employee.id, check_utc, 'Intento marcar la salida fuera del rango diurno (%s-%s)' % (start_limit_day.strftime("%H:%M"), end_limit_day.strftime("%H:%M")))
                                                 message += f'--asistencia fuera del limite de salida diurno ({end_limit_day.strftime("%H:%M")})'
                                                 return {'success': False, 'error': message, 'received': data}
-                                        # Crear asistencia abierta
-                                        if check_utc > start_limit_day:
-                                            open_att = hr_attendance.create({
-                                                'employee_id': employee.id,
-                                                'check_in': check_utc,
-                                                'create_lector': True,
-                                            })
-                                            message += f' (asistencia abierta: {open_att.id})'
-                                        else:
-                                            message += '--asistencia fuera del rango diurno de inicio de marcado'
-                                            return {'success': False, 'error': message, 'received': data}
-                                else:
-                                    if dow in [0,1,2,3,4]:  # Lunes a Viernes
-                                        if check_utc > start_limit_day:
-                                            env['hr.temp.attendance'].sudo().create({
-                                                'employee_id': employee.id,
-                                                'check_date': check_utc,
-                                                'employee_type': employee.employee_type,
-                                                'employee_type_shift': employee.type_shift,
-                                                'notes': 'Intento marcar Entrada fuera del rango diurno (%s-%s)' % (start_limit_day.strftime("%H:%M"), end_limit_day.strftime("%H:%M")),
-                                            })
-                                            message += f'--asistencia fuera del limite de ingreso diurno ({start_limit_day.strftime("%H:%M")})'
-                                            return {'success': False, 'error': message, 'received': data}
-                                    elif dow == 5:  # Sábado
-                                        start_limit_day = start_limit_day + timedelta(hours=1)
-                                        if check_utc > start_limit_day:
-                                            env['hr.temp.attendance'].sudo().create({
-                                                'employee_id': employee.id,
-                                                'check_date': check_utc,
-                                                'employee_type': employee.employee_type,
-                                                'employee_type_shift': employee.type_shift,
-                                                'notes': 'Intento marcar la salida fuera del rango diurno (%s-%s)' % (start_limit_day.strftime("%H:%M"), end_limit_day.strftime("%H:%M")),
-                                            })
-                                            message += f'--asistencia fuera del limite de salida diurno ({end_limit_day.strftime("%H:%M")})'
-                                            return {'success': False, 'error': message, 'received': data}
-                                    if check_utc > start_limit_day:
                                         # Crear asistencia abierta
                                         open_att = hr_attendance.create({
                                             'employee_id': employee.id,
                                             'check_in': check_utc,
                                             'create_lector': True,
                                         })
-                                        message += f' (asistencia abierta: {open_att.id})'
-                                    else:
-                                        message += '--asistencia fuera del rango diurno de inicio de marcado'
-                                        return {'success': False, 'error': message, 'received': data}
+                                        message += f' (asistencia abierta: {open_att.id}, {open_att.employee_id.name})'
+                                else:
+                                    if dow in [0,1,2,3,4]:  # Lunes a Viernes
+                                        if check_utc > start_limit_day:
+                                            self._create_temp_attendance_record(employee.id, check_utc, 'Intento marcar la salida fuera del rango diurno (%s-%s)' % (start_limit_day.strftime("%H:%M"), end_limit_day.strftime("%H:%M")))
+                                            message += f'--asistencia fuera del limite de ingreso diurno ({start_limit_day.strftime("%H:%M")})'
+                                            return {'success': False, 'error': message, 'received': data}
+                                    elif dow == 5:  # Sábado
+                                        start_limit_day = start_limit_day + timedelta(hours=1)
+                                        if check_utc > start_limit_day:
+                                            self._create_temp_attendance_record(employee.id, check_utc, 'Intento marcar la salida fuera del rango diurno (%s-%s)' % (start_limit_day.strftime("%H:%M"), end_limit_day.strftime("%H:%M")))
+                                            message += f'--asistencia fuera del limite de salida diurno ({end_limit_day.strftime("%H:%M")})'
+                                            return {'success': False, 'error': message, 'received': data}
+                                    open_att = hr_attendance.create({
+                                        'employee_id': employee.id,
+                                        'check_in': check_utc,
+                                        'create_lector': True,
+                                    })
+                                    message += f' (asistencia abierta: {open_att.id}, {open_att.employee_id.name})'
                             elif employee.type_shift == 'night':
                                 if open_att:
                                     # Validar el rango de la salida nocturna
@@ -352,53 +280,37 @@ class HrEnhancementApi(models.AbstractModel):
                                     if delta_minutes < min_minutes:
                                         message += f'--la salida debe ser al menos {min_minutes} minutos después de la entrada ({open_att.check_in.strftime("%Y-%m-%d %H:%M")})'
                                         return {'success': False, 'error': message, 'received': data}
-                                    if check_utc > end_limit_night:
-                                        env['hr.temp.attendance'].sudo().create({
-                                            'employee_id': employee.id,
-                                            'check_date': check_utc,
-                                            'employee_type': employee.employee_type,
-                                        })
-                                        message += f'--asistencia fuera de rango de salida del horario nocturno ({end_limit_night.strftime("%H:%M")})'
-                                        return {'success': False, 'error': message, 'received': data}
-                                    # permitir mismo día o día siguiente como máximo
                                     delta_days = (check_utc.date() - open_att.check_in.date()).days
-                                    if delta_days > 1:
-                                        message += ' --la salida nocturna debe ser el mismo día o el día siguiente (máx. 1 día de diferencia)'
-                                        return {'success': False, 'error': message, 'received': data}
-                                    if check_utc <= open_att.check_in:
-                                        env['hr.temp.attendance'].sudo().create({
-                                            'employee_id': employee.id,
-                                            'check_date': check_utc,
-                                            'employee_type': employee.employee_type,
-                                            'employee_type_shift': employee.type_shift,
-                                            'notes': 'Intento marcar la salida nocturna anterior/igual a la entrada (%s)' % (open_att.check_in.strftime("%Y-%m-%d %H:%M")), 
-                                        })
-                                        message += ' --la salida no puede ser anterior/igual a la entrada'
-                                        return {'success': False, 'error': message, 'received': data}
-                                    open_att.write({'check_out': check_utc})
-                                    message += f' (asistencia nocturna cerrada: {open_att.id})'
-                                else:
-                                    if check_utc > start_limit_night:
-                                        env['hr.temp.attendance'].sudo().create({
-                                            'employee_id': employee.id,
-                                            'check_date': check_utc,
-                                            'employee_type': employee.employee_type,
-                                            'employee_type_shift': employee.type_shift,
-                                            'notes': 'Intento marcar la salida fuera del rango nocturno (%s-%s)' % (start_limit_night.strftime("%H:%M"), end_limit_night.strftime("%H:%M")),
-                                        })
-                                        message += f'--asistencia fuera de rango nocturno ({start_limit_night.strftime("%H:%M")}-{end_limit_night.strftime("%H:%M")})'
-                                        return {'success': False, 'error': message, 'received': data}
-                                    if check_utc > start_limit_day:
+                                    if delta_days == 1:
+                                        open_att.write({'check_out': check_utc})
+                                        message += f' (asistencia nocturna cerrada: {open_att.id})'
+                                    else:
+                                        justification_text = ''
+                                        if open_att.justification:
+                                            justification_text = open_att.justification + ' | '
+                                        open_att.write({'blocked': True, 'check_out': open_att.check_in.replace(hour=6, minute=0, second=0, microsecond=0) + timedelta(days=1), 'justification': justification_text + 'Bloqueo automático por nuevo ingreso desde lector huella y cierre a las 06:00 hrs.'})
                                         # Crear asistencia abierta
+                                        if check_utc > start_limit_night:
+                                            self._create_temp_attendance_record(employee.id, check_utc, 'Intento marcar la salida fuera del rango nocturno (%s-%s)' % (start_limit_night.strftime("%H:%M"), end_limit_night.strftime("%H:%M"))) 
+                                            message += f'--asistencia fuera de rango nocturno ({start_limit_night.strftime("%H:%M")}-{end_limit_night.strftime("%H:%M")})'
+                                            return {'success': False, 'error': message, 'received': data}
                                         open_att = hr_attendance.create({
                                             'employee_id': employee.id,
                                             'check_in': check_utc,
                                             'create_lector': True,
                                         })
-                                        message += f' (asistencia abierta: {open_att.id})'
-                                    else:
-                                        message += '--asistencia fuera del rango nocturno de inicio de marcado'
+                                        message += f' (asistencia nocturna abierta: {open_att.id}, {open_att.employee_id.name})'
+                                else:
+                                    if check_utc > start_limit_night:
+                                        self._create_temp_attendance_record(employee.id, check_utc, 'Intento marcar la salida fuera del rango nocturno (%s-%s)' % (start_limit_night.strftime("%H:%M"), end_limit_night.strftime("%H:%M"))) 
+                                        message += f'--asistencia fuera de rango nocturno ({start_limit_night.strftime("%H:%M")}-{end_limit_night.strftime("%H:%M")})'
                                         return {'success': False, 'error': message, 'received': data}
+                                    open_att = hr_attendance.create({
+                                        'employee_id': employee.id,
+                                        'check_in': check_utc,
+                                        'create_lector': True,
+                                    })
+                                    message += f'--asistencia nocturna abierta: {open_att.id}, {open_att.employee_id.name}'
                 return {'success': True, 'message': message, 'status_code': 200, 'received': data}
             except ValidationError as ve:
                 return {'success': False, 'error': str(ve), 'error_class': ve.__class__.__name__, 'received': data, 'status_code': 400}
