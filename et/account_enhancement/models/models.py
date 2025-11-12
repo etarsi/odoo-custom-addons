@@ -716,6 +716,13 @@ class SaleOrderInherit(models.Model):
         }
         return invoice_vals
     
+    def action_open_refacturar_wizard(self):
+        self.ensure_one()
+        action = self.env.ref('account_enhancement.action_open_sale_refacturar_account_wizard').read()[0]
+        # Pasar el pedido por defecto al wizard
+        action['context'] = dict(self.env.context, default_sale_id=self.id)
+        return action    
+    
 class WmsCode(models.Model):
     _name = "wms.code"
     _description = "Código WMS"
