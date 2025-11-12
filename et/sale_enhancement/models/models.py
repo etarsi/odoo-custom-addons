@@ -42,9 +42,13 @@ class SaleOrderInherit(models.Model):
     items_ids = fields.Many2many(
         'product.category', string='Rubros', compute='_compute_items_ids', store=True, readonly=False,
         help="Rubros de los productos en la orden de venta. Se usa para filtrar productos en la vista de formulario."
-    )
-    special_sale = fields.Boolean('Venta Especial')
-    
+    )    
+    venta_type = fields.Selection([
+        ('sale', 'Venta Normal'),
+        ('marketing', 'Venta de Marketing')
+    ], string='Tipo de Venta', default='sale')
+    company_define = fields.Boolean('Compañía definida', default=False)
+
     def unlink(self):
         for order in self:
             if order.state not in ['draft']:
