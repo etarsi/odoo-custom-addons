@@ -28,15 +28,14 @@ def _is_image(file_obj):
 def _nfc(s):
     return unicodedata.normalize("NFC", s or "")
 
-def _starts_with_code(name, code):
-    """True si el nombre comienza con <code> (exacto o seguido de separador)."""
-    n = _nfc((name or "").strip())
-    c = _nfc((code or "").strip())
-    if not c:
-        return False
-    # inicio + code + (fin o separador típico)
-    pat = r'^\s*' + re.escape(c) + r'(?:\b|[\s\-\._–—/|])'
-    return re.match(pat, n, flags=re.IGNORECASE) is not None
+def _leading_code(name):
+    """
+    Devuelve el primer bloque de código al inicio del nombre.
+    Soporta: '52358 - 55781', '52358_...', '52358 – ...', '[52358] ...'
+    """
+    s = (name or "")
+    m = re.match(r'^\s*[\[\(\{]*\s*([0-9A-Za-z]+)', s)
+    return m.group(1) if m else None
 
 class ProductTemplate(models.Model):
     _inherit = "product.template"
@@ -131,78 +130,47 @@ class ProductTemplate(models.Model):
         if not code_str:
             return None
 
-        def _search_folders(name, exact):
-            # Incluimos shortcuts y luego resolvemos si apuntan a carpeta
-            op = "=" if exact else "contains"
-            name_q = name.replace("'", r"\'")
-            q = (
-                "trashed=false and ("
-                f"(mimeType='application/vnd.google-apps.folder' and name {op} '{name_q}') "
-                "or "
-                f"(mimeType='application/vnd.google-apps.shortcut' and name {op} '{name_q}')"
-                ")"
-            )
-            results = []
-            page_token = None
-            while True:
-                resp = service.files().list(
-                    q=q,
-                    fields=("nextPageToken, files("
-                            "id,name,mimeType,parents,"
-                            "shortcutDetails(targetId,targetMimeType))"),
-                    pageSize=200,
-                    pageToken=page_token,
-                    supportsAllDrives=True,
-                    includeItemsFromAllDrives=True,
-                ).execute()
-                results.extend(resp.get("files", []))
-                page_token = resp.get("nextPageToken")
-                if not page_token:
-                    break
-            return results
+        q = (
+            f"'{main_folder_id}' in parents and trashed=false and"
+            "mimeType='application/vnd.google-apps.folder'"
+        )
+        
+        folders, page_token = [], None
+        while True:
+            resp = service.files().list(
+                q=q,
+                fields="nextPageToken, files(id,name,mimeType)",
+                pageSize=200,
+                pageToken=page_token,
+                supportsAllDrives=True,
+                includeItemsFromAllDrives=True,
+            ).execute()
+            folders.extend(resp.get("files", []))
+            page_token = resp.get("nextPageToken")
 
-        def _candidate_real_folder_id(file_obj):
-            mt = file_obj.get("mimeType")
-            if mt == "application/vnd.google-apps.folder":
-                return file_obj["id"]
-            if mt == "application/vnd.google-apps.shortcut":
-                sd = (file_obj.get("shortcutDetails") or {})
-                if sd.get("targetMimeType") == "application/vnd.google-apps.folder":
-                    return sd.get("targetId")  # puede ser None si faltan permisos
-            return None
+            if not page_token:
+                break
 
         candidates = []
         # 1) Primero exactos, luego contains
-        for exact in (True, False):
-            found = _search_folders(code_str, exact)
-            for f in found:
-                real_id = _candidate_real_folder_id(f)
-                if not real_id:
-                    continue
-                # Filtrar para quedarnos solo con las que estén debajo de main_folder_id
-                if not self._is_descendant_of(service, real_id, main_folder_id):
-                    continue
-                if not _starts_with_code(f.get("name"), code_str):
-                    continue
-                candidates.append({
-                    "id": real_id,
-                    "name": f.get("name"),
-                })
-            if candidates:
-                break
-
+        for f in folders:
+            leat = _leading_code(f.get("name"))
+            if leat and leat.lower() == code_str.lower():
+                candidates.append(f)
+                
         if not candidates:
             return None
-
-        # Scoring: exact == 3, empieza con "<code> " o "<code>-" o "<code>_" == 2, contains == 1
+            
+        # Scoring: exacto == 3 (nombre == code), prefijo == 2; luego nombre más corto
         def score(f):
-            name = _nfc(f.get("name") or "")
-            if name.strip().lower() == code_str.lower():
+            name = (f.get("name") or "").strip()
+            if name.lower() == code_str.lower():
                 return (3, -len(name))
             return (2, -len(name))
 
         candidates.sort(key=score, reverse=True)
-        return {"id": candidates[0]["id"], "name": candidates[0]["name"]}
+        best = candidates[0]
+        return {"id": best["id"], "name": best.get("name")}
 
     def _create_product_download_mark(self, description=None):
         self.env['product.download.mark'].create({
