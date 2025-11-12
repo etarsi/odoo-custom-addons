@@ -137,14 +137,12 @@ class HrEnhancementApi(models.AbstractModel):
                                     self._create_temp_attendance_record(employee.id, check_utc, 'Intento marcar Entrada fuera del rango diurno (%s-%s)' % (start_limit_day.strftime("%H:%M"), end_limit_day.strftime("%H:%M")))
                                     message += '--asistencia fuera del rango diurno de inicio de marcado'
                                     return {'success': False, 'error': message, 'received': data}
-                                else:
-                                    open_att = hr_attendance.create({
-                                        'employee_id': employee.id,
-                                        'check_in': check_utc,
-                                        'create_lector': True,
-                                    })
-                                    message += f'--asistencia abierta: {open_att.id} (empleado en borrador)'
-                                    return {'success': True, 'message': message, 'status_code': 200, 'received': data}
+                                open_att = hr_attendance.create({
+                                    'employee_id': employee.id,
+                                    'check_in': check_utc,
+                                    'create_lector': True,
+                                })
+                                message += f'--asistencia abierta: {open_att.id} (empleado en borrador)'
                         else:
                             if check_utc > start_limit_day_inicio_marcado_employee:
                                 self._create_temp_attendance_record(employee.id, check_utc, 'Intento marcar Entrada fuera del rango diurno (%s-%s)' % (start_limit_day.strftime("%H:%M"), end_limit_day.strftime("%H:%M")))
