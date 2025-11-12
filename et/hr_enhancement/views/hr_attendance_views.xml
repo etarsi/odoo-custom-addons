@@ -34,9 +34,9 @@
         <field name="arch" type="xml">
             <tree string="Mis Asistencias" create="false" edit="false" delete="false">
                 <field name="employee_id" optional="show"/>
-                <field name="employee_type" optional="show"/>
                 <field name="check_in" optional="show"/>
                 <field name="check_out" optional="show"/>
+                <field name="day_of_week" sum="Día Trabajado" optional="show"/>
                 <field name="worked_hours" optional="show" widget="float_time" sum="Horas Trabajadas"/>
                 <field name="overtime" optional="show" widget="float_time" sum="Horas al 50%"/>
                 <field name="holiday_hours" optional="show" widget="float_time" sum="Horas al 100%"/>
@@ -107,6 +107,7 @@
         <field name="arch" type="xml">
             <search string="Asistencias Eventuales">
                 <field name="check_in"/>
+                <field name="employee_id" domain="[('employee_type', '=', 'eventual')]"/>
                 <separator/>
                 <filter name="check_out_false" string="No tiene registro de salida" domain="[('check_out', '=', False)]"/>
                 <filter string="Fecha" name="check_in_filter" date="check_in"/>
