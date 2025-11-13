@@ -88,7 +88,7 @@ class SaleRefacturarAccountWizard(models.TransientModel):
             name_empresa = ' - B'
         elif sale.company_id == 4: #FUN TOYS SRL
             name_empresa = ' - F'
-        _logger.info("Actualizando nombre de la venta: %s", sale_name)
+        _logger.info("Actualizando nombre de la venta: %s", name_empresa)
         sale_name = sale.name + name_empresa
         _logger.info("Nuevo nombre de la venta: %s", sale_name) 
         self.write({'name': sale_name})
