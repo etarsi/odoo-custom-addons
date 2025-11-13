@@ -131,7 +131,7 @@ class HrEnhancementApi(models.AbstractModel):
                                 justification_text = ''
                                 if open_att.justification:
                                     justification_text = open_att.justification
-                                open_att.write({'blocked': True, 'check_out': open_att.check_in.replace(hour=17, minute=0, second=0, microsecond=0), 'justification': f'{justification_text} / Bloqueo automático por nuevo ingreso desde lector facial. y cierre a las 17:00 hrs.'})
+                                open_att.write({'blocked': True, 'check_out': open_att.check_in.replace(hour=20, minute=0, second=0, microsecond=0), 'justification': f'{justification_text} / Bloqueo automático por nuevo ingreso desde lector facial. y cierre a las 17:00 hrs.'})
                                 # Crear asistencia abierta
                                 if check_utc > start_limit_day_inicio_marcado_employee:
                                     self._create_temp_attendance_record(employee.id, check_utc, 'Intento marcar Entrada fuera del rango diurno (%s-%s)' % (start_limit_day.strftime("%H:%M"), end_limit_day.strftime("%H:%M")))
@@ -233,7 +233,7 @@ class HrEnhancementApi(models.AbstractModel):
                                         justification_text = ''
                                         if open_att.justification:
                                             justification_text = open_att.justification + ' | '
-                                        open_att.write({'blocked': True, 'check_out': open_att.check_in.replace(hour=17, minute=0, second=0, microsecond=0), 'justification': justification_text + 'Bloqueo automático por nuevo ingreso desde lector huella y cierre a las 17:00 hrs.'})
+                                        open_att.write({'blocked': True, 'check_out': open_att.check_in.replace(hour=20, minute=0, second=0, microsecond=0), 'justification': justification_text + 'Bloqueo automático por nuevo ingreso desde lector huella y cierre a las 17:00 hrs.'}) 
                                         if dow in [0,1,2,3,4]:  # Lunes a Viernes
                                             if check_utc > start_limit_day:
                                                 self._create_temp_attendance_record(employee.id, check_utc, 'Intento marcar la salida fuera del rango diurno (%s-%s)' % (start_limit_day.strftime("%H:%M"), end_limit_day.strftime("%H:%M")))
