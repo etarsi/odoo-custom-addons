@@ -187,8 +187,7 @@ class SaleRefacturarAccountWizard(models.TransientModel):
         elif sale.company_id == 4: #FUN TOYS SRL
             name_empresa = ' - F'
         sale_name = sale.name + name_empresa
-        sale.write({'name': sale_name})
-        self.env.cr.execute("UPDATE sale_order SET state = 'sale' WHERE id = %s", (sale.id,))
+        self.env.cr.execute("UPDATE sale_order SET state = 'sale', name = %s WHERE id = %s", (sale_name, sale.id))
         self.env.cr.execute("UPDATE sale_order_line SET state = 'sale' WHERE order_id = %s", (sale.id,))
         
         # Abrir resultado
