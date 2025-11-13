@@ -112,7 +112,7 @@ class SaleRefacturarAccountWizard(models.TransientModel):
         invoice_lines_negro = []
         sequence = 1
         impuestos = False
-        for so_line in sale.order_line.filtered(lambda l: not l.display_type and l.product_id):
+        for so_line in sale.order_line.filtered(lambda l: not l.display_type and l.product_id and l.is_available):
             #IMPUESTOS QUE TINE LA VENTA 
             if so_line.tax_id:
                 impuestos = self._asignacion_tax_invoice(so_line.tax_id)

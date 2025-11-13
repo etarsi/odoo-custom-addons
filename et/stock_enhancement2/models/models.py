@@ -434,6 +434,10 @@ class StockPickingInherit(models.Model):
                 # blanco_vals['tax_ids'] = False
                 blanco_vals['company_id'] = company_blanca.id
 
+                move_line_with_lot = move.move_line_ids.filtered(lambda ml: ml.lot_id)[:1]
+                if move_line_with_lot:
+                    blanco_vals['lot_id'] = move_line_with_lot.lot_id.id
+
                 taxes = move.sale_line_id.tax_id
                 blanco_vals['tax_ids'] = [(6, 0, taxes.ids)] if taxes else False
 
@@ -561,6 +565,10 @@ class StockPickingInherit(models.Model):
             line_vals = base_vals.copy()
             line_vals['company_id'] = company.id
             line_vals['quantity'] = move.quantity_done
+
+            move_line_with_lot = move.move_line_ids.filtered(lambda ml: ml.lot_id)[:1]
+            if move_line_with_lot:
+                line_vals['lot_id'] = move_line_with_lot.lot_id.id
 
             taxes = move.sale_line_id.tax_id
             if company.id == 1:

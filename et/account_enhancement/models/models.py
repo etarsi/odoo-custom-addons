@@ -845,3 +845,7 @@ class ResPartner(models.Model):
 #        type_mapping = self._get_type_mapping()
 #        for rec in self:
 #            rec.afip_ws = False
+class AccountMovelLineInherit(models.Model):
+    _inherit = 'account.move.line'
+
+    lot_id = fields.Many2one('stock.production.lot', string='Nro Lote')
