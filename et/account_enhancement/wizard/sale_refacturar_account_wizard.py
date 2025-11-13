@@ -3,6 +3,8 @@ from odoo import api, fields, models, _
 from odoo.exceptions import UserError
 import math
 from datetime import timedelta
+import logging
+_logger = logging.getLogger(__name__)
 
 class SaleRefacturarAccountWizard(models.TransientModel):
     _name = 'sale.refacturar.account.wizard'
@@ -75,7 +77,22 @@ class SaleRefacturarAccountWizard(models.TransientModel):
         sale = self.sale_id
         if not sale:
             raise UserError(_("Este asistente debe abrirse desde un pedido de venta."))
-        
+
+        #Venta
+        name_empresa = ''
+        if sale.company_id == 1: #PRODUCCION B
+            name_empresa = ' - P'
+        elif sale.company_id == 2: #SEBIGUS SRL
+            name_empresa = ' - S'
+        elif sale.company_id == 3: #BECHAR SRL
+            name_empresa = ' - B'
+        elif sale.company_id == 4: #FUN TOYS SRL
+            name_empresa = ' - F'
+        _logger.info("Actualizando nombre de la venta: %s", sale_name)
+        sale_name = sale.name + name_empresa
+        _logger.info("Nuevo nombre de la venta: %s", sale_name) 
+        self.write({'name': sale_name})
+        _logger.info("Nombre de la venta actualizado en el asistente: %s", self.sale_id.name)
         # no debe dejar refacturar si la venta esta en borrador
         if sale.state != 'draft':
             raise UserError(_("No se puede refacturar un pedido que no está en estado borrador."))
@@ -176,18 +193,7 @@ class SaleRefacturarAccountWizard(models.TransientModel):
         # Origen de la factura = Pedido
         invoices.write({'invoice_origin': sale.name})
         #colocar la venta en stado sale pero sin usar el action_post
-        #Venta
-        name_empresa = ''
-        if sale.company_id == 1: #PRODUCCION B
-            name_empresa = ' - P'
-        elif sale.company_id == 2: #SEBIGUS SRL
-            name_empresa = ' - S'
-        elif sale.company_id == 3: #BECHAR SRL
-            name_empresa = ' - B'
-        elif sale.company_id == 4: #FUN TOYS SRL
-            name_empresa = ' - F'
-        sale_name = sale.name + name_empresa
-        self.env.cr.execute("UPDATE sale_order SET state = 'sale', name = %s WHERE id = %s", (sale_name, sale.id))
+        self.env.cr.execute("UPDATE sale_order SET state = 'sale' WHERE id = %s", (sale.id,))
         self.env.cr.execute("UPDATE sale_order_line SET state = 'sale' WHERE order_id = %s", (sale.id,))
         
         # Abrir resultado
