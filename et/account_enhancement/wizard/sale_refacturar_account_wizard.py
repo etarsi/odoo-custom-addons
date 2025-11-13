@@ -177,6 +177,17 @@ class SaleRefacturarAccountWizard(models.TransientModel):
         invoices.write({'invoice_origin': sale.name})
         #colocar la venta en stado sale pero sin usar el action_post
         #Venta
+        name_empresa = ''
+        if sale.company_id == 1: #PRODUCCION B
+            name_empresa = ' - P'
+        elif sale.company_id == 2: #SEBIGUS SRL
+            name_empresa = ' - S'
+        elif sale.company_id == 3: #BECHAR SRL
+            name_empresa = ' - B'
+        elif sale.company_id == 4: #FUN TOYS SRL
+            name_empresa = ' - F'
+        sale_name = sale.name + name_empresa
+        sale.write({'name': sale_name})
         self.env.cr.execute("UPDATE sale_order SET state = 'sale' WHERE id = %s", (sale.id,))
         self.env.cr.execute("UPDATE sale_order_line SET state = 'sale' WHERE order_id = %s", (sale.id,))
         
