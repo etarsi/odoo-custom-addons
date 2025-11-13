@@ -1,10 +1,12 @@
 from odoo import models, fields, api, _
+import logging
+_logger = logging.getLogger(__name__)
 
 RUBRO_COMPANY_MAPPING = {
     'JUGUETES': 3,
     'CARPAS': 3,
     'RODADOS INFANTILES': 3,
-    'PISTOLA DE AGUA': 4,
+    'PISTOLAS DE AGUA': 4,
     'INFLABLES': 4,
     'PELOTAS': 4,
     'VEHICULOS A BATERIA': 4,
@@ -21,7 +23,7 @@ class ProductTemplateInherit(models.Model):
     
     def action_update_company_ids_value(self):
         self.ensure_one()
-        products = self.env['product.product'].search([('sale_ok', '=', True)])
+        products = self.env['product.template'].search([('sale_ok', '=', True)])
         if products:
             for product in products:
                 product.update_company_ids_value()
@@ -31,7 +33,7 @@ class ProductTemplateInherit(models.Model):
         categorias = self.env['product.category'].search([('parent_id', '=', False)])
         if categorias:
             for categoria in categorias:
-                if self.categ_id.parent_id == categoria.id:
+                if self.categ_id.parent_id and self.categ_id.parent_id.id == categoria.id:
                     rubro = categoria.name.upper().strip()
                     if rubro in RUBRO_COMPANY_MAPPING:
                         company_id = RUBRO_COMPANY_MAPPING[rubro]
