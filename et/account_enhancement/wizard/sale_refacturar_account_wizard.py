@@ -35,24 +35,30 @@ class SaleRefacturarAccountWizard(models.TransientModel):
 
     @api.onchange('company_id')
     def _onchange_company_id(self):
-        if self.company_id:
-            if self.company_id.id == 1:  # Producción B
-                domain = {
-                    'condicion_m2m_id': [('name', '=', 'TIPO 3')],
-                    'pricelist_id': [('is_default', '=', True)],
-                }
-                # si no viene seteado desde default_get, lo seteo
-                if not self.condicion_m2m_id or self.condicion_m2m_id.name != 'TIPO 3':
-                    self.condicion_m2m_id = self.env['condicion.venta'].search([('name', '=', 'TIPO 3')], limit=1)
-                if not self.pricelist_id or not self.pricelist_id.is_default:
-                    self.pricelist_id = self.env['product.pricelist'].search([('is_default', '=', True)], limit=1)
-            else:
-                # si el valor actual no cumple el dominio, lo corrijo
-                if self.condicion_m2m_id and self.condicion_m2m_id.name == 'TIPO 3':
-                    self.condicion_m2m_id = self.env['condicion.venta'].search([('name', '!=', 'TIPO 3')], limit=1)
-                if self.pricelist_id and self.pricelist_id.is_default:
-                    self.pricelist_id = self.env['product.pricelist'].search([('is_default', '!=', True)], limit=1)
-            return {'domain': domain}
+        if not self.company_id:
+            return {}
+
+        if self.company_id.id == 1:  # Producción B
+            domain = {
+                'condicion_m2m_id': [('name', '=', 'TIPO 3')],
+                'pricelist_id': [('list_default_b', '=', True)],
+            }
+            # si no viene seteado desde default_get, lo seteo
+            if not self.condicion_m2m_id or self.condicion_m2m_id.name != 'TIPO 3':
+                self.condicion_m2m_id = self.env['condicion.venta'].search([('name', '=', 'TIPO 3')], limit=1)
+            if not self.pricelist_id or not self.pricelist_id.is_default:
+                self.pricelist_id = self.env['product.pricelist'].search([('is_default', '=', True)], limit=1)
+        else:
+            domain = {
+                'condicion_m2m_id': [('name', '!=', 'TIPO 3')],
+                'pricelist_id': [('is_default', '=', True)],
+            }
+            # si el valor actual no cumple el dominio, lo corrijo
+            if self.condicion_m2m_id and self.condicion_m2m_id.name == 'TIPO 3':
+                self.condicion_m2m_id = self.env['condicion.venta'].search([('name', '!=', 'TIPO 3')], limit=1)
+            if self.pricelist_id and self.pricelist_id.is_default:
+                self.pricelist_id = self.env['product.pricelist'].search([('is_default', '!=', True)], limit=1)
+        return {'domain': domain}
 
     def set_due_date_plus_x(self, x):
         today = fields.Date.context_today(self)
