@@ -46,8 +46,8 @@ class SaleRefacturarAccountWizard(models.TransientModel):
             # si no viene seteado desde default_get, lo seteo
             if not self.condicion_m2m_id or self.condicion_m2m_id.name != 'TIPO 3':
                 self.condicion_m2m_id = self.env['condicion.venta'].search([('name', '=', 'TIPO 3')], limit=1)
-            if not self.pricelist_id or not self.pricelist_id.is_default:
-                self.pricelist_id = self.env['product.pricelist'].search([('is_default', '=', True)], limit=1)
+            if not self.pricelist_id or not self.pricelist_id.list_default_b:
+                self.pricelist_id = self.env['product.pricelist'].search([('list_default_b', '=', True)], limit=1)
         else:
             domain = {
                 'condicion_m2m_id': [('name', '!=', 'TIPO 3')],
@@ -57,7 +57,7 @@ class SaleRefacturarAccountWizard(models.TransientModel):
             if self.condicion_m2m_id and self.condicion_m2m_id.name == 'TIPO 3':
                 self.condicion_m2m_id = self.env['condicion.venta'].search([('name', '!=', 'TIPO 3')], limit=1)
             if self.pricelist_id and self.pricelist_id.is_default:
-                self.pricelist_id = self.env['product.pricelist'].search([('is_default', '!=', True)], limit=1)
+                self.pricelist_id = self.env['product.pricelist'].search([('is_default', '=', True)], limit=1)
         return {'domain': domain}
 
     def set_due_date_plus_x(self, x):
