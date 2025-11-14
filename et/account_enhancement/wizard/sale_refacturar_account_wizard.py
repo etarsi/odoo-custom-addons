@@ -104,11 +104,8 @@ class SaleRefacturarAccountWizard(models.TransientModel):
             name_empresa = ' - B'
         elif sale.company_id.id == 4: #FUN TOYS SRL
             name_empresa = ' - F'
-        _logger.info("Actualizando nombre de la venta: %s", name_empresa)
         sale_name = self.sale_id.name + name_empresa
-        _logger.info("Nuevo nombre de la venta: %s", sale_name) 
         sale.write({'name': sale_name})
-        _logger.info("Nombre de la venta actualizado en el asistente: %s", self.sale_id.name)
         # no debe dejar refacturar si la venta esta en borrador
         if sale.state != 'draft':
             raise UserError(_("No se puede refacturar un pedido que no está en estado borrador."))
