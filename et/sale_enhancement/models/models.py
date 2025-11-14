@@ -47,7 +47,7 @@ class SaleOrderInherit(models.Model):
     #    ('sale', 'Venta Normal'),
     #    ('marketing', 'Venta de Marketing')
     #], string='Tipo de Venta', default='sale')
-    company_externo = fields.Integer("Compañía Externa", copy=False)
+    company_default = fields.Char("Compañía por Defecto", copy=False)
 
     def unlink(self):
         for order in self:
@@ -173,15 +173,15 @@ class SaleOrderInherit(models.Model):
         force_company = (cond_name.strip().upper() == 'TIPO 3')
         company_produccion_b = self.env['res.company'].browse(1)
         current_company_id = vals.get('company_id')
-        company_externo = vals.get('company_externo', False)
-        if company_externo:
-            company_externo = int(company_externo)
-            wh = self.env['stock.warehouse'].search([('company_id', '=', company_externo)], limit=1)
+        company_default = vals.get('company_default', False)
+        if company_default:
+            company_default = int(company_default)
+            wh = self.env['stock.warehouse'].search([('company_id.name', '=', company_default)], limit=1)
             if not wh:
-                raise UserError(_("No se encontró un depósito para la compañía %s.") % company_externo)
-
+                raise UserError(_("No se encontró un depósito para la compañía %s.") % company_default)
+            company_id = self.env['res.company'].search([('name', '=', company_default)], limit=1)
             vals = dict(vals)
-            vals['company_id'] = company_externo
+            vals['company_id'] = company_id.id
             vals['warehouse_id'] = wh.id
 
             # Crear bajo el contexto/compañía destino para evitar conflictos multi-company
