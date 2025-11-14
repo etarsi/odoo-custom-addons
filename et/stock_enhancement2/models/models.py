@@ -433,10 +433,12 @@ class StockPickingInherit(models.Model):
                 blanco_vals['quantity'] = qty_blanco
                 # blanco_vals['tax_ids'] = False
                 blanco_vals['company_id'] = company_blanca.id
-
+                _logger.info("Asignando compañía blanca %s a la línea de factura 2", company_blanca.name)
                 move_line_with_lot = move.move_line_ids.filtered(lambda ml: ml.lot_id)[:1]
                 if move_line_with_lot:
+                    _logger.info("Asignando lote %s a la línea de factura 2", move_line_with_lot.lot_id.name)
                     blanco_vals['lot_id'] = move_line_with_lot.lot_id.id
+                    _logger.info("Lote asignado correctamente. 2")
 
                 taxes = move.sale_line_id.tax_id
                 blanco_vals['tax_ids'] = [(6, 0, taxes.ids)] if taxes else False
@@ -448,6 +450,12 @@ class StockPickingInherit(models.Model):
                 negro_vals = base_vals.copy()
                 negro_vals['quantity'] = qty_negro
                 negro_vals['company_id'] = company_negra.id
+                _logger.info("Asignando compañía negra %s a la línea de factura 2.1", company_negra.name)
+                move_line_with_lot = move.move_line_ids.filtered(lambda ml: ml.lot_id)[:1]
+                if move_line_with_lot:
+                    _logger.info("Asignando lote %s a la línea de factura 2.1", move_line_with_lot.lot_id.name)
+                    negro_vals['lot_id'] = move_line_with_lot.lot_id.id
+                    _logger.info("Lote asignado correctamente. 2.1")
                 if tipo == 'TIPO 3':
                     negro_vals['price_unit'] *= 1
                 else:
@@ -565,10 +573,12 @@ class StockPickingInherit(models.Model):
             line_vals = base_vals.copy()
             line_vals['company_id'] = company.id
             line_vals['quantity'] = move.quantity_done
-
+            _logger.info("Procesando línea de producto %s con cantidad %s", move.product_id.default_code, move.quantity_done)
             move_line_with_lot = move.move_line_ids.filtered(lambda ml: ml.lot_id)[:1]
             if move_line_with_lot:
+                _logger.info("Asignando lote %s a la línea de factura", move_line_with_lot.lot_id.name)
                 line_vals['lot_id'] = move_line_with_lot.lot_id.id
+                _logger.info("Lote asignado correctamente.")
 
             taxes = move.sale_line_id.tax_id
             if company.id == 1:
