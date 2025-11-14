@@ -6,7 +6,8 @@
     <field name="binding_model_id" ref="debt_composition.model_report_debt_composition_client"/>
     <field name="state">code</field>
     <field name="code">
-action = env['report.debt.composition.client'].action_refresh_sql()
+            env['report.debt.composition.client'].action_refresh_sql()
+            action = env.ref('debt_composition.action_report_debt_tbl').read()[0]
     </field>
   </record>
 </odoo>

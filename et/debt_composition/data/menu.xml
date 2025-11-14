@@ -8,5 +8,5 @@
     </record>
 
     <menuitem id="menu_report_debt_tbl" name="Composición de deuda"
-        parent="account.menu_finance_receivables" action="action_report_debt_tbl" sequence="17"/>
+        parent="account.menu_finance_receivables" action="action_refresh_report_debt_tbl" sequence="17"/>
 </odoo>

@@ -129,8 +129,8 @@ class HrAttendance(models.Model):
                 holiday_base = 0.0
                 if eff_check_out > sat_end_dt:
                     holiday_base = max(0.0, (eff_check_out - max(eff_check_in, sat_end_dt)).total_seconds())
-                att.holiday_hours += float(self._round_30_up_to_int_hours(holiday_base))
-                att.worked_hours = base_hours_raw
+                att.holiday_hours += float(self._round_30_up_to_int_hours(holiday_base)) + base_hours_raw
+                att.worked_hours = 0.00
                 att.overtime = 0.0
             else:
                 # ===== Lunes a Viernes (tu lógica original) =====
