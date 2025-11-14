@@ -1,5 +1,6 @@
 from odoo import models, fields, api, _
 from odoo.exceptions import UserError, ValidationError
+from collections import defaultdict
 from odoo.tools import float_round, float_compare  # Importa float_round si lo necesitas
 # from odoo.tools import float_compare  # Elimina esta línea si no usas float_compare
 import math 
@@ -13,7 +14,7 @@ class SaleOrderInherit(models.Model):
         'JUGUETES': 3,                  #BECHAR SRL
         'CARPAS': 3,                    #BECHAR SRL
         'RODADOS INFANTILES': 3,        #BECHAR SRL
-        'PISTOLA DE AGUA': 4,           #FUN TOYS SRL
+        'PISTOLAS DE AGUA': 4,          #FUN TOYS SRL
         'INFLABLES': 4,                 #FUN TOYS SRL
         'PELOTAS': 4,                   #FUN TOYS SRL
         'VEHICULOS A BATERIA': 4,       #FUN TOYS SRL
@@ -41,9 +42,13 @@ class SaleOrderInherit(models.Model):
     items_ids = fields.Many2many(
         'product.category', string='Rubros', compute='_compute_items_ids', store=True, readonly=False,
         help="Rubros de los productos en la orden de venta. Se usa para filtrar productos en la vista de formulario."
-    )
-    #special_sale = fields.Booleand('Venta Especial')
-    
+    )    
+    #venta_type = fields.Selection([
+    #    ('sale', 'Venta Normal'),
+    #    ('marketing', 'Venta de Marketing')
+    #], string='Tipo de Venta', default='sale')
+    company_externo = fields.Integer("Compañía Externa", copy=False)
+
     def unlink(self):
         for order in self:
             if order.state not in ['draft']:
@@ -159,7 +164,7 @@ class SaleOrderInherit(models.Model):
             )
 
             record.order_subtotal = record.amount_untaxed * 1.21 if taxes_found else record.amount_untaxed
-
+    
     @api.model
     def create(self, vals):
         self.check_partner_origin()
@@ -188,6 +193,7 @@ class SaleOrderInherit(models.Model):
         if not order.message_ids:
             order.message_post(body=_("Orden de venta creada."))
         return order
+
 
     def action_confirm(self):
         res = super().action_confirm()

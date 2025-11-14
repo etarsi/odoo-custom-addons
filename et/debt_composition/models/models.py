@@ -28,12 +28,19 @@ class ReportDebtCompositionClient(models.Model):
     
     @api.model
     def action_refresh_sql(self, *args, **kwargs):
+        self.env.cr.execute("SELECT count(*) FROM report_debt_composition_client_tbl;")
+        before_count = self.env.cr.fetchone()[0]
         self.env.cr.execute("SELECT public.refresh_report_debt_composition_client();")
-        return True
+        self.env.cr.execute("SELECT count(*) FROM report_debt_composition_client_tbl;")
+        after_count = self.env.cr.fetchone()[0]
+        _logger.info(f"Refreshed report_debt_composition_client: before_count={before_count}, after_count={after_count}")
+        self.env.cr.commit()
+        return {'type': 'ir.actions.client', 'tag': 'reload'}
 
     def init(self):
         cr = self.env.cr
         cr.execute("SELECT public.refresh_report_debt_composition_client();")
+        self.env.cr.commit()
         cr.execute(f"""
             CREATE OR REPLACE VIEW {self._table} AS
             SELECT 
