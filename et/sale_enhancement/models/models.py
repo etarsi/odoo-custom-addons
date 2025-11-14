@@ -47,7 +47,7 @@ class SaleOrderInherit(models.Model):
     #    ('sale', 'Venta Normal'),
     #    ('marketing', 'Venta de Marketing')
     #], string='Tipo de Venta', default='sale')
-    company_externo = fields.Integer("Compañía Externa", copy=False)
+    company_default = fields.Integer("Compañía por defecto", copy=False)
 
     def unlink(self):
         for order in self:
