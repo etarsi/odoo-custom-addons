@@ -175,7 +175,7 @@ class SaleOrderInherit(models.Model):
         current_company_id = vals.get('company_id')
         company_default = vals.get('company_default', False)
         if company_default:
-            company_default = int(company_default)
+            company_default = company_default
             wh = self.env['stock.warehouse'].search([('company_id.name', '=', company_default)], limit=1)
             if not wh:
                 raise UserError(_("No se encontró un depósito para la compañía %s.") % company_default)
