@@ -27,6 +27,9 @@ class SaleRefacturarAccountWizard(models.TransientModel):
         res.update({
             'sale_id': sale.id,
             'partner_id': sale.partner_id.id,
+            'company_id': sale.company_id.id,
+            'pricelist_id': sale.pricelist_id.id,
+            'condicion_m2m_id': sale.condicion_m2m_id.id,
         })
         return res
 
