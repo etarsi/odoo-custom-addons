@@ -164,154 +164,36 @@ class SaleOrderInherit(models.Model):
             )
 
             record.order_subtotal = record.amount_untaxed * 1.21 if taxes_found else record.amount_untaxed
-
+    
     @api.model
     def create(self, vals):
         self.check_partner_origin()
-        cond_model = self.env['condicion.venta']
-        cond_name = cond_model.browse(vals.get('condicion_m2m')).name or ''
-        force_company = (cond_name.strip().upper() == 'TIPO 3')
+        # --- Config compañía destino ---
         company_produccion_b = self.env['res.company'].browse(1)
+        # --- Resolver condición (Many2one) ---
+        cond_model = self.env['condicion.venta']  # ajustá el modelo si se llama distinto
+        cond_name = cond_model.browse(vals.get('condicion_m2m')).name or ''
+        # --- Forzar compañía/depósito en vals si corresponde (TIPO 3) ---
+        force_company = (cond_name.strip().upper() == 'TIPO 3')
         current_company_id = vals.get('company_id')
-        company_externo = vals.get('company_externo', False)
-        if company_externo:
-            company_externo = int(company_externo)
-            wh = self.env['stock.warehouse'].search([('company_id', '=', company_externo)], limit=1)
-            if not wh:
-                raise UserError(_("No se encontró un depósito para la compañía %s.") % company_externo)
 
-            vals = dict(vals)
-            vals['company_id'] = company_externo
+        if force_company and current_company_id != company_produccion_b.id:
+            wh = self.env['stock.warehouse'].search([('company_id', '=', company_produccion_b.id)], limit=1)
+            if not wh:
+                raise UserError(_("No se encontró un depósito para la compañía %s.") % company_produccion_b.display_name)
+
+            vals = dict(vals)  # copiar para no mutar
+            vals['company_id'] = company_produccion_b.id
             vals['warehouse_id'] = wh.id
 
             # Crear bajo el contexto/compañía destino para evitar conflictos multi-company
-            self.with_context(allowed_company_ids=[company_produccion_b.id]).with_company(company_produccion_b)
-            order = super().create(vals)    
-        else:
-            #Ajustar compañía si es TIPO 3
-            if force_company and current_company_id != company_produccion_b.id:
-                wh = self.env['stock.warehouse'].search([('company_id', '=', company_produccion_b.id)], limit=1)
-                if not wh:
-                    raise UserError(_("No se encontró un depósito para la compañía %s.") % company_produccion_b.display_name)
-
-                vals = dict(vals)  # copiar para no mutar
-                vals['company_id'] = company_produccion_b.id
-                vals['warehouse_id'] = wh.id
-
-                # Crear bajo el contexto/compañía destino para evitar conflictos multi-company
-                self.with_context(allowed_company_ids=[company_produccion_b.id]).with_company(company_produccion_b)
-                order = super().create(vals)    
-            # Si no es TIPO 3, inferir compañía por productos
-            else:
-                line_cmds = vals.get('order_line') or []
-                product_ids = set()
-
-                for cmd in line_cmds:
-                    if not isinstance(cmd, (list, tuple)) or not cmd:
-                        continue
-                    op = cmd[0]
-                    if op == 0 and len(cmd) >= 3:
-                        pid = (cmd[2] or {}).get('product_id')
-                        if pid:
-                            product_ids.add(pid)
-                    elif op in (1, 4) and len(cmd) >= 2:
-                        line = self.env['sale.order.line'].browse(cmd[1])
-                        if line.exists():
-                            product_ids.add(line.product_id.id)
-                    elif op == 6 and len(cmd) >= 3:
-                        for line_id in (cmd[2] or []):
-                            line = self.env['sale.order.line'].browse(line_id)
-                            if line.exists():
-                                product_ids.add(line.product_id.id)
-                # Si hay productos en las líneas, infiero compañía
-                if product_ids:
-                    prods = self.env['product.product'].browse(list(product_ids))
-                    detailed = []
-                    company_sets = []
-
-                    for p in prods:
-                        comp_ids = set()
-                        if getattr(p, 'company_ids', False) and p.company_ids:
-                            comp_ids = set(p.company_ids.ids)
-                            comp_names = ', '.join(p.company_ids.mapped('name'))
-                        elif p.company_id:
-                            comp_ids = {p.company_id.id}
-                            comp_names = p.company_id.display_name
-                        else:
-                            # compartido ⇒ no restringe
-                            comp_names = _('(compartido)')
-                        if comp_ids:
-                            company_sets.append(comp_ids)
-                        detailed.append((p.default_code or p.display_name, comp_names))
-
-                    if company_sets:
-                        # intersección de TODAS las compañías de los productos con restricción
-                        common = set.intersection(*company_sets)
-                        if not common:
-                            # Agrupar por conjunto de compañías del producto
-                            by_set = defaultdict(list)
-                            for p in prods:
-                                code = p.default_code or p.display_name
-                                if getattr(p, 'company_ids', False) and p.company_ids:
-                                    ids_tuple = tuple(sorted(p.company_ids.ids))
-                                elif p.company_id:
-                                    ids_tuple = (p.company_id.id,)
-                                else:
-                                    ids_tuple = tuple()
-                                by_set[ids_tuple].append(code)
-
-                            def set_label(ids_tuple):
-                                if not ids_tuple:
-                                    return _('(compartido)')
-                                comps = self.env['res.company'].browse(list(ids_tuple))
-                                return ', '.join(comps.mapped('name'))
-                            # Construir líneas agrupadas: "códigos → compañías"
-                            lines = "\n".join(
-                                f"---- ({', '.join(sorted(codes))} → {set_label(ids_tuple)})"
-                                for ids_tuple, codes in sorted(by_set.items(), key=lambda it: (len(it[0]) or 0, it[0]))
-                            )
-                            raise UserError(_(
-                                "No se puede crear el pedido: las líneas no comparten una compañía común.\n%s\n"
-                                "Asegurate de que todos los productos compartan al menos una misma compañía."
-                            ) % lines)
-                        current_company_id = vals.get('company_id')
-                        if current_company_id in common:
-                            target_company_id = current_company_id
-                        elif 1 in common:
-                            target_company_id = 1
-                        else:
-                            target_company_id = min(common)
-
-                        if vals.get('company_id') != target_company_id:
-                            wh = self.env['stock.warehouse'].search([('company_id', '=', target_company_id)], limit=1)
-                            if not wh:
-                                raise UserError(_("No se encontró un depósito para la compañía con ID %s.") % target_company_id)
-                            vals = dict(vals)
-                            vals['company_id'] = target_company_id
-                            vals['warehouse_id'] = wh.id
-                            target_company = self.env['res.company'].browse(target_company_id)
-                            self = self.with_context(allowed_company_ids=[target_company_id]).with_company(target_company)
-                order = super(SaleOrderInherit, self).create(vals)
-                if order.order_line:
-                    order.order_line.filtered(lambda l: l.company_id != order.company_id).write({
-                        'company_id': order.company_id.id
-                    })
-                    bad_lines = order.order_line.filtered(
-                        lambda l: (
-                            hasattr(l.product_id, 'company_ids') and l.product_id.company_ids and order.company_id not in l.product_id.company_ids
-                        ) or (
-                            l.product_id.company_id and l.product_id.company_id != order.company_id
-                        )
-                    )
-                    if bad_lines:
-                        names = ", ".join(bad_lines.mapped('product_id.display_name')[:5])
-                        raise UserError(_(
-                            "Hay líneas con productos que no pertenecen a la compañía del pedido (%s): %s"
-                        ) % (order.company_id.display_name, names + ('...' if len(bad_lines) > 5 else '')))
+            env_create = self.with_context(allowed_company_ids=[company_produccion_b.id]).with_company(company_produccion_b)
+        order = super().create(vals)
         order.check_order()
         if not order.message_ids:
             order.message_post(body=_("Orden de venta creada."))
         return order
+
 
     def action_confirm(self):
         res = super().action_confirm()
