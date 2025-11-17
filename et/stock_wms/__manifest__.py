@@ -25,9 +25,9 @@
     # always loaded
     'data': [
         'security/ir.model.access.csv',
+        'views/import_container_excel_wizard_views.xml',
         'views/views.xml',
         # wizard views
-        'wizard/import_container_excel_views.xml',
         'views/templates.xml',
     ],
     # only loaded in demonstration mode
