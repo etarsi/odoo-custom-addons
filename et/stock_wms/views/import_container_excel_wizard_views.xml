@@ -8,7 +8,7 @@
                 <group>
                     <field name="nro_despacho"/>
                     <field name="fecha_llegada"/>
-                    <field name="file" filename="nro_despacho"/>
+                    <field name="file"/>
                 </group>
                 <footer>
                     <button name="import_data"
