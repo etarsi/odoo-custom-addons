@@ -1,14 +1,10 @@
 # -*- coding: utf-8 -*-
 from odoo import api, fields, models, _
 from odoo.exceptions import UserError
-from openpyxl import Workbook
-import base64
+from openpyxl import Workbook, load_workbook
+import base64, re, pytz
 from io import BytesIO
-from openpyxl import load_workbook
 from datetime import datetime, date, time, timedelta
-import re
-import pytz
-
 
 MONTHS_ES = {
     'ENERO': 1,
@@ -397,31 +393,44 @@ class HrAttendanceImportWizard(models.TransientModel):
                     
         # Que descargue un excel con los CUIL no encontrados, si querés
         if not_employees:
-            #generar archivo y devolverlo como descarga
             archivo = "CUIL_no_encontrados.xlsx"
             wb_out = Workbook()
             ws_out = wb_out.active
             ws_out.title = "CUIL no encontrados"
             ws_out.append(['CUIL no encontrado'])
             for cuil in not_employees:
-                ws_out.append([cuil]) 
+                ws_out.append([cuil])
+
             output = BytesIO()
             wb_out.save(output)
-            archivo_b64 = base64.b64encode(output.getvalue()).decode()
-        # Podés devolver un reload o un mensaje
+            archivo_b64 = base64.b64encode(output.getvalue())
+
+            # Crear un attachment
+            attachment = self.env['ir.attachment'].create({
+                'name': archivo,
+                'type': 'binary',
+                'datas': archivo_b64,
+                'res_model': self._name,
+                'res_id': self.id,
+                'mimetype': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            })
+
+            # Devolver descarga directa y aviso
+            return {
+                'type': 'ir.actions.act_url',
+                'url': '/web/content/%s?download=1' % attachment.id,
+                'target': 'self',
+            }
+
+        # Si TODOS los empleados fueron encontrados
         return {
             'type': 'ir.actions.client',
             'tag': 'display_notification',
             'params': {
                 'title': _('Importación completada'),
-                'message': _('Se procesó el archivo de asistencias, no se encontraron empleados para los siguientes CUIL: %s') % ', '.join(not_employees) if not_employees else _('Todos los empleados fueron encontrados.'),
+                'message': _('Todos los empleados fueron encontrados.'),
                 'type': 'success',
                 'sticky': False,
-                'timeout':10000,
-                'next': {
-                    'type': 'ir.actions.act_url',
-                    'url': 'data:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;base64,%s' % archivo_b64,
-                    'target': 'self',
-                } if not_employees else None,
+                'timeout': 10000,
             }
         }
