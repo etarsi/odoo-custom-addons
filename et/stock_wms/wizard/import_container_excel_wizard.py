@@ -151,6 +151,7 @@ class ImportContainerExcelWizard(models.TransientModel):
 
         # N° de licencia arriba: "PACKING LIST - LIC. 22508"
         license_number = self._find_license_number(ws)
+        china_purchase = self.env['china.purchase'].search([], limit=1)
 
         created_container_ids = []
 
@@ -178,10 +179,9 @@ class ImportContainerExcelWizard(models.TransientModel):
             vals_container = {
                 'name': cont_code,
                 'license': license_number,
+                'china_purchase': china_purchase.id if china_purchase else False,
+                'eta': self.fecha_llegada if self.fecha_llegada else fields.Date.today(),
             }
-            if self.fecha_llegada:
-                vals_container['eta'] = self.fecha_llegada
-
             container = self.env['container'].create(vals_container)
             created_container_ids.append(container.id)
 
