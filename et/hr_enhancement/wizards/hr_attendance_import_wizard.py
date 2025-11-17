@@ -177,19 +177,17 @@ class HrAttendanceImportWizard(models.TransientModel):
 
             open_att = attendances.filtered(lambda a: not a.check_out)[:1]
             if open_att:
-                checkout_dt = self._make_dt_utc(day_date, 7, 0) + timedelta(days=1)
-
+                checkout_dt = self._make_dt_utc(day_date, 6, 0) + timedelta(days=1)
                 if checkout_dt < open_att.check_in:
                     checkout_dt = open_att.check_in
-
                 open_att.write({
                     'check_out': checkout_dt,
                     'type_income': 'P',
                 })
                 return
 
-            checkin_dt = self._make_dt_utc(day_date, 23, 0)
-            checkout_dt = self._make_dt_utc(day_date, 9, 0) + timedelta(days=1)
+            checkin_dt = self._make_dt_utc(day_date, 20, 0)
+            checkout_dt = self._make_dt_utc(day_date, 6, 0) + timedelta(days=1)
 
         Attendance.create({
             'employee_id': employee.id,
@@ -218,7 +216,7 @@ class HrAttendanceImportWizard(models.TransientModel):
 
             open_att = attendances.filtered(lambda a: not a.check_out)[:1]
             if open_att:
-                checkout_dt = self._make_dt_utc(day_date, 20, 0)
+                checkout_dt = self._make_dt_utc(day_date, 17, 0)
                 if checkout_dt < open_att.check_in:
                     checkout_dt = open_att.check_in
                 open_att.write({
@@ -227,8 +225,8 @@ class HrAttendanceImportWizard(models.TransientModel):
                 })
                 return
 
-            checkin_dt = self._make_dt_utc(day_date, 10, 0)
-            checkout_dt = self._make_dt_utc(day_date, 20, 0)
+            checkin_dt = self._make_dt_utc(day_date, 7, 0)
+            checkout_dt = self._make_dt_utc(day_date, 17, 0)
         else:
             Attendance = self.env['hr.attendance']
             day_start_utc, day_end_utc = self._day_bounds_utc(day_date)
@@ -245,7 +243,7 @@ class HrAttendanceImportWizard(models.TransientModel):
 
             open_att = attendances.filtered(lambda a: not a.check_out)[:1]
             if open_att:
-                checkout_dt = self._make_dt_utc(day_date, 11, 0) + timedelta(days=1)
+                checkout_dt = self._make_dt_utc(day_date, 6, 0) + timedelta(days=1)
                 if checkout_dt < open_att.check_in:
                     checkout_dt = open_att.check_in
                 open_att.write({
@@ -254,7 +252,7 @@ class HrAttendanceImportWizard(models.TransientModel):
                 })
                 return
 
-            checkin_dt = self._make_dt_utc(day_date, 11, 0)
+            checkin_dt = self._make_dt_utc(day_date, 20, 0)
             checkout_dt = self._make_dt_utc(day_date, 6, 0) + timedelta(days=1)
 
         Attendance.create({
@@ -297,7 +295,7 @@ class HrAttendanceImportWizard(models.TransientModel):
             if attendances:
                 return
 
-            checkin_dt = self._make_dt_utc(day_date, 11, 0)
+            checkin_dt = self._make_dt_utc(day_date, 20, 0)
         Attendance.create({
             'employee_id': employee.id,
             'check_in': checkin_dt,
@@ -411,5 +409,6 @@ class HrAttendanceImportWizard(models.TransientModel):
                 'message': _('Se procesó el archivo de asistencias, no se encontraron empleados para los siguientes CUIL: %s') % ', '.join(not_employees) if not_employees else _('Todos los empleados fueron encontrados.'),
                 'type': 'success',
                 'sticky': False,
+                'timeout':10000,
             }
         }
