@@ -322,6 +322,7 @@ class HrAttendanceImportWizard(models.TransientModel):
             employee = self._find_employee_by_cuil(cuil_val)
             if not employee:
                 not_employees.append(str(cuil_val))
+                continue
 
             # Si querés asegurarte que sean SOLO eventuales:
             # if employee.employee_type != 'eventual':
