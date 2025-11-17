@@ -5,7 +5,7 @@ from odoo.exceptions import UserError
 import base64
 from io import BytesIO
 from openpyxl import load_workbook
-from datetime import datetime, date, time
+from datetime import datetime, date, time, timedelta
 import re
 import pytz
 
@@ -127,46 +127,69 @@ class HrAttendanceImportWizard(models.TransientModel):
     # =========================
 
     def _upsert_attendance_presence(self, employee, day_date):
-        """
-        Crea o completa asistencia de PRESENCIA (P) para EVENTUALES, de 07:00 a 17:00.
+        if employee.type_shift == 'day':
+            Attendance = self.env['hr.attendance']
+            day_start_utc, day_end_utc = self._day_bounds_utc(day_date)
 
-        - Si ya hay una asistencia cerrada ese día -> no hace nada.
-        - Si hay una asistencia abierta (sin check_out) -> setea 17:00.
-        - Si no hay nada -> crea una 07:00 a 17:00.
-        """
+            attendances = Attendance.search([
+                ('employee_id', '=', employee.id),
+                ('check_in', '>=', day_start_utc),
+                ('check_in', '<=', day_end_utc),
+            ], order='check_in asc')
 
-        Attendance = self.env['hr.attendance']
-        day_start_utc, day_end_utc = self._day_bounds_utc(day_date)
+            # 1) Si hay alguna asistencia YA CERRADA (tiene check_out) -> no tocamos nada
+            closed_att = attendances.filtered(lambda a: a.check_out)
+            if closed_att:
+                return
 
-        attendances = Attendance.search([
-            ('employee_id', '=', employee.id),
-            ('check_in', '>=', day_start_utc),
-            ('check_in', '<=', day_end_utc),
-        ], order='check_in asc')
+            # 2) Si hay abierta (tiene check_in pero no check_out) -> completar a las 17:00
+            open_att = attendances.filtered(lambda a: not a.check_out)[:1]
+            if open_att:
+                checkout_dt = self._make_dt_utc(day_date, 17, 0)
 
-        # 1) Si hay alguna asistencia YA CERRADA (tiene check_out) -> no tocamos nada
-        closed_att = attendances.filtered(lambda a: a.check_out)
-        if closed_att:
-            return
+                # Por si la marca fue después de las 17:00, evitar incoherencias
+                if checkout_dt < open_att.check_in:
+                    checkout_dt = open_att.check_in
 
-        # 2) Si hay abierta (tiene check_in pero no check_out) -> completar a las 17:00
-        open_att = attendances.filtered(lambda a: not a.check_out)[:1]
-        if open_att:
+                open_att.write({
+                    'check_out': checkout_dt,
+                    'type_income': 'P',
+                })
+                return
+
+            # 3) No hay nada para ese día -> creamos de 07:00 a 17:00
+            checkin_dt = self._make_dt_utc(day_date, 7, 0)
             checkout_dt = self._make_dt_utc(day_date, 17, 0)
+        else:
+            # Turno noche u otro: ajustar horarios según convenga
+            Attendance = self.env['hr.attendance']
+            day_start_utc, day_end_utc = self._day_bounds_utc(day_date)
 
-            # Por si la marca fue después de las 17:00, evitar incoherencias
-            if checkout_dt < open_att.check_in:
-                checkout_dt = open_att.check_in
+            attendances = Attendance.search([
+                ('employee_id', '=', employee.id),
+                ('check_in', '>=', day_start_utc),
+                ('check_in', '<=', day_end_utc),
+            ], order='check_in asc')
 
-            open_att.write({
-                'check_out': checkout_dt,
-                'type_income': 'P',
-            })
-            return
+            closed_att = attendances.filtered(lambda a: a.check_out)
+            if closed_att:
+                return
 
-        # 3) No hay nada para ese día -> creamos de 07:00 a 17:00
-        checkin_dt = self._make_dt_utc(day_date, 7, 0)
-        checkout_dt = self._make_dt_utc(day_date, 17, 0)
+            open_att = attendances.filtered(lambda a: not a.check_out)[:1]
+            if open_att:
+                checkout_dt = self._make_dt_utc(day_date, 7, 0) + timedelta(days=1)
+
+                if checkout_dt < open_att.check_in:
+                    checkout_dt = open_att.check_in
+
+                open_att.write({
+                    'check_out': checkout_dt,
+                    'type_income': 'P',
+                })
+                return
+
+            checkin_dt = self._make_dt_utc(day_date, 23, 0)
+            checkout_dt = self._make_dt_utc(day_date, 9, 0) + timedelta(days=1)
 
         Attendance.create({
             'employee_id': employee.id,
