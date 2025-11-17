@@ -59,16 +59,6 @@ class ImportContainerExcelWizard(models.TransientModel):
         if not self.file:
             raise UserError(_("Debe adjuntar un archivo de Excel."))
 
-        # Contenedor desde el que se abre el wizard
-        container = self.env['container'].browse(self.env.context.get('active_id'))
-        if not container:
-            raise UserError(_("Este asistente debe abrirse desde un contenedor."))
-
-        # Actualizar datos generales
-        container.dispatch_number = self.nro_despacho
-        if self.fecha_llegada:
-            container.eta = self.fecha_llegada
-
         # Decodificar binario
         try:
             data = base64.b64decode(self.file)
@@ -80,8 +70,8 @@ class ImportContainerExcelWizard(models.TransientModel):
             wb = load_workbook(BytesIO(data), data_only=True)
         except Exception as e:
             raise UserError(_("No se pudo leer el archivo Excel (.xlsx).\n"
-                              "Asegúrese de que el archivo sea un .xlsx válido.\n"
-                              "Detalle técnico: %s") % e)
+                            "Asegúrese de que el archivo sea un .xlsx válido.\n"
+                            "Detalle técnico: %s") % e)
 
         # Tomamos la hoja 'PACKING LIST' si existe, si no la activa
         sheet_name = 'PACKING LIST' if 'PACKING LIST' in wb.sheetnames else wb.sheetnames[0]
@@ -95,7 +85,7 @@ class ImportContainerExcelWizard(models.TransientModel):
         for r in range(1, max_row + 1):
             row_vals = [
                 (str(ws.cell(row=r, column=c).value).strip().upper()
-                 if ws.cell(row=r, column=c).value is not None else '')
+                if ws.cell(row=r, column=c).value is not None else '')
                 for c in range(1, max_col + 1)
             ]
             if 'ITEM CODE' in row_vals and 'CTNS' in row_vals:
@@ -104,7 +94,7 @@ class ImportContainerExcelWizard(models.TransientModel):
 
         if not header_row_idx:
             raise UserError(_("No se encontró la fila de encabezados "
-                              "('ITEM CODE' / 'CTNS') en el Excel."))
+                            "('ITEM CODE' / 'CTNS') en el Excel."))
 
         # Mapear nombre de columna → índice
         header_row = [
@@ -173,10 +163,10 @@ class ImportContainerExcelWizard(models.TransientModel):
                 if any(v not in (None, '') for v in row_vals):
                     last_data_row = r
                 else:
-                    # primera fila totalmente vacía → cortamos
                     break
 
         # -------- 3) Extraer código de contenedor desde la fila CONTAINER --------
+        cont_code = False
         if container_row_idx:
             row_vals_raw = [
                 ws.cell(row=container_row_idx, column=c).value
@@ -187,13 +177,30 @@ class ImportContainerExcelWizard(models.TransientModel):
                 None
             )
             cont_code = self._extract_container_code(cont_cell) if cont_cell else False
-            if cont_code:
-                # si querés, solo lo pisás si el name está vacío:
-                # if not container.name:
-                #     container.name = cont_code
-                container.name = cont_code  # ← usa solo 'JXLU4330628' / 'JXLU4328277'
 
-        # -------- 4) Construir las líneas del contenedor --------
+        # -------- 4) Obtener contenedor (existente o nuevo) --------
+        container = False
+        active_model = self.env.context.get('active_model')
+        active_id = self.env.context.get('active_id')
+
+        if active_model == 'container' and active_id:
+            container = self.env['container'].browse(active_id)
+
+        vals_container = {
+            'name': cont_code or self.nro_despacho or '/',
+            'dispatch_number': self.nro_despacho,
+        }
+        if self.fecha_llegada:
+            vals_container['eta'] = self.fecha_llegada
+        else:
+            vals_container['eta'] = fields.Date.today()
+
+        if container:
+            container.write(vals_container)
+        else:
+            container = self.env['container'].create(vals_container)
+
+        # -------- 5) Construir las líneas del contenedor --------
         line_vals_to_create = []
         missing_codes = []
 
@@ -215,7 +222,7 @@ class ImportContainerExcelWizard(models.TransientModel):
 
             qty_bultos = ws.cell(row=r, column=col_ctns).value if col_ctns else 0
             qty_cantidad = ws.cell(row=r, column=col_pcs).value if col_pcs else 0
-            
+
             barcode_val = ws.cell(row=r, column=col_barcode).value if col_barcode else None
             barcode = self._normalize_code(barcode_val)
 
@@ -225,6 +232,7 @@ class ImportContainerExcelWizard(models.TransientModel):
                 'quantity_send': self._to_float(qty_cantidad),
                 'bultos': self._to_float(qty_bultos),
                 'quantity_picked': 0,
+                # si más adelante querés guardar barcode u otros campos, los agregás acá
             }
             line_vals_to_create.append(vals)
 
@@ -240,4 +248,11 @@ class ImportContainerExcelWizard(models.TransientModel):
         for vals in line_vals_to_create:
             self.env['container.line'].create(vals)
 
-        return {'type': 'ir.actions.act_window_close'}
+        # Cerrar wizard y mostrar el contenedor recién creado/actualizado
+        return {
+            'type': 'ir.actions.act_window',
+            'res_model': 'container',
+            'view_mode': 'form',
+            'res_id': container.id,
+            'target': 'current',
+        }
