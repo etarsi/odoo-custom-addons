@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from odoo import api, fields, models, _
 from odoo.exceptions import UserError
-
+from openpyxl import Workbook
 import base64
 from io import BytesIO
 from openpyxl import load_workbook
@@ -382,10 +382,6 @@ class HrAttendanceImportWizard(models.TransientModel):
                 not_employees.append(str(cuil_val))
                 continue
 
-            # Si querés asegurarte que sean SOLO eventuales:
-            # if employee.employee_type != 'eventual':
-            #     continue
-
             for col, day_date in col_to_date.items():
                 raw = ws.cell(row=row, column=col).value
                 if not raw:
@@ -394,12 +390,24 @@ class HrAttendanceImportWizard(models.TransientModel):
                 code = str(raw).strip().upper()
                 if code == 'P':
                     self._upsert_attendance_presence(employee, day_date)
-                # Más adelante acá podés manejar:
                 elif code == 'PT':
                     self._upsert_attendance_late(employee, day_date)
                 elif code == 'F':
                     self._upsert_attendance_absence(employee, day_date)
-
+                    
+        # Que descargue un excel con los CUIL no encontrados, si querés
+        if not_employees:
+            #generar archivo y devolverlo como descarga
+            archivo = "CUIL_no_encontrados.xlsx"
+            wb_out = Workbook()
+            ws_out = wb_out.active
+            ws_out.title = "CUIL no encontrados"
+            ws_out.append(['CUIL no encontrado'])
+            for cuil in not_employees:
+                ws_out.append([cuil]) 
+            output = BytesIO()
+            wb_out.save(output)
+            archivo_b64 = base64.b64encode(output.getvalue()).decode()
         # Podés devolver un reload o un mensaje
         return {
             'type': 'ir.actions.client',
@@ -410,5 +418,10 @@ class HrAttendanceImportWizard(models.TransientModel):
                 'type': 'success',
                 'sticky': False,
                 'timeout':10000,
+                'next': {
+                    'type': 'ir.actions.act_url',
+                    'url': 'data:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;base64,%s' % archivo_b64,
+                    'target': 'self',
+                } if not_employees else None,
             }
         }
