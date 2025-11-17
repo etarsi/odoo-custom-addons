@@ -282,7 +282,7 @@ class HrAttendanceImportWizard(models.TransientModel):
         DAY_HEADER_ROW = 2      # fila donde están los números de día
         EMP_START_ROW = 3       # primera fila de empleado
         CUIL_COL = 3            # columna C
-        FIRST_DAY_COL = 6       # columna F
+        FIRST_DAY_COL = 5       # columna E
 
         # Mapear columna -> fecha (2025-11-01, etc.)
         col_to_date = {}
