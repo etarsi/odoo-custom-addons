@@ -22,4 +22,11 @@
             </form>
         </field>
     </record>
+    <record id="action_view_import_container_excel_wizard_form" model="ir.actions.act_window">
+        <field name="name">Importar Contenedor desde Excel</field>
+        <field name="res_model">import.container.excel.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="view_id" ref="view_import_container_excel_wizard_form"/>
+        <field name="target">new</field>
+    </record>
 </odoo>
