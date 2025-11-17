@@ -28,7 +28,6 @@
         'views/views.xml',
         # wizard views
         'wizard/import_container_excel_views.xml',
-        'views/menu.xml',
         'views/templates.xml',
     ],
     # only loaded in demonstration mode
