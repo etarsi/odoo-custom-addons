@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from odoo import api, fields, models, _
 from odoo.exceptions import UserError
-import base64
+import base64, re
 from io import BytesIO
 from openpyxl import load_workbook
 
@@ -15,6 +15,20 @@ class ImportContainerExcelWizard(models.TransientModel):
     fecha_llegada = fields.Date(string='ETA')
 
     # ----------------- HELPERS -----------------
+    def _find_license_number(self, ws):
+        """Busca 'LIC. 22508' en cualquier celda y devuelve '22508'."""
+        max_row = ws.max_row
+        max_col = ws.max_column
+        for r in range(1, max_row + 1):
+            for c in range(1, max_col + 1):
+                val = ws.cell(row=r, column=c).value
+                if not val:
+                    continue
+                text = str(val).upper()
+                m = re.search(r'LIC\.\s*(\d+)', text)
+                if m:
+                    return m.group(1)
+        return False
 
     def _normalize_code(self, value):
         """Convierte números/strings a código sin decimales tipo '56078'."""
@@ -80,23 +94,41 @@ class ImportContainerExcelWizard(models.TransientModel):
         max_row = ws.max_row
         max_col = ws.max_column
 
-        # -------- 1) Buscar fila de encabezados: ITEM CODE / CTNS --------
-        header_row_idx = None
+        # -------- 1) Detectar TODOS los headers y TODOS los CONTAINER --------
+        header_rows = []     # filas donde está ITEM CODE / CTNS
+        container_rows = []  # lista de dicts {'row': r, 'code': 'JXLU4330628'}
+
         for r in range(1, max_row + 1):
-            row_vals = [
-                (str(ws.cell(row=r, column=c).value).strip().upper()
-                if ws.cell(row=r, column=c).value is not None else '')
+            row_vals_raw = [
+                ws.cell(row=r, column=c).value
                 for c in range(1, max_col + 1)
             ]
-            if 'ITEM CODE' in row_vals and 'CTNS' in row_vals:
-                header_row_idx = r
-                break
+            row_text_upper = [
+                str(v).strip().upper()
+                for v in row_vals_raw if v not in (None, '')
+            ]
 
-        if not header_row_idx:
-            raise UserError(_("No se encontró la fila de encabezados "
-                            "('ITEM CODE' / 'CTNS') en el Excel."))
+            if not row_text_upper:
+                continue
 
-        # Mapear nombre de columna → índice
+            # Header de bloque
+            if 'ITEM CODE' in row_text_upper and 'CTNS' in row_text_upper:
+                header_rows.append(r)
+
+            # Fila CONTAINER A#/B#...
+            if any('CONTAINER' in v for v in row_text_upper):
+                cont_cell = next(
+                    (v for v in row_vals_raw if v and 'CONTAINER' in str(v).upper()),
+                    None
+                )
+                cont_code = self._extract_container_code(cont_cell) if cont_cell else False
+                container_rows.append({'row': r, 'code': cont_code})
+
+        if not header_rows or not container_rows:
+            raise UserError(_("No se encontraron bloques de contenedor en el archivo."))
+
+        # Usamos el PRIMER header para mapear columnas (todas tienen el mismo layout)
+        header_row_idx = header_rows[0]
         header_row = [
             ws.cell(row=header_row_idx, column=c).value
             for c in range(1, max_col + 1)
@@ -111,148 +143,97 @@ class ImportContainerExcelWizard(models.TransientModel):
             return col_by_name.get(name.upper())
 
         col_sb_code = col('SB CODE')
-        col_barcode = col('BARCODE')
         col_ctns = col('CTNS')
         col_pcs = col('PCS')
 
         if not col_sb_code or not col_ctns or not col_pcs:
             raise UserError(_("No se encontraron las columnas 'SB CODE', 'CTNS' y/o 'PCS' en el encabezado."))
 
-        # -------- 2) Buscar fila CONTAINER y TOTAL para cerrar el bloque --------
-        container_row_idx = None
-        total_row_idx = None
+        # N° de licencia arriba: "PACKING LIST - LIC. 22508"
+        license_number = self._find_license_number(ws)
 
-        for r in range(header_row_idx + 1, max_row + 1):
-            row_vals_raw = [
-                ws.cell(row=r, column=c).value
-                for c in range(1, max_col + 1)
-            ]
-            row_text = [
-                str(v).strip().upper()
-                for v in row_vals_raw
-                if v not in (None, '')
-            ]
-            if not row_text:
-                # fila completamente vacía -> la ignoramos (no corta)
-                continue
+        created_container_ids = []
 
-            if any('CONTAINER' in v for v in row_text):
-                if not container_row_idx:
-                    container_row_idx = r
+        # -------- 2) Recorrer CADA CONTENEDOR (A, B, ...) --------
+        for cont in container_rows:
+            cont_row = cont['row']
+            cont_code = cont['code'] or '/'
 
-            if any(v.startswith('TOTAL') for v in row_text):
-                if not total_row_idx:
-                    total_row_idx = r
-
-            # Si ya tenemos ambas, cortamos
-            if container_row_idx and total_row_idx:
-                break
-
-        # Determinar última fila de datos de detalle
-        cut_points = [idx for idx in [container_row_idx, total_row_idx] if idx]
-        if cut_points:
-            last_data_row = min(cut_points) - 1
-        else:
-            # Fallback: hasta la última fila no vacía después del header
-            last_data_row = header_row_idx
-            for r in range(header_row_idx + 1, max_row + 1):
-                row_vals = [
-                    ws.cell(row=r, column=c).value
-                    for c in range(1, max_col + 1)
-                ]
-                if any(v not in (None, '') for v in row_vals):
-                    last_data_row = r
+            # Header correspondiente a este bloque = último header antes del CONTAINER
+            header_for_block = None
+            for h in header_rows:
+                if h < cont_row:
+                    header_for_block = h
                 else:
                     break
 
-        # -------- 3) Extraer código de contenedor desde la fila CONTAINER --------
-        cont_code = False
-        if container_row_idx:
-            row_vals_raw = [
-                ws.cell(row=container_row_idx, column=c).value
-                for c in range(1, max_col + 1)
-            ]
-            cont_cell = next(
-                (v for v in row_vals_raw if v and 'CONTAINER' in str(v).upper()),
-                None
-            )
-            cont_code = self._extract_container_code(cont_cell) if cont_cell else False
-
-        # -------- 4) Obtener contenedor (existente o nuevo) --------
-        container = False
-        active_model = self.env.context.get('active_model')
-        active_id = self.env.context.get('active_id')
-
-        if active_model == 'container' and active_id:
-            container = self.env['container'].browse(active_id)
-
-        vals_container = {
-            'name': cont_code or self.nro_despacho or '/',
-            'dispatch_number': self.nro_despacho,
-        }
-        if self.fecha_llegada:
-            vals_container['eta'] = self.fecha_llegada
-        else:
-            vals_container['eta'] = fields.Date.today()
-
-        if container:
-            container.write(vals_container)
-        else:
-            container = self.env['container'].create(vals_container)
-
-        # -------- 5) Construir las líneas del contenedor --------
-        line_vals_to_create = []
-        missing_codes = []
-
-        for r in range(header_row_idx + 1, last_data_row + 1):
-            # SB CODE → default_code del producto
-            sb_val = ws.cell(row=r, column=col_sb_code).value if col_sb_code else None
-            sb_code = self._normalize_code(sb_val)
-
-            # Si no hay SB CODE, lo saltamos
-            if not sb_code:
+            if not header_for_block:
+                # Por seguridad, si no se encuentra header anterior, saltamos este bloque
                 continue
 
-            product = self.env['product.product'].search(
-                [('default_code', '=', sb_code)], limit=1
-            )
-            if not product:
-                missing_codes.append(sb_code)
-                continue
+            start_row = header_for_block + 1
+            end_row = cont_row - 1
 
-            qty_bultos = ws.cell(row=r, column=col_ctns).value if col_ctns else 0
-            qty_cantidad = ws.cell(row=r, column=col_pcs).value if col_pcs else 0
-
-            barcode_val = ws.cell(row=r, column=col_barcode).value if col_barcode else None
-            barcode = self._normalize_code(barcode_val)
-
-            vals = {
-                'container': container.id,
-                'product_id': product.id,
-                'quantity_send': self._to_float(qty_cantidad),
-                'bultos': self._to_float(qty_bultos),
-                'quantity_picked': 0,
-                # si más adelante querés guardar barcode u otros campos, los agregás acá
+            # ---- Crear contenedor ----
+            vals_container = {
+                'name': cont_code,
+                'license': license_number,
             }
-            line_vals_to_create.append(vals)
+            if self.fecha_llegada:
+                vals_container['eta'] = self.fecha_llegada
 
-        if missing_codes:
-            missing_txt = ', '.join(sorted(set(missing_codes)))
-            raise UserError(_(
-                "Los siguientes 'SB CODE' no se encontraron como productos en Odoo "
-                "(default_code):\n%s"
-            ) % missing_txt)
+            container = self.env['container'].create(vals_container)
+            created_container_ids.append(container.id)
 
-        # Borramos las líneas actuales y cargamos las nuevas
-        container.lines.unlink()
-        for vals in line_vals_to_create:
-            self.env['container.line'].create(vals)
+            # ---- Crear líneas del contenedor ----
+            line_vals_to_create = []
+            missing_codes = []
 
-        # Cerrar wizard y mostrar el contenedor recién creado/actualizado
+            for r in range(start_row, end_row + 1):
+                sb_val = ws.cell(row=r, column=col_sb_code).value if col_sb_code else None
+                sb_code = self._normalize_code(sb_val)
+                if not sb_code:
+                    # filas de totales parciales (solo números) se saltan solas
+                    continue
+
+                product = self.env['product.product'].search(
+                    [('default_code', '=', sb_code)], limit=1
+                )
+                if not product:
+                    missing_codes.append(sb_code)
+                    continue
+
+                qty_bultos = ws.cell(row=r, column=col_ctns).value if col_ctns else 0
+                qty_cantidad = ws.cell(row=r, column=col_pcs).value if col_pcs else 0
+
+                vals_line = {
+                    'container': container.id,
+                    'product_id': product.id,
+                    'quantity_send': self._to_float(qty_cantidad),
+                    'bultos': self._to_float(qty_bultos),
+                    'quantity_picked': 0,
+                }
+                line_vals_to_create.append(vals_line)
+
+            if missing_codes:
+                missing_txt = ', '.join(sorted(set(missing_codes)))
+                raise UserError(_(
+                    "En el bloque del contenedor %s los siguientes 'SB CODE' "
+                    "no se encontraron como productos en Odoo (default_code):\n%s"
+                ) % (cont_code, missing_txt))
+
+            for vals_line in line_vals_to_create:
+                self.env['container.line'].create(vals_line)
+
+        # -------- 3) Volver mostrando los contenedores creados --------
+        if not created_container_ids:
+            raise UserError(_("No se creó ningún contenedor desde el archivo."))
+
         return {
             'type': 'ir.actions.act_window',
             'res_model': 'container',
-            'view_mode': 'form',
-            'res_id': container.id,
+            'view_mode': 'tree,form',
+            'domain': [('id', 'in', created_container_ids)],
             'target': 'current',
         }
+
