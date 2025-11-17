@@ -9,7 +9,7 @@
                     <field name="file"/>
                 </group>
                 <footer>
-                    <button name="import_data"
+                    <button name="action_import_attendance"
                             type="object"
                             string="Importar"
                             class="btn-primary oe_highlight"/>
