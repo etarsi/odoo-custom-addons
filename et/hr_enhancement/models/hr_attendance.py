@@ -44,6 +44,12 @@ class HrAttendance(models.Model):
         store=True,
         compute='_compute_day_of_week'
     )
+    type_income = fields.Selection(
+        selection=[
+            ('P', 'Presente'),
+            ('PT', 'Presente Tarde'),
+            ('F', 'Falta')],
+            string='Tipo de Ingreso', default='P', index=True)
 
     @api.depends('check_in')
     def _compute_day_of_week(self):

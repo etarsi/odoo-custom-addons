@@ -34,6 +34,14 @@
         groups="hr_enhancement.group_hr_supervisor,hr_enhancement.group_hr_administrador"/>
 
     <menuitem
+        id="menu_import_hr_attendance_wizard"
+        name="Importar Asistencias"
+        parent="hr_enhancement.menu_hr_attendance"
+        action="action_view_hr_attendance_import_wizard_form"
+        sequence="3"
+        groups="hr_enhancement.group_hr_supervisor,hr_enhancement.group_hr_administrador"/>
+
+    <menuitem
         id="hr_enhancement.menu_hr_attendance_enhancements_eventual"
         name="Asistencias de Eventuales"
         parent="hr_enhancement.menu_hr_attendance"

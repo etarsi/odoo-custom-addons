@@ -84,8 +84,7 @@
         <field name="name">hr.attendance.tree.eventual</field>
         <field name="model">hr.attendance</field>
         <field name="arch" type="xml">
-
-            <tree string="Asistencias Eventuales" js_class="o_hr_attendance_eventual_tree">
+            <tree string="Asistencias Eventuales" js_class="o_hr_attendance_eventual_tree" sample="1" editable="bottom">
                 <field name="employee_id" optional="show" domain="[('employee_type', '=', 'eventual')]"/>
                 <field name="check_in" optional="show"/>
                 <field name="check_out" optional="show"/>
@@ -96,6 +95,7 @@
                 <field name="overtime" optional="show" digits="[16, 0]" sum="Horas al 50%"/>
                 <field name="holiday_hours" optional="show" digits="[16, 0]" sum="Horas al 100%"/>
                 <field name="employee_type_shift" widget="badge" decoration-warning="employee_type_shift == 'day'" decoration-info="employee_type_shift == 'night'" optional="show"/>
+                <field name="type_income" widget="badge" decoration-success="type_income == 'P'" decoration-warning="type_income == 'PT'" decoration-danger="type_income == 'F'" optional="show"/>
             </tree>
         </field>
     </record>
