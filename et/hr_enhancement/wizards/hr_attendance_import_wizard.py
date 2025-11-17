@@ -29,6 +29,10 @@ class HrAttendanceImportWizard(models.TransientModel):
 
     file = fields.Binary(string='Archivo Excel', required=True)
     filename = fields.Char(string='Nombre del archivo')
+    type_import = fields.Selection([
+        ('asistencia', 'Importar Asistencias'),
+        ('horas_extra', 'Actualizar Horas Extra'),
+    ], string='Tipo de Importación', default='asistencia', required=True)
 
     # =========================
     #  Helpers de fechas / TZ
@@ -109,6 +113,9 @@ class HrAttendanceImportWizard(models.TransientModel):
         if not digits:
             return None
 
+        #si digits tiene letras o tiene , . o - o espacios, no es valido
+        if re.search(r'[^\d]', digits):
+            return None
         # Se asume que dni en empleados está almacenado como solo dígitos
         emp = self.env['hr.employee'].search([('dni', '=', digits)], limit=1)
         if emp:
