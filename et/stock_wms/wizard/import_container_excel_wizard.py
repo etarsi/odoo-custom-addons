@@ -174,7 +174,7 @@ class ImportContainerExcelWizard(models.TransientModel):
                 'license': license_number,
                 'china_purchase': china_purchase.id if china_purchase else False,
                 'eta': self.fecha_llegada if self.fecha_llegada else fields.Date.today(),
-                'nro_despacho': self.nro_despacho if self.nro_despacho else False,
+                'dispatch_number': self.nro_despacho if self.nro_despacho else False,
             }
             container = self.env['container'].create(vals_container)
             created_container_ids.append(container.id)
