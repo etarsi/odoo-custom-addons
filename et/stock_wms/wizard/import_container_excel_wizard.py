@@ -11,7 +11,7 @@ class ImportContainerExcelWizard(models.TransientModel):
     _description = 'Wizard: Importar Contenedores desde Excel'
 
     file = fields.Binary(string='Archivo Excel', required=True)
-    nro_despacho = fields.Char(string='Número de Despacho', required=True)
+    nro_despacho = fields.Char(string='N° Despacho')
     fecha_llegada = fields.Date(string='ETA')
 
     # ----------------- HELPERS -----------------
@@ -34,7 +34,6 @@ class ImportContainerExcelWizard(models.TransientModel):
         """Convierte números/strings a código sin decimales tipo '56078'."""
         if value in (None, ''):
             return False
-        # Si viene como float 56078.0 → '56078'
         if isinstance(value, float):
             if value.is_integer():
                 return str(int(value))
@@ -57,10 +56,8 @@ class ImportContainerExcelWizard(models.TransientModel):
         if not raw_text:
             return False
         text = str(raw_text).strip()
-        # Tomar lo que está después de ':'
         if ':' in text:
             text = text.split(':', 1)[1]
-        # Tomar lo que está antes de '/'
         if '/' in text:
             text = text.split('/', 1)[0]
         text = text.strip()
@@ -72,14 +69,10 @@ class ImportContainerExcelWizard(models.TransientModel):
 
         if not self.file:
             raise UserError(_("Debe adjuntar un archivo de Excel."))
-
-        # Decodificar binario
         try:
             data = base64.b64decode(self.file)
         except Exception as e:
             raise UserError(_("No se pudo decodificar el archivo.\nDetalle técnico: %s") % e)
-
-        # Cargar workbook .xlsx
         try:
             wb = load_workbook(BytesIO(data), data_only=True)
         except Exception as e:
@@ -181,6 +174,7 @@ class ImportContainerExcelWizard(models.TransientModel):
                 'license': license_number,
                 'china_purchase': china_purchase.id if china_purchase else False,
                 'eta': self.fecha_llegada if self.fecha_llegada else fields.Date.today(),
+                'nro_despacho': self.nro_despacho if self.nro_despacho else False,
             }
             container = self.env['container'].create(vals_container)
             created_container_ids.append(container.id)
@@ -235,5 +229,6 @@ class ImportContainerExcelWizard(models.TransientModel):
             'view_mode': 'tree,form',
             'domain': [('id', 'in', created_container_ids)],
             'target': 'current',
+            'name': _('Contenedores Importados'),
         }
 

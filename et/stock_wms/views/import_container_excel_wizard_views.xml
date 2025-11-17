@@ -4,8 +4,9 @@
         <field name="name">import.container.excel.wizard.form</field>
         <field name="model">import.container.excel.wizard</field>
         <field name="arch" type="xml">
-            <form string="Importar contenedor desde Excel">
+            <form string="Importar Contenedores">
                 <group>
+                    <field name="nro_despacho"/>
                     <field name="fecha_llegada"/>
                     <field name="file" filename="nro_despacho"/>
                 </group>
