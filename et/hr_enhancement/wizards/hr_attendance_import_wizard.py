@@ -301,7 +301,8 @@ class HrAttendanceImportWizard(models.TransientModel):
 
         if not col_to_date:
             raise UserError(_('No se encontraron columnas de días en la fila %s.') % DAY_HEADER_ROW)
-
+        
+        not_employees = []
         for row in range(EMP_START_ROW, max_row + 1):
             cuil_val = ws.cell(row=row, column=CUIL_COL).value
 
@@ -320,11 +321,7 @@ class HrAttendanceImportWizard(models.TransientModel):
 
             employee = self._find_employee_by_cuil(cuil_val)
             if not employee:
-                raise UserError(
-                    _('No se encontró empleado para CUIL/DNI "%s" (fila %s). '
-                      'Verificá que el campo dni de hr.employee coincida.')
-                    % (cuil_val, row)
-                )
+                not_employees.append(str(cuil_val))
 
             # Si querés asegurarte que sean SOLO eventuales:
             # if employee.employee_type != 'eventual':
@@ -350,7 +347,8 @@ class HrAttendanceImportWizard(models.TransientModel):
             'tag': 'display_notification',
             'params': {
                 'title': _('Importación completada'),
-                'message': _('Se procesó el archivo de asistencias.'),
+                'message': _('Se procesó el archivo de asistencias, no se encontraron empleados para los siguientes CUIL: %s') % ', '.join(not_employees) if not_employees else _('Todos los empleados fueron encontrados.'),
+                'type': 'success',
                 'sticky': False,
             }
         }
