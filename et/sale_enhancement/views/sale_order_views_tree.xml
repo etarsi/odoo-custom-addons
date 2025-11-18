@@ -21,10 +21,12 @@
             <field name="inherit_id" ref="sale.sale_order_view_search_inherit_sale"/>
             <field name="arch" type="xml">
                 <!-- Agregar la opción de Agrupar por Etiquetas del Cliente -->
-                <xpath expr="//group[@string='Agrupar por']" position="inside">
+                <xpath expr="//filter[@name='to_invoice']" position="before">
+                    <separator/>
                     <filter name="groupby_partner_tag"
                         string="Etiquetas del Cliente"
                         context="{'group_by': 'partner_tag'}"/>
+                    <separator/>
                 </xpath>
             </field>
         </record>
