@@ -48,7 +48,7 @@ class SaleOrderInherit(models.Model):
     #    ('marketing', 'Venta de Marketing')
     #], string='Tipo de Venta', default='sale')
     company_default = fields.Integer("Compañía por defecto", copy=False)
-    partner_tag = fields.Many2many('res.partner.category', related='partner_id.category_id', string='Etiq. Cliente', readonly=True)
+    partner_tag = fields.Many2many('res.partner.category', related='partner_id.category_id', string='Etiq. Cliente', readonly=True, store=True)
 
     def unlink(self):
         for order in self:
