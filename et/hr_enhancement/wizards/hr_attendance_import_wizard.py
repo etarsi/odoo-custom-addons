@@ -422,25 +422,24 @@ class HrAttendanceImportWizard(models.TransientModel):
                 'mimetype': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
             })
 
-            # Notificación + botón de descarga + cerrar wizard al final
+            # Notificación y, al cerrarla, descarga el archivo
             return {
                 'type': 'ir.actions.client',
                 'tag': 'display_notification',
                 'params': {
                     'title': _('Importación completada'),
                     'type': 'warning',
-                    'sticky': True,  # queda hasta que el usuario la cierre
+                    'sticky': True,  # se queda hasta que la cierre
                     'message': _(
-                        'Se procesó el archivo de asistencias. '
-                        'Hacé clic en "Descargar CUIL no encontrados".'
+                        'Se procesó el archivo de asistencias.\n'
+                        'Al cerrar esta notificación se descargará el Excel de '
+                        'CUIL no encontrados.'
                     ),
-                    # Algunos Odoo aceptan 'links' para botones en la notificación
-                    'links': [{
-                        'label': _('Descargar CUIL no encontrados'),
+                    'next': {
+                        'type': 'ir.actions.act_url',
                         'url': '/web/content/%s?download=1' % attachment.id,
-                    }],
-                    # Cuando el usuario cierre la notificación, se cierra el wizard
-                    'next': {'type': 'ir.actions.act_window_close'},
+                        'target': 'self',   # reemplaza la vista → el wizard desaparece
+                    },
                 }
             }
 
