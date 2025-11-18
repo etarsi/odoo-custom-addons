@@ -5,9 +5,7 @@
         <template id="report_payment_group_document2">
             <t t-call="account_payment_group.report_payment_group_document">
                 <t t-set="o" t-value="docs[0].with_context(lang=lang)"/>
-                <!-- tus bloques personalizados si querés -->
-            </t>
-        </template>
+            
 
             <!-- 1) Setear variables después de t-set="o" -->
             <xpath expr="//t[@t-set='o']" position="after">
@@ -288,6 +286,7 @@
                 </div>
             </xpath>
 
+        </t>
         </template>
 
     </data>
