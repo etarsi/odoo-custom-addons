@@ -378,13 +378,13 @@ class HrAttendanceImportWizard(models.TransientModel):
                 continue
 
             if not cuil_val:
-                # Tiene algo pero sin CUIL -> lo ignoramos o levantamos error, a gusto
-                # raise UserError(_('Fila %s tiene datos pero no CUIL.') % row)
                 continue
-
+            _logger.info("Procesando fila %s, CUIL: %s", row, cuil_val)
             employee = self._find_employee_by_cuil(cuil_val)
             if not employee:
-                not_employees.append(str(cuil_val))
+                if cuil_val == 'CUIL':
+                    continue 
+                not_employees.append(cuil_val)
                 continue
 
             for col, day_date in col_to_date.items():
