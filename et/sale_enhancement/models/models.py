@@ -50,7 +50,7 @@ class SaleOrderInherit(models.Model):
     company_default = fields.Integer("Compañía por defecto", copy=False)
     partner_tag_ids = fields.Many2many(
         'res.partner.category',
-        string='Etiquetas del Cliente',
+        string='Etiq. del Cliente',
         compute='_compute_partner_tags',
         store=True,
         readonly=True,
