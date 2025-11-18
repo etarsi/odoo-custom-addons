@@ -132,39 +132,69 @@ class HrAttendanceImportWizard(models.TransientModel):
     # =========================
 
     def _upsert_attendance_presence(self, employee, day_date):
+        #dow = day.weekday() con day_date
+        dow = day_date.weekday()
         if employee.type_shift == 'day':
-            Attendance = self.env['hr.attendance']
-            day_start_utc, day_end_utc = self._day_bounds_utc(day_date)
+            if dow in [0,1,2,3,4]:  # Lunes a Viernes
+                Attendance = self.env['hr.attendance']
+                day_start_utc, day_end_utc = self._day_bounds_utc(day_date)
 
-            attendances = Attendance.search([
-                ('employee_id', '=', employee.id),
-                ('check_in', '>=', day_start_utc),
-                ('check_in', '<=', day_end_utc),
-            ], order='check_in asc')
+                attendances = Attendance.search([
+                    ('employee_id', '=', employee.id),
+                    ('check_in', '>=', day_start_utc),
+                    ('check_in', '<=', day_end_utc),
+                ], order='check_in asc')
 
-            # 1) Si hay alguna asistencia YA CERRADA (tiene check_out) -> no tocamos nada
-            closed_att = attendances.filtered(lambda a: a.check_out)
-            if closed_att:
-                return
+                # 1) Si hay alguna asistencia YA CERRADA (tiene check_out) -> no tocamos nada
+                closed_att = attendances.filtered(lambda a: a.check_out)
+                if closed_att:
+                    return
 
-            # 2) Si hay abierta (tiene check_in pero no check_out) -> completar a las 17:00
-            open_att = attendances.filtered(lambda a: not a.check_out)[:1]
-            if open_att:
+                # 2) Si hay abierta (tiene check_in pero no check_out) -> completar a las 17:00
+                open_att = attendances.filtered(lambda a: not a.check_out)[:1]
+                if open_att:
+                    checkout_dt = self._make_dt_utc(day_date, 17, 0)
+
+                    # Por si la marca fue después de las 17:00, evitar incoherencias
+                    if checkout_dt < open_att.check_in:
+                        checkout_dt = open_att.check_in
+
+                    open_att.write({
+                        'check_out': checkout_dt,
+                        'type_income': 'P',
+                    })
+                    return
+
+                # 3) No hay nada para ese día -> creamos de 07:00 a 17:00
+                checkin_dt = self._make_dt_utc(day_date, 7, 0)
                 checkout_dt = self._make_dt_utc(day_date, 17, 0)
+            elif dow == 5:  # Sábado
+                Attendance = self.env['hr.attendance']
+                day_start_utc, day_end_utc = self._day_bounds_utc(day_date)
 
-                # Por si la marca fue después de las 17:00, evitar incoherencias
-                if checkout_dt < open_att.check_in:
-                    checkout_dt = open_att.check_in
+                attendances = Attendance.search([
+                    ('employee_id', '=', employee.id),
+                    ('check_in', '>=', day_start_utc),
+                    ('check_in', '<=', day_end_utc),
+                ], order='check_in asc')
 
-                open_att.write({
-                    'check_out': checkout_dt,
-                    'type_income': 'P',
-                })
-                return
+                closed_att = attendances.filtered(lambda a: a.check_out)
+                if closed_att:
+                    return
 
-            # 3) No hay nada para ese día -> creamos de 07:00 a 17:00
-            checkin_dt = self._make_dt_utc(day_date, 7, 0)
-            checkout_dt = self._make_dt_utc(day_date, 17, 0)
+                open_att = attendances.filtered(lambda a: not a.check_out)[:1]
+                if open_att:
+                    checkout_dt = self._make_dt_utc(day_date, 13, 0)
+                    if checkout_dt < open_att.check_in:
+                        checkout_dt = open_att.check_in
+                    open_att.write({
+                        'check_out': checkout_dt,
+                        'type_income': 'P',
+                    })
+                    return
+
+                checkin_dt = self._make_dt_utc(day_date, 8, 0)
+                checkout_dt = self._make_dt_utc(day_date, 12, 0)
         else:
             # Turno noche u otro: ajustar horarios según convenga
             Attendance = self.env['hr.attendance']
@@ -205,33 +235,63 @@ class HrAttendanceImportWizard(models.TransientModel):
         })
 
     def _upsert_attendance_late(self, employee, day_date):
+        #dow = day.weekday() con day_date
+        dow = day_date.weekday()
         if employee.type_shift == 'day':
-            Attendance = self.env['hr.attendance']
-            day_start_utc, day_end_utc = self._day_bounds_utc(day_date)
+            if dow in [0,1,2,3,4]:  # Lunes a Viernes
+                Attendance = self.env['hr.attendance']
+                day_start_utc, day_end_utc = self._day_bounds_utc(day_date)
 
-            attendances = Attendance.search([
-                ('employee_id', '=', employee.id),
-                ('check_in', '>=', day_start_utc),
-                ('check_in', '<=', day_end_utc),
-            ], order='check_in asc')
+                attendances = Attendance.search([
+                    ('employee_id', '=', employee.id),
+                    ('check_in', '>=', day_start_utc),
+                    ('check_in', '<=', day_end_utc),
+                ], order='check_in asc')
 
-            closed_att = attendances.filtered(lambda a: a.check_out)
-            if closed_att:
-                return
+                closed_att = attendances.filtered(lambda a: a.check_out)
+                if closed_att:
+                    return
 
-            open_att = attendances.filtered(lambda a: not a.check_out)[:1]
-            if open_att:
+                open_att = attendances.filtered(lambda a: not a.check_out)[:1]
+                if open_att:
+                    checkout_dt = self._make_dt_utc(day_date, 17, 0)
+                    if checkout_dt < open_att.check_in:
+                        checkout_dt = open_att.check_in
+                    open_att.write({
+                        'check_out': checkout_dt,
+                        'type_income': 'PT',
+                    })
+                    return
+
+                checkin_dt = self._make_dt_utc(day_date, 7, 0)
                 checkout_dt = self._make_dt_utc(day_date, 17, 0)
-                if checkout_dt < open_att.check_in:
-                    checkout_dt = open_att.check_in
-                open_att.write({
-                    'check_out': checkout_dt,
-                    'type_income': 'PT',
-                })
-                return
+            elif dow == 5:  # Sábado
+                Attendance = self.env['hr.attendance']
+                day_start_utc, day_end_utc = self._day_bounds_utc(day_date)
 
-            checkin_dt = self._make_dt_utc(day_date, 7, 0)
-            checkout_dt = self._make_dt_utc(day_date, 17, 0)
+                attendances = Attendance.search([
+                    ('employee_id', '=', employee.id),
+                    ('check_in', '>=', day_start_utc),
+                    ('check_in', '<=', day_end_utc),
+                ], order='check_in asc')
+
+                closed_att = attendances.filtered(lambda a: a.check_out)
+                if closed_att:
+                    return
+
+                open_att = attendances.filtered(lambda a: not a.check_out)[:1]
+                if open_att:
+                    checkout_dt = self._make_dt_utc(day_date, 13, 0)
+                    if checkout_dt < open_att.check_in:
+                        checkout_dt = open_att.check_in
+                    open_att.write({
+                        'check_out': checkout_dt,
+                        'type_income': 'PT',
+                    })
+                    return
+
+                checkin_dt = self._make_dt_utc(day_date, 8, 0)
+                checkout_dt = self._make_dt_utc(day_date, 12, 0)
         else:
             Attendance = self.env['hr.attendance']
             day_start_utc, day_end_utc = self._day_bounds_utc(day_date)
@@ -308,6 +368,26 @@ class HrAttendanceImportWizard(models.TransientModel):
             'type_income': 'F',
             'justification': 'Falta marcada desde importación',
         })
+        
+    def _update_check_out_with_extra_hours(self, employee, day_date, hours_extra):
+        """
+        Actualiza la asistencia del día para agregar horas extra al check_out.
+        Si no hay asistencia, no hace nada.
+        """
+        Attendance = self.env['hr.attendance']
+        day_start_utc, day_end_utc = self._day_bounds_utc(day_date)
+
+        attendances = Attendance.search([
+            ('employee_id', '=', employee.id),
+            ('check_in', '>=', day_start_utc),
+            ('check_in', '<=', day_end_utc),
+        ], order='check_in asc', limit=1)
+        
+        if attendances and attendances.check_out:
+            new_checkout = attendances.check_out + timedelta(hours=hours_extra)
+            attendances.write({
+                'check_out': new_checkout,
+            })
 
     # =========================
     #  Acción principal
@@ -389,15 +469,23 @@ class HrAttendanceImportWizard(models.TransientModel):
                 raw = ws.cell(row=row, column=col).value
                 if not raw:
                     continue
+                if self.type_import == 'asistencia':
+                    code = str(raw).strip().upper()
+                    if code == 'P':
+                        self._upsert_attendance_presence(employee, day_date)
+                    elif code == 'PT':
+                        self._upsert_attendance_late(employee, day_date)
+                    elif code == 'F':
+                        self._upsert_attendance_absence(employee, day_date)
+                elif self.type_import == 'horas_extra':
+                    try:
+                        hours_extra = float(raw)
+                        if hours_extra > 0:
+                            self._update_check_out_with_extra_hours(employee, day_date, hours_extra)
+                    except Exception:
+                        continue
 
-                code = str(raw).strip().upper()
-                if code == 'P':
-                    self._upsert_attendance_presence(employee, day_date)
-                elif code == 'PT':
-                    self._upsert_attendance_late(employee, day_date)
-                elif code == 'F':
-                    self._upsert_attendance_absence(employee, day_date)
-                    
+                        
         # Que descargue un excel con los CUIL no encontrados, si querés
         if not_employees:
             archivo = "CUIL_no_encontrados.xlsx"
