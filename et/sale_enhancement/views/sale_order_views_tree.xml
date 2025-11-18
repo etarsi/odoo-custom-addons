@@ -25,7 +25,7 @@
                     <separator/>
                     <filter name="groupby_partner_tag"
                         string="Etiquetas del Cliente"
-                        context="{'group_by': 'partner_tag'}"/>
+                        context="{'group_by': 'partner_id.category_id'}"/>
                     <separator/>
                 </xpath>
             </field>
