@@ -7,6 +7,7 @@
             <form string="Importar Asistencias">
                 <group>
                     <field name="file"/>
+                    <field name="type_import"/>
                 </group>
                 <footer>
                     <button name="action_import_attendance"

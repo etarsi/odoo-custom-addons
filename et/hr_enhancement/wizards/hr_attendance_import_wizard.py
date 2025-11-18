@@ -335,9 +335,7 @@ class HrAttendanceImportWizard(models.TransientModel):
 
         # Por simplicidad: usamos la hoja activa (donde está noviembre)
         ws = wb.active
-
         month, year = self._get_month_year_from_sheet(ws)
-
         max_row = ws.max_row
         max_col = ws.max_column
 
@@ -424,11 +422,26 @@ class HrAttendanceImportWizard(models.TransientModel):
                 'mimetype': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
             })
 
-            # Devolver descarga directa y aviso
+            # Notificación + botón de descarga + cerrar wizard al final
             return {
-                'type': 'ir.actions.act_url',
-                'url': '/web/content/%s?download=1' % attachment.id,
-                'target': 'self',
+                'type': 'ir.actions.client',
+                'tag': 'display_notification',
+                'params': {
+                    'title': _('Importación completada'),
+                    'type': 'warning',
+                    'sticky': True,  # queda hasta que el usuario la cierre
+                    'message': _(
+                        'Se procesó el archivo de asistencias. '
+                        'Hacé clic en "Descargar CUIL no encontrados".'
+                    ),
+                    # Algunos Odoo aceptan 'links' para botones en la notificación
+                    'links': [{
+                        'label': _('Descargar CUIL no encontrados'),
+                        'url': '/web/content/%s?download=1' % attachment.id,
+                    }],
+                    # Cuando el usuario cierre la notificación, se cierra el wizard
+                    'next': {'type': 'ir.actions.act_window_close'},
+                }
             }
 
         # Si TODOS los empleados fueron encontrados
@@ -440,6 +453,6 @@ class HrAttendanceImportWizard(models.TransientModel):
                 'message': _('Todos los empleados fueron encontrados.'),
                 'type': 'success',
                 'sticky': False,
-                'timeout': 10000,
+                'next': {'type': 'ir.actions.act_window_close'},
             }
         }
