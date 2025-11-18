@@ -20,10 +20,6 @@
             <!-- Esta es la que vos nombraste -->
             <field name="inherit_id" ref="sale.sale_order_view_search_inherit_sale"/>
             <field name="arch" type="xml">
-                <!-- Opcional: mostrar el campo para buscar por etiqueta -->
-                <xpath expr="//search" position="inside">
-                    <field name="partner_tag"/>
-                </xpath>
                 <!-- Agregar la opción de Agrupar por Etiquetas del Cliente -->
                 <xpath expr="//group[@string='Agrupar por']" position="inside">
                     <filter name="groupby_partner_tag"
