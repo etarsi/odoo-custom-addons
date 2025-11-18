@@ -134,9 +134,10 @@ class HrAttendanceImportWizard(models.TransientModel):
     def _upsert_attendance_presence(self, employee, day_date):
         #dow = day.weekday() con day_date
         dow = day_date.weekday()
+        _logger.info("Insertando/actualizando asistencia PRESENCIA para %s el día %s (dow=%s)", employee.name, day_date, dow)
+        Attendance = self.env['hr.attendance']
         if employee.type_shift == 'day':
             if dow in [0,1,2,3,4]:  # Lunes a Viernes
-                Attendance = self.env['hr.attendance']
                 day_start_utc, day_end_utc = self._day_bounds_utc(day_date)
 
                 attendances = Attendance.search([
@@ -169,7 +170,6 @@ class HrAttendanceImportWizard(models.TransientModel):
                 checkin_dt = self._make_dt_utc(day_date, 7, 0)
                 checkout_dt = self._make_dt_utc(day_date, 17, 0)
             elif dow == 5:  # Sábado
-                Attendance = self.env['hr.attendance']
                 day_start_utc, day_end_utc = self._day_bounds_utc(day_date)
 
                 attendances = Attendance.search([
@@ -197,9 +197,7 @@ class HrAttendanceImportWizard(models.TransientModel):
                 checkout_dt = self._make_dt_utc(day_date, 12, 0)
         else:
             # Turno noche u otro: ajustar horarios según convenga
-            Attendance = self.env['hr.attendance']
             day_start_utc, day_end_utc = self._day_bounds_utc(day_date)
-
             attendances = Attendance.search([
                 ('employee_id', '=', employee.id),
                 ('check_in', '>=', day_start_utc),
@@ -223,7 +221,6 @@ class HrAttendanceImportWizard(models.TransientModel):
 
             checkin_dt = self._make_dt_utc(day_date, 20, 0)
             checkout_dt = self._make_dt_utc(day_date, 6, 0) + timedelta(days=1)
-
         Attendance.create({
             'employee_id': employee.id,
             'check_in': checkin_dt,
@@ -333,8 +330,8 @@ class HrAttendanceImportWizard(models.TransientModel):
 
         Crea una asistencia con check_in y check_out iguales al inicio del día.
         """
+        Attendance = self.env['hr.attendance']
         if employee.type_shift == 'day':
-            Attendance = self.env['hr.attendance']
             day_start_utc, day_end_utc = self._day_bounds_utc(day_date)
 
             attendances = Attendance.search([
@@ -348,7 +345,6 @@ class HrAttendanceImportWizard(models.TransientModel):
 
             checkin_dt = self._make_dt_utc(day_date, 0, 0)
         else:
-            Attendance = self.env['hr.attendance']
             day_start_utc, day_end_utc = self._day_bounds_utc(day_date)
 
             attendances = Attendance.search([
