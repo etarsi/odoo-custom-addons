@@ -14,7 +14,7 @@ class RowNumberField extends Component {
     }
 }
 
-RowNumberField.template = "your_module.RowNumberField";
+RowNumberField.template = "account_enhancement.RowNumberField";
 RowNumberField.props = standardFieldProps;
 RowNumberField.supportedTypes = ["integer", "many2one", "char", "float"]; 
 
