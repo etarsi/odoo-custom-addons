@@ -8,6 +8,7 @@
             <field name="arch" type="xml">
                 <xpath expr="//tree/field[@name='state']" position="after">
                     <field name="items_ids" widget="many2many_tags" optional="hide"/>
+                    <field name="partner_tag" widget="many2many_tags" optional="hide"/>
                 </xpath>
             </field>
         </record>

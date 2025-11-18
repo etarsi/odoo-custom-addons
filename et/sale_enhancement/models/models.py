@@ -381,6 +381,7 @@ class SaleOrderLineInherit(models.Model):
     is_compromised = fields.Boolean(default=False)
     stock_erp = fields.Many2one('stock.erp')
     stock_moves_erp = fields.Many2one('stock.moves.erp')
+    partner_tag = fields.Many2many('res.partner.category', related='order_id.partner_id.category_id', string='Etiquetas de Cliente', readonly=True)
     
     def create(self, vals):
         res = super().create(vals)
