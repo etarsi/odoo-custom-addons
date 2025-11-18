@@ -49,10 +49,9 @@ class SaleOrderInherit(models.Model):
     #], string='Tipo de Venta', default='sale')
     company_default = fields.Integer("Compañía por defecto", copy=False)
     partner_tag_ids = fields.Many2many(
-        'res.partner.category',          # 👈 COMODEL OBLIGATORIO
+        'res.partner.category',
         string='Etiquetas del Cliente',
-        related='partner_id.category_id',
-        store=True,                      # 👈 para poder hacer group_by
+        store=True,
         readonly=True,
     )
 
