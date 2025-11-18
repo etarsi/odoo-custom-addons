@@ -23,6 +23,7 @@
     'assets': {
         'web.assets_backend': [
             'account_enhancement/static/src/js/account_move.js',
+            'account_enhancement/static/src/js/list_row_number.js',
         ],
     },
     # any module necessary for this one to work correctly
