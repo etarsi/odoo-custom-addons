@@ -51,9 +51,17 @@ class SaleOrderInherit(models.Model):
     partner_tag_ids = fields.Many2many(
         'res.partner.category',
         string='Etiquetas del Cliente',
+        compute='_compute_partner_tags',
         store=True,
         readonly=True,
     )
+
+    def _compute_partner_tags(self):
+        for order in self:
+            if order.partner_id:
+                order.partner_tag_ids = order.partner_id.category_id
+            else:
+                order.partner_tag_ids = False
 
     def unlink(self):
         for order in self:
