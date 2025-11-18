@@ -558,7 +558,8 @@ class HrPayrollSalaryLine(models.Model):
             rec.holiday_hours = 0.0
             season_costo = self.env['hr.season.labor.cost'].search([('state', '=', 'active'),
                                                                     ('date_start', '<=', rec.payroll_id.date_start),
-                                                                    ('date_end', '>=', rec.payroll_id.date_end)], limit=1)
+                                                                    ('date_end', '>=', rec.payroll_id.date_end),
+                                                                    ('type_income', '!=', 'F')], limit=1)
             if not season_costo:
                 raise ValidationError('No hay una temporada activa para calcular el costo laboral. Por favor, cree y active una temporada en Costo Laboral por Temporada.')
             rec.labor_cost_id = season_costo.id
