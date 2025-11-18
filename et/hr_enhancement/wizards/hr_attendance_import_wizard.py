@@ -169,7 +169,7 @@ class HrAttendanceImportWizard(models.TransientModel):
                 # 3) No hay nada para ese día -> creamos de 07:00 a 17:00
                 checkin_dt = self._make_dt_utc(day_date, 7, 0)
                 checkout_dt = self._make_dt_utc(day_date, 17, 0)
-            elif dow == 5:  # Sábado
+            elif dow in [5, 6]:  # Sábado y Domingo
                 day_start_utc, day_end_utc = self._day_bounds_utc(day_date)
 
                 attendances = Attendance.search([
@@ -262,7 +262,7 @@ class HrAttendanceImportWizard(models.TransientModel):
 
                 checkin_dt = self._make_dt_utc(day_date, 7, 0)
                 checkout_dt = self._make_dt_utc(day_date, 17, 0)
-            elif dow == 5:  # Sábado
+            elif dow in [5, 6]:  # Sábado y Domingo
                 Attendance = self.env['hr.attendance']
                 day_start_utc, day_end_utc = self._day_bounds_utc(day_date)
 
