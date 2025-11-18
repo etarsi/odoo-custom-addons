@@ -48,6 +48,7 @@ class SaleOrderInherit(models.Model):
     #    ('marketing', 'Venta de Marketing')
     #], string='Tipo de Venta', default='sale')
     company_default = fields.Integer("Compañía por defecto", copy=False)
+    partner_tag = fields.Many2many('res.partner.category', related='partner_id.category_id', string='Etiquetas de Cliente', readonly=True)
 
     def unlink(self):
         for order in self:
@@ -381,7 +382,6 @@ class SaleOrderLineInherit(models.Model):
     is_compromised = fields.Boolean(default=False)
     stock_erp = fields.Many2one('stock.erp')
     stock_moves_erp = fields.Many2one('stock.moves.erp')
-    partner_tag = fields.Many2many('res.partner.category', related='order_id.partner_id.category_id', string='Etiquetas de Cliente', readonly=True)
     
     def create(self, vals):
         res = super().create(vals)
