@@ -8,7 +8,7 @@
             <field name="arch" type="xml">
                 <xpath expr="//tree/field[@name='state']" position="after">
                     <field name="items_ids" widget="many2many_tags" optional="hide"/>
-                    <field name="partner_tag" widget="many2many_tags" optional="hide"/>
+                    <field name="partner_tag_ids" widget="many2many_tags" optional="hide"/>
                 </xpath>
             </field>
         </record>
@@ -25,7 +25,7 @@
                     <separator/>
                     <filter name="groupby_partner_tag"
                         string="Etiquetas del Cliente"
-                        context="{'group_by': 'partner_tag'}"/>
+                        context="{'group_by': 'partner_tag_ids'}"/>
                     <separator/>
                 </xpath>
             </field>
