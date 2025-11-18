@@ -56,6 +56,7 @@ class SaleOrderInherit(models.Model):
         readonly=True,
     )
 
+    @api.depends('partner_id', 'partner_id.category_id')
     def _compute_partner_tags(self):
         for order in self:
             if order.partner_id:
