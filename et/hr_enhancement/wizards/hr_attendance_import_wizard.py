@@ -2,9 +2,10 @@
 from odoo import api, fields, models, _
 from odoo.exceptions import UserError
 from openpyxl import Workbook, load_workbook
-import base64, re, pytz
+import base64, re, pytz, logging
 from io import BytesIO
 from datetime import datetime, date, time, timedelta
+_logger = logging.getLogger(__name__)
 
 MONTHS_ES = {
     'ENERO': 1,
@@ -114,6 +115,7 @@ class HrAttendanceImportWizard(models.TransientModel):
             return None
 
         #si digits tiene letras o tiene , . o - o espacios, no es valido
+        _logger.info("Buscando empleado con CUIL: %s (limpio: %s)", cuil_raw, digits)
         if re.search(r'[^\d]', digits):
             return None
         # Se asume que dni en empleados está almacenado como solo dígitos
