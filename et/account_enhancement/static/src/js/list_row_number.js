@@ -1,28 +1,21 @@
 /** @odoo-module **/
 
-import { registry } from '@web/core/registry';
-import { listView } from '@web/views/list/list_view';
-import { ListRenderer } from '@web/views/list/list_renderer';
+import { registry } from "@web/core/registry";
+import { standardFieldProps } from "@web/views/fields/standard_field_props";
+import { Component } from "@odoo/owl";
 
-class RowNumberListRenderer extends ListRenderer {
-    /**
-     * En Odoo 15 el ListRenderer usa getCellValue para obtener el valor a mostrar.
-     * Interceptamos cuando el widget es "row_number".
-     */
-    getCellValue(record, column) {
-        if (column.widget === 'row_number') {
-            // posición del record dentro de la lista actual
-            const idx = this.props.list.records.indexOf(record);
-            // sumamos 1 para que arranque en 1 (no en 0)
-            return idx >= 0 ? idx + 1 : '';
-        }
-        return super.getCellValue(record, column);
+class RowNumberField extends Component {
+    get value() {
+        // this.props.record es el registro actual de la fila
+        const record = this.props.record;
+        const list = record.list;  // la lista a la que pertenece
+        const index = list.records.indexOf(record);
+        return index >= 0 ? index + 1 : "";
     }
 }
 
-export const rowNumberListView = {
-    ...listView,
-    Renderer: RowNumberListRenderer,
-};
+RowNumberField.template = "your_module.RowNumberField";
+RowNumberField.props = standardFieldProps;
+RowNumberField.supportedTypes = ["integer", "many2one", "char", "float"]; 
 
-registry.category('views').add('row_number_list', rowNumberListView);
+registry.category("fields").add("row_number", RowNumberField);
