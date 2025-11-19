@@ -58,7 +58,7 @@ class TmsStockPicking(models.Model):
     currency_id = fields.Many2one('res.currency', string='Moneda', default=lambda self: self.env.company.currency_id)
     account_move_count = fields.Integer(compute="_compute_account_move_count", string="Facturas")
     invoice_state = fields.Selection(selection=[
-        ('to_invoiced', 'Para facturado'),
+        ('to_invoiced', 'Para facturar'),
         ('invoiced', 'Totalmente Facturado')
     ], string='Estado de Facturación', default='to_invoiced')
     
