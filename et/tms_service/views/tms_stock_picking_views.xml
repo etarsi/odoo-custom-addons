@@ -25,16 +25,27 @@
                                 attrs="{'invisible': [('sale_count', '=', 0)]}">
                             <field name="sale_count" widget="statinfo" string="Venta"/>
                         </button>
+                        
+                        <!-- Facturas Relacionadas -->
+                        <button type="object"
+                                name="action_open_account_moves"
+                                class="oe_stat_button"
+                                icon="fa-file-invoice-dollar"
+                                attrs="{'invisible': [('account_move_ids', '=', False)]}">
+                            <field name="account_move_ids" widget="statinfo" string="Facturas"/>
                     </div>
-
                     <!-- tu layout existente -->
                     <group>
                         <group>
+                            <field name="currency_id" invisible="1"/>
                             <field name="fecha_envio_wms"/>
                             <field name="codigo_wms"/>
+                            <field name="account_move_ids" widget="many2many_tags"/>
+                            <field name="amount_totals"/>
                             <field name="doc_origen"/>
                             <field name="picking_ids" widget="many2many_tags"/>
                             <field name="partner_id"/>
+                            <field name=""
                             <field name="carrier_id"/>
                         </group>
                         <group>

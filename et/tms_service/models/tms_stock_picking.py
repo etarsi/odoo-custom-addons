@@ -52,6 +52,10 @@ class TmsStockPicking(models.Model):
     #contador
     picking_count = fields.Integer(compute="_compute_counts", string="Transferencias")
     sale_count = fields.Integer(compute="_compute_counts", string="Venta")
+    account_move_ids = fields.Many2many('account.move', string='Facturas')
+    amount_totals = fields.Monetary(string='Total Facturas', store=True)
+    items_ids = fields.Many2many('product.category', string='Rubros')
+    currency_id = fields.Many2one('res.currency', string='Moneda', default=lambda self: self.env.company.currency_id)
     
     
     def _compute_counts(self):
@@ -77,6 +81,14 @@ class TmsStockPicking(models.Model):
             'res_id': self.sale_id.id,
             'domain': [('id', '=', self.sale_id.id)],
         })
+        return action
+    
+    def action_open_account_moves(self):
+        self.ensure_one()
+        if not self.account_move_ids:
+            return False
+        action = self.env.ref('account.action_move_out_invoice_type').read()[0]
+        action['domain'] = [('id', 'in', self.account_move_ids.ids)]
         return action
     
     def action_forzar_actualizacion_tms(self):
