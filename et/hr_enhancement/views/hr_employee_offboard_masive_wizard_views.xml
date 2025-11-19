@@ -30,9 +30,9 @@
         </field>
     </record>
 
-    <record id="action_hr_employee_offboard_wizard" model="ir.actions.act_window">
+    <record id="action_hr_employee_offboard_masive_wizard" model="ir.actions.act_window">
         <field name="name">Baja de Empleados Masivas</field>
-        <field name="res_model">hr.employee.offboard.wizard</field>
+        <field name="res_model">hr.employee.offboard.masive.wizard</field>
         <field name="view_mode">form</field>
         <field name="target">new</field>
     </record>

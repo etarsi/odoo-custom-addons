@@ -52,7 +52,7 @@
     <menuitem id="menu_hr_employee_offboard_masive_wizard"
               name="Registrar bajas Masivas"
               parent="hr_enhancement.menu_hr_attendance"
-              action="action_hr_employee_offboard_wizard"
+              action="action_hr_employee_offboard_masive_wizard"
               groups="hr_enhancement.group_hr_administrador"
               sequence="5"/>
 
