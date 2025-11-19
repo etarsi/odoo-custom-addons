@@ -1,10 +1,10 @@
 <!-- views/hr_employee_offboard_wizard_views.xml -->
 <odoo>
-    <record id="view_hr_employee_offboard_wizard_form" model="ir.ui.view">
-        <field name="name">hr.employee.offboard.wizard.form</field>
-        <field name="model">hr.employee.offboard.wizard</field>
+    <record id="view_hr_employee_offboard_masive_wizard_form" model="ir.ui.view">
+        <field name="name">hr.employee.offboard.masive.wizard.form</field>
+        <field name="model">hr.employee.offboard.masive.wizard</field>
         <field name="arch" type="xml">
-            <form string="Registrar bajas de empleados">
+            <form string="Registrar bajas de empleados masivas">
                 <sheet>
                     <group>
                         <field name="line_ids">
