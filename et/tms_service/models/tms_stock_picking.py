@@ -56,8 +56,12 @@ class TmsStockPicking(models.Model):
     amount_totals = fields.Monetary(string='Total Facturas', store=True)
     items_ids = fields.Many2many('product.category', string='Rubros')
     currency_id = fields.Many2one('res.currency', string='Moneda', default=lambda self: self.env.company.currency_id)
+    account_move_count = fields.Integer(compute="_compute_account_move_count", string="Facturas")
     
-    
+    def _compute_account_move_count(self):
+        for rec in self:
+            rec.account_move_count = len(rec.account_move_ids)
+
     def _compute_counts(self):
         for rec in self:
             rec.picking_count = len(rec.picking_ids)

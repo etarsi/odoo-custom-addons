@@ -31,8 +31,8 @@
                                 name="action_open_account_moves"
                                 class="oe_stat_button"
                                 icon="fa-file-invoice-dollar"
-                                attrs="{'invisible': [('account_move_ids', '=', False)]}">
-                            <field name="account_move_ids" widget="statinfo" string="Facturas"/>
+                                attrs="{'invisible': [('account_move_count', '=', 0)]}">
+                            <field name="account_move_count" widget="statinfo" string="Facturas"/>
                         </button>
                     </div>
                     <!-- tu layout existente -->
@@ -84,6 +84,9 @@
                 <field name="codigo_wms" optional="show"/>
                 <field name="doc_origen" optional="show"/>
                 <field name="picking_ids" widget="many2many_tags" optional="show"/>
+                <field name="account_move_ids" widget="many2many_tags" optional="show"/>
+                <field name="amount_totals" optional="show"/>
+                <field name="items_ids" widget="many2many_tags" optional="show"/>
                 <field name="partner_id" optional="show"/>
                 <field name="cantidad_bultos" optional="show"/>
                 <field name="cantidad_lineas" optional="show"/>
