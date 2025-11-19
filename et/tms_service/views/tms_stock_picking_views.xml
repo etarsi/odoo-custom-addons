@@ -45,7 +45,7 @@
                             <field name="doc_origen"/>
                             <field name="picking_ids" widget="many2many_tags"/>
                             <field name="partner_id"/>
-                            <field name=""
+                            <field name="items_ids" widget="many2many_tags"/>
                             <field name="carrier_id"/>
                         </group>
                         <group>
