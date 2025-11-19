@@ -33,6 +33,7 @@
                                 icon="fa-file-invoice-dollar"
                                 attrs="{'invisible': [('account_move_ids', '=', False)]}">
                             <field name="account_move_ids" widget="statinfo" string="Facturas"/>
+                        </button>
                     </div>
                     <!-- tu layout existente -->
                     <group>
