@@ -30,7 +30,7 @@
                         <button type="object"
                                 name="action_open_account_moves"
                                 class="oe_stat_button"
-                                icon="fa-file-invoice-dollar"
+                                icon="fa-file-excel-o"
                                 attrs="{'invisible': [('account_move_count', '=', 0)]}">
                             <field name="account_move_count" widget="statinfo" string="Facturas"/>
                         </button>

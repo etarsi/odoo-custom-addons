@@ -130,12 +130,28 @@ class TmsStockPicking(models.Model):
             elif stock_picking.state == 'cancel':
                 estado_despacho = 'void'
 
+            invoices = self.env['account.move'].browse(stock_picking.invoice_ids.ids)
+            rubros_ids = []
+            amount_total = 0
+            for invoice in invoices:
+                items = invoice.invoice_line_ids.mapped('product_id.categ_id.parent_id')
+                # Filtrar categorías nulas y obtener solo los ids únicos
+                items = items.filtered(lambda c: c and c.id).ids
+                #setear los rubros en el tms_stock_picking
+                rubros_ids = list(set(rubros_ids + items))
+                amount_total += invoice.amount_total 
+            #quitar los rubros duplicados
+            rube_ids_final = list(set(rubros_ids))
+
             rec.write({
                 'estado_digip': stock_picking.state_wms,
                 'estado_despacho': estado_despacho,
                 'fecha_entrega': stock_picking.date_done,
                 'delivery_state': stock_picking.delivery_state,
                 'fecha_despacho': stock_picking.date_done,
+                'account_move_ids': [(6, 0, stock_picking.invoice_ids.ids)],
+                'amount_totals': amount_total,
+                'items_ids': rube_ids_final
             })
             updated += 1
 
