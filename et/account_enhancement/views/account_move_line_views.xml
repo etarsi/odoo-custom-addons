@@ -17,4 +17,18 @@
             </search>
         </field>
     </record>
+
+    <!-- Ordenar líneas del grupo de pagos por importe (menor a mayor) -->
+    <record id="view_account_payment_from_group_tree_order_amount" model="ir.ui.view">
+        <field name="name">account.payment.from.group.tree.order.amount</field>
+        <field name="model">account.payment</field>
+        <field name="inherit_id" ref="account_payment_group.view_account_payment_from_group_tree"/>
+        <field name="arch" type="xml">
+            <xpath expr="//tree" position="attributes">
+                <!-- Ojo: usa el nombre TÉCNICO del campo Importe -->
+                <attribute name="default_order">amount asc</attribute>
+                <!-- si el campo se llama distinto, cambialo: p.ej. payment_amount asc -->
+            </xpath>
+        </field>
+    </record>
 </odoo>
