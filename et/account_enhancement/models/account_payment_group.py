@@ -192,7 +192,6 @@ class AccountPaymentGroupInherit(models.Model):
     def action_resecuence(self):
         for record in self:
             if record.payment_ids:
-                payment_index = 0
-                for payment in record.payment_ids:                    
-                    payment_index += 1
-                    payment.index = payment_index
+                payments = record.payment_ids.sorted(lambda p: (p.l10n_ar_amount_company_currency_signed or 0.0, p.id))
+                for indx, payment in enumerate(payments, start=1):
+                    payment.index = indx
