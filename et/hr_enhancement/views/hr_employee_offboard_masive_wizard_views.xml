@@ -15,7 +15,7 @@
                         <page string="Bajas a registrar">
                             <field name="line_ids" colspan="4">
                                 <tree editable="bottom">
-                                    <field name="employee_id"/>
+                                    <field name="employee_id" domain="[('state', '!=', 'inactive')]"/>
                                     <field name="date"/>
                                     <field name="reason"/>
                                     <field name="description"/>

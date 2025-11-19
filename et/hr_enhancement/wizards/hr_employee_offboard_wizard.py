@@ -1,5 +1,5 @@
 # wizard/hr_employee_offboard_wizard.py
-from odoo import api, fields, models
+from odoo import api, fields, models, _
 from odoo.exceptions import ValidationError
 
 class HrEmployeeOffboardWizard(models.TransientModel):
@@ -45,4 +45,15 @@ class HrEmployeeOffboardWizard(models.TransientModel):
             body=f"Baja registrada por {self.env.user.name} el {self.date}. "
                  f"Motivo: {dict(self._fields['reason'].selection).get(self.reason)}."
         )
-        return {'type': 'ir.actions.act_window_close'}
+        # Si TODOS los empleados fueron encontrados
+        return {
+            'type': 'ir.actions.client',
+            'tag': 'display_notification',
+            'params': {
+                'title': _('Baja completada'),
+                'message': _('El empleado fue dado de baja correctamente.'),
+                'type': 'success',
+                'sticky': False,
+                'next': {'type': 'ir.actions.act_window_close'},
+            }
+        }
