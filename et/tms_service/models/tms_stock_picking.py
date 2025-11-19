@@ -57,6 +57,10 @@ class TmsStockPicking(models.Model):
     items_ids = fields.Many2many('product.category', string='Rubros')
     currency_id = fields.Many2one('res.currency', string='Moneda', default=lambda self: self.env.company.currency_id)
     account_move_count = fields.Integer(compute="_compute_account_move_count", string="Facturas")
+    invoice_state = fields.Selection(selection=[
+        ('to_invoiced', 'Para facturado'),
+        ('invoiced', 'Totalmente Facturado')
+    ], string='Estado de Facturación', default='to_invoiced')
     
     def _compute_account_move_count(self):
         for rec in self:
@@ -132,16 +136,18 @@ class TmsStockPicking(models.Model):
 
             invoices = self.env['account.move'].browse(stock_picking.invoice_ids.ids)
             rubros_ids = []
+            rube_ids_final = []
             amount_total = 0
-            for invoice in invoices:
-                items = invoice.invoice_line_ids.mapped('product_id.categ_id.parent_id')
-                # Filtrar categorías nulas y obtener solo los ids únicos
-                items = items.filtered(lambda c: c and c.id).ids
-                #setear los rubros en el tms_stock_picking
-                rubros_ids = list(set(rubros_ids + items))
-                amount_total += invoice.amount_total 
-            #quitar los rubros duplicados
-            rube_ids_final = list(set(rubros_ids))
+            if invoices:
+                for invoice in invoices:
+                    items = invoice.invoice_line_ids.mapped('product_id.categ_id.parent_id')
+                    # Filtrar categorías nulas y obtener solo los ids únicos
+                    items = items.filtered(lambda c: c and c.id).ids
+                    #setear los rubros en el tms_stock_picking
+                    rubros_ids = list(set(rubros_ids + items))
+                    amount_total += invoice.amount_total 
+                #quitar los rubros duplicados
+                rube_ids_final = list(set(rubros_ids))
 
             rec.write({
                 'estado_digip': stock_picking.state_wms,
@@ -151,7 +157,8 @@ class TmsStockPicking(models.Model):
                 'fecha_despacho': stock_picking.date_done,
                 'account_move_ids': [(6, 0, stock_picking.invoice_ids.ids)],
                 'amount_totals': amount_total,
-                'items_ids': rube_ids_final
+                'items_ids': rube_ids_final,
+                'invoice_state': 'invoiced' if stock_picking.invoice_state == 'invoiced' else 'to_invoiced'
             })
             updated += 1
 

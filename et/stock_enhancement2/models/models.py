@@ -648,7 +648,10 @@ class StockPickingInherit(models.Model):
                 amount_total += invoice.amount_total 
             #quitar los rubros duplicados
             rube_ids_final = list(set(rubros_ids))
-            tms_stock.write({'account_move_ids': self.invoice_ids.ids, 'amount_totals': amount_total, 'items_ids': rube_ids_final})
+            tms_stock.write({'account_move_ids': self.invoice_ids.ids,
+                                'amount_totals': amount_total,
+                                'items_ids': rube_ids_final,
+                                'invoice_state': 'invoiced' if self.invoice_state == 'invoiced' else 'to_invoiced'})
 
         return {
             'name': "Factura generada",
