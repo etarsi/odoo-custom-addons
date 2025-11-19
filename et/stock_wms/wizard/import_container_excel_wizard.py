@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from odoo import api, fields, models, _
-from odoo.exceptions import UserError
+from odoo.exceptions import UserError, ValidationError
 import base64, re
 from io import BytesIO
 from openpyxl import load_workbook
@@ -25,7 +25,7 @@ class ImportContainerExcelWizard(models.TransientModel):
                 if not val:
                     continue
                 text = str(val).upper()
-                m = re.search(r'LIC\.\s*(\d+)', text)
+                m = re.search(r'LIC\.\s*(\d+(?:-\d+)?)', text)
                 if m:
                     return m.group(1)
         return False

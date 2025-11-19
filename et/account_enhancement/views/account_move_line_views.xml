@@ -1,0 +1,20 @@
+<?xml version='1.0' encoding='utf-8'?>
+<odoo>
+    <!-- SEARCH NUEVO PARA EVENTUALES -->
+    <record id="account_move_line_filter_enhancement" model="ir.ui.view">
+        <field name="name">account.move.line.filter.enhancement</field>
+        <field name="model">account.move.line</field>
+        <field name="arch" type="xml">
+            <search string="Lineas de Facturacion">
+                <field name="move_id"/>
+                <field name="name"/>
+                <field name="account_id"/>
+                <field name="product_id"/>
+                <separator/>
+                <group expand="0" string="Agrupar Por">
+                    <filter string="Asiento Contable" name="account_move_id" context="{'group_by': 'move_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+</odoo>
