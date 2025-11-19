@@ -1,21 +1,37 @@
-<!-- views/hr_employee_offboard_wizard_views.xml -->
 <odoo>
+    <!-- FORM DEL WIZARD (CON NOTEBOOK) -->
     <record id="view_hr_employee_offboard_masive_wizard_form" model="ir.ui.view">
         <field name="name">hr.employee.offboard.masive.wizard.form</field>
         <field name="model">hr.employee.offboard.masive.wizard</field>
         <field name="arch" type="xml">
-            <form string="Registrar bajas de empleados masivas">
+            <form string="Baja de Empleados Masivas">
                 <sheet>
+                    <!-- Cabecera simple, por si luego querés agregar más campos -->
                     <group>
-                        <field name="line_ids">
-                            <tree editable="bottom">
-                                <field name="employee_id"/>
-                                <field name="date"/>
-                                <field name="reason"/>
-                                <field name="description"/>
-                            </tree>
-                        </field>
+                        <label string="Complete las bajas en la pestaña de abajo."/>
                     </group>
+
+                    <notebook>
+                        <page string="Bajas a registrar">
+                            <field name="line_ids" colspan="4">
+                                <tree editable="bottom">
+                                    <field name="employee_id"/>
+                                    <field name="date"/>
+                                    <field name="reason"/>
+                                    <field name="description"/>
+                                </tree>
+                                <!-- Form de línea, como sale.order.line -->
+                                <form string="Baja de empleado">
+                                    <group>
+                                        <field name="employee_id"/>
+                                        <field name="date"/>
+                                        <field name="reason"/>
+                                        <field name="description"/>
+                                    </group>
+                                </form>
+                            </field>
+                        </page>
+                    </notebook>
                 </sheet>
                 <footer>
                     <button name="action_confirm"
@@ -30,6 +46,7 @@
         </field>
     </record>
 
+    <!-- ACCIÓN DEL WIZARD -->
     <record id="action_hr_employee_offboard_masive_wizard" model="ir.actions.act_window">
         <field name="name">Baja de Empleados Masivas</field>
         <field name="res_model">hr.employee.offboard.masive.wizard</field>
