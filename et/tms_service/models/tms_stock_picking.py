@@ -77,7 +77,6 @@ class TmsStockPicking(models.Model):
                 continue
 
             states = set(moves.mapped('state'))
-            _logger.info(f"Estados de facturas para TMS Stock Picking {rec.id}: {states}")
             if states == {'draft'}:
                 rec.write({'invoice_status': 'draft'})
             elif states == {'posted'}:
