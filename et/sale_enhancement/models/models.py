@@ -195,7 +195,7 @@ class SaleOrderInherit(models.Model):
                 raise UserError(_("No se encontró la compañía con nombre %s.") % vals.get('company_default'))
             wh = self.env['stock.warehouse'].search([('company_id', '=', company_default.id)], limit=1)
             if not wh:
-                raise UserError(_("No tiene asignáda la compañía %s, verifique su listado de Compañias.") % company_default.display_name )
+                raise UserError(_("No tiene asignada la compañía %s, verifique su listado de Compañias.") % company_default.display_name )
 
             vals = dict(vals)
             vals['company_id'] = company_default.id    
@@ -209,7 +209,7 @@ class SaleOrderInherit(models.Model):
             if force_company and current_company_id != company_produccion_b.id:
                 wh = self.env['stock.warehouse'].search([('company_id', '=', company_produccion_b.id)], limit=1)
                 if not wh:
-                    raise UserError(_("No tiene asignáda la compañía %s, verifique su listado de Compañias.") % company_produccion_b.display_name)
+                    raise UserError(_("No tiene asignada la compañía %s, verifique su listado de Compañias.") % company_produccion_b.display_name)
 
                 vals = dict(vals)  # copiar para no mutar
                 vals['company_id'] = company_produccion_b.id
@@ -302,7 +302,7 @@ class SaleOrderInherit(models.Model):
                         if vals.get('company_id') != target_company_id:
                             wh = self.env['stock.warehouse'].search([('company_id', '=', target_company_id)], limit=1)
                             if not wh:
-                                raise UserError(_("No tiene asignáda la compañía %s, verifique su listado de Compañias.") % company_name_id.display_name)
+                                raise UserError(_("No tiene asignada la compañía %s, verifique su listado de Compañias.") % company_name_id.display_name)
                             vals = dict(vals)
                             vals['company_id'] = target_company_id
                             vals['warehouse_id'] = wh.id
