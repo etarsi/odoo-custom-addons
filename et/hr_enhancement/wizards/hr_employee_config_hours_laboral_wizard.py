@@ -8,7 +8,7 @@ class HrEmployeeConfigHoursLaboralWizard(models.TransientModel):
 
     employee_id = fields.Many2one('hr.employee', string="Empleado", required=True)
     dni = fields.Char(string="DNI", required=True)
-    hr_works_schedule_id = fields.Many2one(
+    work_schedule_id = fields.Many2one(
         string='Horario de Trabajo',
         comodel_name='hr.works.schedule',
         ondelete='restrict',
@@ -32,7 +32,7 @@ class HrEmployeeConfigHoursLaboralWizard(models.TransientModel):
             res.update({
                 'employee_id': emp.id,
                 'dni': emp.dni,
-                'hr_works_schedule_id': emp.hr_works_schedule_id.id,
+                'work_schedule_id': emp.work_schedule_id.id,
                 'type_shift': emp.type_shift,
                 'id_lector': emp.id_lector,
                 'employee_type': emp.employee_type,
@@ -46,7 +46,7 @@ class HrEmployeeConfigHoursLaboralWizard(models.TransientModel):
             raise ValidationError("No se encontró el empleado seleccionado.")
         emp.write({
             'dni': self.dni,
-            'hr_works_schedule_id': self.hr_works_schedule_id.id,
+            'work_schedule_id': self.work_schedule_id.id,
             'type_shift': self.type_shift,
             'id_lector': self.id_lector,
             'employee_type': self.employee_type,

@@ -14,7 +14,7 @@
                         <group name="information" string="Informacion Laboral">
                             <field name="type_shift"/>
                             <field name="id_lector"/>
-                            <field name="hr_works_schedule_id"/>
+                            <field name="work_schedule_id"/>
                         </group>
                     </group>
                 </sheet>
