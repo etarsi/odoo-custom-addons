@@ -8,7 +8,16 @@
             <field name="inherit_id" ref="sale.view_order_form"/>
             <field name="arch" type="xml">
                 <xpath expr="//page[@name='other_information']//field[@name='company_id']" position="after">
-                    <field name="company_default" options="{'no_create': True, 'no_create_edit': True}"/>
+                    <field name="company_default" string="Compañía" options="{'no_create': True, 'no_create_edit': True}" attrs="{'readonly': state in ['sale', 'done', 'cancel']}"/>
+                </xpath>
+                <!-- hacer invisible la company_id -->
+                <xpath expr="//page[@name='other_information']//field[@name='company_id']" position="attributes">
+                    <attribute name="invisible">1</attribute>
+                </xpath>
+                <!-- agregar company_id debajo de sale_order_template_id -->
+                <xpath expr="//field[@name='sale_order_template_id']" position="after">
+                    <field name="company_id" string="Compañía por defecto" options="{'no_create': True, 'no_create_edit': True}" attrs="{'readonly': state in ['sale', 'done', 'cancel']}"/>
+                    <field name="is_marketing" string="Venta Marketing" attrs="{'readonly': state in ['sale', 'done', 'cancel']}" />
                 </xpath>
             </field>
         </record>

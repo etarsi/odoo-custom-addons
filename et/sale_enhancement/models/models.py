@@ -121,7 +121,24 @@ class SaleOrderInherit(models.Model):
     @api.onchange('condicion_m2m')
     def _onchange_condicion_m2m(self):
         for record in self:
-            if record.condicion_m2m.name == 'TIPO 3':
+            if record.is_marketing:
+                pricelist = self.env['product.pricelist'].search([('is_marketing','=', True)])
+                if pricelist:
+                    record.pricelist_id = pricelist.id
+                    discounts = {}
+
+                    for line in record.order_line:
+                        line.tax_id = False
+                        discounts[line.id] = line.discount
+                        
+                    record.update_prices()
+                    
+                    for line in record.order_line:
+                        if line.id in discounts:
+                            line.discount = discounts[line.id]
+                else: 
+                    raise UserError("No se encontró precio de lista para Marketing")
+            elif record.condicion_m2m.name == 'TIPO 3':
                 pricelist = self.env['product.pricelist'].search([('list_default_b','=', True)])
                 if pricelist:
                     record.pricelist_id = pricelist.id
@@ -137,11 +154,13 @@ class SaleOrderInherit(models.Model):
                         if line.id in discounts:
                             line.discount = discounts[line.id]
                 else: 
-                    raise UserError("No se encontró precio de lista con ID 46")
+                    raise UserError("No se encontró precio de lista para Producción B")
             else:
                 pricelist = self.env['product.pricelist'].search([('is_default','=', True)])
                 if pricelist:
                     record.pricelist_id = pricelist.id
+                else:
+                    raise UserError("No se encontró precio de lista por defecto")
 
     @api.onchange('global_discount')
     def _onchange_discount(self):
@@ -258,6 +277,7 @@ class SaleOrderInherit(models.Model):
         company_produccion_b = self.env['res.company'].browse(1)
         current_company_id = vals.get('company_id')
         company_default = vals.get('company_default', False)
+        is_marketing = vals.get('is_marketing', False)
         if company_default:
             company_default = self.env['res.company'].search([('name', '=', company_default)], limit=1)
             if not company_default:
@@ -269,10 +289,17 @@ class SaleOrderInherit(models.Model):
             vals = dict(vals)
             vals['company_id'] = company_default.id    
             vals['warehouse_id'] = wh.id
-
-            # Crear bajo el contexto/compañía destino para evitar conflictos multi-company
             self.with_context(allowed_company_ids=[company_produccion_b.id]).with_company(company_produccion_b)
             order = super().create(vals)    
+        elif is_marketing:
+            pricelist = self.env['product.pricelist'].search([('is_marketing','=', True)], limit=1)
+            if pricelist:
+                vals = dict(vals)
+                vals['pricelist_id'] = pricelist.id
+                self.with_context(allowed_company_ids=[company_produccion_b.id]).with_company(company_produccion_b)
+                order = super().create(vals)    
+            else: 
+                raise UserError("No se encontró precio de lista para Marketing")
         else:
             #Ajustar compañía si es TIPO 3
             if force_company and current_company_id != company_produccion_b.id:
