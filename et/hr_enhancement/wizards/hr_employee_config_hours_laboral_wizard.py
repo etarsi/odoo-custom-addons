@@ -13,9 +13,31 @@ class HrEmployeeConfigHoursLaboralWizard(models.TransientModel):
         comodel_name='hr.works.schedule',
         ondelete='restrict',
     )
-    type_shift = fields.Selection(relatted='employee_id.type_shift', string="Tipo de Turno")
     id_lector = fields.Char(string="ID Lector")
-    employee_type = fields.Selection(related='employee_id.employee_type', string="Tipo de Empleado")
+    employee_type = fields.Selection(
+        string='Tipo de Empleado',
+        selection=[('eventual', 'Eventual'),
+                   ('employee', 'Empleado')],
+        default='employee')
+    type_shift = fields.Selection([
+        ('day', 'Turno Día'),
+        ('night', 'Turno Noche'),
+    ], string='Tipo de Turno', default='day', tracking=True)
+    
+    @api.model
+    def default_get(self, fields):
+        res = super().default_get(fields)
+        emp = self.env['hr.employee'].browse(self._context.get('active_id'))
+        if emp:
+            res.update({
+                'employee_id': emp.id,
+                'dni': emp.dni,
+                'hr_works_schedule_id': emp.hr_works_schedule_id.id,
+                'type_shift': emp.type_shift,
+                'id_lector': emp.id_lector,
+                'employee_type': emp.employee_type,
+            })
+        return res
     
     def action_confirm(self):
         self.ensure_one()
