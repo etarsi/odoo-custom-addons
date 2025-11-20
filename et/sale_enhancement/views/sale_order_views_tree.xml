@@ -1,6 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
     <data>
+        <!-- heredar el formulario de ventas -->
+        <record id="view_order_form_inherit" model="ir.ui.view">
+            <field name="name">sale.order.form.inherit</field>
+            <field name="model">sale.order</field>
+            <field name="inherit_id" ref="sale.view_order_form"/>
+            <field name="arch" type="xml">
+                <xpath expr="//sheet/group/group/field[@name='partner_id']" position="after">
+                    <field name="company_default" />
+                </xpath>
+            </field>
+        </record>
+
         <record id="view_order_tree_inherit" model="ir.ui.view">
             <field name="name">sale.order.tree.inherit</field>
             <field name="model">sale.order</field>
