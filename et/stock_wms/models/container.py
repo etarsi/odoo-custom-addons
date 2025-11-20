@@ -107,7 +107,7 @@ class Container(models.Model):
             if response.status_code == 200:
 
                 data = response.json()
-                if data['Estado'] in ('Guardado','Verificado') and data['Modo'] == 'Completo':
+                if data['Estado'] in ('Guardado','Verificado') and data['Modo'] in ('Simple', 'Completo'):
                     if data['ControlCiegoDetalle']:
                         for element in data['ControlCiegoDetalle']:
                             cod_art = element['CodigoArticulo']
@@ -138,7 +138,7 @@ class Container(models.Model):
                     record.state = 'received'
                 else:
                     data = response.json()
-                    raise UserError(f'El contenedor no está recibido o controlado todavía. Estado: {data["Estado"]}')
+                    raise UserError(f'El contenedor no está recibido o controlado todavía. Estado: {data["Estado"]}. Modo: {data["Modo"]}')
             else:
                 raise UserError(f'No se encuentra Control Ciego para este contenedor.')
             
