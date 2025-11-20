@@ -55,7 +55,7 @@
                             <field name="observaciones"/>
                             <field name="industry_id"/>
                             <field name="ubicacion"/>
-                            <field name ="invoice_state"/>
+                            <field name="invoice_status"/>
                             <field name="estado_digip"/>
                             <field name="estado_despacho"/>
                             <field name="fecha_despacho"/>
@@ -92,7 +92,7 @@
                 <field name="cantidad_bultos" optional="show"/>
                 <field name="cantidad_lineas" optional="show"/>
                 <field name="observaciones" optional="show"/>
-                <field name="invoice_state" optional="show" widget="badge" decoration-info="invoice_state == 'to_invoiced'" decoration-success="invoice_state == 'invoiced'" />
+                <field name="invoice_status" widget="statusbar" statusbar_visible="no_invoice,draft,posted,mixed,cancel"/>
                 <field name="estado_digip" optional="show" widget="badge" decoration-warning="estado_digip == 'done'" decoration-success="estado_digip == 'closed'" decoration-danger="estado_digip == 'error'" />
                 <field name="estado_despacho" optional="show" widget="badge" decoration-info="estado_despacho in ('in_preparation', 'pending')" decoration-warning="estado_despacho == 'prepared'" decoration-success="estado_despacho == 'delivered'" decoration-danger="estado_despacho == 'void'" />
                 <field name="delivery_state" optional="show" widget="badge" decoration-success="delivery_state == 'delivered'" decoration-warning="delivery_state == 'no'" decoration-danger="delivery_state == 'returned'" />
@@ -165,8 +165,8 @@
                         context="{'group_by': 'industry_id'}" />
                 <filter name="filter_items_ids" string="Rubros"
                         context="{'group_by': 'items_ids'}" />
-                <filter name="filter_by_invoice_state" string="Estado Factura"
-                        context="{'group_by': 'invoice_state'}" />
+                <filter name="filter_by_invoice_status" string="Estado Factura"
+                        context="{'group_by': 'invoice_status'}" />
             </search>
         </field>
     </record>

@@ -57,10 +57,32 @@ class TmsStockPicking(models.Model):
     items_ids = fields.Many2many('product.category', string='Rubros')
     currency_id = fields.Many2one('res.currency', string='Moneda', default=lambda self: self.env.company.currency_id)
     account_move_count = fields.Integer(compute="_compute_account_move_count", string="Facturas")
-    invoice_state = fields.Selection(selection=[
-        ('to_invoiced', 'Para facturar'),
-        ('invoiced', 'Totalmente Facturado')
-    ], string='Estado de Facturación', default='to_invoiced')
+    invoice_status = fields.Selection([
+        ('no_invoice', 'Sin factura'),
+        ('draft', 'Solo borrador'),
+        ('posted', 'Solo confirmadas'),
+        ('cancel', 'Solo canceladas'),
+        ('mixed', 'Mixto'),
+    ], string='Estado Facturas', compute='_compute_invoice_status', store=True)
+    
+    
+    @api.depends('account_move_ids', 'account_move_ids.state')
+    def _compute_invoice_status(self):
+        for rec in self:
+            moves = rec.account_move_ids
+            if not moves:
+                rec.invoice_status = 'no_invoice'
+                continue
+
+            states = set(moves.mapped('state'))
+            if states == {'draft'}:
+                rec.invoice_status = 'draft'
+            elif states == {'posted'}:
+                rec.invoice_status = 'posted'
+            elif states == {'cancel'}:
+                rec.invoice_status = 'cancel'
+            else:
+                rec.invoice_status = 'mixed'
     
     def _compute_account_move_count(self):
         for rec in self:
@@ -158,7 +180,6 @@ class TmsStockPicking(models.Model):
                 'account_move_ids': [(6, 0, stock_picking.invoice_ids.ids)],
                 'amount_totals': amount_total,
                 'items_ids': rube_ids_final,
-                'invoice_state': 'invoiced' if stock_picking.invoice_ids else 'to_invoiced'
             })
             updated += 1
 

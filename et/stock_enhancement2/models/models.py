@@ -650,8 +650,7 @@ class StockPickingInherit(models.Model):
             rube_ids_final = list(set(rubros_ids))
             tms_stock.write({'account_move_ids': self.invoice_ids.ids,
                                 'amount_totals': amount_total,
-                                'items_ids': rube_ids_final,
-                                'invoice_state': 'invoiced' if self.invoice_state == 'invoiced' else 'to_invoiced'})
+                                'items_ids': rube_ids_final})
 
         return {
             'name': "Factura generada",
