@@ -63,7 +63,7 @@ class TmsStockPicking(models.Model):
         ('posted', 'Solo confirmadas'),
         ('cancel', 'Solo canceladas'),
         ('mixed', 'Mixto'),
-    ], string='Estado Facturas', compute='_compute_invoice_status', store=True)
+    ], string='Estado Facturas', compute='_compute_invoice_status')
     
     
     @api.depends('account_move_ids', 'account_move_ids.state')
