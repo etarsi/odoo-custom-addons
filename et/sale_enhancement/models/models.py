@@ -482,18 +482,18 @@ class SaleOrderInherit(models.Model):
 
     def check_price_list(self):
         for record in self:
-            _logger.info(f"Checking pricelist for order {record.name} and partner {record.partner_id.name}")
-            if record.condicion_m2m.name == 'TIPO 3':
+            if record.is_marketing:
+                pricelist = self.env['product.pricelist'].search([('is_marketing','=', True)], limit=1)
+                if pricelist:
+                    record.pricelist_id = pricelist.id
+            elif record.condicion_m2m.name == 'TIPO 3':
                 pricelist = self.env['product.pricelist'].search([('list_default_b','=', True)], limit=1)
                 if pricelist:
-                    _logger.info(f"Setting pricelist {pricelist.name} for order {record.name}")
                     record.pricelist_id = pricelist.id
             else:
                 pricelist = self.env['product.pricelist'].search([('is_default','=', True)], limit=1)
                 if pricelist:
-                    _logger.info(f"Setting default pricelist {pricelist.name} for order {record.name}")
                     record.pricelist_id = pricelist.id
-            _logger.info(f"Pricelist for order {record.name} set to {record.pricelist_id.name}")
 
     def update_lines_prices(self):
         for record in self:
@@ -933,16 +933,27 @@ class ProductPricelist(models.Model):
         index=True,
         help="Si está marcada, será la lista de precios por defecto B."
     )
+    
+    is_marketing = fields.Boolean(
+        string="Lista de Marketing",
+        default=False,
+        copy=False,
+        index=True,
+        help="Si está marcada, será la lista de precios de marketing."
+    )
 
     @api.model_create_multi
     def create(self, vals_list):
         records = super().create(vals_list)
         to_enforce = records.filtered('is_default')
         is_default_b = records.filtered('list_default_b')
+        is_marketing = records.filtered('is_marketing')
         if is_default_b:
             is_default_b._clear_others_default_b()
         if to_enforce:
             to_enforce._clear_others_default()
+        if is_marketing:
+            is_marketing._clear_others_marketing()
         return records
 
     def write(self, vals):
@@ -951,7 +962,19 @@ class ProductPricelist(models.Model):
             self.filtered('is_default')._clear_others_default()
         if vals.get('list_default_b'):
             self.filtered('list_default_b')._clear_others_default_b()
+        if vals.get('is_marketing'):
+            self.filtered('is_marketing')._clear_others_marketing()
         return res
+
+    def _clear_others_marketing(self):
+        if self.env.context.get('pricelist_toggle_guard_marketing'):
+            return
+        others = self.sudo().search([
+            ('is_marketing', '=', True),
+            ('id', 'not in', self.ids),
+        ])
+        if others:
+            others.with_context(pricelist_toggle_guard_marketing=True).write({'is_marketing': False})
 
     def _clear_others_default(self):
         if self.env.context.get('pricelist_toggle_guard'):
