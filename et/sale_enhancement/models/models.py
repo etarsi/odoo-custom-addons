@@ -47,7 +47,7 @@ class SaleOrderInherit(models.Model):
     #    ('sale', 'Venta Normal'),
     #    ('marketing', 'Venta de Marketing')
     #], string='Tipo de Venta', default='sale')
-    company_default = fields.Char("Compañía por defecto", copy=False)
+    company_default = fields.Many2one("res.company", string="Compañía por Defecto", help="Seleccionar la compañía bajo la cual se creará el pedido de venta.")
     partner_tag_ids = fields.Many2many(
         'res.partner.category',
         string='Etiq. del Cliente',
