@@ -75,11 +75,11 @@ class TmsStockPicking(models.Model):
                 continue
 
             states = set(moves.mapped('state'))
-            if states == {'draft'}:
+            if states == 'draft':
                 rec.invoice_status = 'draft'
-            elif states == {'posted'}:
+            elif states == 'posted':
                 rec.invoice_status = 'posted'
-            elif states == {'cancel'}:
+            elif states == 'cancel':
                 rec.invoice_status = 'cancel'
             else:
                 rec.invoice_status = 'mixed'
