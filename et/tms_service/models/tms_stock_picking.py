@@ -1,5 +1,7 @@
 from odoo import models, fields, api
 from odoo.exceptions import ValidationError
+import logging
+_logger = logging.getLogger(__name__)
 
 
 class TmsStockPicking(models.Model):
@@ -63,7 +65,7 @@ class TmsStockPicking(models.Model):
         ('posted', 'Solo confirmadas'),
         ('cancel', 'Solo canceladas'),
         ('mixed', 'Mixto'),
-    ], string='Estado Facturas', compute='_compute_invoice_status')
+    ], string='Estado Facturas', compute='_compute_invoice_status', store=True)
     
     
     @api.depends('account_move_ids', 'account_move_ids.state')
@@ -75,14 +77,15 @@ class TmsStockPicking(models.Model):
                 continue
 
             states = set(moves.mapped('state'))
-            if states == 'draft':
-                rec.invoice_status = 'draft'
-            elif states == 'posted':
-                rec.invoice_status = 'posted'
-            elif states == 'cancel':
-                rec.invoice_status = 'cancel'
+            _logger.info(f"Estados de facturas para TMS Stock Picking {rec.id}: {states}")
+            if states == {'draft'}:
+                rec.write({'invoice_status': 'draft'})
+            elif states == {'posted'}:
+                rec.write({'invoice_status': 'posted'})
+            elif states == {'cancel'}:
+                rec.write({'invoice_status': 'cancel'})
             else:
-                rec.invoice_status = 'mixed'
+                rec.write({'invoice_status': 'mixed'})
     
     def _compute_account_move_count(self):
         for rec in self:
