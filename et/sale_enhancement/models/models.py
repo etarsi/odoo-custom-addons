@@ -43,10 +43,6 @@ class SaleOrderInherit(models.Model):
         'product.category', string='Rubros', compute='_compute_items_ids', store=True, readonly=False,
         help="Rubros de los productos en la orden de venta. Se usa para filtrar productos en la vista de formulario."
     )    
-    #venta_type = fields.Selection([
-    #    ('sale', 'Venta Normal'),
-    #    ('marketing', 'Venta de Marketing')
-    #], string='Tipo de Venta', default='sale')
     company_default = fields.Many2one("res.company", string="Compañía por Defecto", help="Seleccionar la compañía bajo la cual se creará el pedido de venta.")
     partner_tag_ids = fields.Many2many(
         'res.partner.category',
@@ -83,7 +79,6 @@ class SaleOrderInherit(models.Model):
                 for stock in stock_moves_erp:
                     stock.unreserve_stock()
 
-
     def cancel_order(self):
         for record in self:
             if record.picking_ids:
@@ -94,7 +89,6 @@ class SaleOrderInherit(models.Model):
                 record.cancel_pickings()
                 record.unreserve_stock_sale_order()
                 record.action_cancel()
-
     
     def cancel_pickings(self):
         for record in self:
@@ -106,7 +100,6 @@ class SaleOrderInherit(models.Model):
                 picking.state = 'draft'
                 picking.unlink()
 
-    # OVERRIDE DE ONCHANGE
     @api.onchange("partner_id")
     def onchange_partner_id(self):
         res = super().onchange_partner_id()
@@ -120,12 +113,10 @@ class SaleOrderInherit(models.Model):
     def _onchange_partner_shipping_id(self):
         self.check_partner_origin()
 
-
     @api.onchange('pricelist_id')
     def _onchange_pricelist_id(self):
         for record in self:
             record.update_lines_prices()
-
 
     @api.onchange('condicion_m2m')
     def _onchange_condicion_m2m(self):
@@ -152,12 +143,10 @@ class SaleOrderInherit(models.Model):
                 if pricelist:
                     record.pricelist_id = pricelist.id
 
-
     @api.onchange('global_discount')
     def _onchange_discount(self):
         for record in self:
             record.update_lines_discount()
-
 
     @api.onchange('order_line')
     def _onchange_lines_bultos(self):
@@ -165,8 +154,6 @@ class SaleOrderInherit(models.Model):
             record.packaging_qty = 0
             for line in record.order_line:
                 record.packaging_qty += line.product_packaging_qty
-
-    ### DEPENDS
 
     @api.depends('amount_tax', 'amount_untaxed', 'order_line.tax_id')
     def _compute_subtotal(self):
@@ -412,44 +399,18 @@ class SaleOrderInherit(models.Model):
             order.message_post(body=_("Orden de venta creada."))
         return order
 
-
     def action_confirm(self):
         res = super().action_confirm()
         for record in self:
             company_letter = record._get_company_letter(record)
-
             record.name = f"{record.name} - {company_letter}"
-
             for picking in record.picking_ids:
                 picking.origin = record.name
-
-            if company_letter == 'P':               
-                pricelist = self.env['product.pricelist'].search([('list_default_b','=', True)])
-                if pricelist:
-                    record.pricelist_id = pricelist.id
-                    discounts = {}
-                    for line in record.order_line:
-                        discounts[line.id] = line.discount
-                        
-                    record.update_prices()
-                    
-                    for line in record.order_line:
-                        if line.id in discounts:
-                            line.discount = discounts[line.id]
-                else: 
-                    raise UserError(f"No se encontró precio de lista por defecto")
-            
-
             # STOCK ERP
-
             up = record.check_unavailable_products()
-
             if up:
                 record.clean_stock_moves(up)
-
-
         return res
-    
 
     def update_prices(self):
         self.ensure_one()
@@ -459,8 +420,6 @@ class SaleOrderInherit(models.Model):
                 line.discount = 0
                 line._onchange_discount()
         self.show_update_pricelist = False
-
-
 
     def check_unavailable_products(self):
         for record in self:
@@ -482,14 +441,12 @@ class SaleOrderInherit(models.Model):
                             move.unlink()
                 picking.show_operations = False
 
-
     def check_partner_origin(self):
         for record in self:
             if record.partner_shipping_id.state_id.id == 566:
                 record.is_misiones = True
             else:
                 record.is_misiones = False
-
 
     def _get_company_letter(self, order):
         company_id = order.company_id
@@ -501,9 +458,7 @@ class SaleOrderInherit(models.Model):
             l = 'B'
         elif company_id.id == 4:
             l = 'F'
-
         return l
-      
 
     def check_order(self):
         for record in self:            
@@ -513,20 +468,17 @@ class SaleOrderInherit(models.Model):
             record.update_lines_prices()
             record.check_taxes()
 
-
     def check_taxes(self):
         for record in self:
             if record.condicion_m2m.name == 'TIPO 3':
                 for line in record.order_line:
                     line.tax_id = False
 
-
     def check_comercial_id(self):
         for record in self:
             comercial_id = record.partner_id.user_id
             if comercial_id:
                 record.user_id = comercial_id 
-
 
     def check_price_list(self):
         for record in self:
@@ -556,7 +508,6 @@ class SaleOrderInherit(models.Model):
                     if line.id in discounts:
                         line.discount = discounts[line.id]
 
-
     def update_lines_discount(self):
         for record in self:
             if record.order_line:
@@ -568,9 +519,6 @@ class SaleOrderInherit(models.Model):
         return
     
     #COMPUTES
-
-    
-
     @api.depends('order_line.product_id')
     def _compute_items_ids(self):
         for record in self:
