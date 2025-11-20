@@ -10,7 +10,7 @@ class HrEmployeeConfigHoursLaboralWizard(models.TransientModel):
     dni = fields.Char(string="DNI", required=True)
     work_schedule_id = fields.Many2one(
         string='Horario de Trabajo',
-        comodel_name='hr.works.schedule',
+        comodel_name='hr.work.schedule',
         ondelete='restrict',
     )
     id_lector = fields.Char(string="ID Lector")
