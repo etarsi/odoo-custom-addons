@@ -55,6 +55,7 @@ class SaleOrderInherit(models.Model):
         store=True,
         readonly=True,
     )
+    is_marketing = fields.Boolean(string="Venta de Marketing", default=False)
 
     @api.depends('partner_id', 'partner_id.category_id')
     def _compute_partner_tags(self):
@@ -73,7 +74,6 @@ class SaleOrderInherit(models.Model):
             order.unreserve_stock_sale_order()
 
         return super().unlink()
-    
 
     def unreserve_stock_sale_order(self):
         for record in self:
@@ -179,10 +179,92 @@ class SaleOrderInherit(models.Model):
             )
 
             record.order_subtotal = record.amount_untaxed * 1.21 if taxes_found else record.amount_untaxed
-    
+
+    @api.onchange('company_default', 'order_line')
+    def _onchange_company_default_or_lines(self):
+        for order in self:
+            if order.state not in ('draft',):
+                continue
+            if order.company_default:
+                order._apply_company_default(order.company_default)
+            else:
+                order._apply_company_from_rubros()
+                
+    def _apply_company_default(self, company):
+        """Forzar compañía/almacén a partir de company_default (sin validar rubros)."""
+        if not company:
+            return
+
+        wh = self.env['stock.warehouse'].search([('company_id', '=', company.id)], limit=1)
+        if not wh:
+            raise UserError(_("No tiene asignada la compañía %s, verifique su listado de Compañias.") % company.display_name)
+        self.company_id = company.id
+        self.warehouse_id = wh.id
+
+    def _apply_company_from_rubros(self):
+        """Si todos los rubros de las líneas apuntan a la misma compañía, la setea en el pedido.
+        Si apuntan a varias, tira error.
+        """
+        for order in self:
+            rubro_companies = set()
+            rubro_detail = {}  # rubro_name -> set(productos)
+
+            for line in order.order_line:
+                product = line.product_id
+                categ = product.categ_id.parent_id or product.categ_id
+                if not categ:
+                    continue
+
+                rubro_name = (categ.name or '').strip().upper()
+                comp_id = self.RUBRO_COMPANY_MAPPING.get(rubro_name)
+
+                if not comp_id:
+                    # Si querés ser más estricto, acá podés guardar rubros sin mapping y avisar
+                    continue
+
+                rubro_companies.add(comp_id)
+                rubro_detail.setdefault(rubro_name, set()).add(product.display_name or product.default_code or '')
+
+            # Si no hay ningún rubro mapeado, no hacemos nada
+            if not rubro_companies:
+                continue
+
+            # Más de una compañía según el mapping → error
+            if len(rubro_companies) > 1:
+                msg_lines = []
+                for rubro_name, products in rubro_detail.items():
+                    mapped_company_id = self.RUBRO_COMPANY_MAPPING.get(rubro_name)
+                    company_name = ''
+                    if mapped_company_id:
+                        company_name = self.env['res.company'].browse(mapped_company_id).display_name
+                    msg_lines.append(
+                        "%s → %s (%s)" % (
+                            rubro_name,
+                            company_name or _('(sin compañía asignada)'),
+                            ", ".join(sorted(products))
+                        )
+                    )
+
+                raise UserError(_(
+                    "Los rubros de las líneas pertenecen a distintas compañías según la configuración:\n%s\n\n"
+                    "Dejá 'Compañía por Defecto' vacío para que valide por rubro, "
+                    "o elegí una 'Compañía por Defecto' para forzar manualmente."
+                ) % "\n".join(msg_lines))
+
+            # Solo una compañía → la aplicamos
+            target_company_id = rubro_companies.pop()
+            company = self.env['res.company'].browse(target_company_id)
+            wh = self.env['stock.warehouse'].search([('company_id', '=', company.id)], limit=1)
+            if not wh:
+                raise UserError(_("No tiene asignada la compañía %s, verifique su listado de Compañias.") % company.display_name)
+
+            order.company_id = company.id
+            order.warehouse_id = wh.id
+
+
     @api.model
     def create(self, vals):
-        self.check_partner_origin()
+        #self.check_partner_origin()
         cond_model = self.env['condicion.venta']
         cond_name = cond_model.browse(vals.get('condicion_m2m')).name or ''
         force_company = (cond_name.strip().upper() == 'TIPO 3')
@@ -329,7 +411,6 @@ class SaleOrderInherit(models.Model):
         if not order.message_ids:
             order.message_post(body=_("Orden de venta creada."))
         return order
-
 
 
     def action_confirm(self):
