@@ -158,7 +158,7 @@ class TmsStockPicking(models.Model):
                 'account_move_ids': [(6, 0, stock_picking.invoice_ids.ids)],
                 'amount_totals': amount_total,
                 'items_ids': rube_ids_final,
-                'invoice_state': 'invoiced' if stock_picking.invoice_state == 'invoiced' else 'to_invoiced'
+                'invoice_state': 'invoiced' if stock_picking.invoice_ids else 'to_invoiced'
             })
             updated += 1
 

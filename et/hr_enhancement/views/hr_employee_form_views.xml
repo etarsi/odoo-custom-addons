@@ -102,6 +102,12 @@
                         string="Dar de Baja"
                         class="btn-danger"
                         attrs="{'invisible': [('active', '=', False)]}"/>
+                <button type="action"
+                        name="%(action_hr_employee_offboard_wizard)d"
+                        groups="hr_enhancement.group_hr_administrador"
+                        string="Dar de Baja"
+                        class="btn-info"/>
+                
             </xpath>
             <xpath expr="//div[@name='button_box']" position="after">
                 <!-- Eventual -->

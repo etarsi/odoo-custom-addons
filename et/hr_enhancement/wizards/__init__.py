@@ -4,3 +4,4 @@ from . import excel
 from . import hr_attendance_create_wizard
 from . import hr_attendance_import_wizard
 from . import hr_employee_offboard_masive_wizard
+from . import hr_employee_config_hours_laboral_wizard

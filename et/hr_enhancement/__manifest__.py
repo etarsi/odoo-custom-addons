@@ -36,6 +36,7 @@
         #Vistas
         'views/hr_license_views.xml',
         'views/hr_location_views.xml',
+        'views/hr_employee_config_hours_laboral_wizard_views.xml',
         'views/hr_employee_form_views.xml',
         'views/hr_employee_children_views.xml',
         'views/hr_season_labor_cost_views.xml',

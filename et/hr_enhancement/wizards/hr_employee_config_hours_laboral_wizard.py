@@ -1,5 +1,5 @@
 # wizard/hr_employee_offboard_wizard.py
-from odoo import api, fields, models
+from odoo import api, fields, models, _
 from odoo.exceptions import ValidationError
 
 class HrEmployeeConfigHoursLaboralWizard(models.TransientModel):
@@ -17,33 +17,28 @@ class HrEmployeeConfigHoursLaboralWizard(models.TransientModel):
     id_lector = fields.Char(string="ID Lector")
     employee_type = fields.Selection(related='employee_id.employee_type', string="Tipo de Empleado")
     
-    
-
     def action_confirm(self):
         self.ensure_one()
         emp = self.employee_id
-
-        # 1) crear el registro histórico
-        self.env['hr.employee.offboard'].create({
-            'employee_id': emp.id,
-            'date': self.date,
-            'reason': self.reason,
-            'description': self.description,
-            'user_id': self.env.user.id,
+        if not emp:
+            raise ValidationError("No se encontró el empleado seleccionado.")
+        emp.write({
+            'dni': self.dni,
+            'hr_works_schedule_id': self.hr_works_schedule_id.id,
+            'type_shift': self.type_shift,
+            'id_lector': self.id_lector,
+            'employee_type': self.employee_type,
         })
+        # Empleado Actualizado correctamente
+        return {
+            'type': 'ir.actions.client',
+            'tag': 'display_notification',
+            'params': {
+                'title': _('Empleado Actualizado'),
+                'message': _('El empleado fue actualizado correctamente.'),
+                'type': 'success',
+                'sticky': False,
+                'next': {'type': 'ir.actions.act_window_close'},
+            }
+        }
 
-        # 2) cambiar estado del empleado a inactivo
-        if 'state' in emp._fields:
-            try:
-                emp.write({'state': 'inactive'})
-            except Exception:
-                emp.write({'state': 'active'})
-        else:
-            emp.write({'state': 'inactive'})
-
-        # 3) log en chatter del empleado
-        emp.message_post(
-            body=f"Baja registrada por {self.env.user.name} el {self.date}. "
-                 f"Motivo: {dict(self._fields['reason'].selection).get(self.reason)}."
-        )
-        return {'type': 'ir.actions.act_window_close'}
