@@ -196,6 +196,8 @@ class SaleOrderInherit(models.Model):
                 continue
             if order.company_default:
                 order._apply_company_default(order.company_default)
+            elif order.is_marketing:
+                continue
             else:
                 order._apply_company_from_rubros()
                 
