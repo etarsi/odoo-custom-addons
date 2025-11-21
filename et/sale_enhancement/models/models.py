@@ -202,10 +202,8 @@ class SaleOrderInherit(models.Model):
                 order._apply_company_from_rubros()
 
     def _apply_company_default(self, company):
-        """Forzar compañía/almacén a partir de company_default (sin validar rubros)."""
         if not company:
             return
-
         wh = self.env['stock.warehouse'].search([('company_id', '=', company.id)], limit=1)
         if not wh:
             raise UserError(_("No tiene asignada la compañía %s, verifique su listado de Compañias.") % company.display_name)
@@ -215,27 +213,20 @@ class SaleOrderInherit(models.Model):
     def _apply_company_from_rubros(self):
         for order in self:
             company_sets = []
-            by_set = defaultdict(list)  # para armar el mensaje de error
-
+            by_set = defaultdict(list)
+            
             for line in order.order_line:
                 product = line.product_id
                 if not product:
                     continue
-
-                # Conjunto de compañías posibles para este producto
                 if getattr(product, 'company_ids', False) and product.company_ids:
                     comp_ids = set(product.company_ids.ids)
                 elif product.company_id:
                     comp_ids = {product.company_id.id}
                 else:
-                    # Producto compartido -> no restringe
                     comp_ids = set()
-
-                # Solo los que tienen restricción entran en la intersección
                 if comp_ids:
                     company_sets.append(comp_ids)
-
-                # Para el detalle del error (aunque no tengan comp_ids, los mostramos como compartidos)
                 if getattr(product, 'company_ids', False) and product.company_ids:
                     ids_tuple = tuple(sorted(product.company_ids.ids))
                 elif product.company_id:
@@ -244,22 +235,16 @@ class SaleOrderInherit(models.Model):
                     ids_tuple = tuple()
                 code = product.default_code or product.display_name or ''
                 by_set[ids_tuple].append(code)
-
-            # Si ningún producto tiene restricción de compañía, no hacemos nada
             if not company_sets:
                 continue
-
-            # Intersección de TODAS las compañías posibles de los productos restringidos
             common = set.intersection(*company_sets)
 
             if not common:
-                # Armar mensaje agrupando por conjunto de compañías
                 def set_label(ids_tuple):
                     if not ids_tuple:
                         return _('(compartido / sin compañía)')
                     comps = self.env['res.company'].browse(list(ids_tuple))
                     return ', '.join(comps.mapped('name'))
-
                 lines = "\n".join(
                     "---- ({codes} → {companies})".format(
                         codes=", ".join(sorted(codes)),
@@ -267,25 +252,18 @@ class SaleOrderInherit(models.Model):
                     )
                     for ids_tuple, codes in sorted(by_set.items(), key=lambda it: (len(it[0]) or 0, it[0]))
                 )
-
                 raise UserError(_(
                     "Las líneas del pedido no comparten ninguna compañía en común.\n%s\n\n"
                     "Revisá las compañías de los productos, o seleccioná manualmente una 'Compañía por Defecto'."
                 ) % lines)
-
-            # En este punto hay al menos UNA compañía en común
-            # Priorizar la compañía actual si está dentro del conjunto común
             if order.company_id and order.company_id.id in common:
                 target_company_id = order.company_id.id
             else:
-                # Si no, elegimos la de menor ID (podés cambiar la regla si querés)
                 target_company_id = min(common)
-
             company = self.env['res.company'].browse(target_company_id)
             wh = self.env['stock.warehouse'].search([('company_id', '=', company.id)], limit=1)
             if not wh:
                 raise UserError(_("No tiene asignada la compañía %s, verifique su listado de Compañias.") % company.display_name)
-
             order.company_id = company.id
             order.warehouse_id = wh.id
 
