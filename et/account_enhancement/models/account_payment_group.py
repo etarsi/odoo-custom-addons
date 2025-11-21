@@ -26,14 +26,7 @@ class AccountPaymentGroupInherit(models.Model):
         sanitize=False,
     )
     is_paid_date_venc_text = fields.Boolean(default=False, copy=False)
-    paid_date_venc_text = fields.Text(default='⚠️ EL PAGO A REGISTRAR ESTA FUERA DE FECHA ⚠️')
-    x_unmatched_amount = fields.Float(string="Monto No Conciliado", compute="_compute_ua", store=True)
-
-    @api.depends('payments_amount', 'matched_amount')
-    def _compute_ua(self):
-        for record in self:
-            record.x_unmatched_amount = record.payments_amount - record.matched_amount
-            
+    paid_date_venc_text = fields.Text(default='⚠️ EL PAGO A REGISTRAR ESTA FUERA DE FECHA ⚠️')           
 
 
     
