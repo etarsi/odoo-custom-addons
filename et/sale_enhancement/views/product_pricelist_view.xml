@@ -9,6 +9,7 @@
                 <xpath expr="//field[@name='currency_id']" position="after">
                     <field name="is_default" optional="show"/>
                     <field name="list_default_b" optional="show"/>
+                    <field name="is_marketing" optional="show"/>
                 </xpath>
             </field>
         </record>
@@ -21,6 +22,7 @@
                 <xpath expr="//field[@name='country_group_ids']" position="after">
                     <field name="is_default"/>
                     <field name="list_default_b"/>
+                    <field name="is_marketing"/>
                 </xpath>
             </field>
         </record>

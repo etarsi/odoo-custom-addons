@@ -661,7 +661,6 @@ class StockPickingInherit(models.Model):
         }
     
     def _prepare_invoice_base_vals(self, company):
-        partner = self.partner_id
         invoice_date_due = fields.Date.context_today(self)
 
         if self.sale_id.payment_term_id:

@@ -43,11 +43,7 @@ class SaleOrderInherit(models.Model):
         'product.category', string='Rubros', compute='_compute_items_ids', store=True, readonly=False,
         help="Rubros de los productos en la orden de venta. Se usa para filtrar productos en la vista de formulario."
     )    
-    #venta_type = fields.Selection([
-    #    ('sale', 'Venta Normal'),
-    #    ('marketing', 'Venta de Marketing')
-    #], string='Tipo de Venta', default='sale')
-    company_default = fields.Integer("Compañía por defecto", copy=False)
+    company_default = fields.Many2one("res.company", string="Compañía por Defecto", help="Seleccionar la compañía bajo la cual se creará el pedido de venta.")
     partner_tag_ids = fields.Many2many(
         'res.partner.category',
         string='Etiq. del Cliente',
@@ -55,6 +51,7 @@ class SaleOrderInherit(models.Model):
         store=True,
         readonly=True,
     )
+    is_marketing = fields.Boolean(string="Venta de Marketing", default=False)
 
     @api.depends('partner_id', 'partner_id.category_id')
     def _compute_partner_tags(self):
@@ -73,7 +70,6 @@ class SaleOrderInherit(models.Model):
             order.unreserve_stock_sale_order()
 
         return super().unlink()
-    
 
     def unreserve_stock_sale_order(self):
         for record in self:
@@ -82,7 +78,6 @@ class SaleOrderInherit(models.Model):
             if stock_moves_erp:
                 for stock in stock_moves_erp:
                     stock.unreserve_stock()
-
 
     def cancel_order(self):
         for record in self:
@@ -94,7 +89,6 @@ class SaleOrderInherit(models.Model):
                 record.cancel_pickings()
                 record.unreserve_stock_sale_order()
                 record.action_cancel()
-
     
     def cancel_pickings(self):
         for record in self:
@@ -106,7 +100,6 @@ class SaleOrderInherit(models.Model):
                 picking.state = 'draft'
                 picking.unlink()
 
-    # OVERRIDE DE ONCHANGE
     @api.onchange("partner_id")
     def onchange_partner_id(self):
         res = super().onchange_partner_id()
@@ -120,17 +113,35 @@ class SaleOrderInherit(models.Model):
     def _onchange_partner_shipping_id(self):
         self.check_partner_origin()
 
-
     @api.onchange('pricelist_id')
     def _onchange_pricelist_id(self):
         for record in self:
-            record.update_lines_prices()
-
+            if record.pricelist_id:
+                if record.is_marketing and not record.pricelist_id.is_marketing:
+                    raise UserError("La lista de precios seleccionada no corresponde a Marketing.")
+                record.update_lines_prices()
 
     @api.onchange('condicion_m2m')
     def _onchange_condicion_m2m(self):
         for record in self:
-            if record.condicion_m2m.name == 'TIPO 3':
+            if record.is_marketing:
+                pricelist = self.env['product.pricelist'].search([('is_marketing','=', True)])
+                if pricelist:
+                    record.pricelist_id = pricelist.id
+                    discounts = {}
+
+                    for line in record.order_line:
+                        line.tax_id = False
+                        discounts[line.id] = line.discount
+                        
+                    record.update_prices()
+                    
+                    for line in record.order_line:
+                        if line.id in discounts:
+                            line.discount = discounts[line.id]
+                else: 
+                    raise UserError("No se encontró precio de lista para Marketing")
+            elif record.condicion_m2m.name == 'TIPO 3':
                 pricelist = self.env['product.pricelist'].search([('list_default_b','=', True)])
                 if pricelist:
                     record.pricelist_id = pricelist.id
@@ -146,18 +157,18 @@ class SaleOrderInherit(models.Model):
                         if line.id in discounts:
                             line.discount = discounts[line.id]
                 else: 
-                    raise UserError("No se encontró precio de lista con ID 46")
+                    raise UserError("No se encontró precio de lista para Producción B")
             else:
                 pricelist = self.env['product.pricelist'].search([('is_default','=', True)])
                 if pricelist:
                     record.pricelist_id = pricelist.id
-
+                else:
+                    raise UserError("No se encontró precio de lista por defecto")
 
     @api.onchange('global_discount')
     def _onchange_discount(self):
         for record in self:
             record.update_lines_discount()
-
 
     @api.onchange('order_line')
     def _onchange_lines_bultos(self):
@@ -165,8 +176,6 @@ class SaleOrderInherit(models.Model):
             record.packaging_qty = 0
             for line in record.order_line:
                 record.packaging_qty += line.product_packaging_qty
-
-    ### DEPENDS
 
     @api.depends('amount_tax', 'amount_untaxed', 'order_line.tax_id')
     def _compute_subtotal(self):
@@ -179,74 +188,261 @@ class SaleOrderInherit(models.Model):
             )
 
             record.order_subtotal = record.amount_untaxed * 1.21 if taxes_found else record.amount_untaxed
-    
+
+    @api.onchange('company_default', 'order_line')
+    def _onchange_company_default_or_lines(self):
+        for order in self:
+            if order.state not in ('draft',):
+                continue
+            if order.company_default:
+                order._apply_company_default(order.company_default)
+            else:
+                order._apply_company_from_rubros()
+                
+    def _apply_company_default(self, company):
+        """Forzar compañía/almacén a partir de company_default (sin validar rubros)."""
+        if not company:
+            return
+
+        wh = self.env['stock.warehouse'].search([('company_id', '=', company.id)], limit=1)
+        if not wh:
+            raise UserError(_("No tiene asignada la compañía %s, verifique su listado de Compañias.") % company.display_name)
+        self.company_id = company.id
+        self.warehouse_id = wh.id
+
+    def _apply_company_from_rubros(self):
+        """Si todos los rubros de las líneas apuntan a la misma compañía, la setea en el pedido.
+        Si apuntan a varias, tira error.
+        """
+        for order in self:
+            rubro_companies = set()
+            rubro_detail = {}  # rubro_name -> set(productos)
+
+            for line in order.order_line:
+                product = line.product_id
+                categ = product.categ_id.parent_id or product.categ_id
+                if not categ:
+                    continue
+
+                rubro_name = (categ.name or '').strip().upper()
+                comp_id = self.RUBRO_COMPANY_MAPPING.get(rubro_name)
+
+                if not comp_id:
+                    # Si querés ser más estricto, acá podés guardar rubros sin mapping y avisar
+                    continue
+
+                rubro_companies.add(comp_id)
+                rubro_detail.setdefault(rubro_name, set()).add(product.display_name or product.default_code or '')
+
+            # Si no hay ningún rubro mapeado, no hacemos nada
+            if not rubro_companies:
+                continue
+
+            # Más de una compañía según el mapping → error
+            if len(rubro_companies) > 1:
+                msg_lines = []
+                for rubro_name, products in rubro_detail.items():
+                    mapped_company_id = self.RUBRO_COMPANY_MAPPING.get(rubro_name)
+                    company_name = ''
+                    if mapped_company_id:
+                        company_name = self.env['res.company'].browse(mapped_company_id).display_name
+                    msg_lines.append(
+                        "%s → %s (%s)" % (
+                            rubro_name,
+                            company_name or _('(sin compañía asignada)'),
+                            ", ".join(sorted(products))
+                        )
+                    )
+
+                raise UserError(_(
+                    "Los rubros de las líneas pertenecen a distintas compañías según la configuración:\n%s\n\n"
+                    "Dejá 'Compañía por Defecto' vacío para que valide por rubro, "
+                    "o elegí una 'Compañía por Defecto' para forzar manualmente."
+                ) % "\n".join(msg_lines))
+
+            # Solo una compañía → la aplicamos
+            target_company_id = rubro_companies.pop()
+            company = self.env['res.company'].browse(target_company_id)
+            wh = self.env['stock.warehouse'].search([('company_id', '=', company.id)], limit=1)
+            if not wh:
+                raise UserError(_("No tiene asignada la compañía %s, verifique su listado de Compañias.") % company.display_name)
+
+            order.company_id = company.id
+            order.warehouse_id = wh.id
+
+
     @api.model
     def create(self, vals):
-        self.check_partner_origin()
-        # --- Config compañía destino ---
-        company_produccion_b = self.env['res.company'].browse(1)
-        # --- Resolver condición (Many2one) ---
-        cond_model = self.env['condicion.venta']  # ajustá el modelo si se llama distinto
+        #self.check_partner_origin()
+        cond_model = self.env['condicion.venta']
         cond_name = cond_model.browse(vals.get('condicion_m2m')).name or ''
-        # --- Forzar compañía/depósito en vals si corresponde (TIPO 3) ---
         force_company = (cond_name.strip().upper() == 'TIPO 3')
+        company_produccion_b = self.env['res.company'].browse(1)
         current_company_id = vals.get('company_id')
-
-        if force_company and current_company_id != company_produccion_b.id:
-            wh = self.env['stock.warehouse'].search([('company_id', '=', company_produccion_b.id)], limit=1)
+        company_default = vals.get('company_default', False)
+        is_marketing = vals.get('is_marketing', False)
+        if company_default:
+            company_default = self.env['res.company'].search([('name', '=', company_default)], limit=1)
+            if not company_default:
+                raise UserError(_("No se encontró la compañía con nombre %s.") % vals.get('company_default'))
+            wh = self.env['stock.warehouse'].search([('company_id', '=', company_default.id)], limit=1)
             if not wh:
-                raise UserError(_("No se encontró un depósito para la compañía %s.") % company_produccion_b.display_name)
+                raise UserError(_("No tiene asignada la compañía %s, verifique su listado de Compañias.") % company_default.display_name )
 
-            vals = dict(vals)  # copiar para no mutar
-            vals['company_id'] = company_produccion_b.id
+            vals = dict(vals)
+            vals['company_id'] = company_default.id    
             vals['warehouse_id'] = wh.id
+            self.with_context(allowed_company_ids=[company_produccion_b.id]).with_company(company_produccion_b)
+            order = super().create(vals)    
+        elif is_marketing:
+            pricelist = self.env['product.pricelist'].search([('is_marketing','=', True)], limit=1)
+            #setear condicion de venta TIPO 3
+            vals['condicion_m2m'] = self.env['condicion.venta'].search([('name', '=', 'TIPO 3')], limit=1).id
+            if pricelist:
+                vals = dict(vals)
+                vals['pricelist_id'] = pricelist.id
+                self.with_context(allowed_company_ids=[company_produccion_b.id]).with_company(company_produccion_b)
+                order = super().create(vals)    
+            else: 
+                raise UserError("No se encontró precio de lista para Marketing")
+        else:
+            #Ajustar compañía si es TIPO 3
+            if force_company and current_company_id != company_produccion_b.id:
+                wh = self.env['stock.warehouse'].search([('company_id', '=', company_produccion_b.id)], limit=1)
+                if not wh:
+                    raise UserError(_("No tiene asignada la compañía %s, verifique su listado de Compañias.") % company_produccion_b.display_name)
 
-            # Crear bajo el contexto/compañía destino para evitar conflictos multi-company
-            env_create = self.with_context(allowed_company_ids=[company_produccion_b.id]).with_company(company_produccion_b)
-        order = super().create(vals)
+                vals = dict(vals)  # copiar para no mutar
+                vals['company_id'] = company_produccion_b.id
+                vals['warehouse_id'] = wh.id
+
+                # Crear bajo el contexto/compañía destino para evitar conflictos multi-company
+                self.with_context(allowed_company_ids=[company_produccion_b.id]).with_company(company_produccion_b)
+                order = super().create(vals)    
+            # Si no es TIPO 3, inferir compañía por productos
+            else:
+                line_cmds = vals.get('order_line') or []
+                product_ids = set()
+
+                for cmd in line_cmds:
+                    if not isinstance(cmd, (list, tuple)) or not cmd:
+                        continue
+                    op = cmd[0]
+                    if op == 0 and len(cmd) >= 3:
+                        pid = (cmd[2] or {}).get('product_id')
+                        if pid:
+                            product_ids.add(pid)
+                    elif op in (1, 4) and len(cmd) >= 2:
+                        line = self.env['sale.order.line'].browse(cmd[1])
+                        if line.exists():
+                            product_ids.add(line.product_id.id)
+                    elif op == 6 and len(cmd) >= 3:
+                        for line_id in (cmd[2] or []):
+                            line = self.env['sale.order.line'].browse(line_id)
+                            if line.exists():
+                                product_ids.add(line.product_id.id)
+                # Si hay productos en las líneas, infiero compañía
+                if product_ids:
+                    prods = self.env['product.product'].browse(list(product_ids))
+                    detailed = []
+                    company_sets = []
+
+                    for p in prods:
+                        comp_ids = set()
+                        if getattr(p, 'company_ids', False) and p.company_ids:
+                            comp_ids = set(p.company_ids.ids)
+                            comp_names = ', '.join(p.company_ids.mapped('name'))
+                        elif p.company_id:
+                            comp_ids = {p.company_id.id}
+                            comp_names = p.company_id.display_name
+                        else:
+                            # compartido ⇒ no restringe
+                            comp_names = _('(compartido)')
+                        if comp_ids:
+                            company_sets.append(comp_ids)
+                        detailed.append((p.default_code or p.display_name, comp_names))
+
+                    if company_sets:
+                        # intersección de TODAS las compañías de los productos con restricción
+                        common = set.intersection(*company_sets)
+                        if not common:
+                            # Agrupar por conjunto de compañías del producto
+                            by_set = defaultdict(list)
+                            for p in prods:
+                                code = p.default_code or p.display_name
+                                if getattr(p, 'company_ids', False) and p.company_ids:
+                                    ids_tuple = tuple(sorted(p.company_ids.ids))
+                                elif p.company_id:
+                                    ids_tuple = (p.company_id.id,)
+                                else:
+                                    ids_tuple = tuple()
+                                by_set[ids_tuple].append(code)
+
+                            def set_label(ids_tuple):
+                                if not ids_tuple:
+                                    return _('(compartido)')
+                                comps = self.env['res.company'].browse(list(ids_tuple))
+                                return ', '.join(comps.mapped('name'))
+                            # Construir líneas agrupadas: "códigos → compañías"
+                            lines = "\n".join(
+                                f"---- ({', '.join(sorted(codes))} → {set_label(ids_tuple)})"
+                                for ids_tuple, codes in sorted(by_set.items(), key=lambda it: (len(it[0]) or 0, it[0]))
+                            )
+                            raise UserError(_(
+                                "No se puede crear el pedido: las líneas no comparten una compañía común.\n%s\n"
+                                "Asegurate de que todos los productos compartan al menos una misma compañía."
+                            ) % lines)
+                        current_company_id = vals.get('company_id')
+                        if current_company_id in common:
+                            target_company_id = current_company_id
+                        elif 1 in common:
+                            target_company_id = 1
+                        else:
+                            target_company_id = min(common)
+                        company_name_id = self.env['res.company'].browse(target_company_id)
+                        if vals.get('company_id') != target_company_id:
+                            wh = self.env['stock.warehouse'].search([('company_id', '=', target_company_id)], limit=1)
+                            if not wh:
+                                raise UserError(_("No tiene asignada la compañía %s, verifique su listado de Compañias.") % company_name_id.display_name)
+                            vals = dict(vals)
+                            vals['company_id'] = target_company_id
+                            vals['warehouse_id'] = wh.id
+                            target_company = self.env['res.company'].browse(target_company_id)
+                            self = self.with_context(allowed_company_ids=[target_company_id]).with_company(target_company)
+                order = super(SaleOrderInherit, self).create(vals)
+                if order.order_line:
+                    order.order_line.filtered(lambda l: l.company_id != order.company_id).write({
+                        'company_id': order.company_id.id
+                    })
+                    bad_lines = order.order_line.filtered(
+                        lambda l: (
+                            hasattr(l.product_id, 'company_ids') and l.product_id.company_ids and order.company_id not in l.product_id.company_ids
+                        ) or (
+                            l.product_id.company_id and l.product_id.company_id != order.company_id
+                        )
+                    )
+                    if bad_lines:
+                        names = ", ".join(bad_lines.mapped('product_id.display_name')[:5])
+                        raise UserError(_(
+                            "Hay líneas con productos que no pertenecen a la compañía del pedido (%s): %s"
+                        ) % (order.company_id.display_name, names + ('...' if len(bad_lines) > 5 else '')))
         order.check_order()
         if not order.message_ids:
             order.message_post(body=_("Orden de venta creada."))
         return order
 
-
     def action_confirm(self):
         res = super().action_confirm()
         for record in self:
             company_letter = record._get_company_letter(record)
-
             record.name = f"{record.name} - {company_letter}"
-
             for picking in record.picking_ids:
                 picking.origin = record.name
-
-            if company_letter == 'P':               
-                pricelist = self.env['product.pricelist'].search([('list_default_b','=', True)])
-                if pricelist:
-                    record.pricelist_id = pricelist.id
-                    discounts = {}
-                    for line in record.order_line:
-                        discounts[line.id] = line.discount
-                        
-                    record.update_prices()
-                    
-                    for line in record.order_line:
-                        if line.id in discounts:
-                            line.discount = discounts[line.id]
-                else: 
-                    raise UserError(f"No se encontró precio de lista por defecto")
-            
-
             # STOCK ERP
-
             up = record.check_unavailable_products()
-
             if up:
                 record.clean_stock_moves(up)
-
-
         return res
-    
 
     def update_prices(self):
         self.ensure_one()
@@ -256,8 +452,6 @@ class SaleOrderInherit(models.Model):
                 line.discount = 0
                 line._onchange_discount()
         self.show_update_pricelist = False
-
-
 
     def check_unavailable_products(self):
         for record in self:
@@ -279,14 +473,12 @@ class SaleOrderInherit(models.Model):
                             move.unlink()
                 picking.show_operations = False
 
-
     def check_partner_origin(self):
         for record in self:
             if record.partner_shipping_id.state_id.id == 566:
                 record.is_misiones = True
             else:
                 record.is_misiones = False
-
 
     def _get_company_letter(self, order):
         company_id = order.company_id
@@ -298,9 +490,7 @@ class SaleOrderInherit(models.Model):
             l = 'B'
         elif company_id.id == 4:
             l = 'F'
-
         return l
-      
 
     def check_order(self):
         for record in self:            
@@ -310,13 +500,11 @@ class SaleOrderInherit(models.Model):
             record.update_lines_prices()
             record.check_taxes()
 
-
     def check_taxes(self):
         for record in self:
             if record.condicion_m2m.name == 'TIPO 3':
                 for line in record.order_line:
                     line.tax_id = False
-
 
     def check_comercial_id(self):
         for record in self:
@@ -324,21 +512,20 @@ class SaleOrderInherit(models.Model):
             if comercial_id:
                 record.user_id = comercial_id 
 
-
     def check_price_list(self):
         for record in self:
-            _logger.info(f"Checking pricelist for order {record.name} and partner {record.partner_id.name}")
-            if record.condicion_m2m.name == 'TIPO 3':
+            if record.is_marketing:
+                pricelist = self.env['product.pricelist'].search([('is_marketing','=', True)], limit=1)
+                if pricelist:
+                    record.pricelist_id = pricelist.id
+            elif record.condicion_m2m.name == 'TIPO 3':
                 pricelist = self.env['product.pricelist'].search([('list_default_b','=', True)], limit=1)
                 if pricelist:
-                    _logger.info(f"Setting pricelist {pricelist.name} for order {record.name}")
                     record.pricelist_id = pricelist.id
             else:
                 pricelist = self.env['product.pricelist'].search([('is_default','=', True)], limit=1)
                 if pricelist:
-                    _logger.info(f"Setting default pricelist {pricelist.name} for order {record.name}")
                     record.pricelist_id = pricelist.id
-            _logger.info(f"Pricelist for order {record.name} set to {record.pricelist_id.name}")
 
     def update_lines_prices(self):
         for record in self:
@@ -353,7 +540,6 @@ class SaleOrderInherit(models.Model):
                     if line.id in discounts:
                         line.discount = discounts[line.id]
 
-
     def update_lines_discount(self):
         for record in self:
             if record.order_line:
@@ -365,9 +551,6 @@ class SaleOrderInherit(models.Model):
         return
     
     #COMPUTES
-
-    
-
     @api.depends('order_line.product_id')
     def _compute_items_ids(self):
         for record in self:
@@ -782,16 +965,27 @@ class ProductPricelist(models.Model):
         index=True,
         help="Si está marcada, será la lista de precios por defecto B."
     )
+    
+    is_marketing = fields.Boolean(
+        string="Lista de Marketing",
+        default=False,
+        copy=False,
+        index=True,
+        help="Si está marcada, será la lista de precios de marketing."
+    )
 
     @api.model_create_multi
     def create(self, vals_list):
         records = super().create(vals_list)
         to_enforce = records.filtered('is_default')
         is_default_b = records.filtered('list_default_b')
+        is_marketing = records.filtered('is_marketing')
         if is_default_b:
             is_default_b._clear_others_default_b()
         if to_enforce:
             to_enforce._clear_others_default()
+        if is_marketing:
+            is_marketing._clear_others_marketing()
         return records
 
     def write(self, vals):
@@ -800,7 +994,19 @@ class ProductPricelist(models.Model):
             self.filtered('is_default')._clear_others_default()
         if vals.get('list_default_b'):
             self.filtered('list_default_b')._clear_others_default_b()
+        if vals.get('is_marketing'):
+            self.filtered('is_marketing')._clear_others_marketing()
         return res
+
+    def _clear_others_marketing(self):
+        if self.env.context.get('pricelist_toggle_guard_marketing'):
+            return
+        others = self.sudo().search([
+            ('is_marketing', '=', True),
+            ('id', 'not in', self.ids),
+        ])
+        if others:
+            others.with_context(pricelist_toggle_guard_marketing=True).write({'is_marketing': False})
 
     def _clear_others_default(self):
         if self.env.context.get('pricelist_toggle_guard'):
