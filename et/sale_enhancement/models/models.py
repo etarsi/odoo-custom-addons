@@ -877,8 +877,6 @@ class SaleOrderLineInherit(models.Model):
                             line._compute_is_available()
                         else:
                             raise UserError('No se puede comprometer más unidades de las disponibles.')
-
-
         
 
     @api.onchange('product_packaging_qty')

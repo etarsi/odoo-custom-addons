@@ -2,13 +2,109 @@
 <odoo>
     <data>
         <template id="report_payment_group_document_enhancement" name="Account Payment Group Document Enhancement" inherit_id="l10n_ar_ux.report_payment_group_document">
-            <xpath expr="//table[@name='matching_table']" position="replace">
-                <!-- tamaño de letra  -->
-                <table class="table table-sm o_main_table" name="matching_table" style="width: 100%; border-collapse: collapse; border: 1px solid #dfe3e8; margin-bottom: 1.5rem; font-size: 9px;">
+            <xpath expr="//table[@name='payments_table']" position="replace">
+                <table class="table table-sm o_main_table" name="payments_table">
                     <thead>
                         <tr>
-                            <th><span>Comprobantes Imputados</span></th>
-                            <th class="text-center"><span>Fecha Venc.</span></th>
+                            <th class="text-right" style="width: 5%; padding-right: 2px;">#</th>
+                            <th class="text-center"><span>Pagos</span></th>
+                            <th class="text-right" t-if="any(o.mapped('payment_ids.other_currency'))"><span>Importe divisa</span></th>
+                            <th class="text-right"><span>Importe</span></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- TODO podriamos unir todos los pagos en un foreach y cambiar la descripción segun el tipo de pago, deberiamos hacer un sort acorde al inicio -->
+                        <!-- Contador global de pagos -->
+                        <t t-set="payment_index" t-value="0"/>
+                        <t t-foreach="o.payment_ids.filtered(lambda x: x.payment_method_code in ['check_printing', 'new_third_party_checks', 'in_third_party_checks', 'out_third_party_checks']).sorted(key=lambda r: r.l10n_latam_check_payment_date or r.date)" t-as="line">
+                            <t t-set="check" t-value="line.l10n_latam_check_id or line"/>
+                            <!-- Incremento el índice -->
+                            <t t-set="payment_index" t-value="payment_index + 1"/>
+                            <tr>
+                                <td class="text-right" style="width: 5%; padding-right: 2px;">
+                                    <span t-esc="payment_index"/>
+                                </td>
+                                <td>
+                                    <span class="text-right" t-out="'Cheque %s nro %s - %s' % ('electrónico ' if check.l10n_latam_checkbook_id.type == 'electronic' else '', check.check_number, check.l10n_latam_check_bank_id.name or check.journal_id.name)"/>
+                                    <t t-if="check.l10n_latam_check_payment_date">
+                                        - Venc. <span t-field="check.l10n_latam_check_payment_date"/>
+                                    </t>
+                                </td>
+                                <td class="text-right" t-if="any(o.mapped('payment_ids.other_currency'))">
+                                    <t t-if="check.currency_id">
+                                        <span class="text-nowrap"
+                                            t-field="check.amount_signed"
+                                            t-field-options="{&quot;widget&quot;: &quot;monetary&quot;,  &quot;display_currency&quot;: &quot;check.currency_id&quot;}"/>
+                                    </t>
+                                </td>
+                                <td class="text-right o_price_total">
+                                    <span class="text-nowrap" t-field="check.l10n_ar_amount_company_currency_signed"/>
+                                </td>
+                            </tr>
+                        </t>
+
+                        <t t-foreach="o.payment_ids.filtered(lambda x: x.tax_withholding_id)" t-as="line">
+                            <!-- Incremento el índice -->
+                            <t t-set="payment_index" t-value="payment_index + 1"/>
+                            <tr>
+                                <td class="text-right" style="width: 5%; padding-right: 2px;">
+                                    <span t-esc="payment_index"/>
+                                </td>
+                                <td class="text-right">
+                                    <span t-out="&quot;%s - %s&quot; % (line.tax_withholding_id.name, line.withholding_number or line.name)"/>
+                                </td>
+                                <td class="text-right" t-if="any(o.mapped('payment_ids.other_currency'))">
+                                    <t t-if="line.other_currency">
+                                        <span class="text-nowrap" t-field="line.amount_signed" t-field-options="{&quot;widget&quot;: &quot;monetary&quot;,  &quot;display_currency&quot;: &quot;line.currency_id&quot;}"/>
+                                    </t>
+                                </td>
+                                <td class="text-right o_price_total">
+                                    <span class="text-nowrap" t-field="line.l10n_ar_amount_company_currency_signed"/>
+                                </td>
+                            </tr>
+                        </t>
+                        <t t-foreach="o.payment_ids.filtered(lambda x: not x.tax_withholding_id and x.payment_method_code not in ['check_printing', 'new_third_party_checks', 'in_third_party_checks', 'out_third_party_checks'])" t-as="line">
+                            <!-- Incremento el índice -->
+                            <t t-set="payment_index" t-value="payment_index + 1"/>                        
+                            <tr>
+                                <td class="text-right" style="width: 5%; padding-right: 2px;">
+                                    <span t-esc="payment_index"/>
+                                </td>
+                                <td class="text-right">
+                                    <span t-field="line.journal_id.name"/>
+                                </td>
+                                <td class="text-right" t-if="any(o.mapped('payment_ids.other_currency'))">
+                                <t t-if="line.other_currency">
+                                    <span class="text-nowrap" t-field="line.amount_signed" t-field-options="{&quot;widget&quot;: &quot;monetary&quot;,  &quot;display_currency&quot;: &quot;line.currency_id&quot;}"/>
+                                </t>
+                                </td>
+                                <td class="text-right o_price_total">
+                                    <span class="text-nowrap" t-field="line.l10n_ar_amount_company_currency_signed"/>
+                                </td>
+                            </tr>
+                        </t>
+                    </tbody>
+                    <tfoot>
+                        <tr>
+                            <td colspan="2"><strong><span>Total Pagado</span></strong></td>
+                            <td class="text-right" t-if="any(o.mapped('payment_ids.other_currency'))">
+                                <strong t-if="len(o.payment_ids.mapped('currency_id')) == 1 and o.payment_ids.mapped('currency_id') != o.currency_id"> <span class="text-nowrap" t-out="sum(o.payment_ids.mapped('amount_signed'))" t-options="{'widget': 'monetary', 'display_currency': o.payment_ids.mapped('currency_id')}"/></strong>
+                            </td>
+                            <td class="text-right">
+                                <strong><span class="text-nowrap" t-field="o.payments_amount"/></strong>
+                            </td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </xpath>
+            
+            <xpath expr="//table[@name='matching_table']" position="replace">
+                <!-- tamaño de letra  -->
+                <table class="table table-sm o_main_table" name="matching_table">
+                    <thead>
+                        <tr>
+                            <th class="text-center"><span>Comprobantes Imputados</span></th>
+                            <th class="text-right"><span>Fecha Venc.</span></th>
                             <th class="text-right"><span>Importe Original</span></th>
                             <th class="text-right"><span>Importe Imputado</span></th>
                         </tr>
@@ -17,9 +113,9 @@
                         <t t-set="seen_move_ids" t-value="[]"/>
                         <t t-foreach="o.with_context(payment_group_id=o.id).matched_move_line_ids" t-as="line">
                             <tr>
-                                <td><span t-field="line.move_id.display_name"/></td>
-                                <td class="text-center">
-                                    <span class="text-nowrap" t-field="line.date_maturity"/>
+                                <td style="font-size: 10px;" class="text-right"><span t-field="line.move_id.display_name"/></td>
+                                <td class="text-right">
+                                    <span t-field="line.date_maturity"/>
                                 </td>
                                 <td class="text-right o_price_total">
                                     <span class="text-nowrap" t-raw="(o.partner_type == 'supplier' and -1.0 or 1.0) * line.balance" t-options="{&quot;widget&quot;: &quot;monetary&quot;, &quot;display_currency&quot;: o.currency_id}"/>
@@ -29,32 +125,28 @@
                                 </td>
                             </tr>
                             <t t-set="seen_move_ids" t-value="seen_move_ids + [line.move_id.id]"/>
-                            <t t-if="line.full_reconcile_id">
-                                <t t-foreach="line.full_reconcile_id.reconciled_line_ids" t-as="reconciled_line">
-                                <t t-if="('FA' in reconciled_line.move_id.display_name and reconciled_line.payment_group_matched_amount==0 or 'NC' in reconciled_line.move_id.display_name) and reconciled_line.move_id.id not in seen_move_ids">
-                                    <t t-set="seen_move_ids" t-value="seen_move_ids + [reconciled_line.move_id.id]"/>
-                                    <tr>
-                                    <td><span t-field="reconciled_line.move_id.display_name"/></td>
-                                    <td class="text-center">
-                                        <span class="text-nowrap" t-field="reconciled_line.date_maturity"/>
-                                    </td>
-                                    <td class="text-right o_price_total">
-                                        <span class="text-nowrap" t-raw="(o.partner_type == 'supplier' and -1.0 or 1.0) * reconciled_line.balance" t-options="{&quot;widget&quot;: &quot;monetary&quot;, &quot;display_currency&quot;: o.currency_id}"/>
-                                    </td>
-                                    <td class="text-right o_price_total">
-                                        <span class="text-nowrap" t-raw="(o.partner_type == 'supplier' and -1.0 or 1.0) * reconciled_line.payment_group_matched_amount" t-options="{&quot;widget&quot;: &quot;monetary&quot;, &quot;display_currency&quot;: o.currency_id}"/>
-                                    </td>
-                                    </tr>
+                                <t t-if="line.full_reconcile_id">
+                                    <t t-foreach="line.full_reconcile_id.reconciled_line_ids" t-as="reconciled_line">
+                                    <t t-if="('FA' in reconciled_line.move_id.display_name and reconciled_line.payment_group_matched_amount==0 or 'NC' in reconciled_line.move_id.display_name) and reconciled_line.move_id.id not in seen_move_ids">
+                                        <t t-set="seen_move_ids" t-value="seen_move_ids + [reconciled_line.move_id.id]"/>
+                                        <tr>
+                                            <td style="font-size: 10px;" class="text-right"><span t-field="reconciled_line.move_id.display_name"/></td>
+                                            <td class="text-right"><span t-field="reconciled_line.date_maturity"/></td>
+                                            <td class="text-right o_price_total">
+                                                <span class="text-nowrap" t-raw="(o.partner_type == 'supplier' and -1.0 or 1.0) * reconciled_line.balance" t-options="{&quot;widget&quot;: &quot;monetary&quot;, &quot;display_currency&quot;: o.currency_id}"/>
+                                            </td>
+                                            <td class="text-right o_price_total">
+                                                <span class="text-nowrap" t-raw="(o.partner_type == 'supplier' and -1.0 or 1.0) * reconciled_line.payment_group_matched_amount" t-options="{&quot;widget&quot;: &quot;monetary&quot;, &quot;display_currency&quot;: o.currency_id}"/>
+                                            </td>
+                                        </tr>
                                     </t>
-                            </t>
+                                </t>
                             </t>
                             <t t-foreach="o.env['account.move'].search([('reversed_entry_id', '=', line.move_id.id),('state','=','posted')])" t-as="reversed_move">
-                            <t t-if="reversed_move">
+                                <t t-if="reversed_move">
                                     <tr>
-                                        <td><span t-field="reversed_move.display_name"/></td>
-                                        <td class="text-center">
-                                            <span class="text-nowrap" t-field="reversed_move.invoice_date_due"/>
-                                        </td>
+                                        <td style="font-size: 10px;" class="text-right"><span t-field="reversed_move.display_name"/></td>
+                                        <td class="text-right"><span t-field="reversed_move.invoice_date_due"/></td>
                                         <td class="text-right o_price_total">
                                             <span class="text-nowrap" t-raw="(o.partner_type == 'supplier' and 1.0 or -1.0) * reversed_move.amount_total" t-options="{&quot;widget&quot;: &quot;monetary&quot;, &quot;display_currency&quot;: o.currency_id}"/>
                                         </td>
@@ -62,13 +154,12 @@
                                             <span class="text-nowrap" t-raw="(o.partner_type == 'supplier' and 1.0 or -1.0) * reversed_move.amount_residual" t-options="{&quot;widget&quot;: &quot;monetary&quot;, &quot;display_currency&quot;: o.currency_id}"/>
                                         </td>
                                     </tr>
+                                </t>
                             </t>
-                            </t>
-
                         </t>
                         <tr t-if="o.unmatched_amount">
                             <td>A cuenta</td>
-                            <td class="text-center"/>
+                            <td class="text-right"/>
                             <td class="text-right o_price_total"/>
                             <td class="text-right o_price_total">
                                 <span class="text-nowrap" t-field="o.unmatched_amount"/>
@@ -79,7 +170,7 @@
                         <tr>
                             <td colspan="3"><strong><span>Total Imputado</span></strong></td>
                             <td class="text-right">
-                                <strong><span class="text-nowrap" t-raw="o.unmatched_amount + o.matched_amount" t-options="{&quot;widget&quot;: &quot;monetary&quot;, &quot;display_currency&quot;: o.currency_id}"/></strong>
+                                <strong><span class="text-right" t-raw="o.unmatched_amount + o.matched_amount" t-options="{&quot;widget&quot;: &quot;monetary&quot;, &quot;display_currency&quot;: o.currency_id}"/></strong>
                             </td>
                         </tr>
                     </tfoot>
