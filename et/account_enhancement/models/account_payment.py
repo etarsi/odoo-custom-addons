@@ -77,7 +77,7 @@ class AccountPaymentInherit(models.Model):
             rec.check_effectiveness_text = False
             if not (rec.l10n_latam_check_issuer_vat and rec.journal_id):
                 continue
-            if rec.journal_id.code not in ('CSH3', 'ECHEQ'):
+            if rec.journal_id.code not in ('CSH3', 'ECHEQ', 'CSH5'):
                 continue
             payments = self.env['account.payment'].search([('l10n_latam_check_issuer_vat', '=', rec.l10n_latam_check_issuer_vat),
                                                             ('state', '=', 'posted')])
