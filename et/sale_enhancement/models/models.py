@@ -296,6 +296,8 @@ class SaleOrderInherit(models.Model):
             order = super().create(vals)    
         elif is_marketing:
             pricelist = self.env['product.pricelist'].search([('is_marketing','=', True)], limit=1)
+            #setear condicion de venta TIPO 3
+            vals['condicion_m2m'] = self.env['condicion.venta'].search([('name', '=', 'TIPO 3')], limit=1).id
             if pricelist:
                 vals = dict(vals)
                 vals['pricelist_id'] = pricelist.id
