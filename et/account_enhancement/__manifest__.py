@@ -38,6 +38,8 @@
         'data/ir_cron.xml',
         #Reportes
         'wizard/generar_factura_wizard_views.xml',
+        #Templates
+        'template/report_payment_group_document_views.xml',
         #permissions
         'permissions/res_group.xml',
         'views/views.xml',
