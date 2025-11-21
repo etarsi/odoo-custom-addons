@@ -67,43 +67,35 @@ class AccountPaymentInherit(models.Model):
 
                     elif record.state == 'posted':
                         record.check_state = 'Entregado'
-            
-
-
-
 
     @api.onchange('l10n_latam_check_issuer_vat', 'payment_method_line_id', 'journal_id')
     def _compute_check_effectiveness(self):
-        Payment = self.env['account.payment'].sudo()
-        success_states = {'Entregado'}   # ajustá a los *valores* reales de check_state
+        success_states = {'Entregado'}
         rejected_states = {'Rechazado'}
-
         for rec in self:
             rec.is_effectiveness_text = False
             rec.check_effectiveness_text = False
-
             if not (rec.l10n_latam_check_issuer_vat and rec.journal_id):
                 continue
             if rec.journal_id.code not in ('CSH3', 'ECHEQ'):
                 continue
-
-            # Buscar y contar manualmente
-            payments = Payment.search([('l10n_latam_check_issuer_vat', '=', rec.l10n_latam_check_issuer_vat),
-                                        ('state', '=', 'posted')])
+            payments = self.env['account.payment'].search([('l10n_latam_check_issuer_vat', '=', rec.l10n_latam_check_issuer_vat),
+                                                            ('state', '=', 'posted')])
             if payments:
-                succ = 0
-                rej = 0
+                succ_amount = 0
+                rej_amount = 0
                 for p in payments:
                     st = p.check_state
+                    amt = p.amount or 0.0
+                    
                     if st in success_states:
-                        succ += 1
+                        succ_amount += amt
                     elif st in rejected_states:
-                        rej += 1
-                base = succ + rej
+                        rej_amount += amt
+                base = succ_amount + rej_amount
                 if base == 0:
-                    # sin antecedentes → no mostramos nada
                     continue
-                pct = int(round(100.0 * succ / float(base)))
+                pct = int(round(100.0 * succ_amount / float(base)))
                 rec.check_effectiveness_text = _("%(pct)s%% Cheques Aprobados") % {'pct': pct}
                 rec.is_effectiveness_text = True
 
