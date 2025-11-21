@@ -116,7 +116,10 @@ class SaleOrderInherit(models.Model):
     @api.onchange('pricelist_id')
     def _onchange_pricelist_id(self):
         for record in self:
-            record.update_lines_prices()
+            if record.pricelist_id:
+                if record.is_marketing and not record.pricelist_id.is_marketing:
+                    raise UserError("La lista de precios seleccionada no corresponde a Marketing.")
+                record.update_lines_prices()
 
     @api.onchange('condicion_m2m')
     def _onchange_condicion_m2m(self):
