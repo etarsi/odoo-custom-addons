@@ -18,7 +18,7 @@ action = env.ref('debt_composition.action_report_debt_tbl').read()[0]
       <field name="binding_view_types">form,tree</field>
       <field name="state">code</field>
       <field name="code">
-action = env['res.partner'].browse(active_ids).action_print_debt_report()
+action = records[:1].action_print_debt_report()
       </field>
   </record>
 </odoo>
