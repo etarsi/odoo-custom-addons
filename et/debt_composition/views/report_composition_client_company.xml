@@ -5,8 +5,8 @@
         model="report.debt.composition.client.company"
         string="Composición de deuda"
         report_type="qweb-pdf"
-        name="debt_composition.report_debt_composition_client_pdf_template"
-        file="debt_composition.report_debt_composition_client_pdf_template"
+        name="debt_composition.report_debt_composition_client_company_pdf_template"
+        file="debt_composition.report_debt_composition_client_company_pdf_template"
     />
 
     <!-- Plantilla QWeb -->
