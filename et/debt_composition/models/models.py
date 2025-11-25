@@ -73,10 +73,10 @@ class ReportDebtCompositionClientCompany(models.Model):
     nombre = fields.Char(string='Comprobante', readonly=True)
     comercial = fields.Many2one('res.users', string="Comercial", readonly=True)
     ejecutivo = fields.Many2one('res.users', string="Ejecutiva", readonly=True)
-    importe_original = fields.Monetary(string='Importe Original', readonly=True)
-    importe_residual = fields.Monetary(string='Importe Residual', readonly=True)
-    importe_aplicado = fields.Monetary(string='Importe Aplicado', readonly=True)
-    saldo_acumulado = fields.Monetary(string='Saldo Acumulado', readonly=True)
+    importe_original = fields.Monetary(string='Importe Original', readonly=True, currency_field='currency_id')
+    importe_residual = fields.Monetary(string='Importe Residual', readonly=True, currency_field='currency_id')
+    importe_aplicado = fields.Monetary(string='Importe Aplicado', readonly=True, currency_field='currency_id')
+    saldo_acumulado = fields.Monetary(string='Saldo Acumulado', readonly=True, currency_field='currency_id')
     origen = fields.Selection([
         ('factura', 'Factura'),
         ('nota_credito', 'Nota de Crédito'),

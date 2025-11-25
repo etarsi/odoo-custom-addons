@@ -65,10 +65,18 @@
                                     </td>
                                     <td><t t-esc="l.nombre"/></td>
                                     <td><t t-esc="l.origen"/></td>
-                                    <td class="text-right"><t t-esc="l.importe_original"/></td>
-                                    <td class="text-right"><t t-esc="l.importe_aplicado"/></td>
-                                    <td class="text-right"><t t-esc="l.importe_residual"/></td>
-                                    <td class="text-right"><t t-esc="l.saldo_acumulado"/></td>
+                                    <td class="text-right">
+                                        <span t-field="l.importe_original"/>
+                                    </td>
+                                    <td class="text-right">
+                                        <span t-field="l.importe_aplicado"/>
+                                    </td>
+                                    <td class="text-right">
+                                        <span t-field="l.importe_residual"/>
+                                    </td>
+                                    <td class="text-right">
+                                        <span t-field="l.saldo_acumulado"/>
+                                    </td>
                                 </tr>
                                 <t t-set="last_saldo_company" t-value="l.saldo_acumulado or 0.0"/>
                             </t>
