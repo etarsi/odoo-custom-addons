@@ -19,13 +19,8 @@ class ResPartnerInherit(models.Model):
             partner_id=partner_id,
             company_ids=company_ids,
         )
-        data=[]
         lines = self.env['report.debt.composition.client.company'].search([('partner', '=', partner_id), ('company_id', 'in', company_ids)])
         if lines:
-            #modificar la fecha por el formato d/m/Y
-            for line in lines:
-                if line.fecha:
-                    line.fecha = line.fecha.strftime('%d/%m/%Y')
             return self.env.ref(
                 'debt_composition.report_debt_composition_client_company_pdf'
             ).report_action(lines)
