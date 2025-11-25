@@ -188,3 +188,11 @@ class AccountPaymentGroupInherit(models.Model):
                 payments = record.payment_ids.sorted(lambda p: (p.l10n_ar_amount_company_currency_signed or 0.0, p.id))
                 for indx, payment in enumerate(payments, start=1):
                     payment.index = indx
+
+
+    #### DEPENDS #####
+
+    @api.depends('partner_id', 'partner_type', 'company_id')
+    def _compute_to_pay_move_lines(self):
+        for record in self:
+            return
