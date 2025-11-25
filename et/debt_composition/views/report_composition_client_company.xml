@@ -60,7 +60,7 @@
                                 </t>
                                 <!-- Detalle de la línea -->
                                 <tr>
-                                    <td><t t-field="l.fecha" t-options='{"widget": "date"}'/></td>
+                                    <td><t t-esc="l.fecha" t-esc="time.strftime('%A, %d %B %Y',time.strptime(l.fecha,'%Y-%m-%d'))"/></td>
                                     <td><t t-esc="l.nombre"/></td>
                                     <td><t t-esc="l.origen"/></td>
                                     <td class="text-right"><t t-esc="l.importe_original"/></td>
