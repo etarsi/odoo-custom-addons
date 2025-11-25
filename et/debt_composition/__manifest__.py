@@ -27,6 +27,7 @@
         # 'security/ir.model.access.csv',
         'data/actions.xml',
         'data/menu.xml',
+        'reports/report_debt_composition_client_company.xml',
         'views/views.xml',
         'views/templates.xml',
     ],

@@ -60,3 +60,39 @@ class ReportDebtCompositionClient(models.Model):
                 currency_id
             FROM report_debt_composition_client_tbl;
         """)
+
+class ReportDebtCompositionClientCompany(models.Model):
+    _name = "report.debt.composition.client.company"
+    _auto = False
+    _description = "Composición de deuda cliente por compañías"
+
+    partner = fields.Many2one('res.partner', string='Cliente', readonly=True)
+    fecha = fields.Date(string='Fecha', readonly=True)
+    fecha_vencimiento = fields.Date(string='Fecha Vencimiento', readonly=True)
+    nombre = fields.Char(string='Comprobante', readonly=True)
+    comercial = fields.Many2one('res.users', string="Comercial", readonly=True)
+    ejecutivo = fields.Many2one('res.users', string="Ejecutiva", readonly=True)
+    importe_original = fields.Monetary(string='Importe Original', readonly=True)
+    importe_residual = fields.Monetary(string='Importe Residual', readonly=True)
+    importe_aplicado = fields.Monetary(string='Importe Aplicado', readonly=True)
+    saldo_acumulado = fields.Monetary(string='Saldo Acumulado', readonly=True)
+    origen = fields.Selection([
+        ('factura', 'Factura'),
+        ('nota_credito', 'Nota de Crédito'),
+        ('recibo', 'Recibo')
+    ], string='Origen', readonly=True)
+    company_id = fields.Many2one('res.company', string='Compañía', readonly=True)
+    currency_id = fields.Many2one('res.currency', string='Moneda', readonly=True)
+    
+    
+    def action_refresh_sql(self, partner_id=None, company_ids=None):
+        cr = self.env.cr
+        if not company_ids:
+            company_ids = None
+
+        cr.execute("""
+            SELECT public.refresh_report_debt_composition_client_company_ids(%s, %s);
+        """, (partner_id, company_ids))
+        self.env.cr.commit()
+        _logger.info("Refreshed report_debt_composition_client: partner_id=%s company_ids=%s", partner_id, company_ids)
+        return True
