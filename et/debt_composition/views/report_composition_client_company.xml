@@ -85,9 +85,14 @@
                                 t-value="grand_total_saldo + (last_saldo_company or 0.0)"/>
                             </t>
                             <tr>
-                                <td colspan="3" class="text-right"><strong>Total saldo:</strong></td>
-                                <td colspan="4" class="text-right">
-                                    <strong><t t-esc="grand_total_saldo"/></strong>
+                                <td colspan="6" class="text-right"><strong>Total saldo:</strong></td>
+                                <td class="text-right">
+                                    <strong>
+                                        <span t-esc="formatLang(
+                                            grand_total_saldo,
+                                            currency_obj=docs and docs[0].currency_id
+                                        )"/>
+                                    </strong>
                                 </td>
                             </tr>
                         </tbody>
