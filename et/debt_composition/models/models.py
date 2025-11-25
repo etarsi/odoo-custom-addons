@@ -96,3 +96,25 @@ class ReportDebtCompositionClientCompany(models.Model):
         self.env.cr.commit()
         _logger.info("Refreshed report_debt_composition_client: partner_id=%s company_ids=%s", partner_id, company_ids)
         return True
+    
+    def init(self):
+        cr = self.env.cr
+        cr.execute(f"""
+            CREATE OR REPLACE VIEW {self._table} AS
+            SELECT 
+                id,
+                partner,
+                fecha,
+                fecha_vencimiento,
+                nombre,
+                comercial,
+                ejecutivo,
+                importe_original,
+                importe_residual,
+                importe_aplicado,
+                saldo_acumulado,
+                origen,
+                company_id,
+                currency_id
+            FROM report_debt_composition_client_company_ids_tbl;
+        """)
