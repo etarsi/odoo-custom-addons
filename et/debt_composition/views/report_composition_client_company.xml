@@ -16,7 +16,7 @@
                 <!-- Por comodidad tomamos el primer doc como cabecera -->
                 <t t-set="doc" t-value="docs and docs[0] or False"/>
                 <div class="page">
-                    <h2>Composición de deuda por compañía</h2>
+                    <h2>COMPOSICIÓN DE DEUDA</h2>
                     <t t-if="doc">
                         <p>
                             <strong>Cliente: </strong>
@@ -31,7 +31,7 @@
                                 <th>Origen</th>
                                 <th>Importe original</th>
                                 <th>Aplicado</th>
-                                <th>Residual</th>
+                                <th>Saldo</th>
                                 <th>Saldo acumulado</th>
                             </tr>
                         </thead>
