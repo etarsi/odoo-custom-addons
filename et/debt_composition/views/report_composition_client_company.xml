@@ -36,8 +36,17 @@
                             </tr>
                         </thead>
                         <tbody>
+                            <!-- Estado para recorrer -->
                             <t t-set="current_company" t-value="False"/>
+                            <t t-set="last_saldo_company" t-value="0.0"/>
+                            <t t-set="grand_total_saldo" t-value="0.0"/>
+            
                             <t t-foreach="docs" t-as="l">
+                                <t t-if="current_company and l.company_id != current_company">
+                                    <t t-set="grand_total_saldo"
+                                    t-value="grand_total_saldo + (last_saldo_company or 0.0)"/>
+                                    <t t-set="last_saldo_company" t-value="0.0"/>
+                                </t>
                                 <t t-if="not current_company or l.company_id != current_company">
                                     <tr>
                                         <td colspan="7">
@@ -49,7 +58,7 @@
                                     </tr>
                                     <t t-set="current_company" t-value="l.company_id"/>
                                 </t>
-                                <!-- detalle de la línea -->
+                                <!-- Detalle de la línea -->
                                 <tr>
                                     <td><t t-esc="l.fecha"/></td>
                                     <td><t t-esc="l.nombre"/></td>
@@ -59,7 +68,18 @@
                                     <td class="text-right"><t t-esc="l.importe_residual"/></td>
                                     <td class="text-right"><t t-esc="l.saldo_acumulado"/></td>
                                 </tr>
+                                <t t-set="last_saldo_company" t-value="l.saldo_acumulado or 0.0"/>
                             </t>
+                            <t t-if="current_company">
+                                <t t-set="grand_total_saldo"
+                                t-value="grand_total_saldo + (last_saldo_company or 0.0)"/>
+                            </t>
+                            <tr>
+                                <td colspan="3" class="text-right"><strong>Total saldo:</strong></td>
+                                <td colspan="4" class="text-right">
+                                    <strong><t t-esc="grand_total_saldo"/></strong>
+                                </td>
+                            </tr>
                         </tbody>
                     </table>
                 </div>
