@@ -11,58 +11,59 @@
 
     <!-- Plantilla QWeb -->
     <template id="report_debt_composition_client_company_pdf_template">
-        <!-- ESTO es lo que mete <html><body><main> -->
-        <t t-call="web.external_layout">
-            <!-- Por comodidad tomamos el primer doc como cabecera -->
-            <t t-set="doc" t-value="docs and docs[0] or False"/>
-            <div class="page">
-                <h2>Composición de deuda por compañía</h2>
-                <t t-if="doc">
-                    <p>
-                        <strong>Cliente: </strong>
-                        <t t-esc="doc.partner and doc.partner.name or ''"/>
-                    </p>
-                </t>
-                <table class="table table-sm o_main_table">
-                    <thead>
-                        <tr>
-                            <th>Fecha</th>
-                            <th>Comprobante</th>
-                            <th>Origen</th>
-                            <th>Importe original</th>
-                            <th>Aplicado</th>
-                            <th>Residual</th>
-                            <th>Saldo acumulado</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <t t-set="current_company" t-value="False"/>
-                        <t t-foreach="docs" t-as="l">
-                            <t t-if="not current_company or l.company_id != current_company">
-                                <tr>
-                                    <td colspan="7">
-                                        <strong>
-                                            Compañía:
-                                            <t t-esc="l.company_id and l.company_id.name or ''"/>
-                                        </strong>
-                                    </td>
-                                </tr>
-                                <t t-set="current_company" t-value="l.company_id"/>
-                            </t>
-                            <!-- detalle de la línea -->
+        <t t-call="web.html_container">
+            <t t-call="web.external_layout">
+                <!-- Por comodidad tomamos el primer doc como cabecera -->
+                <t t-set="doc" t-value="docs and docs[0] or False"/>
+                <div class="page">
+                    <h2>Composición de deuda por compañía</h2>
+                    <t t-if="doc">
+                        <p>
+                            <strong>Cliente: </strong>
+                            <t t-esc="doc.partner and doc.partner.name or ''"/>
+                        </p>
+                    </t>
+                    <table class="table table-sm o_main_table">
+                        <thead>
                             <tr>
-                                <td><t t-esc="l.fecha"/></td>
-                                <td><t t-esc="l.nombre"/></td>
-                                <td><t t-esc="l.origen"/></td>
-                                <td class="text-right"><t t-esc="l.importe_original"/></td>
-                                <td class="text-right"><t t-esc="l.importe_aplicado"/></td>
-                                <td class="text-right"><t t-esc="l.importe_residual"/></td>
-                                <td class="text-right"><t t-esc="l.saldo_acumulado"/></td>
+                                <th>Fecha</th>
+                                <th>Comprobante</th>
+                                <th>Origen</th>
+                                <th>Importe original</th>
+                                <th>Aplicado</th>
+                                <th>Residual</th>
+                                <th>Saldo acumulado</th>
                             </tr>
-                        </t>
-                    </tbody>
-                </table>
-            </div>
+                        </thead>
+                        <tbody>
+                            <t t-set="current_company" t-value="False"/>
+                            <t t-foreach="docs" t-as="l">
+                                <t t-if="not current_company or l.company_id != current_company">
+                                    <tr>
+                                        <td colspan="7">
+                                            <strong>
+                                                Compañía:
+                                                <t t-esc="l.company_id and l.company_id.name or ''"/>
+                                            </strong>
+                                        </td>
+                                    </tr>
+                                    <t t-set="current_company" t-value="l.company_id"/>
+                                </t>
+                                <!-- detalle de la línea -->
+                                <tr>
+                                    <td><t t-esc="l.fecha"/></td>
+                                    <td><t t-esc="l.nombre"/></td>
+                                    <td><t t-esc="l.origen"/></td>
+                                    <td class="text-right"><t t-esc="l.importe_original"/></td>
+                                    <td class="text-right"><t t-esc="l.importe_aplicado"/></td>
+                                    <td class="text-right"><t t-esc="l.importe_residual"/></td>
+                                    <td class="text-right"><t t-esc="l.saldo_acumulado"/></td>
+                                </tr>
+                            </t>
+                        </tbody>
+                    </table>
+                </div>
+            </t>
         </t>
     </template>
 </odoo>
