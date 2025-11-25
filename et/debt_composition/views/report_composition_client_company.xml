@@ -88,9 +88,9 @@
                                 <td colspan="6" class="text-right"><strong>Total saldo:</strong></td>
                                 <td class="text-right">
                                     <strong>
-                                        <span t-esc="formatLang(
-                                            grand_total_saldo,
-                                            currency_obj=docs and docs[0].currency_id
+                                        <span t-esc="'%s %s' % (
+                                            (docs and docs[0].currency_id and docs[0].currency_id.symbol or ''),
+                                            ('{0:,.2f}'.format(grand_total_saldo or 0.0))
                                         )"/>
                                     </strong>
                                 </td>
