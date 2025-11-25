@@ -29,7 +29,7 @@ class GoogleSheetsClient(models.AbstractModel):
         sheet_enable = config_parameters.get_param("stock_enhancement2.sheet_enable")
         sheet_spreadsheet_id = config_parameters.get_param("stock_enhancement2.sheet_spreadsheet_id")
         sheet_gid = config_parameters.get_param("stock_enhancement2.sheet_gid")
-        sa_path = "/opt/odoo15/odoo-custom-addons/et/stock_enhancement2/config/service_account.json"  # Ruta fija del JSON del servicio
+        sa_path = "/opt/odoo15/drive-api/service_account.json"  # Ruta fija del JSON del servicio
         if not sheet_enable:
             return False
         svc = self._svc(sa_path)
