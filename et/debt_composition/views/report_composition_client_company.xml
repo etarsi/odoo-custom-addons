@@ -25,26 +25,20 @@
                             <th>Aplicado</th>
                             <th>Residual</th>
                             <th>Saldo acumulado</th>
+                            <th>Compañía</th>
                         </tr>
                     </thead>
                     <tbody>
-                        <t t-foreach="docs | groupby('company_id')" t-as="g">
+                        <t t-foreach="docs" t-as="g">
                             <tr>
-                                <td colspan="7">
-                                    <strong>
-                                        Compañía: <t t-esc="g.grouper.name"/>
-                                    </strong>
-                                </td>
-                            </tr>
-
-                            <tr t-foreach="g.list" t-as="l">
-                                <td><t t-esc="l.fecha"/></td>
-                                <td><t t-esc="l.nombre"/></td>
-                                <td><t t-esc="l.origen"/></td>
-                                <td class="text-right"><t t-esc="l.importe_original"/></td>
-                                <td class="text-right"><t t-esc="l.importe_aplicado"/></td>
-                                <td class="text-right"><t t-esc="l.importe_residual"/></td>
-                                <td class="text-right"><t t-esc="l.saldo_acumulado"/></td>
+                                <td><t t-esc="g.fecha"/></td>
+                                <td><t t-esc="g.nombre"/></td>
+                                <td><t t-esc="g.origen"/></td>
+                                <td class="text-right"><t t-esc="g.importe_original"/></td>
+                                <td class="text-right"><t t-esc="g.importe_aplicado"/></td>
+                                <td class="text-right"><t t-esc="g.importe_residual"/></td>
+                                <td class="text-right"><t t-esc="g.saldo_acumulado"/></td>
+                                <td class="text-right"><t t-esc="g.company_id.name"/></td>
                             </tr>
                         </t>
                     </tbody>

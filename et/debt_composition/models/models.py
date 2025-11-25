@@ -65,6 +65,7 @@ class ReportDebtCompositionClientCompany(models.Model):
     _name = "report.debt.composition.client.company"
     _auto = False
     _description = "Composición de deuda cliente por compañías"
+    _order = 'company_id, fecha asc'
 
     partner = fields.Many2one('res.partner', string='Cliente', readonly=True)
     fecha = fields.Date(string='Fecha', readonly=True)
