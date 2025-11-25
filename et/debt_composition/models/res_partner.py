@@ -24,8 +24,8 @@ class ResPartnerInherit(models.Model):
         if lines:
             #modificar la fecha por el formato d/m/Y
             for line in lines:
-                if line.date:
-                    line.date = line.date.strftime('%d/%m/%Y')
+                if line.fecha:
+                    line.fecha = line.fecha.strftime('%d/%m/%Y')
             return self.env.ref(
                 'debt_composition.report_debt_composition_client_company_pdf'
             ).report_action(lines)
