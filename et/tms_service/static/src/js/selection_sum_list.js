@@ -17,11 +17,11 @@ odoo.define('tms_service.SelectionSumList', function (require) {
                 // Contenedor tipo “chip”
                 this.$selectionSum = $('<span/>', {
                     class: 'badge badge-info o_selection_sum ml-2 px-3 py-2',
-                });
-                this.$selectionSum.css({
-                    'font-size': '14px',    // probá 15px o 16px si la querés aún más grande
+                }).css({
+                    'font-size': '14px',
                     'font-weight': '600',
-                });
+                }).hide();  // 🔸 por defecto oculto
+
                 // Campo 1
                 this.$sumCampo1 = $('<span/>', {
                     class: 'mr-3',
@@ -58,6 +58,7 @@ odoo.define('tms_service.SelectionSumList', function (require) {
             }
             this.$sumCampo1.text(_t('T. Bultos: 0'));
             this.$sumCampo2.text(_t('T. Facturado: 0'));
+            this.$selectionSum.hide();   // 🔸 al resetear, lo oculto
         },
 
         _computeSelectionSum: function () {
@@ -68,12 +69,13 @@ odoo.define('tms_service.SelectionSumList', function (require) {
                 return;
             }
             if (!ids.length) {
-                this._resetSums();
+                this._resetSums();   // 🔸 sin selección → oculto
                 return;
             }
 
-            // ⚠️ CAMBIÁ ESTOS NOMBRES POR TUS CAMPOS REALES
-            // ej: ['cantidad_bultos', 'total_facturado']
+            // hay selección → lo muestro
+            this.$selectionSum.show();
+
             this._rpc({
                 model: this.modelName,
                 method: 'read',
@@ -83,17 +85,17 @@ odoo.define('tms_service.SelectionSumList', function (require) {
                 var total2 = 0;
 
                 records.forEach(function (rec) {
-                    total1 += rec.cantidad_bultos || 0;  // campo 1
-                    total2 += rec.amount_totals || 0;           // campo 2
+                    total1 += rec.cantidad_bultos || 0;   // campo 1
+                    total2 += rec.amount_totals || 0;     // campo 2
                 });
 
                 self.$sumCampo1.text(
-                    _t('Bultos: ') +
+                    _t('T. Bultos: ') +
                     fieldUtils.format.float(total1, {digits: [16, 2]})
                 );
 
                 self.$sumCampo2.text(
-                    _t('Campo2: ') +
+                    _t('T. Facturado: ') +
                     fieldUtils.format.float(total2, {digits: [16, 2]})
                 );
             });
