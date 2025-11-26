@@ -1,4 +1,4 @@
-from odoo import models, fields, api
+from odoo import models, fields, api, _
 from odoo.exceptions import ValidationError, UserError
 from datetime import timedelta
 
@@ -50,12 +50,67 @@ class hrLicense(models.Model):
         if employee:
             res['employee_id'] = employee.id
         return res
+    
+    # ============NOTIFICACIONES=============
+    def _notify_hr_admins(self, subject, body_html):
+        """Notifica a todos los usuarios del grupo HR Administrador."""
+        group = False
+        try:
+            # tu grupo custom, igual que en hr.overtime.request
+            group = self.env.ref('hr_enhancement.group_hr_administrador')
+        except ValueError:
+            # opcional: fallback al grupo nativo de Odoo
+            group = self.env.ref('hr.group_hr_manager', raise_if_not_found=False)
 
+        if not group:
+            return
+
+        partners = group.users.mapped('partner_id')
+        if partners:
+            self.message_post(
+                subject=subject,
+                body=body_html,
+                partner_ids=partners.ids,
+                subtype_xmlid='mail.mt_comment'
+            )
+
+    def _notify_employee(self, subject, body_html):
+        """Notifica al empleado (si tiene usuario/partner)."""
+        partner = self.employee_id.user_id.partner_id if self.employee_id.user_id else False
+        if partner:
+            self.message_post(
+                subject=subject,
+                body=body_html,
+                partner_ids=[partner.id],
+                subtype_xmlid='mail.mt_comment'
+            )
+    # ============================================
+
+    
     def action_confirm(self):
         for record in self:
             if record.state != 'draft':
                 raise ValidationError('Solo se puede confirmar una licencia en estado Borrador.')
             record.state = 'pending'
+            
+            # Notificar a RRHH
+            subject = _("Nueva solicitud de licencia")
+            body = _(
+                "<p>El empleado <b>%s</b> solicitó una licencia:</p>"
+                "<ul>"
+                "<li><b>Tipo:</b> %s</li>"
+                "<li><b>Período:</b> %s al %s (%s días)</li>"
+                "<li><b>Motivo:</b> %s</li>"
+                "</ul>"
+            ) % (
+                record.employee_id.name or '',
+                record.license_type_id.name or '',
+                record.start_date or '',
+                record.end_date or '',
+                record.days_qty or 0,
+                (record.reason or '').replace('\n', '<br/>'),
+            )
+            record._notify_hr_admins(subject, body)
 
     def action_approve(self):
         for record in self:
@@ -64,6 +119,22 @@ class hrLicense(models.Model):
             record.state = 'approved'
             record.approver_id = self.env.user.id
             record.approver_date = fields.Datetime.now()
+            
+            # Notificar al empleado
+            subject = _("Solicitud de licencia aprobada")
+            body = _(
+                "<p>Tu solicitud de licencia fue <b>aprobada</b>.</p>"
+                "<ul>"
+                "<li><b>Tipo:</b> %s</li>"
+                "<li><b>Período:</b> %s al %s (%s días)</li>"
+                "</ul>"
+            ) % (
+                record.license_type_id.name or '',
+                record.start_date or '',
+                record.end_date or '',
+                record.days_qty or 0,
+            )
+            record._notify_employee(subject, body)
 
     def action_reject(self):
         for record in self:
@@ -72,6 +143,22 @@ class hrLicense(models.Model):
             record.state = 'rejected'
             record.reject_id = self.env.user.id
             record.reject_date = fields.Datetime.now()
+            
+            # Notificar al empleado
+            subject = _("Solicitud de licencia rechazada")
+            body = _(
+                "<p>Tu solicitud de licencia fue <b>rechazada</b>.</p>"
+                "<ul>"
+                "<li><b>Tipo:</b> %s</li>"
+                "<li><b>Período:</b> %s al %s (%s días)</li>"
+                "</ul>"
+            ) % (
+                record.license_type_id.name or '',
+                record.start_date or '',
+                record.end_date or '',
+                record.days_qty or 0,
+            )
+            record._notify_employee(subject, body)
             
     @api.onchange('start_date', 'end_date')
     def _compute_days_qty(self):

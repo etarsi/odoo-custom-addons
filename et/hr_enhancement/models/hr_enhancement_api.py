@@ -286,7 +286,7 @@ class HrEnhancementApi(models.AbstractModel):
                                         justification_text = ''
                                         if open_att.justification:
                                             justification_text = open_att.justification + ' | '
-                                        open_att.write({'blocked': True, 'check_out': open_att.check_in.replace(hour=6, minute=0, second=0, microsecond=0) + timedelta(days=1), 'justification': justification_text + 'Bloqueo automático por nuevo ingreso desde lector huella y cierre a las 06:00 hrs.'})
+                                        open_att.write({'blocked': True, 'check_out': open_att.check_in.replace(hour=9, minute=0, second=0, microsecond=0) + timedelta(days=1), 'justification': justification_text + 'Bloqueo automático por nuevo ingreso desde lector huella y cierre a las 06:00 hrs.'})
                                         # Crear asistencia abierta
                                         if check_utc > start_limit_night:
                                             self._create_temp_attendance_record(employee.id, check_utc, 'Intento marcar la salida fuera del rango nocturno (%s-%s)' % (start_limit_night.strftime("%H:%M"), end_limit_night.strftime("%H:%M"))) 
