@@ -5,27 +5,56 @@ odoo.define('tms_service.SelectionSumList', function (require) {
     var ListView = require('web.ListView');
     var viewRegistry = require('web.view_registry');
     var core = require('web.core');
+    var fieldUtils = require('web.field_utils');
     var _t = core._t;
 
     var SelectionSumController = ListController.extend({
 
         renderButtons: function () {
             this._super.apply(this, arguments);
+
             if (this.$buttons) {
+                // Contenedor tipo “chip”
                 this.$selectionSum = $('<span/>', {
-                    class: 'o_selection_sum ml-2',
-                    text: _t('Total cantidad: 0'),
+                    class: 'badge badge-info o_selection_sum ml-2 px-3 py-2',
                 });
-                this.$buttons.append(this.$selectionSum);
-                // o si querés solo en el bloque de botones de lista:
-                // this.$buttons.find('.o_list_buttons').append(this.$selectionSum);
+
+                // Campo 1
+                this.$sumCampo1 = $('<span/>', {
+                    class: 'mr-3',
+                    text: _t('Bultos: 0'),
+                });
+
+                // Campo 2
+                this.$sumCampo2 = $('<span/>', {
+                    text: _t('Campo2: 0'),
+                });
+
+                this.$selectionSum
+                    .append(this.$sumCampo1)
+                    .append(this.$sumCampo2);
+
+                // Lo ponemos al lado de "Crear"
+                var $addBtn = this.$buttons.find('.o_list_button_add');
+                if ($addBtn.length) {
+                    $addBtn.after(this.$selectionSum);
+                } else {
+                    this.$buttons.append(this.$selectionSum);
+                }
             }
         },
 
-        // 🔹 ESTE ES EL QUE IMPORTA
         _onSelectionChanged: function (event) {
             this._super.apply(this, arguments);
             this._computeSelectionSum();
+        },
+
+        _resetSums: function () {
+            if (!this.$selectionSum) {
+                return;
+            }
+            this.$sumCampo1.text(_t('T. Bultos: 0'));
+            this.$sumCampo2.text(_t('T. Facturado: 0'));
         },
 
         _computeSelectionSum: function () {
@@ -36,21 +65,34 @@ odoo.define('tms_service.SelectionSumList', function (require) {
                 return;
             }
             if (!ids.length) {
-                this.$selectionSum.text(_t('Total cantidad: 0'));
+                this._resetSums();
                 return;
             }
 
-            // ⚠️ CAMBIÁ 'cantidad_d' POR EL NOMBRE REAL DEL CAMPO
+            // ⚠️ CAMBIÁ ESTOS NOMBRES POR TUS CAMPOS REALES
+            // ej: ['cantidad_bultos', 'total_facturado']
             this._rpc({
                 model: this.modelName,
                 method: 'read',
-                args: [ids, ['cantidad_bultos']],
+                args: [ids, ['cantidad_bultos', 'amount_totals']],
             }).then(function (records) {
-                var total = 0;
+                var total1 = 0;
+                var total2 = 0;
+
                 records.forEach(function (rec) {
-                    total += rec.cantidad_bultos || 0;
+                    total1 += rec.cantidad_bultos || 0;  // campo 1
+                    total2 += rec.amount_totals || 0;           // campo 2
                 });
-                self.$selectionSum.text(_t('Total cantidad: ') + total);
+
+                self.$sumCampo1.text(
+                    _t('Bultos: ') +
+                    fieldUtils.format.float(total1, {digits: [16, 2]})
+                );
+
+                self.$sumCampo2.text(
+                    _t('Campo2: ') +
+                    fieldUtils.format.float(total2, {digits: [16, 2]})
+                );
             });
         },
     });
