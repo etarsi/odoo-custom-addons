@@ -103,7 +103,26 @@ class StockERP(models.Model):
             if stock_erp:
                 stock_erp.digip_unidades = record['stock']['disponible']
 
-
+    def action_update_comprometido_unidades(self):
+        self.ensure_one()
+        self.update_comprometido_unidades_stock()
+        return {
+            'type': 'ir.actions.client',
+            'tag': 'display_notification',
+            'params': {
+                'title': 'Listo',
+                'message': 'Se actualizaron las unidades comprometidas de los productos.',
+                'type': 'success',
+                'sticky': False,
+            }
+        }
+    
+    def update_comprometido_unidades_stock(self):
+        stocks_erp = self.env['stock.erp'].search([])
+        for stock_erp in stocks_erp:
+            lines = stock_erp.move_lines_reserved.filtered(lambda l: l.sale_line_id)
+            comprometido_unidades = sum(lines.mapped('quantity')) if lines else 0.0
+            stock_erp.write({'comprometido_unidades': comprometido_unidades})
 
     def create_initial_products(self):
 

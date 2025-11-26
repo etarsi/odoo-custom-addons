@@ -16,4 +16,13 @@
         <field name="binding_model_id" ref="stock_erp.model_stock_erp"/>
         <field name="binding_type">action</field>
     </record>
+
+    <record id="action_update_comprometidas_unidades_stock" model="ir.actions.server">
+        <field name="name">Actualizar unidades comprometidas</field>
+        <field name="model_id" ref="stock_erp.model_stock_erp"/>
+        <field name="state">code</field>
+        <field name="code">action = records.action_update_comprometido_unidades()</field>
+        <field name="binding_model_id" ref="stock_erp.model_stock_erp"/>
+        <field name="binding_type">action</field>
+    </record>
 </odoo>
