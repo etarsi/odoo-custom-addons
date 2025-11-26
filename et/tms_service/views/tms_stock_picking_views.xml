@@ -132,10 +132,9 @@
                 <field name="carrier_id"
                     string="Buscar por Transportista"
                     filter_domain="[('carrier_id.name','ilike', self)]"/>
-
                 <field name="partner_id"
                     string="Buscar por Cliente"
-                    filter_domain="[('partner_id.name','ilike', self)]"/>
+                    filter_domain="['|', '|', ('partner_id.display_name', 'ilike', self), ('partner_id.ref', '=', self), ('partner_id.email', 'ilike', self)]"/>
                 <separator/>
                 <filter name="filter_digip_closed" string="WMS Cerrados" domain="[('estado_digip', '=', 'closed')]"
                         help="Filtrar las licencias que están enviado y recibido." />
