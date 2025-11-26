@@ -18,16 +18,19 @@ odoo.define('tms_service.SelectionSumList', function (require) {
                 this.$selectionSum = $('<span/>', {
                     class: 'badge badge-info o_selection_sum ml-2 px-3 py-2',
                 });
-
+                this.$selectionSum.css({
+                    'font-size': '14px',    // probá 15px o 16px si la querés aún más grande
+                    'font-weight': '600',
+                });
                 // Campo 1
                 this.$sumCampo1 = $('<span/>', {
                     class: 'mr-3',
-                    text: _t('Bultos: 0'),
+                    text: _t('T. Bultos: 0'),
                 });
 
                 // Campo 2
                 this.$sumCampo2 = $('<span/>', {
-                    text: _t('Campo2: 0'),
+                    text: _t('T. Facturado: 0'),
                 });
 
                 this.$selectionSum
