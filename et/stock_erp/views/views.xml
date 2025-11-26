@@ -52,9 +52,9 @@
                             <tree string="Return Items">
                                 <field name="sale_id" string="Pedido"/>
                                 <field name="partner_id" string="Cliente"/>
-                                <field name="quantity" string="Cantidad"/>
+                                <field name="quantity" string="Cantidad" sum="Total"/>
                                 <field name="uxb" string="UxB"/>
-                                <field name="bultos" string="Bultos"/>      
+                                <field name="bultos" string="Bultos" sum="Total"/>      
                                 <button name="unreserve_stock" type="object" string="Liberar"/>               
                             </tree>
                           </field>
@@ -64,9 +64,9 @@
                             <tree editable="bottom" string="Delivered Items">
                                 <field name="picking_id" string="Transferencia"/>
                                 <field name="partner_id" string="Cliente"/>
-                                <field name="quantity" string="Cantidad"/>
+                                <field name="quantity" string="Cantidad" sum="Total"/>
                                 <field name="uxb" string="UxB"/>
-                                <field name="bultos" string="Bultos"/>                
+                                <field name="bultos" string="Bultos" sum="Total"/>                
                             </tree>
                           </field>
                       </page>
@@ -75,9 +75,9 @@
                             <tree editable="bottom" string="Delivered Items">
                                 <field name="picking_id" string="Transferencia"/>
                                 <field name="partner_id" string="Cliente"/>
-                                <field name="quantity" string="Cantidad"/>
+                                <field name="quantity" string="Cantidad" sum="Total"/>
                                 <field name="uxb" string="UxB"/>
-                                <field name="bultos" string="Bultos"/>                
+                                <field name="bultos" string="Bultos" sum="Total"/>                
                             </tree>
                           </field>
                       </page>
