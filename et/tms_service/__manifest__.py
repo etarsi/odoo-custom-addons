@@ -30,6 +30,11 @@
         'views/tms_stock_picking_views.xml',
         'views/menu.xml',
     ],
+    'assets': {
+        'web.assets_backend': [
+            'tms_service/static/src/js/selection_sum_list.js',
+        ],
+    },
     # only loaded in demonstration mode
     'demo': [
         'demo/demo.xml',

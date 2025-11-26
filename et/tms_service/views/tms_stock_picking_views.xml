@@ -79,7 +79,7 @@
         <field name="name">tms.stock.picking.tree</field>
         <field name="model">tms.stock.picking</field>
         <field name="arch" type="xml">
-            <tree edit="true" default_order="fecha_envio_wms desc">
+            <tree edit="true" default_order="fecha_envio_wms desc" js_class="selection_sum_list">
                 <field name="fecha_entrega" optional="show"/>
                 <field name="fecha_envio_wms" widget="date" optional="show"/>
                 <field name="codigo_wms" optional="show"/>
