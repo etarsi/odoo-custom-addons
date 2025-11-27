@@ -62,13 +62,14 @@ class OutInvoiceRefacturarWizard(models.TransientModel):
             self.condicion_m2m_id = False
             self.pricelist_id = False
             if self.company_id.id == 1:  # Producción B
-                domain2 = [('is_default', '=', True)]
+                domain2 = [('list_default_b', '=', True)]
                 domain = [('name', '=', 'TIPO 3')]
                 self.condicion_m2m_id = self.env['condicion.venta'].search([('name', '=', 'TIPO 3')], limit=1)
                 return {'domain': {'condicion_m2m_id': domain, 'pricelist_id': domain2}}
             else:
                 self.condicion_m2m_id = self.env['condicion.venta'].search([('name', '=', 'TIPO 1')], limit=1)
-                return {'domain': {'condicion_m2m_id': [('name', '=', 'TIPO 1')], 'pricelist_id': [('is_default', '!=', True)]}}
+                self.pricelist_id = self.env['product.pricelist'].search([('is_default', '=', True)], limit=1)
+                return {'domain': {'condicion_m2m_id': [('name', '=', 'TIPO 1')], 'pricelist_id': [('list_default_b', '!=', True)]}}
 
     def set_due_date_plus_x(self, x):
         today = fields.Date.context_today(self)
