@@ -40,13 +40,31 @@
                             <t t-set="current_company" t-value="False"/>
                             <t t-set="last_saldo_company" t-value="0.0"/>
                             <t t-set="grand_total_saldo" t-value="0.0"/>
-            
+
                             <t t-foreach="docs" t-as="l">
+                                <!-- Cambio de empresa: primero imprimo saldo de la empresa anterior -->
                                 <t t-if="current_company and l.company_id != current_company">
+                                    <tr>
+                                        <td colspan="5" class="text-right">
+                                            <strong>Saldo <t t-esc="current_company.name"/>:</strong>
+                                        </td>
+                                        <td colspan="2" class="text-right">
+                                            <strong>
+                                                <span t-esc="'%s %s' % (
+                                                    (docs and docs[0].currency_id and docs[0].currency_id.symbol or ''),
+                                                    ('{0:,.2f}'.format(last_saldo_company or 0.0))
+                                                )"/>
+                                            </strong>
+                                        </td>
+                                    </tr>
+                                    <!-- acumulo al total general -->
                                     <t t-set="grand_total_saldo"
                                     t-value="grand_total_saldo + (last_saldo_company or 0.0)"/>
+                                    <!-- reseteo saldo de empresa para la nueva -->
                                     <t t-set="last_saldo_company" t-value="0.0"/>
                                 </t>
+
+                                <!-- Encabezado de empresa -->
                                 <t t-if="not current_company or l.company_id != current_company">
                                     <tr>
                                         <td colspan="7">
@@ -58,10 +76,11 @@
                                     </tr>
                                     <t t-set="current_company" t-value="l.company_id"/>
                                 </t>
+
                                 <!-- Detalle de la línea -->
                                 <tr>
                                     <td>
-                                        <span t-field="l.fecha" t-options='{"widget": "date"}'/>    
+                                        <span t-field="l.fecha" t-options='{"widget": "date"}'/>
                                     </td>
                                     <td><t t-esc="l.nombre"/></td>
                                     <td><t t-esc="l.origen"/></td>
@@ -78,15 +97,41 @@
                                         <span t-field="l.saldo_acumulado"/>
                                     </td>
                                 </tr>
+
+                                <!-- guardo el saldo acumulado de la última línea de la empresa actual -->
                                 <t t-set="last_saldo_company" t-value="l.saldo_acumulado or 0.0"/>
                             </t>
+
+                            <!-- Después del loop, imprimir saldo de la ÚLTIMA empresa y sumarlo al total -->
                             <t t-if="current_company">
+                                <tr>
+                                    <td colspan="5" class="text-right">
+                                        <strong>Saldo <t t-esc="current_company.name"/>:</strong>
+                                    </td>
+                                    <td colspan="2" class="text-right">
+                                        <strong>
+                                            <span t-esc="'%s %s' % (
+                                                (docs and docs[0].currency_id and docs[0].currency_id.symbol or ''),
+                                                ('{0:,.2f}'.format(last_saldo_company or 0.0))
+                                            )"/>
+                                        </strong>
+                                    </td>
+                                </tr>
                                 <t t-set="grand_total_saldo"
                                 t-value="grand_total_saldo + (last_saldo_company or 0.0)"/>
                             </t>
+
+                            <!-- Espacio antes del saldo total (bajarlo un poco) -->
                             <tr>
-                                <td colspan="5" class="text-right" style="font-size:20px;"><strong>Total saldo:</strong></td>
-                                <td colspan="2" class="text-right" style="font-size:20px;">
+                                <td colspan="7" style="height: 15px;"></td>
+                            </tr>
+
+                            <!-- Saldo Total, con borde -->
+                            <tr style="border-top: 2px solid #000; border-bottom: 2px solid #000;">
+                                <td colspan="5" class="text-right" style="font-size:18px;">
+                                    <strong>Saldo Total:</strong>
+                                </td>
+                                <td colspan="2" class="text-right" style="font-size:18px;">
                                     <strong>
                                         <span t-esc="'%s %s' % (
                                             (docs and docs[0].currency_id and docs[0].currency_id.symbol or ''),
@@ -96,6 +141,7 @@
                                 </td>
                             </tr>
                         </tbody>
+
                     </table>
                 </div>
             </t>
