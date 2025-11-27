@@ -42,10 +42,10 @@
                             <t t-foreach="docs" t-as="l">
                                 <t t-if="current_company and l.company_id != current_company">
                                     <tr>
-                                        <td colspan="5" class="text-right">
+                                        <td colspan="6" class="text-right">
                                             <strong>Saldo <t t-esc="current_company.name"/>:</strong>
                                         </td>
-                                        <td colspan="2" class="text-right">
+                                        <td class="text-right">
                                             <strong>
                                                 <span t-esc="'%s %s' % (
                                                     (docs and docs[0].currency_id and docs[0].currency_id.symbol or ''),
@@ -111,10 +111,10 @@
                                 <td colspan="7" style="height: 15px;"></td>
                             </tr>
                             <tr>
-                                <td colspan="5" class="text-right" style="font-size:18px;">
+                                <td colspan="5" class="text-right" style="font-size:20px;">
                                     <strong>Saldo Total:</strong>
                                 </td>
-                                <td colspan="2" class="text-right" style="font-size:18px;">
+                                <td colspan="2" class="text-right" style="font-size:20px;">
                                     <strong>
                                         <span t-esc="'%s %s' % (
                                             (docs and docs[0].currency_id and docs[0].currency_id.symbol or ''),
