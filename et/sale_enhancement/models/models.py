@@ -198,6 +198,8 @@ class SaleOrderInherit(models.Model):
                 order._apply_company_default(order.company_default)
             elif order.is_marketing:
                 continue
+            elif order.condicion_m2m.name == 'TIPO 3' or order.special_price:
+                continue
             else:
                 order._apply_company_from_rubros()
 
