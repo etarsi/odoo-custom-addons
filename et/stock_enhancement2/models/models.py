@@ -59,11 +59,30 @@ class StockPickingInherit(models.Model):
     def assign_lots(self):
         for record in self:
             for move in record.move_ids_without_package:
-                if move.quantity_done > 0:
-                    lot = self.env['stock.production.lot'].search([
-                        ('product_id', '=', move.product_id.id),
-                        ('company_id', '=', move.company_id.id)
-                    ], order='id asc', limit=1)
+                lot = self.env['stock.production.lot'].search([
+                    ('product_id', '=', move.product_id.id),
+                    ('company_id', '=', move.company_id.id)
+                ], order='id asc', limit=1)
+
+                if lot:
+                    if move.move_line_ids:
+                        for ml in move.move_line_ids:
+                            ml.lot_id = lot.id
+                    
+                    if not move.move_line_ids:
+                        move.move_line_ids.create({
+                            'move_id': move.id,
+                            'product_id': move.product_id.id,
+                            'lot_id': lot.id,
+                            'qty_done': move.quantity_done,
+                            'location_id': move.location_id.id,
+                            'location_dest_id': move.location_dest_id.id,
+                            'product_uom_id': move.product_uom.id,
+                        })
+
+                else:
+                    lot_name = record.get_lot_name(move)
+                    lot = record.create_lots(move, lot_name)
 
                     if lot:
                         for ml in move.move_line_ids:
@@ -80,41 +99,27 @@ class StockPickingInherit(models.Model):
                                 'product_uom_id': move.product_uom.id,
                             })
                     else:
-                        lot_name = record.get_lot_name(move)
-                        lot = record.create_lots(move, lot_name)
-
-                        if lot:
-                            for ml in move.move_line_ids:
-                                ml.lot_id = lot.id
-                            
-                            if not move.move_line_ids:
-                                move.move_line_ids.create({
-                                    'move_id': move.id,
-                                    'product_id': move.product_id.id,
-                                    'lot_id': lot.id,
-                                    'qty_done': move.quantity_done,
-                                    'location_id': move.location_id.id,
-                                    'location_dest_id': move.location_dest_id.id,
-                                    'product_uom_id': move.product_uom.id,
-                                })
-                        else:
-                            raise UserError(f'No hay lotes para el código: {move.product_id.default_code}')
-            move.state = 'assigned'
+                        raise UserError(f'No hay lotes para el código: {move.product_id.default_code}')
+        move.state = 'assigned'
                     
 
     def get_lot_name(self, move):
-        incoming_types = self.env['stock.picking.type'].search([('code', '=', 'incoming')])
-        incoming_type_ids = incoming_types.ids
-        last_incoming_move = self.env['stock.move'].search([
-            ('product_id', '=', move.product_id.id),
-            ('picking_id.picking_type_id', 'in', incoming_type_ids),
-        ], order='date desc', limit=1)
+        default_code = move.product_id.default_code
 
-        if last_incoming_move:
-            dispatch_number = last_incoming_move.picking_id.dispatch_number or ''
-            lot_name = dispatch_number.split()[0] if dispatch_number else ''
-            if lot_name != '':
-                return lot_name
+        if default_code:
+            if default_code.startswith('9'):
+                search_code = default_code[1:]
+            else:
+                search_code = default_code
+
+        container_line = self.env['container.line'].search([('product_id', '=', search_code)], limit=1)
+    
+        if container_line:
+            dispatch_number = container_line.container.dispatch_number
+
+            if dispatch_number:
+                return dispatch_number
+            
             else:
                 raise UserError(f'No hay lotes para el código: {move.product_id.default_code}')
         else:
