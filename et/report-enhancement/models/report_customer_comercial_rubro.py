@@ -9,7 +9,7 @@ class ReportCustomerCommercialRubro(models.Model):
 
     date = fields.Date('Fecha', readonly=True)
     partner_id = fields.Many2one('res.partner', 'Cliente', readonly=True)
-    commercial_id = fields.Many2one('res.users', 'Comercial', readonly=True)
+    comercial_id = fields.Many2one('res.users', 'Comercial', readonly=True)
     rubro_id = fields.Many2one(
         'product.category',
         string='Rubro (padre)',
@@ -28,7 +28,7 @@ class ReportCustomerCommercialRubro(models.Model):
                     am.company_id,
                     am.invoice_date AS date,
                     am.partner_id,
-                    am.invoice_user_id AS commercial_id,
+                    am.invoice_user_id AS comercial_id,
                     parent_categ.id AS rubro_id,
                     am.currency_id AS currency_id,
                     SUM(
