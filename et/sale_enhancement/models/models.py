@@ -278,6 +278,7 @@ class SaleOrderInherit(models.Model):
         company_produccion_b = self.env['res.company'].browse(1)
         current_company_id = vals.get('company_id')
         company_default = vals.get('company_default', False)
+        _logger.info(f"COMPANY DEFAULT ENVIADO: {company_default}")
         is_marketing = vals.get('is_marketing', False)
         if company_default:
             company_default = self.env['res.company'].search([('name', '=', company_default)], limit=1)
