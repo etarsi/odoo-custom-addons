@@ -37,7 +37,7 @@ class StockMovesERP(models.Model):
             if record.type == 'reserve':
                 record.stock_erp.increase_comprometido_unidades(record.quantity)
             elif record.type == 'delivery':
-                # record.stock_erp.decrease_fisico_unidades(record.quantity)
+                record.stock_erp.decrease_fisico_unidades(record.quantity)
                 record.stock_erp.decrease_comprometido_unidades(record.quantity)
             elif record.type == 'preparation':
                 record.stock_erp.decrease_entregable_unidades(record.quantity)

@@ -312,6 +312,8 @@ class StockPickingInherit(models.Model):
                 move_type = 'RECEPCIÓN'
                 record.action_create_product_moves(move_type)
 
+            record.mark_as_delivered()
+
         return res
     
     def action_create_product_moves(self, move_type):
