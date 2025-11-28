@@ -2,7 +2,7 @@
 from odoo import models, fields, tools
 
 class ReportCustomerCommercialRubro(models.Model):
-    _name = 'report.customer.commercial.rubro'
+    _name = 'report.customer.comercial.rubro'
     _description = 'Facturación por cliente / comercial y rubro'
     _auto = False
     _order = 'date desc, partner_id'
