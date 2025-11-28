@@ -1,0 +1,53 @@
+<!-- views/report_customer_rubro_views.xml -->
+<odoo>
+    <record id="view_report_customer_rubro_tree"
+            model="ir.ui.view">
+        <field name="name">report.customer.commercial.rubro.tree</field>
+        <field name="model">report.customer.commercial.rubro</field>
+        <field name="arch" type="xml">
+            <tree string="Facturación por cliente y rubro" create="0" edit="0">
+                <field name="date"/>
+                <field name="partner_id"/>
+                <field name="commercial_id"/>
+                <field name="rubro_id"/>
+                <field name="amount" sum="Total"/>
+                <field name="company_id" groups="base.group_multi_company"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_report_customer_rubro_pivot"
+            model="ir.ui.view">
+        <field name="name">report.customer.commercial.rubro.pivot</field>
+        <field name="model">report.customer.commercial.rubro</field>
+        <field name="arch" type="xml">
+            <pivot string="Facturación por rubro">
+                <field name="amount" type="measure"/>
+                <!-- Rubros como columnas -->
+                <field name="rubro_id" type="col"/>
+                <!-- Filas: cliente + comercial -->
+                <field name="partner_id" type="row"/>
+                <field name="commercial_id" type="row"/>
+                <!-- Para agrupar por fecha (mes, año, etc.) -->
+                <field name="date" interval="month"/>
+            </pivot>
+        </field>
+    </record>
+
+    <record id="action_report_customer_rubro"
+            model="ir.actions.act_window">
+        <field name="name">Facturación por rubro</field>
+        <field name="res_model">report.customer.commercial.rubro</field>
+        <field name="view_mode">pivot,tree</field>
+        <field name="context">
+            {
+                'search_default_group_by_partner_id': 1
+            }
+        </field>
+    </record>
+
+    <menuitem id="menu_report_customer_rubro"
+              name="Facturación por rubro"
+              parent="base.menu_reporting_dashboard"
+              action="action_report_customer_rubro"/>
+</odoo>
