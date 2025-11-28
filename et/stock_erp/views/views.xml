@@ -7,10 +7,8 @@
         <field name="arch" type="xml">
             <tree>
               <header>
-                  <button name="get_stock_wms" type="object" string="Actualizar Stock"/>
-                  <button name="create_initial_products" type="object" string="Crear Productos"/>
+                  <button name="update_digip_stock" type="object" string="Actualizar Stock"/>
                   <button name="update_uxb" type="object" string="Actualizar UXB"/>
-                  <button name="set_to_zero" type="object" string="Borrar stock"/>
                 </header>
                 <field name="product_id" invisible="1"/>
                 <field name="product_code"/>
@@ -57,6 +55,7 @@
                                 <field name="sale_id" string="Pedido"/>
                                 <field name="partner_id" string="Cliente"/>
                                 <field name="quantity" string="Cantidad" sum="Total"/>
+                                <field name="quantity_delivered" string="Cantidad Entregada" sum="Total"/>
                                 <field name="uxb" string="UxB"/>
                                 <field name="bultos" string="Bultos" sum="Total"/>      
                                 <button name="unreserve_stock" type="object" string="Liberar"/>               
