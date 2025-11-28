@@ -223,7 +223,7 @@ class StockPickingInherit(models.Model):
                 if record.picking_type_code == 'outgoing':
                     move_type = 'ENTREGA'
                     record.action_create_product_moves(move_type)
-                    record.consume_stock()
+                    # record.consume_stock()
                     record.action_write_tms_stock_picking()
 
     def update_availability(self):
