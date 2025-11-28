@@ -30,7 +30,7 @@
         <field name="res_model">report.customer.comercial.rubro</field>
         <field name="view_mode">tree,pivot</field>
         <field name="domain">
-            [('date','>=','2025-03-01'),('date','<=','2025-08-31')]
+            [('date','&gt;=','2025-03-01'),('date','&lt;=','2025-08-31')]
         </field>
     </record>
 
@@ -41,7 +41,7 @@
         <field name="res_model">report.customer.comercial.rubro</field>
         <field name="view_mode">tree,pivot</field>
         <field name="domain">
-            [('date','>=','2025-09-01'),('date','<=','2026-01-31')]
+            [('date','&gt;=','2025-09-01'),('date','&lt;=','2026-01-31')]
         </field>
     </record>
 
