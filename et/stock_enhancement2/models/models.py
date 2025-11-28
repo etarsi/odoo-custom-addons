@@ -207,7 +207,7 @@ class StockPickingInherit(models.Model):
                     vals['type'] = 'delivery'
 
                     vals_list.append(vals)
-            # self.env['stock.moves.erp'].create(vals_list)
+            self.env['stock.moves.erp'].create(vals_list)
 
     ### PICKING
 
