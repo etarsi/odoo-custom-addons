@@ -281,9 +281,10 @@ class SaleOrderInherit(models.Model):
         _logger.info("CREANDO PEDIDO DE VENTA...")
         _logger.info("COMPANIA POR DEFECTO %s", company_default)
         _logger.info(f"COMPANY DEFAULT ENVIADO: {company_default}")
+        
         is_marketing = vals.get('is_marketing', False)
         if company_default:
-            company_default = self.env['res.company'].search([('name', '=', company_default)], limit=1)
+            company_default = self.env['res.company'].search([('id', '=', company_default)], limit=1)
             if not company_default:
                 raise UserError(_("No se encontró la compañía con nombre %s.") % vals.get('company_default'))
             wh = self.env['stock.warehouse'].search([('company_id', '=', company_default.id)], limit=1)
