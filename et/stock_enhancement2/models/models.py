@@ -209,6 +209,39 @@ class StockPickingInherit(models.Model):
                     vals_list.append(vals)
             self.env['stock.moves.erp'].create(vals_list)
 
+
+    def consume_stock2(self):
+        for record in self:
+            vals_list = []
+
+            if record.move_ids_without_package:
+                for move in record.move_ids_without_package:
+                    vals = {}
+                    default_code = move.product_id.default_code
+
+                    if default_code:
+                        if default_code.startswith('9'):
+                            search_code = default_code[1:]
+                        else:
+                            search_code = default_code
+
+                        stock_erp = self.env['stock.erp'].search([
+                            ('product_id.default_code', '=', search_code)
+                        ], limit=1)
+
+                        if not stock_erp:
+                            raise UserError(f'El producto [{default_code}]{move.product_id.name} no se encuentra en el listado de Stock. Avise al administrador.')
+                        
+                        vals['stock_erp'] = stock_erp.id
+                    else:
+                        raise UserError(f'El producto {move.product_id.name} no tiene definido un código interno (default_code).')
+
+                    stock_move_erp_RESERV = self.env['stock.moves.erp'].search([('product_id.default_code', '=', search_code), ('type', '=', 'reserve'), ('sale_line_id', '=', move.sale_line_id.id)], limit=1)
+                    stock_move_erp_PREPAR = self.env['stock.moves.erp'].search([('product_id.default_code', '=', search_code), ('picking_id', '=', record.id), ('type', '=', 'preparation')], limit=1)
+
+                    stock_move_erp_RESERV.quantity_delivered += move.quantity_done
+                    stock_move_erp_PREPAR.quantity_delivered += move.quantity_done
+
     ### PICKING
 
     def mark_as_returned(self):
@@ -225,6 +258,13 @@ class StockPickingInherit(models.Model):
                     record.action_create_product_moves(move_type)
                     record.consume_stock()
                     record.action_write_tms_stock_picking()
+
+    def mark_as_delivered2(self):
+            for record in self:
+                record.delivery_state = 'delivered'
+
+                if record.picking_type_code == 'outgoing':
+                    record.consume_stock2()
 
     def update_availability(self):
         for record in self:
