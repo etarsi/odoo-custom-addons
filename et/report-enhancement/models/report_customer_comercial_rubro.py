@@ -1,6 +1,17 @@
 # models/report_customer_rubro.py
 from odoo import models, fields, tools
 
+
+RUBROS_LISTA = [
+    'JUGUETES',
+    'MAQUILLAJE',
+    'RODADOS',
+    'PELOTAS',
+    'INFLABLES',
+    'PISTOLA DE AGUA',
+    'VEHICULOS A BATERIA',
+    'RODADOS INFANTILES']    
+
 class ReportCustomerComercialRubro(models.Model):
     _name = 'report.customer.comercial.rubro'
     _description = 'Facturación por cliente / comercial y rubro'
@@ -10,13 +21,14 @@ class ReportCustomerComercialRubro(models.Model):
     date = fields.Date('Fecha', readonly=True)
     partner_id = fields.Many2one('res.partner', 'Cliente', readonly=True)
     comercial_id = fields.Many2one('res.users', 'Comercial', readonly=True)
-    rubro_id = fields.Many2one(
-        'product.category',
-        string='Rubro (padre)',
-        readonly=True,
-    )
-    amount = fields.Monetary('Importe', readonly=True)
-    company_id = fields.Many2one('res.company', 'Compañía', readonly=True)
+    amount_juguetes = fields.Monetary('Juguetes', readonly=True) 
+    amount_maquillaje = fields.Monetary('Maquillaje', readonly=True)
+    amount_rodados = fields.Monetary('Rodados', readonly=True)
+    amount_pelotas = fields.Monetary('Pelotas', readonly=True)
+    amount_inflables = fields.Monetary('Inflables', readonly=True)
+    amount_pst_agua = fields.Monetary('Pistola de Agua', readonly=True)
+    amount_vehiculos_b = fields.Monetary('Vehículos a Batería', readonly=True)
+    amount_rodados_inf = fields.Monetary('Rodados Infantiles', readonly=True)
     currency_id = fields.Many2one('res.currency', 'Moneda', readonly=True)
 
     def init(self):
