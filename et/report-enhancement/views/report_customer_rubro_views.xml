@@ -19,7 +19,7 @@
     <!-- Acción base (si todavía no la tenés) -->
     <record id="action_report_customer_rubro" model="ir.actions.act_window">
         <field name="name">Facturación por rubro</field>
-        <field name="res_model">report.customer.commercial.rubro</field>
+        <field name="res_model">report.customer.comercial.rubro</field>
         <field name="view_mode">tree,pivot</field>
     </record>
 
@@ -27,7 +27,7 @@
     <record id="action_report_customer_rubro_nino_2025"
             model="ir.actions.act_window">
         <field name="name">Facturación Niño 2025</field>
-        <field name="res_model">report.customer.commercial.rubro</field>
+        <field name="res_model">report.customer.comercial.rubro</field>
         <field name="view_mode">tree,pivot</field>
         <field name="domain">
             [('date','>=','2025-03-01'),('date','<=','2025-08-31')]
@@ -38,7 +38,7 @@
     <record id="action_report_customer_rubro_navidad_2025_2026"
             model="ir.actions.act_window">
         <field name="name">Facturación Navidad 2025-2026</field>
-        <field name="res_model">report.customer.commercial.rubro</field>
+        <field name="res_model">report.customer.comercial.rubro</field>
         <field name="view_mode">tree,pivot</field>
         <field name="domain">
             [('date','>=','2025-09-01'),('date','<=','2026-01-31')]
