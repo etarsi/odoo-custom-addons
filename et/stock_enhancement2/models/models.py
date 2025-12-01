@@ -572,9 +572,9 @@ class StockPickingInherit(models.Model):
             amount_nc_total = 0
             for invoice in invoices:
                 #separar facturas de cliente y notas de credito
-                if invoice.move_type == 'out_refund':
+                if invoice.move_type == 'out_refund' and invoice.state != 'cancel':
                     amount_nc_total += invoice.amount_total
-                elif invoice.move_type == 'out_invoice':
+                elif invoice.move_type == 'out_invoice' and invoice.state != 'cancel':
                     amount_total += invoice.amount_total
                 items = invoice.invoice_line_ids.mapped('product_id.categ_id.parent_id')
                 items = items.filtered(lambda c: c and c.id).ids
