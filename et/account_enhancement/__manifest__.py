@@ -36,6 +36,7 @@
         # Data
         'data/group_pago.xml',
         'data/ir_cron.xml',
+        'data/action_payment_group.xml',
         #Reportes
         'wizard/generar_factura_wizard_views.xml',
         #Templates
@@ -50,7 +51,7 @@
         'views/account_move_views.xml',
         'views/calendar_paid_views.xml',
         'views/report_pagos_fuera_fecha.xml',
-        #'views/account_payment_group_views.xml',
+        'views/account_payment_group_views.xml',
         'views/account_payment_views.xml',
         'views/res_partner_views.xml',
         'views/account_move_line_views.xml',
