@@ -176,7 +176,12 @@ class AccountPaymentGroupInherit(models.Model):
                 if record.payment_ids:
                     for payment in record.payment_ids:
                         payment.check_state = 'Pendiente'
-
+            if record.payment_ids:
+                for payment in record.payment_ids:
+                    if payment.check_state == 'Entregado':
+                        raise ValidationError(_(
+                            "No se puede volver a borrador un grupo de pagos, que contiene pagos con cheques entregados."
+                        ))
             recs = super().action_draft()
 
             return recs
