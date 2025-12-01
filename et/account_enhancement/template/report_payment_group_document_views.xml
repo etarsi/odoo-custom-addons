@@ -152,7 +152,7 @@
                             <t t-foreach="o.env['account.move'].search([('reversed_entry_id', '=', line.move_id.id),('state','=','posted')])" t-as="reversed_move">
                                 <t t-if="reversed_move">
                                     <tr>
-                                        <td style="font-size: 12px;" class="text-left"><span t-field="reversed_move.display_name"/></td>
+                                        <td colspan="2" style="font-size: 12px;" class="text-left"><span t-field="reversed_move.display_name"/></td>
                                         <td class="text-left"><span t-field="reversed_move.invoice_date_due"/></td>
                                         <td class="text-right o_price_total">
                                             <span class="text-nowrap" t-raw="(o.partner_type == 'supplier' and 1.0 or -1.0) * reversed_move.amount_total" t-options="{&quot;widget&quot;: &quot;monetary&quot;, &quot;display_currency&quot;: o.currency_id}"/>
