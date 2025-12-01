@@ -1,0 +1,59 @@
+<!-- views/report_customer_rubro_views.xml -->
+<odoo>
+    <record id="view_report_factura_rubros_temp_tree" model="ir.ui.view">
+        <field name="name">report.factura.rubros.temp.tree</field>
+        <field name="model">report.factura.rubros.temp</field>
+        <field name="arch" type="xml">
+            <tree string="Reporte de Facturas por Rubros Temporada Niño" create="0" edit="0" delete="0" default_order="total_amount_rubro desc">
+                <field name="partner_id" optional="show"/>
+                <field name="comercial_id" optional="show"/>
+                <field name="amount_juguetes" sum="Juguetes" optional="show"/>
+                <field name="amount_rodados" sum="Rodados" optional="show"/>
+                <field name="amount_rodados_inf" sum="Rodados Infantiles" optional="show"/>
+                <field name="amount_pelotas" sum="Pelotas" optional="show"/>
+                <field name="amount_maquillaje" sum="Maquillaje" optional="show"/>
+                <field name="amount_pst_agua" sum="Pistola de Agua" optional="show"/>
+                <field name="amount_vehiculos_b" sum="Vehículos a Batería" optional="show"/>
+                <field name="amount_inflables" sum="Inflables" optional="show"/>
+                <field name="total_amount_rubro" sum="Total" optional="show"/>
+            </tree>
+        </field>
+    </record>
+
+    <!-- Vista de búsqueda para el informe de facturación por rubro -->
+    <record id="view_report_factura_rubros_temp_search" model="ir.ui.view">
+        <field name="name">report.factura.rubros.temp.search</field>
+        <field name="model">report.factura.rubros.temp</field>
+        <field name="arch" type="xml">
+            <search string="Buscar facturación por rubro">
+                <field name="partner_id" string="Cliente"/>
+                <field name="comercial_id" string="Comercial"/>
+                <!-- Filtros de agrupación -->
+                <filter string="Agrupar por comercial"
+                        name="group_by_comercial"
+                        context="{'group_by': 'comercial_id'}"/>
+                <filter string="Agrupar por cliente"
+                        name="group_by_cliente"
+                        context="{'group_by': 'partner_id'}"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_report_factura_rubros_temp_nino_2025" model="ir.actions.act_window">
+        <field name="name">Facturación - Día del Niño (2025)</field>
+        <field name="res_model">report.factura.rubros.temp</field>
+        <field name="view_mode">tree</field>
+    </record>
+
+    <menuitem id="menu_report_report_nico"
+        name="Reportes Nico"
+        parent="base.menu_board_root"
+        sequence="30"/> 
+
+    <!-- Menús bajo “Reportes Nico” (ajustá el padre) -->
+    <menuitem id="menu_report_factura_rubros_temp_nino_2025"
+        name="Facturación Niño 2025"
+        parent="menu_report_report_nico"
+        action="action_report_factura_rubros_temp_nino_2025"
+        sequence="1"/>
+</odoo>
