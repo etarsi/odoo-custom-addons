@@ -12,13 +12,12 @@ RUBROS_LISTA = [
     'VEHICULOS A BATERIA',
     'RODADOS INFANTILES']    
 
-class ReportCustomerComercialRubro(models.Model):
-    _name = 'report.customer.comercial.rubro'
-    _description = 'Facturación por cliente / comercial y rubro'
+class ReportFacturaRubrosTempNav(models.Model):
+    _name = 'report.factura.rubros.temp.nav'
+    _description = 'Reporte de Facturas por Rubros Temporada Navidad'
     _auto = False
-    _order = 'date desc, partner_id'
-
-    date = fields.Date('Fecha', readonly=True)
+    _order = 'id asc, partner_id asc, comercial_id asc'
+    
     partner_id = fields.Many2one('res.partner', 'Cliente', readonly=True)
     comercial_id = fields.Many2one('res.users', 'Comercial', readonly=True)
     amount_juguetes = fields.Monetary('Juguetes', readonly=True, currency_field='currency_id') 
@@ -40,7 +39,6 @@ class ReportCustomerComercialRubro(models.Model):
             CREATE OR REPLACE VIEW %s AS (
                 SELECT
                     row_number() OVER () AS id,
-                    am.invoice_date AS date,
                     am.partner_id,
                     am.invoice_user_id AS comercial_id,
                     am.currency_id AS currency_id,
@@ -142,16 +140,34 @@ class ReportCustomerComercialRubro(models.Model):
                     ON aml.product_id = pp.id
                 LEFT JOIN product_template pt
                     ON pp.product_tmpl_id = pt.id
+                LEFT JOIN product_category categ
+                    ON pt.categ_id = categ.id
                 -- Rubro = categoría padre si existe
                 LEFT JOIN product_category parent_categ
-                    ON parent_categ.id = aml.product_id.categ_id.parent_id 
+                    ON parent_categ.id = categ.parent_id 
                 WHERE
                     am.state = 'posted'
                     AND am.move_type = 'out_invoice'      -- solo facturas de cliente
-                    AND aml.display_type IS NULL
-                    AND ml.product_id IS NOT NULL
+                    AND aml.product_id IS NOT null
+                    and am.invoice_date >= '2025-09-01'
+                    and am.invoice_date <= '2026-01-31'
+                    and (
+	                        CASE
+	                            WHEN TRIM(UPPER(parent_categ.name)) IN (
+	                                'JUGUETES',
+	                                'MAQUILLAJE',
+	                                'RODADOS',
+	                                'PELOTAS',
+	                                'INFLABLES',
+	                                'PISTOLA DE AGUA',
+	                                'VEHICULOS A BATERIA',
+	                                'RODADOS INFANTILES'
+	                            )
+	                            THEN aml.price_subtotal
+	                            ELSE 0
+	                        END
+	                    ) > 0
                 GROUP BY
-                    am.invoice_date,
                     am.partner_id,
                     am.invoice_user_id,
                     am.currency_id
