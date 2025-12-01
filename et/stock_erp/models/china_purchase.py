@@ -38,6 +38,8 @@ class ChinaPurchaseLine(models.Model):
         for record in self:
             if record.uxb:
                 record.bultos = record.quantity / record.uxb
+            else:
+                record.bultos = 0
 
 
     def add_enelagua_stock(self):
