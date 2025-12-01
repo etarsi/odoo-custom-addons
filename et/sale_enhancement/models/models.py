@@ -72,8 +72,10 @@ class SaleOrderInherit(models.Model):
                 tax_percep = self.env['account.tax'].search([('description', '=', 'Perc IIBB CABA A'), ('company_id', '=', 2), ('type_tax_use', '=', 'sale')], limit=1)
                 line.tax_id = tax_iva | tax_percep
 
-            record.company_id = 2
-            record.warehouse_id = 2
+            record.write({
+                'company_id': 2,
+                'warehouse_id': 2,
+            })
 
             if x:
                 record.state = 'sale'
