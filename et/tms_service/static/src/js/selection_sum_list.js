@@ -95,7 +95,7 @@ odoo.define('tms_service.SelectionSumList', function (require) {
                 records.forEach(function (rec) {
                     total1 += rec.cantidad_bultos || 0;   // campo 1
                     total2 += rec.amount_totals || 0;     // campo 2
-                    total3 -= rec.amount_nc_totals || 0;  // campo 3 (negativo) 
+                    total3 += rec.amount_nc_totals || 0;  // campo 3 (negativo) 
                 });
 
                 self.$sumCampo1.text(
