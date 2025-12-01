@@ -21,6 +21,35 @@
         </field>
     </record>
 
+    <!-- Vista de búsqueda para el informe de facturación por rubro -->
+    <record id="view_report_customer_rubro_search" model="ir.ui.view">
+        <field name="name">report.customer.comercial.rubro.search</field>
+        <field name="model">report.customer.comercial.rubro</field>
+        <field name="arch" type="xml">
+            <search string="Buscar facturación por rubro">
+                <!-- Buscar por cliente -->
+                <field name="partner_id" string="Cliente"/>
+
+                <!-- Buscar por comercial -->
+                <field name="comercial_id" string="Comercial"/>
+
+                <!-- Filtros de agrupación -->
+                <filter string="Agrupar por comercial"
+                        name="group_by_comercial"
+                        context="{'group_by': 'comercial_id'}"/>
+
+                <filter string="Agrupar por cliente"
+                        name="group_by_cliente"
+                        context="{'group_by': 'partner_id'}"/>
+
+                <!-- Opcional: agrupar por fecha (mes) -->
+                <filter string="Agrupar por mes"
+                        name="group_by_month"
+                        context="{'group_by': 'date:month'}"/>
+            </search>
+        </field>
+    </record>
+
     <!-- Acción base (si todavía no la tenés) -->
     <record id="action_report_customer_rubro" model="ir.actions.act_window">
         <field name="name">Facturación por rubro</field>
@@ -28,7 +57,6 @@
         <field name="view_mode">tree</field>
     </record>
 
-    <!-- Temporada del Niño: 1/3/2025 al 31/8/2025 -->
     <record id="action_report_customer_rubro_nino_2025" model="ir.actions.act_window">
         <field name="name">Facturación - Día del Niño (2025)</field>
         <field name="res_model">report.customer.comercial.rubro</field>
@@ -36,9 +64,11 @@
         <field name="domain">
             [('date','&gt;=','2025-03-01'),('date','&lt;=','2025-08-31')]
         </field>
+        <field name="context">
+            {'group_by': 'comercial_id'}
+        </field>
     </record>
 
-    <!-- Navidad: 1/9/2025 al 31/1/2026 -->
     <record id="action_report_customer_rubro_navidad_2025_2026" model="ir.actions.act_window">
         <field name="name">Facturación - Navidad (2025)</field>
         <field name="res_model">report.customer.comercial.rubro</field>
@@ -46,8 +76,11 @@
         <field name="domain">
             [('date','&gt;=','2025-09-01'),('date','&lt;=','2026-01-31')]
         </field>
+        <field name="context">
+            {'group_by': 'comercial_id'}
+        </field>
     </record>
-
+    
     <menuitem id="menu_report_report_nico"
         name="Reportes Nico"
         parent="base.menu_board_root"
