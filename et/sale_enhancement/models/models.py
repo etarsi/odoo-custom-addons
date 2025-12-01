@@ -81,6 +81,60 @@ class SaleOrderInherit(models.Model):
                 record.state = 'sale'
                 record.order_line.state = 'sale'
 
+    def pasar_a_tipo1_bech(self):
+        for record in self:
+            tipo = self.env['condicion.venta'].browse(6)
+            record.condicion_m2m = tipo.id
+
+            if record.state == 'sale':
+                x = True
+                record.state = 'draft'
+                record.order_line.state = 'draft'
+
+            
+            for line in record.order_line:
+                line.tax_id = False                
+                line.company_id = 3
+                tax_iva = self.env['account.tax'].search([('description', '=', 'IVA 21%'), ('company_id', '=', 3), ('type_tax_use', '=', 'sale')], limit=1)
+                tax_percep = self.env['account.tax'].search([('description', '=', 'Perc IIBB CABA A'), ('company_id', '=', 3), ('type_tax_use', '=', 'sale')], limit=1)
+                line.tax_id = tax_iva | tax_percep
+
+            record.write({
+                'company_id': 3,
+                'warehouse_id': 3,
+            })
+
+            if x:
+                record.state = 'sale'
+                record.order_line.state = 'sale'
+
+    def pasar_a_tipo1_fun(self):
+        for record in self:
+            tipo = self.env['condicion.venta'].browse(6)
+            record.condicion_m2m = tipo.id
+
+            if record.state == 'sale':
+                x = True
+                record.state = 'draft'
+                record.order_line.state = 'draft'
+
+            
+            for line in record.order_line:
+                line.tax_id = False                
+                line.company_id = 4
+                tax_iva = self.env['account.tax'].search([('description', '=', 'IVA 21%'), ('company_id', '=', 4), ('type_tax_use', '=', 'sale')], limit=1)
+                tax_percep = self.env['account.tax'].search([('description', '=', 'Perc IIBB CABA A'), ('company_id', '=', 4), ('type_tax_use', '=', 'sale')], limit=1)
+                line.tax_id = tax_iva | tax_percep
+
+            record.write({
+                'company_id': 4,
+                'warehouse_id': 4,
+            })
+
+            if x:
+                record.state = 'sale'
+                record.order_line.state = 'sale'
+
     @api.depends('partner_id', 'partner_id.category_id')
     def _compute_partner_tags(self):
         for order in self:
