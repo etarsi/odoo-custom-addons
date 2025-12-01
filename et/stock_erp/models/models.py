@@ -218,8 +218,9 @@ class StockERP(models.Model):
         for record in self:
             if quantity <= record.comprometido_unidades:
                 record.comprometido_unidades -= quantity
-            else: 
-                raise UserError(f'Para el producto: [{record.product_id.default_code}] {record.product_id.name}, tiene {record.comprometido_unidades} unidades comprometidas y quiere liberar {quantity} unidades. El resultado no puede ser negativo')
+            else:
+                record.comprometido_unidades = 0 
+                # raise UserError(f'Para el producto: [{record.product_id.default_code}] {record.product_id.name}, tiene {record.comprometido_unidades} unidades comprometidas y quiere liberar {quantity} unidades. El resultado no puede ser negativo')
 
 
     def decrease_entregable_unidades(self, quantity):

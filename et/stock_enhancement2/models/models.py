@@ -352,9 +352,14 @@ class StockPickingInherit(models.Model):
                 move_type = 'RECEPCIÓN'
                 record.action_create_product_moves(move_type)
 
-            record.mark_as_delivered()
 
         return res
+    
+    @api.onchange('state')
+    def _onchange_picking_state(self):
+        for record in self:
+            if record.state == 'done':
+                record.mark_as_delivered()
     
     def action_create_product_moves(self, move_type):
         vals_list = []
