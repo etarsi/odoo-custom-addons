@@ -142,17 +142,14 @@ class ReportCustomerComercialRubro(models.Model):
                     ON aml.product_id = pp.id
                 LEFT JOIN product_template pt
                     ON pp.product_tmpl_id = pt.id
-                LEFT JOIN product_category c
-                    ON pt.categ_id = c.id
-                -- Rubro = categoría padre si existe, si no, la propia
+                -- Rubro = categoría padre si existe
                 LEFT JOIN product_category parent_categ
-                    ON parent_categ.id = c.parent_id
-
+                    ON parent_categ.id = aml.product_id.categ_id.parent_id 
                 WHERE
                     am.state = 'posted'
                     AND am.move_type = 'out_invoice'      -- solo facturas de cliente
-                    AND aml.display_type IS NULL          -- sin notas/secciones
-
+                    AND aml.display_type IS NULL
+                    AND ml.product_id IS NOT NULL
                 GROUP BY
                     am.invoice_date,
                     am.partner_id,
