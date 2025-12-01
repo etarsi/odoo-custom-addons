@@ -15,8 +15,8 @@ archivo_entrada = "coincidencias_agip.csv"
 # Constantes
 TAG_ID = 19
 COMPANY_IDS = [2, 3, 4]
-FROM_DATETIME = datetime(2025, 11, 1, 0, 0, 0)
-TO_DATETIME = datetime(2025, 11, 30, 23, 59, 59)
+FROM_DATETIME = datetime(2025, 12, 1, 0, 0, 0)
+TO_DATETIME = datetime(2025, 12, 31, 23, 59, 59)
 
 try:
     # Conexión
