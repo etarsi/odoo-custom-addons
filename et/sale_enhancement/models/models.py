@@ -66,11 +66,12 @@ class SaleOrderInherit(models.Model):
 
             
             for line in record.order_line:
+                line.tax_id = False                
+                line.company_id = 2
                 tax_iva = self.env['account.tax'].search([('description', '=', 'IVA 21%'), ('company_id', '=', 2), ('type_tax_use', '=', 'sale')], limit=1)
                 tax_percep = self.env['account.tax'].search([('description', '=', 'Perc IIBB CABA A'), ('company_id', '=', 2), ('type_tax_use', '=', 'sale')], limit=1)
                 line.tax_id = tax_iva | tax_percep
 
-            record.order_line.company_id = 2
             record.company_id = 2
             record.warehouse_id = 2
 
