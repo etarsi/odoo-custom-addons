@@ -21,15 +21,18 @@ class ReportCustomerComercialRubro(models.Model):
     date = fields.Date('Fecha', readonly=True)
     partner_id = fields.Many2one('res.partner', 'Cliente', readonly=True)
     comercial_id = fields.Many2one('res.users', 'Comercial', readonly=True)
-    amount_juguetes = fields.Monetary('Juguetes', readonly=True) 
-    amount_maquillaje = fields.Monetary('Maquillaje', readonly=True)
-    amount_rodados = fields.Monetary('Rodados', readonly=True)
-    amount_pelotas = fields.Monetary('Pelotas', readonly=True)
-    amount_inflables = fields.Monetary('Inflables', readonly=True)
-    amount_pst_agua = fields.Monetary('Pistola de Agua', readonly=True)
-    amount_vehiculos_b = fields.Monetary('Vehículos a Batería', readonly=True)
-    amount_rodados_inf = fields.Monetary('Rodados Infantiles', readonly=True)
+    amount_juguetes = fields.Monetary('Juguetes', readonly=True, currency_field='currency_id') 
+    amount_maquillaje = fields.Monetary('Maquillaje', readonly=True, currency_field='currency_id')
+    amount_rodados = fields.Monetary('Rodados', readonly=True, currency_field='currency_id')
+    amount_pelotas = fields.Monetary('Pelotas', readonly=True, currency_field='currency_id')
+    amount_inflables = fields.Monetary('Inflables', readonly=True, currency_field='currency_id')
+    amount_pst_agua = fields.Monetary('Pistola de Agua', readonly=True, currency_field='currency_id')
+    amount_vehiculos_b = fields.Monetary('Vehículos a Batería', readonly=True, currency_field='currency_id')
+    amount_rodados_inf = fields.Monetary('Rodados Infantiles', readonly=True, currency_field='currency_id')
+    total_amount_rubro = fields.Monetary('Total', readonly=True, currency_field='currency_id')
     currency_id = fields.Many2one('res.currency', 'Moneda', readonly=True)
+
+
 
     def init(self):
         tools.drop_view_if_exists(self._cr, self._table)
@@ -37,14 +40,101 @@ class ReportCustomerComercialRubro(models.Model):
             CREATE OR REPLACE VIEW %s AS (
                 SELECT
                     row_number() OVER () AS id,
-                    am.company_id,
                     am.invoice_date AS date,
                     am.partner_id,
                     am.invoice_user_id AS comercial_id,
-                    parent_categ.id AS rubro_id,
                     am.currency_id AS currency_id,
-                    -- Monto del rubro (solo facturas de clientes)
-                    SUM(aml.price_subtotal) AS amount
+
+                    -- JUGUETES
+                    SUM(
+                        CASE
+                            WHEN TRIM(UPPER(parent_categ.name)) = 'JUGUETES'
+                            THEN aml.price_subtotal
+                            ELSE 0
+                        END
+                    ) AS amount_juguetes,
+
+                    -- MAQUILLAJE
+                    SUM(
+                        CASE
+                            WHEN TRIM(UPPER(parent_categ.name)) = 'MAQUILLAJE'
+                            THEN aml.price_subtotal
+                            ELSE 0
+                        END
+                    ) AS amount_maquillaje,
+
+                    -- RODADOS
+                    SUM(
+                        CASE
+                            WHEN TRIM(UPPER(parent_categ.name)) = 'RODADOS'
+                            THEN aml.price_subtotal
+                            ELSE 0
+                        END
+                    ) AS amount_rodados,
+
+                    -- PELOTAS
+                    SUM(
+                        CASE
+                            WHEN TRIM(UPPER(parent_categ.name)) = 'PELOTAS'
+                            THEN aml.price_subtotal
+                            ELSE 0
+                        END
+                    ) AS amount_pelotas,
+
+                    -- INFLABLES
+                    SUM(
+                        CASE
+                            WHEN TRIM(UPPER(parent_categ.name)) = 'INFLABLES'
+                            THEN aml.price_subtotal
+                            ELSE 0
+                        END
+                    ) AS amount_inflables,
+
+                    -- PISTOLA DE AGUA
+                    SUM(
+                        CASE
+                            WHEN TRIM(UPPER(parent_categ.name)) = 'PISTOLA DE AGUA'
+                            THEN aml.price_subtotal
+                            ELSE 0
+                        END
+                    ) AS amount_pst_agua,
+
+                    -- VEHICULOS A BATERIA
+                    SUM(
+                        CASE
+                            WHEN TRIM(UPPER(parent_categ.name)) = 'VEHICULOS A BATERIA'
+                            THEN aml.price_subtotal
+                            ELSE 0
+                        END
+                    ) AS amount_vehiculos_b,
+
+                    -- RODADOS INFANTILES
+                    SUM(
+                        CASE
+                            WHEN TRIM(UPPER(parent_categ.name)) = 'RODADOS INFANTILES'
+                            THEN aml.price_subtotal
+                            ELSE 0
+                        END
+                    ) AS amount_rodados_inf,
+
+                    -- TOTAL RUBROS (solo los 8 rubros de la lista)
+                    SUM(
+                        CASE
+                            WHEN TRIM(UPPER(parent_categ.name)) IN (
+                                'JUGUETES',
+                                'MAQUILLAJE',
+                                'RODADOS',
+                                'PELOTAS',
+                                'INFLABLES',
+                                'PISTOLA DE AGUA',
+                                'VEHICULOS A BATERIA',
+                                'RODADOS INFANTILES'
+                            )
+                            THEN aml.price_subtotal
+                            ELSE 0
+                        END
+                    ) AS total_amount_rubro
+
                 FROM account_move_line aml
                 JOIN account_move am
                     ON aml.move_id = am.id
@@ -57,17 +147,16 @@ class ReportCustomerComercialRubro(models.Model):
                 -- Rubro = categoría padre si existe, si no, la propia
                 LEFT JOIN product_category parent_categ
                     ON parent_categ.id = COALESCE(c.parent_id, c.id)
+
                 WHERE
                     am.state = 'posted'
-                    AND am.move_type = 'out_invoice'
-                    AND aml.display_type IS NULL
+                    AND am.move_type = 'out_invoice'      -- solo facturas de cliente
+                    AND aml.display_type IS NULL          -- sin notas/secciones
+
                 GROUP BY
-                    am.company_id,
                     am.invoice_date,
                     am.partner_id,
                     am.invoice_user_id,
-                    parent_categ.id,
                     am.currency_id
             )
         """ % self._table)
-

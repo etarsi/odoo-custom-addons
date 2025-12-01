@@ -16,7 +16,7 @@
                 <field name="amount_pst_agua" sum="Pistola de Agua" optional="show"/>
                 <field name="amount_vehiculos_b" sum="Vehículos a Batería" optional="show"/>
                 <field name="amount_rodados_inf" sum="Rodados Infantiles" optional="show"/>
-                <field name="amount" sum="Total" optional="show"/>
+                <field name="total_amount_rubro" sum="Total" optional="show"/>
             </tree>
         </field>
     </record>
