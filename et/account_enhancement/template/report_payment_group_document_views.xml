@@ -165,7 +165,7 @@
                             </t>
                         </t>
                         <tr t-if="o.unmatched_amount">
-                            <td>A cuenta</td>
+                            <td class="text-left" colspan="2">A cuenta</td>
                             <td class="text-right"/>
                             <td class="text-right o_price_total"/>
                             <td class="text-right o_price_total">
