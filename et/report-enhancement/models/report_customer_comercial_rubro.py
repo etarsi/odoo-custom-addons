@@ -146,7 +146,7 @@ class ReportCustomerComercialRubro(models.Model):
                     ON pt.categ_id = c.id
                 -- Rubro = categoría padre si existe, si no, la propia
                 LEFT JOIN product_category parent_categ
-                    ON parent_categ.id = COALESCE(c.parent_id, c.id)
+                    ON parent_categ.id = c.parent_id
 
                 WHERE
                     am.state = 'posted'

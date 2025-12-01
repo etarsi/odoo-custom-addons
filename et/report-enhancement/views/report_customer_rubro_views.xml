@@ -29,19 +29,15 @@
             <search string="Buscar facturación por rubro">
                 <!-- Buscar por cliente -->
                 <field name="partner_id" string="Cliente"/>
-
                 <!-- Buscar por comercial -->
                 <field name="comercial_id" string="Comercial"/>
-
                 <!-- Filtros de agrupación -->
                 <filter string="Agrupar por comercial"
                         name="group_by_comercial"
                         context="{'group_by': 'comercial_id'}"/>
-
                 <filter string="Agrupar por cliente"
                         name="group_by_cliente"
                         context="{'group_by': 'partner_id'}"/>
-
                 <!-- Opcional: agrupar por fecha (mes) -->
                 <filter string="Agrupar por mes"
                         name="group_by_month"
