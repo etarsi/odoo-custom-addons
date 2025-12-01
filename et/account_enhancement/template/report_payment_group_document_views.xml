@@ -6,7 +6,7 @@
                 <table class="table table-sm o_main_table" name="payments_table">
                     <thead>
                         <tr>
-                            <th class="text-right" style="width: 5%; padding-right: 2px;">#</th>
+                            <th class="text-left" style="width: 5%; padding-right: 2px;">#</th>
                             <th class="text-center"><span>Pagos</span></th>
                             <th class="text-right" t-if="any(o.mapped('payment_ids.other_currency'))"><span>Importe divisa</span></th>
                             <th class="text-right"><span>Importe</span></th>
@@ -21,11 +21,11 @@
                             <!-- Incremento el índice -->
                             <t t-set="payment_index" t-value="payment_index + 1"/>
                             <tr>
-                                <td class="text-right" style="width: 5%; padding-right: 2px;">
+                                <td class="text-left" style="width: 5%; padding-right: 2px;">
                                     <span t-esc="payment_index"/>
                                 </td>
                                 <td>
-                                    <span class="text-right" t-out="'Cheque %s nro %s - %s' % ('electrónico ' if check.l10n_latam_checkbook_id.type == 'electronic' else '', check.check_number, check.l10n_latam_check_bank_id.name or check.journal_id.name)"/>
+                                    <span class="text-left" t-out="'Cheque %s nro %s - %s' % ('electrónico ' if check.l10n_latam_checkbook_id.type == 'electronic' else '', check.check_number, check.l10n_latam_check_bank_id.name or check.journal_id.name)"/>
                                     <t t-if="check.l10n_latam_check_payment_date">
                                         - Venc. <span t-field="check.l10n_latam_check_payment_date"/>
                                     </t>
@@ -47,10 +47,10 @@
                             <!-- Incremento el índice -->
                             <t t-set="payment_index" t-value="payment_index + 1"/>
                             <tr>
-                                <td class="text-right" style="width: 5%; padding-right: 2px;">
+                                <td class="text-left" style="width: 5%; padding-right: 2px;">
                                     <span t-esc="payment_index"/>
                                 </td>
-                                <td class="text-right">
+                                <td class="text-left">
                                     <span t-out="&quot;%s - %s&quot; % (line.tax_withholding_id.name, line.withholding_number or line.name)"/>
                                 </td>
                                 <td class="text-right" t-if="any(o.mapped('payment_ids.other_currency'))">
@@ -67,10 +67,10 @@
                             <!-- Incremento el índice -->
                             <t t-set="payment_index" t-value="payment_index + 1"/>                        
                             <tr>
-                                <td class="text-right" style="width: 5%; padding-right: 2px;">
+                                <td class="text-left" style="width: 5%; padding-right: 2px;">
                                     <span t-esc="payment_index"/>
                                 </td>
-                                <td class="text-right">
+                                <td class="text-left">
                                     <span t-field="line.journal_id.name"/>
                                 </td>
                                 <td class="text-right" t-if="any(o.mapped('payment_ids.other_currency'))">
@@ -86,7 +86,7 @@
                     </tbody>
                     <tfoot>
                         <tr>
-                            <td colspan="2"><strong><span>Total Pagado</span></strong></td>
+                            <td colspan="2" class="text-left"><strong><span>Total Pagado</span></strong></td>
                             <td class="text-right" t-if="any(o.mapped('payment_ids.other_currency'))">
                                 <strong t-if="len(o.payment_ids.mapped('currency_id')) == 1 and o.payment_ids.mapped('currency_id') != o.currency_id"> <span class="text-nowrap" t-out="sum(o.payment_ids.mapped('amount_signed'))" t-options="{'widget': 'monetary', 'display_currency': o.payment_ids.mapped('currency_id')}"/></strong>
                             </td>
@@ -103,6 +103,7 @@
                 <table class="table table-sm o_main_table" name="matching_table">
                     <thead>
                         <tr>
+                            <th class="text-right" style="width: 5%; padding-right: 2px;">#</th>
                             <th class="text-center"><span>Comprobantes Imputados</span></th>
                             <th class="text-right"><span>Fecha Venc.</span></th>
                             <th class="text-right"><span>Importe Original</span></th>
@@ -110,11 +111,17 @@
                         </tr>
                     </thead>
                     <tbody>
+                        <t t-set="payment_index" t-value="0"/>
                         <t t-set="seen_move_ids" t-value="[]"/>
                         <t t-foreach="o.with_context(payment_group_id=o.id).matched_move_line_ids" t-as="line">
+                            <!-- Incremento el índice -->
+                            <t t-set="payment_index" t-value="payment_index + 1"/>       
                             <tr>
-                                <td style="font-size: 10px;" class="text-right"><span t-field="line.move_id.display_name"/></td>
-                                <td class="text-right">
+                                <td class="text-left" style="width: 5%; padding-right: 2px;">
+                                    <span t-esc="payment_index"/>
+                                </td>
+                                <td style="font-size: 12px;" class="text-left"><span t-field="line.move_id.display_name"/></td>
+                                <td class="text-left">
                                     <span t-field="line.date_maturity"/>
                                 </td>
                                 <td class="text-right o_price_total">
