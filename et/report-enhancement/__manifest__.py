@@ -25,8 +25,8 @@
     # always loaded
     'data': [
         'security/ir.model.access.csv',
-        'views/report_customer_rubro_views.xml',
-        'views/views.xml',
+        'views/report_factura_rubros_temp_views.xml',
+        'views/report_factura_rubros_temp_nav_views.xml',
         'views/templates.xml',
     ],
     # only loaded in demonstration mode

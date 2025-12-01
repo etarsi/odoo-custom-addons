@@ -43,6 +43,7 @@
                     <field name="product_category"/>
                     <field name="fisico_unidades"/>
                     <field name="entregable_unidades"/>
+                    <field name="enelagua_unidades" readonly="1"/>
                     <field name="uxb"/>
                     <field name="comprometido_unidades"/>
                     <field name="disponible_unidades"/>

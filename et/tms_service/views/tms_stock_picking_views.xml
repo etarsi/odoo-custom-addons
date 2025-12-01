@@ -87,6 +87,7 @@
                 <field name="picking_ids" widget="many2many_tags" optional="show"/>
                 <field name="account_move_ids" widget="many2many_tags" optional="show"/>
                 <field name="amount_totals" optional="show"/>
+                <field name="amount_nc_totals" optional="show"/>
                 <field name="items_ids" widget="many2many_tags" optional="show"/>
                 <field name="partner_id" optional="show"/>
                 <field name="cantidad_bultos" optional="show"/>

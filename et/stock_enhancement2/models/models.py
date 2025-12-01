@@ -569,16 +569,20 @@ class StockPickingInherit(models.Model):
             invoices = self.env['account.move'].browse(self.invoice_ids.ids)
             rubros_ids = []
             amount_total = 0
+            amount_nc_total = 0
             for invoice in invoices:
+                #separar facturas de cliente y notas de credito
+                if invoice.move_type == 'out_refund' and invoice.state != 'cancel':
+                    amount_nc_total += invoice.amount_total
+                elif invoice.move_type == 'out_invoice' and invoice.state != 'cancel':
+                    amount_total += invoice.amount_total
                 items = invoice.invoice_line_ids.mapped('product_id.categ_id.parent_id')
-                # Filtrar categorías nulas y obtener solo los ids únicos
                 items = items.filtered(lambda c: c and c.id).ids
-                #setear los rubros en el tms_stock_picking
                 rubros_ids = list(set(rubros_ids + items))
-                amount_total += invoice.amount_total 
+            
             #quitar los rubros duplicados
             rube_ids_final = list(set(rubros_ids))
-            tms_stock.write({'account_move_ids': self.invoice_ids.ids, 'amount_totals': amount_total, 'items_ids': rube_ids_final})
+            tms_stock.write({'account_move_ids': self.invoice_ids.ids, 'amount_totals': amount_total, 'amount_nc_totals': amount_nc_total, 'items_ids': rube_ids_final})
 
         if len(self.invoice_ids) == 1:
             return {
@@ -691,18 +695,20 @@ class StockPickingInherit(models.Model):
             invoices = self.env['account.move'].browse(self.invoice_ids.ids)
             rubros_ids = []
             amount_total = 0
+            amount_nc_total = 0
             for invoice in invoices:
+                #separar facturas de cliente y notas de credito
+                if invoice.move_type == 'out_refund' and invoice.state != 'cancel':
+                    amount_nc_total += invoice.amount_total
+                elif invoice.move_type == 'out_invoice' and invoice.state != 'cancel':
+                    amount_total += invoice.amount_total
                 items = invoice.invoice_line_ids.mapped('product_id.categ_id.parent_id')
-                # Filtrar categorías nulas y obtener solo los ids únicos
                 items = items.filtered(lambda c: c and c.id).ids
-                #setear los rubros en el tms_stock_picking
                 rubros_ids = list(set(rubros_ids + items))
-                amount_total += invoice.amount_total 
+            
             #quitar los rubros duplicados
             rube_ids_final = list(set(rubros_ids))
-            tms_stock.write({'account_move_ids': self.invoice_ids.ids,
-                                'amount_totals': amount_total,
-                                'items_ids': rube_ids_final})
+            tms_stock.write({'account_move_ids': self.invoice_ids.ids, 'amount_totals': amount_total, 'amount_nc_totals': amount_nc_total, 'items_ids': rube_ids_final})
 
         return {
             'name': "Factura generada",
