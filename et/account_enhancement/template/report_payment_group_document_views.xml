@@ -103,9 +103,9 @@
                 <table class="table table-sm o_main_table" name="matching_table">
                     <thead>
                         <tr>
-                            <th class="text-right" style="width: 5%; padding-right: 2px;">#</th>
+                            <th class="text-left" style="width: 5%; padding-right: 2px;">#</th>
                             <th class="text-center"><span>Comprobantes Imputados</span></th>
-                            <th class="text-right"><span>Fecha Venc.</span></th>
+                            <th class="text-left"><span>Fecha Venc.</span></th>
                             <th class="text-right"><span>Importe Original</span></th>
                             <th class="text-right"><span>Importe Imputado</span></th>
                         </tr>
@@ -137,8 +137,8 @@
                                     <t t-if="('FA' in reconciled_line.move_id.display_name and reconciled_line.payment_group_matched_amount==0 or 'NC' in reconciled_line.move_id.display_name) and reconciled_line.move_id.id not in seen_move_ids">
                                         <t t-set="seen_move_ids" t-value="seen_move_ids + [reconciled_line.move_id.id]"/>
                                         <tr>
-                                            <td style="font-size: 10px;" class="text-right"><span t-field="reconciled_line.move_id.display_name"/></td>
-                                            <td class="text-right"><span t-field="reconciled_line.date_maturity"/></td>
+                                            <td colspan="2" style="font-size: 12px;" class="text-left"><span t-field="reconciled_line.move_id.display_name"/></td>
+                                            <td class="text-left"><span t-field="reconciled_line.date_maturity"/></td>
                                             <td class="text-right o_price_total">
                                                 <span class="text-nowrap" t-raw="(o.partner_type == 'supplier' and -1.0 or 1.0) * reconciled_line.balance" t-options="{&quot;widget&quot;: &quot;monetary&quot;, &quot;display_currency&quot;: o.currency_id}"/>
                                             </td>
@@ -152,8 +152,8 @@
                             <t t-foreach="o.env['account.move'].search([('reversed_entry_id', '=', line.move_id.id),('state','=','posted')])" t-as="reversed_move">
                                 <t t-if="reversed_move">
                                     <tr>
-                                        <td style="font-size: 10px;" class="text-right"><span t-field="reversed_move.display_name"/></td>
-                                        <td class="text-right"><span t-field="reversed_move.invoice_date_due"/></td>
+                                        <td style="font-size: 12px;" class="text-left"><span t-field="reversed_move.display_name"/></td>
+                                        <td class="text-left"><span t-field="reversed_move.invoice_date_due"/></td>
                                         <td class="text-right o_price_total">
                                             <span class="text-nowrap" t-raw="(o.partner_type == 'supplier' and 1.0 or -1.0) * reversed_move.amount_total" t-options="{&quot;widget&quot;: &quot;monetary&quot;, &quot;display_currency&quot;: o.currency_id}"/>
                                         </td>
