@@ -33,9 +33,15 @@ odoo.define('tms_service.SelectionSumList', function (require) {
                     text: _t('T. Facturado: 0'),
                 });
 
+                // campo 3
+                this.$sumCampo3 = $('<span/>', {
+                    text: _t('T. NC: 0'),
+                });
+
                 this.$selectionSum
                     .append(this.$sumCampo1)
-                    .append(this.$sumCampo2);
+                    .append(this.$sumCampo2)
+                    .append(this.$sumCampo3);
 
                 // Lo ponemos al lado de "Crear"
                 var $addBtn = this.$buttons.find('.o_list_button_add');
@@ -58,6 +64,7 @@ odoo.define('tms_service.SelectionSumList', function (require) {
             }
             this.$sumCampo1.text(_t('T. Bultos: 0'));
             this.$sumCampo2.text(_t('T. Facturado: 0'));
+            this.$sumCampo3.text(_t('T. NC: 0'));
             this.$selectionSum.hide();   // 🔸 al resetear, lo oculto
         },
 
@@ -79,14 +86,16 @@ odoo.define('tms_service.SelectionSumList', function (require) {
             this._rpc({
                 model: this.modelName,
                 method: 'read',
-                args: [ids, ['cantidad_bultos', 'amount_totals']],
+                args: [ids, ['cantidad_bultos', 'amount_totals', 'amount_nc_totals']],
             }).then(function (records) {
                 var total1 = 0;
                 var total2 = 0;
+                var total3 = 0;
 
                 records.forEach(function (rec) {
                     total1 += rec.cantidad_bultos || 0;   // campo 1
                     total2 += rec.amount_totals || 0;     // campo 2
+                    total3 -= rec.amount_nc_totals || 0;  // campo 3 (negativo) 
                 });
 
                 self.$sumCampo1.text(
@@ -97,6 +106,11 @@ odoo.define('tms_service.SelectionSumList', function (require) {
                 self.$sumCampo2.text(
                     _t('T. Facturado: ') +
                     fieldUtils.format.float(total2, {digits: [16, 2]})
+                );
+
+                self.$sumCampo3.text(
+                    _t('T. NC: ') +
+                    fieldUtils.format.float(total3, {digits: [16, 2]})
                 );
             });
         },

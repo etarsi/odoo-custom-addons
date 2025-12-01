@@ -55,7 +55,8 @@ class TmsStockPicking(models.Model):
     picking_count = fields.Integer(compute="_compute_counts", string="Transferencias")
     sale_count = fields.Integer(compute="_compute_counts", string="Venta")
     account_move_ids = fields.Many2many('account.move', string='Facturas')
-    amount_totals = fields.Monetary(string='Total Facturas', store=True)
+    amount_totals = fields.Monetary(string='Total Facturado', store=True)
+    amount_nc_totals = fields.Monetary(string='Total N. Crédito', store=True)
     items_ids = fields.Many2many('product.category', string='Rubros')
     currency_id = fields.Many2one('res.currency', string='Moneda', default=lambda self: self.env.company.currency_id)
     account_move_count = fields.Integer(compute="_compute_account_move_count", string="Facturas")
@@ -162,17 +163,24 @@ class TmsStockPicking(models.Model):
             rubros_ids = []
             rube_ids_final = []
             amount_total = 0
+            amount_nc_total = 0
             if invoices:
                 for invoice in invoices:
+                    #separar facturas de cliente y notas de credito
+                    if invoice.move_type == 'out_refund':
+                        amount_nc_total += invoice.amount_total
+                    elif invoice.move_type == 'out_invoice':
+                        amount_total += invoice.amount_total
                     items = invoice.invoice_line_ids.mapped('product_id.categ_id.parent_id')
                     # Filtrar categorías nulas y obtener solo los ids únicos
                     items = items.filtered(lambda c: c and c.id).ids
                     #setear los rubros en el tms_stock_picking
                     rubros_ids = list(set(rubros_ids + items))
-                    amount_total += invoice.amount_total 
+
                 #quitar los rubros duplicados
                 rube_ids_final = list(set(rubros_ids))
-
+            # amount_nc debe ser negativo
+            amount_nc_total = -abs(amount_nc_total)
             rec.write({
                 'estado_digip': stock_picking.state_wms,
                 'estado_despacho': estado_despacho,
@@ -181,6 +189,7 @@ class TmsStockPicking(models.Model):
                 'fecha_despacho': stock_picking.date_done,
                 'account_move_ids': [(6, 0, stock_picking.invoice_ids.ids)],
                 'amount_totals': amount_total,
+                'amount_nc_totals': amount_nc_total,
                 'items_ids': rube_ids_final,
             })
             updated += 1
