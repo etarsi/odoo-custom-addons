@@ -4,7 +4,7 @@
         <field name="name">report.factura.rubros.temp.nav.tree</field>
         <field name="model">report.factura.rubros.temp.nav</field>
         <field name="arch" type="xml">
-            <tree string="Reporte de Facturas por Rubros Temporada Navidad" create="0" edit="0" delete="0">
+            <tree string="Reporte de Facturas por Rubros Temporada Navidad" create="0" edit="0" delete="0" default_order="total_amount_rubro desc">
                 <field name="partner_id" optional="show"/>
                 <field name="comercial_id" optional="show"/>
                 <field name="amount_juguetes" sum="Juguetes" optional="show"/>
