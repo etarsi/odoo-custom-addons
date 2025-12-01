@@ -32,8 +32,8 @@ class AccountPaymentInherit(models.Model):
     )
     is_effectiveness_text = fields.Boolean(default=False)
     check_effectiveness_text = fields.Text(compute="_compute_check_effectiveness", store=False)
-
     index = fields.Integer(string='#')
+    active = fields.Boolean(string='Activo', related='payment_group_id.active', store=True)
 
     @api.constrains('check_number', 'journal_id')
     def _constrains_check_number(self):

@@ -26,13 +26,12 @@ class AccountPaymentGroupInherit(models.Model):
         sanitize=False,
     )
     is_paid_date_venc_text = fields.Boolean(default=False, copy=False)
-    paid_date_venc_text = fields.Text(default='⚠️ EL PAGO A REGISTRAR ESTA FUERA DE FECHA ⚠️')           
+    paid_date_venc_text = fields.Text(default='⚠️ EL PAGO A REGISTRAR ESTA FUERA DE FECHA ⚠️')          
+    active = fields.Boolean(string='Activo', default=True)
 
 
     
     #### ONCHANGE #####
-
-
     @api.onchange('payment_date', 'to_pay_move_line_ids', 'to_pay_move_line_ids.date_maturity', 'to_pay_move_line_ids.move_id')
     def _compute_paid_date_venc_html(self):
         for rec in self:
@@ -193,10 +192,30 @@ class AccountPaymentGroupInherit(models.Model):
                 payments = record.payment_ids.sorted(lambda p: (p.l10n_ar_amount_company_currency_signed or 0.0, p.id))
                 for indx, payment in enumerate(payments, start=1):
                     payment.index = indx
-
+                    
+    def un_link(self):
+        for record in self:
+            to_archive = record.filtered(lambda r: r.state in ('draft', 'cancel'))
+            others = record - to_archive
+            if others:
+                raise UserError(_(
+                    "Solo se pueden suprimir grupos de pago en estado Borrador "
+                    "o Cancelado.\nEstados no permitidos: %s"
+                ) % ', '.join(sorted(set(others.mapped('state')))))
+            if to_archive:
+                to_archive.write({'active': False})
+        return {
+            'type': 'ir.actions.client',
+            'tag': 'display_notification',
+            'params': {
+                'title': 'Listo',
+                'message': 'Se Eliminaron los grupos de pago seleccionados.',
+                'type': 'success',
+                'sticky': False,
+            }
+        }
 
     #### DEPENDS #####
-
     @api.depends('partner_id', 'partner_type', 'company_id')
     def _compute_to_pay_move_lines(self):
         for record in self:

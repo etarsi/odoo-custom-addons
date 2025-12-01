@@ -1,0 +1,10 @@
+<odoo>
+    <record id="action_archive_account_payment_group" model="ir.actions.server">
+        <field name="name">Suprimir</field>
+        <field name="model_id" ref="account.model_account_payment_group"/>
+        <field name="state">code</field>
+        <field name="code">action = records.un_link()</field>
+        <field name="binding_model_id" ref="account.model_account_payment_group"/>
+        <field name="binding_type">action</field>
+    </record>
+</odoo>

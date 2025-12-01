@@ -5,19 +5,35 @@
         <field name="model">account.payment.group</field>
         <field name="inherit_id" ref="account_payment_group.view_account_payment_group_form"/>
         <field name="arch" type="xml">
-            <xpath expr="//sheet" position="inside">
-                <div attrs="{'invisible': [('paid_date_venc_html','=',False)]}">
-                    <field name="paid_date_venc_html" widget="html" nolabel="1"/>
-                </div>
-            </xpath>
             <xpath expr="//field[@name='payment_date']" position="before">
-                <div class="text-danger"
-                    style="font-weight:700; font-size:16px; margin:8px 0; white-space:pre-line;"
-                    attrs="{'invisible': ['|', ('state','!=','draft'), ('is_paid_date_venc_text','=', False)]}">
-                    <field name="paid_date_venc_text" readonly="1" nolabel="1"/>
-                </div>
-                <field name="is_paid_date_venc_text" invisible="1"/>
+                <field name="active" invisible="1"/>
             </xpath>
+
+            <!--  
+                <xpath expr="//sheet" position="inside">
+                    <div attrs="{'invisible': [('paid_date_venc_html','=',False)]}">
+                        <field name="paid_date_venc_html" widget="html" nolabel="1"/>
+                    </div>
+                </xpath>
+            -->
+                            
+            <!-- ARCHIVADO -->
+            <xpath expr="//div[@name='button_box']" position="after">
+                <widget name="web_ribbon" title="Archivado" bg_color="bg-danger"
+                    attrs="{'invisible': [('active','=', False)]}"/>
+            </xpath>
+
+            <!-- MENSAJE DE PAGO FUERA DE FECHA 
+                <xpath expr="//field[@name='payment_date']" position="before">
+                    <div class="text-danger"
+                        style="font-weight:700; font-size:16px; margin:8px 0; white-space:pre-line;"
+                        attrs="{'invisible': ['|', ('state','!=','draft'), ('is_paid_date_venc_text','=', False)]}">
+                        <field name="paid_date_venc_text" readonly="1" nolabel="1"/>
+                    </div>
+                    <field name="is_paid_date_venc_text" invisible="1"/>
+                    <field name="active" invisible="1"/>
+                </xpath>
+            -->
         </field>
     </record>
 </odoo>
