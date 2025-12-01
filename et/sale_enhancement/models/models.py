@@ -53,6 +53,31 @@ class SaleOrderInherit(models.Model):
     )
     is_marketing = fields.Boolean(string="Venta de Marketing", default=False)
 
+
+    def pasar_a_tipo1_seb(self):
+        for record in self:
+            tipo = self.env['condicion.venta'].browse(6)
+            record.condicion_m2m = tipo.id
+
+            if record.state == 'sale':
+                x = True
+                record.state = 'draft'
+                record.order_line.state = 'draft'
+
+            
+            for line in record.order_line:
+                tax_iva = self.env['account.tax'].search([('description', '=', 'IVA 21%'), ('company_id', '=', 2), ('type_tax_ise', '=', 'sale')], limit=1)
+                tax_percep = self.env['account.tax'].search([('description', '=', 'Perc IIBB CABA A'), ('company_id', '=', 2), ('type_tax_ise', '=', 'sale')], limit=1)
+                line.tax_id = tax_iva | tax_percep
+
+
+            record.company_id = 2
+            record.warehouse_id = 2
+
+            if x:
+                record.state = 'sale'
+                record.order_line.state = 'sale'
+
     @api.depends('partner_id', 'partner_id.category_id')
     def _compute_partner_tags(self):
         for order in self:
