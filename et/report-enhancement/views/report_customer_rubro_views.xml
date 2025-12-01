@@ -64,9 +64,6 @@
         <field name="domain">
             [('date','&gt;=','2025-03-01'),('date','&lt;=','2025-08-31')]
         </field>
-        <field name="context">
-            {'group_by': 'comercial_id'}
-        </field>
     </record>
 
     <record id="action_report_customer_rubro_navidad_2025_2026" model="ir.actions.act_window">
@@ -76,11 +73,8 @@
         <field name="domain">
             [('date','&gt;=','2025-09-01'),('date','&lt;=','2026-01-31')]
         </field>
-        <field name="context">
-            {'group_by': 'comercial_id'}
-        </field>
     </record>
-    
+
     <menuitem id="menu_report_report_nico"
         name="Reportes Nico"
         parent="base.menu_board_root"
