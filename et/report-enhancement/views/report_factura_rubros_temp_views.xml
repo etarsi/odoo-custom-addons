@@ -8,13 +8,13 @@
                 <field name="partner_id" optional="show"/>
                 <field name="comercial_id" optional="show"/>
                 <field name="amount_juguetes" sum="Juguetes" optional="show"/>
-                <field name="amount_maquillaje" sum="Maquillaje" optional="show"/>
                 <field name="amount_rodados" sum="Rodados" optional="show"/>
+                <field name="amount_rodados_inf" sum="Rodados Infantiles" optional="show"/>
                 <field name="amount_pelotas" sum="Pelotas" optional="show"/>
-                <field name="amount_inflables" sum="Inflables" optional="show"/>
+                <field name="amount_maquillaje" sum="Maquillaje" optional="show"/>
                 <field name="amount_pst_agua" sum="Pistola de Agua" optional="show"/>
                 <field name="amount_vehiculos_b" sum="Vehículos a Batería" optional="show"/>
-                <field name="amount_rodados_inf" sum="Rodados Infantiles" optional="show"/>
+                <field name="amount_inflables" sum="Inflables" optional="show"/>
                 <field name="total_amount_rubro" sum="Total" optional="show"/>
             </tree>
         </field>
