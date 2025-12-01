@@ -183,6 +183,48 @@
                     </tfoot>
                 </table>
             </xpath>
+
+            <xpath expr="//table[@name='open_table']" position="replace">
+                <table class="table table-sm o_main_table" name="open_table" t-if="o.partner_type=='customer'" groups="l10n_ar_ux.group_include_pending_receivable_documents">
+                    <thead>
+                        <tr>
+                            <th class="text-left" style="width: 5%; padding-right: 2px;">#</th>
+                            <th class="text-center"><span>Comprobantes Pendientes al </span><span t-out="datetime.datetime.today()" t-options="{&quot;widget&quot;: &quot;date&quot;}"/></th>
+                            <th class="text-center"><span>Fecha Venc.</span></th>
+                            <th class="text-right"><span>Importe Original</span></th>
+                            <th class="text-right"><span>Saldo</span></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <t t-set="payment_index" t-value="0"/>
+                        <t t-foreach="o.env['account.move.line'].search([('partner_id', '=', o.partner_id.commercial_partner_id.id), ('account_id.internal_type', '=', o.partner_type=='customer' and 'receivable' or 'payable'), ('reconciled', '=', False), ('account_id.deprecated', '=', False), ('move_id.state', '=', 'posted'), ('company_id', '=', o.company_id.id)])" t-as="line">
+                            <!-- Incremento el índice -->
+                            <t t-set="payment_index" t-value="payment_index + 1"/>
+                            <tr>
+                                <td class="text-left" style="width: 5%; padding-right: 2px;">
+                                    <span t-esc="payment_index"/>
+                                </td>
+                                <td class="text-left"><span t-field="line.move_id.display_name"/></td>
+                                <td class="text-center"><span class="text-nowrap" t-field="line.date_maturity"/></td>
+                                <td class="text-right o_price_total">
+                                    <span class="text-nowrap" t-field="line.balance"/>
+                                </td>
+                                <td class="text-right o_price_total">
+                                    <span class="text-nowrap" t-field="line.amount_residual"/>
+                                </td>
+                            </tr>
+                        </t>
+                    </tbody>
+                    <tfoot>
+                        <tr>
+                            <td colspan="4" class="text-left"><strong><span>Total Pendiente</span></strong></td>
+                            <td class="text-right">
+                                <strong><span class="text-nowrap" t-out="sum(o.env['account.move.line'].search([('partner_id', '=', o.partner_id.commercial_partner_id.id), ('account_id.internal_type', '=', o.partner_type=='customer' and 'receivable' or 'payable'), ('reconciled', '=', False), ('account_id.deprecated', '=', False), ('move_id.state', '=', 'posted'), ('company_id', '=', o.company_id.id)]).mapped('amount_residual'))" t-options="{&quot;widget&quot;: &quot;monetary&quot;, &quot;display_currency&quot;: o.currency_id}"/></strong>
+                            </td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </xpath>
         </template>    
     </data>
 </odoo>
