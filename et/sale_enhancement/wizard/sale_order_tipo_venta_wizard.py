@@ -58,9 +58,15 @@ class SaleOrderTipoVentaWizard(models.TransientModel):
     def action_confirm(self):
         self.ensure_one()
         sale = self.sale_id
+    
+        if self.company_id.id == 1:  # Producción B
+            pricelist_id = self.env['product.pricelist'].search([('list_default_b', '=', True)], limit=1)
+        else:
+            pricelist_id = self.env['product.pricelist'].search([('is_default', '=', True)], limit=1)  
+        
         sale.write({
             'company_default': self.company_id.id,
             'condicion_m2m': self.condicion_m2m_id.id,
-            'pricelist_id': self.pricelist_id.id,
+            'pricelist_id': pricelist_id.id,
         })
         return {'type': 'ir.actions.act_window_close'}
