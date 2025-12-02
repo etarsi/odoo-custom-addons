@@ -22,15 +22,13 @@
             </form>
         </field>
     </record>
-    
-    <record id="sale_order_tipo_venta_wizard_act_window" model="ir.actions.act_window">
-        <field name="name">Modificar Condición de Venta</field>
+
+    <!-- Acción que abre el wizard -->
+    <record id="action_sale_order_tipo_venta_wizard" model="ir.actions.act_window">
+        <field name="name">Cambiar tipo de venta</field>
         <field name="res_model">sale.order.tipo.venta.wizard</field>
         <field name="view_mode">form</field>
         <field name="view_id" ref="view_sale_order_tipo_venta_wizard_form"/>
         <field name="target">new</field>
-        <!-- Para que aparezca en Acción ▾ de account.payment.group -->
-        <field name="binding_model_id" ref="sale.model_sale_order"/>
-        <field name="binding_type">action</field>
     </record>
 </odoo>

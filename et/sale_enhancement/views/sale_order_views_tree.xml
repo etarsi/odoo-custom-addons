@@ -7,6 +7,14 @@
             <field name="model">sale.order</field>
             <field name="inherit_id" ref="sale.view_order_form"/>
             <field name="arch" type="xml">
+                <xpath expr="//header" position="inside">
+                    <!-- attrs="{'invisible': [('state', 'in', ['sale', 'done', 'cancel'])]}"-->
+                    <button name="%(et_sale_enhancement.action_sale_order_tipo_venta_wizard)d"
+                            string="Cambiar tipo de venta"
+                            type="action"
+                            class="btn-secondary"/>
+                    
+                </xpath>
                 <xpath expr="//page[@name='other_information']//field[@name='company_id']" position="after">
                     <field name="company_default" string="Compañía" options="{'no_create': True, 'no_create_edit': True}" attrs="{'readonly': [('state', 'in', ['sale', 'done', 'cancel'])]}"/>
                 </xpath>
