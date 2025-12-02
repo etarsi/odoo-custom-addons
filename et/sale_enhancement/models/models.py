@@ -380,7 +380,9 @@ class SaleOrderInherit(models.Model):
         elif is_marketing:
             _logger.info("ES MARKETING - SETEANDO COMPAÑÍA MARKETING")
             _logger.info("SETANDO LISTA DE PRECIOS MARKETING")
-            _logger.info("company_produccion_b.id: %s", company_produccion_b.id)
+            wh = self.env['stock.warehouse'].search([('company_id', '=', company_produccion_b.id)], limit=1)
+            if not wh:
+                raise UserError(_("No tiene asignada la compañía %s, verifique su listado de Compañias.") % company_produccion_b.display_name)
             pricelist = self.env['product.pricelist'].search([('is_marketing','=', True)], limit=1)
             #setear condicion de venta TIPO 3
             vals['condicion_m2m'] = self.env['condicion.venta'].search([('name', '=', 'TIPO 3')], limit=1).id
@@ -388,6 +390,7 @@ class SaleOrderInherit(models.Model):
                 vals = dict(vals)
                 vals['pricelist_id'] = pricelist.id
                 vals['company_id'] = company_produccion_b.id
+                vals['warehouse_id'] = wh.id
                 self.with_context(allowed_company_ids=[company_produccion_b.id]).with_company(company_produccion_b)
                 order = super().create(vals)    
             else: 
