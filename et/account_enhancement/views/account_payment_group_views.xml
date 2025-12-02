@@ -35,4 +35,30 @@
             -->
         </field>
     </record>
+
+    <record id="account_payment_group_tree_view_inherit" model="ir.ui.view">
+        <field name="name">account.payment.group.tree.view.inherit</field>
+        <field name="model">account.payment.group</field>
+        <field name="inherit_id" ref="account_payment_group.view_account_payment_group_tree"/>
+        <field name="arch" type="xml">
+            <xpath expr="//tree" position="inside">
+                <field name="archived" invisible="1"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="account_payment_group_search_view_inherit" model="ir.ui.view">
+        <field name="name">account.payment.group.search.view.inherit</field>
+        <field name="model">account.payment.group</field>
+        <field name="inherit_id" ref="account_payment_group.view_account_payment_group_search"/>
+        <field name="arch" type="xml">
+            <xpath expr="//search" position="inside">
+                <filter name="archived" string="Archivados" domain="[('archived','=',True)]"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="account_payment_group.action_account_payments_group" model="ir.actions.act_window">
+        <field name="domain">[('partner_type', '=', 'customer'), ('archived', '=', False)]</field>
+    </record>
 </odoo>

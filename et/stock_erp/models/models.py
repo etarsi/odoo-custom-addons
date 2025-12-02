@@ -387,8 +387,8 @@ class StockERP(models.Model):
 
                         if stock_moves_erp:
                             stock_moves_erp.undo_preparation()
-                        else:
-                            raise UserError('No se encontró movimiento de stock para anular')
+                        #else:
+                        #    raise UserError('No se encontró movimiento de stock para anular')
 
             
 
