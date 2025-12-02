@@ -27,7 +27,7 @@ class AccountPaymentGroupInherit(models.Model):
     )
     is_paid_date_venc_text = fields.Boolean(default=False, copy=False)
     paid_date_venc_text = fields.Text(default='⚠️ EL PAGO A REGISTRAR ESTA FUERA DE FECHA ⚠️')          
-    active = fields.Boolean(string='Activo', default=True)
+    archived = fields.Boolean(string='Archivado', default=False, tracking=True)
 
 
     
@@ -203,7 +203,7 @@ class AccountPaymentGroupInherit(models.Model):
                     "o Cancelado.\nEstados no permitidos: %s"
                 ) % ', '.join(sorted(set(others.mapped('state')))))
             if to_archive:
-                to_archive.write({'active': False})
+                to_archive.write({'archived': True})
         return {
             'type': 'ir.actions.client',
             'tag': 'display_notification',

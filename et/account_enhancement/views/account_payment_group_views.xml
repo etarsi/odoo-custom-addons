@@ -6,7 +6,7 @@
         <field name="inherit_id" ref="account_payment_group.view_account_payment_group_form"/>
         <field name="arch" type="xml">
             <xpath expr="//field[@name='payment_date']" position="before">
-                <field name="active" invisible="1"/>
+                <field name="archived" invisible="1"/>
             </xpath>
 
             <!--  
@@ -20,7 +20,7 @@
             <!-- ARCHIVADO -->
             <xpath expr="//div[@name='button_box']" position="after">
                 <widget name="web_ribbon" title="Archivado" bg_color="bg-danger"
-                    attrs="{'invisible': [('active','!=', False)]}"/>
+                    attrs="{'invisible': [('archived','!=', True)]}"/>
             </xpath>
 
             <!-- MENSAJE DE PAGO FUERA DE FECHA 
@@ -31,7 +31,6 @@
                         <field name="paid_date_venc_text" readonly="1" nolabel="1"/>
                     </div>
                     <field name="is_paid_date_venc_text" invisible="1"/>
-                    <field name="active" invisible="1"/>
                 </xpath>
             -->
         </field>
