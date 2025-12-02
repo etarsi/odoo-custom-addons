@@ -9,7 +9,7 @@
             <field name="arch" type="xml">
                 <xpath expr="//header" position="inside">
                     <!-- attrs="{'invisible': [('state', 'in', ['sale', 'done', 'cancel'])]}"-->
-                    <button name="%(et_sale_enhancement.action_sale_order_tipo_venta_wizard)d"
+                    <button name="%(sale_enhancement.action_sale_order_tipo_venta_wizard)d"
                             string="Cambiar tipo de venta"
                             type="action"
                             class="btn-secondary"/>
