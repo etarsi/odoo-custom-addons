@@ -41,9 +41,9 @@ class SaleOrderTipoVentaWizard(models.TransientModel):
                 self.condicion_m2m_id = self.env['condicion.venta'].search([('name', '=', 'TIPO 3')], limit=1)
                 return {'domain': {'condicion_m2m_id': domain, 'pricelist_id': domain2}}
             else:
-                self.condicion_m2m_id = self.env['condicion.venta'].search([('name', '=', 'TIPO 1')], limit=1)
+                self.condicion_m2m_id = self.env['condicion.venta'].search([('name', '!=', 'TIPO 3')], limit=1)
                 self.pricelist_id = self.env['product.pricelist'].search([('is_default', '=', True)], limit=1)
-                return {'domain': {'condicion_m2m_id': [('name', '=', 'TIPO 1')], 'pricelist_id': [('list_default_b', '!=', True)]}}
+                return {'domain': {'condicion_m2m_id': [('name', '!=', 'TIPO 3')], 'pricelist_id': [('list_default_b', '!=', True)]}}
 
     @api.onchange('condicion_m2m_id')
     def _onchange_condicion_m2m_id(self):
