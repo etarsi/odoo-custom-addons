@@ -6,7 +6,7 @@
         <field name="arch" type="xml">
             <form string="Confirmación">
                 <group>
-                    <label string="¿Está seguro de que desea eliminar/suprimir estos registros?"/>
+                    <label class="o_form_label" string="¿Está seguro de que desea eliminar/suprimir estos registros?"/>
                 </group>
                 <footer>
                     <button string="Aceptar"
