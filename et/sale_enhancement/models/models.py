@@ -387,6 +387,7 @@ class SaleOrderInherit(models.Model):
             if pricelist:
                 vals = dict(vals)
                 vals['pricelist_id'] = pricelist.id
+                vals['company_id'] = company_produccion_b.id
                 self.with_context(allowed_company_ids=[company_produccion_b.id]).with_company(company_produccion_b)
                 order = super().create(vals)    
             else: 
