@@ -41,6 +41,7 @@
                   <group>
                     <field name="product_id"/>
                     <field name="product_category"/>
+                    <field name="digip_unidades"/>
                     <field name="fisico_unidades"/>
                     <field name="entregable_unidades"/>
                     <field name="enelagua_unidades" readonly="1"/>

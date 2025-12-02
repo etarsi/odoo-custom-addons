@@ -62,4 +62,32 @@
     <record id="account_payment_group.action_account_payments_group" model="ir.actions.act_window">
         <field name="context">{'default_partner_type': 'customer', 'search_default_not_cancelled_archived': 1}</field>
     </record>
+
+    <!-- vista del account payment group proveedor -->
+    <record id="account_payment_group_search_view_proveedor" model="ir.ui.view">
+        <field name="name">account.payment.group.search.view.inherit</field>
+        <field name="model">account.payment.group</field>
+        <field name="arch" type="xml">
+            <search string="Buscar Registros">
+                <filter string="Borrador" name="state_draft" domain="[('state', '=', 'draft')]"/>
+                <filter string="Publicado" name="state_posted" domain="[('state', '=', 'posted')]"/>
+                <separator/>
+                <field name="partner_id" string="Proveedor"/>
+                <field name="display_name" filter_domain="['|', ('name','ilike',self), ('communication','ilike',self)]" string="OP"/>
+                <separator/>
+                <filter string="Empresa Activa" name="active_company" domain="[('company_id', '=', allowed_company_ids[0])]"/>
+                <separator/>
+                <separator/>
+                <filter string="No cancelado y archivado" name="not_cancelled_archived" domain="[('state', '!=', 'cancelled'),('archived','=',False)]"/>
+                <separator/>
+                <filter name="payment_methods" domain="[]" context="{'groupby': 'payment_methods'}"/>
+            </search>
+        </field>
+    </record>
+    
+    <record id="account_payment_group.action_account_payments_group_payable" model="ir.actions.act_window">
+        <field name="context">{'default_partner_type': 'supplier', 'search_default_not_cancelled_archived': 1}</field>
+        <field name="search_view_id" ref="account_enhancement.account_payment_group_search_view_proveedor"/>
+    </record>
+
 </odoo>

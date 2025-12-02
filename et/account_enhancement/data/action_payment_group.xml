@@ -1,9 +1,11 @@
 <odoo>
-    <record id="action_archive_account_payment_group" model="ir.actions.server">
+    <record id="action_archive_account_payment_group" model="ir.actions.act_window">
         <field name="name">Suprimir</field>
-        <field name="model_id" ref="account_payment_group.model_account_payment_group"/>
-        <field name="state">code</field>
-        <field name="code">action = records.un_link()</field>
+        <field name="res_model">account.payment.group.suprimir.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="view_id" ref="view_account_payment_group_suprimir_wizard_form"/>
+        <field name="target">new</field>
+        <!-- Para que aparezca en Acción ▾ de account.payment.group -->
         <field name="binding_model_id" ref="account_payment_group.model_account_payment_group"/>
         <field name="binding_type">action</field>
     </record>
