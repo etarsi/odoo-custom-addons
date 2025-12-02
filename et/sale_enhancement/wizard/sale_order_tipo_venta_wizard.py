@@ -23,7 +23,7 @@ class SaleOrderTipoVentaWizard(models.TransientModel):
 
         res.update({
             'sale_id': sale.id,
-            'condicion_m2m_id': sale.condicion_m2m_id.id,
+            'condicion_m2m_id': sale.condicion_m2m.id,
             'company_id': sale.company_id.id,
         })
         return res
@@ -59,7 +59,7 @@ class SaleOrderTipoVentaWizard(models.TransientModel):
         sale = self.sale_id
         sale.write({
             'company_default': self.company_id.id,
-            'condicion_m2m_id': self.condicion_m2m_id.id,
+            'condicion_m2m': self.condicion_m2m_id.id,
             'pricelist_id': self.pricelist_id.id,
         })
         return {'type': 'ir.actions.act_window_close'}
