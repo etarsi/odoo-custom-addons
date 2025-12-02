@@ -54,11 +54,12 @@
         <field name="arch" type="xml">
             <xpath expr="//search" position="inside">
                 <filter name="archived" string="Archivados" domain="[('archived','=',True)]"/>
+                <filter name="not_cancelled_archived" string="No Cancelados y Archivados" domain="[('state','!=','cancelled'),('archived','=',False)]" help="Muestra los grupos de pago que no están cancelados ni archivados."/>
             </xpath>
         </field>
     </record>
 
     <record id="account_payment_group.action_account_payments_group" model="ir.actions.act_window">
-        <field name="context">{'default_partner_type': 'customer', 'search_default_not_cancelled': 1, 'archived': False}</field>
+        <field name="context">{'default_partner_type': 'customer', 'search_default_not_cancelled_archived': 1}</field>
     </record>
 </odoo>
