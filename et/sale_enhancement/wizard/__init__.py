@@ -1,1 +1,1 @@
-from . import sale_refacturar_account_wizard
+from . import sale_order_tipo_venta_wizard
