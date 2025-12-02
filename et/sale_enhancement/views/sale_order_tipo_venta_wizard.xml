@@ -1,0 +1,36 @@
+<odoo>
+    <record id="view_sale_order_tipo_venta_wizard_form" model="ir.ui.view">
+        <field name="name">sale.order.tipo.venta.wizard.form</field>
+        <field name="model">sale.order.tipo.venta.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Modificación condiciones de venta, compañía.">
+                <group string="Datos del pedido original">
+                    <field name="sale_id" readonly="1"/>
+                    <field name="company_id"/>
+                    <field name="condicion_m2m_id"/>
+                    <field name="pricelist_id" readonly="1"/>
+                </group>
+                <footer>
+                    <button string="confirmar"
+                            name="action_confirm"
+                            type="object"
+                            class="btn-primary"/>
+                    <button string="Cancelar"
+                            special="cancel"
+                            class="btn-secondary"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+    
+    <record id="sale_order_tipo_venta_wizard_act_window" model="ir.actions.act_window">
+        <field name="name">Modificar Condición de Venta</field>
+        <field name="res_model">sale.order.tipo.venta.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="view_id" ref="view_sale_order_tipo_venta_wizard_form"/>
+        <field name="target">new</field>
+        <!-- Para que aparezca en Acción ▾ de account.payment.group -->
+        <field name="binding_model_id" ref="sale.model_sale_order"/>
+        <field name="binding_type">action</field>
+    </record>
+</odoo>
