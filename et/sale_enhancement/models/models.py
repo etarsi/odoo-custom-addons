@@ -360,11 +360,9 @@ class SaleOrderInherit(models.Model):
         company_produccion_b = self.env['res.company'].browse(1)
         current_company_id = vals.get('company_id')
         company_default = vals.get('company_default', False)
-        _logger.info("CREANDO PEDIDO DE VENTA...")
         is_marketing = vals.get('is_marketing')
-        _logger.info(f"ES MARKETING: {is_marketing}")
+
         if company_default:
-            _logger.info("SETEANDO COMPAÑÍA POR DEFECTO")
             company_default = self.env['res.company'].search([('id', '=', company_default)], limit=1)
             if not company_default:
                 raise UserError(_("No se encontró la compañía con nombre %s.") % vals.get('company_default'))
@@ -378,8 +376,6 @@ class SaleOrderInherit(models.Model):
             self.with_context(allowed_company_ids=[company_produccion_b.id]).with_company(company_produccion_b)
             order = super().create(vals)    
         elif is_marketing:
-            _logger.info("ES MARKETING - SETEANDO COMPAÑÍA MARKETING")
-            _logger.info("SETANDO LISTA DE PRECIOS MARKETING")
             wh = self.env['stock.warehouse'].search([('company_id', '=', company_produccion_b.id)], limit=1)
             if not wh:
                 raise UserError(_("No tiene asignada la compañía %s, verifique su listado de Compañias.") % company_produccion_b.display_name)
@@ -396,7 +392,6 @@ class SaleOrderInherit(models.Model):
             else: 
                 raise UserError("No se encontró precio de lista para Marketing")
         else:
-            _logger.info("NO ES MARKETING")
             #Ajustar compañía si es TIPO 3
             if force_company and current_company_id != company_produccion_b.id:
                 wh = self.env['stock.warehouse'].search([('company_id', '=', company_produccion_b.id)], limit=1)
