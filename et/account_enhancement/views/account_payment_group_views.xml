@@ -59,6 +59,6 @@
     </record>
 
     <record id="account_payment_group.action_account_payments_group" model="ir.actions.act_window">
-        <field name="domain">[('partner_type', '=', 'customer'), ('archived', '=', False)]</field>
+        <field name="context">{'default_partner_type': 'customer', 'search_default_not_cancelled': 1, 'archived': False}</field>
     </record>
 </odoo>
