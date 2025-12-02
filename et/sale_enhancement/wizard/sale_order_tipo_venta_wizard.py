@@ -3,6 +3,8 @@ from odoo import api, fields, models, _
 from odoo.exceptions import UserError
 import math
 from datetime import timedelta
+import logging
+_logger = logging.getLogger(__name__)
 
 class SaleOrderTipoVentaWizard(models.TransientModel):
     _name = 'sale.order.tipo.venta.wizard'
@@ -58,11 +60,16 @@ class SaleOrderTipoVentaWizard(models.TransientModel):
     def action_confirm(self):
         self.ensure_one()
         sale = self.sale_id
-    
+        pricelist_id = False
         if self.company_id.id == 1:  # Producción B
             pricelist_id = self.env['product.pricelist'].search([('list_default_b', '=', True)], limit=1)
         else:
             pricelist_id = self.env['product.pricelist'].search([('is_default', '=', True)], limit=1)  
+        
+        _logger.info('Asignando a pedido %s: compañía %s, condición venta %s, lista precios %s',
+                     sale.name, self.company_id.name, self.condicion_m2m_id.name, pricelist_id)
+        if not pricelist_id:
+            raise UserError(_('No se encontró una lista de precios válida para la compañía seleccionada.'))
         
         sale.write({
             'company_default': self.company_id.id,
