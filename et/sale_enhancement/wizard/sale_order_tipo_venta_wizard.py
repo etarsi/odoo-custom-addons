@@ -39,6 +39,15 @@ class SaleOrderTipoVentaWizard(models.TransientModel):
                 self.condicion_m2m_id = self.env['condicion.venta'].search([('name', '!=', 'TIPO 3')], limit=1)
                 self.pricelist_id = self.env['product.pricelist'].search([('is_default', '=', True)], limit=1)
 
+    @api.onchange('condicion_m2m_id')
+    def _onchange_condicion_m2m_id(self):
+        if self.condicion_m2m_id:
+            tipo = (self.condicion_m2m_id.name).upper().strip()
+            if tipo == 'TIPO 3':
+                self.pricelist_id = self.env['product.pricelist'].search([('list_default_b', '=', True)], limit=1)
+            else:
+                self.pricelist_id = self.env['product.pricelist'].search([('is_default', '=', True)], limit=1)
+
     def action_confirm(self):
         self.ensure_one()
         sale = self.sale_id
