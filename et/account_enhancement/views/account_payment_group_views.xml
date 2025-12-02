@@ -76,11 +76,12 @@
                 <field name="display_name" filter_domain="['|', ('name','ilike',self), ('communication','ilike',self)]" string="OP"/>
                 <separator/>
                 <filter string="Empresa Activa" name="active_company" domain="[('company_id', '=', allowed_company_ids[0])]"/>
+                <filter name="archived" string="Archivados" domain="[('archived','=',True)]"/>
                 <separator/>
                 <separator/>
                 <filter string="No cancelado y archivado" name="not_cancelled_archived" domain="[('state', '!=', 'cancelled'),('archived','=',False)]"/>
                 <separator/>
-                <filter name="payment_methods" domain="[]" context="{'groupby': 'payment_methods'}"/>
+                <filter name="payment_methods" string="Métodos de Pago" domain="[]" context="{'groupby': 'payment_methods'}"/>
             </search>
         </field>
     </record>
