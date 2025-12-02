@@ -31,28 +31,13 @@ class SaleOrderTipoVentaWizard(models.TransientModel):
     @api.onchange('company_id')
     def _onchange_company_id(self):
         if self.company_id:
-            domain = []
-            domain2 = []
             self.condicion_m2m_id = False
             self.pricelist_id = False
             if self.company_id.id == 1:  # Producción B
-                domain2 = [('list_default_b', '=', True)]
-                domain = [('name', '=', 'TIPO 3')]
                 self.condicion_m2m_id = self.env['condicion.venta'].search([('name', '=', 'TIPO 3')], limit=1)
-                return {'domain': {'condicion_m2m_id': domain, 'pricelist_id': domain2}}
             else:
                 self.condicion_m2m_id = self.env['condicion.venta'].search([('name', '!=', 'TIPO 3')], limit=1)
                 self.pricelist_id = self.env['product.pricelist'].search([('is_default', '=', True)], limit=1)
-                return {'domain': {'condicion_m2m_id': [('name', '!=', 'TIPO 3')], 'pricelist_id': [('list_default_b', '!=', True)]}}
-
-    @api.onchange('condicion_m2m_id')
-    def _onchange_condicion_m2m_id(self):
-        if self.condicion_m2m_id:
-            tipo = (self.condicion_m2m_id.name or '').upper().strip()
-            if tipo == 'TIPO 3':
-                return {'domain': {'company_id': [('id', '=', 1)], 'pricelist_id': [('list_default_b', '=', True)]}}
-            else:
-                return {'domain': {'company_id': [('id', '!=', 1)], 'pricelist_id': [('list_default_b', '!=', True)]}}
 
     def action_confirm(self):
         self.ensure_one()
