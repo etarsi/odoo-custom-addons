@@ -1,5 +1,5 @@
 <odoo>
-    <record id="action_archive_account_payment_group" model="ir.actions.act_window">
+    <record id="action_archive_account_payment_group_act_window" model="ir.actions.act_window">
         <field name="name">Suprimir</field>
         <field name="res_model">account.payment.group.suprimir.wizard</field>
         <field name="view_mode">form</field>
