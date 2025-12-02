@@ -364,6 +364,7 @@ class SaleOrderInherit(models.Model):
         is_marketing = vals.get('is_marketing')
         _logger.info(f"ES MARKETING: {is_marketing}")
         if company_default:
+            _logger.info("SETEANDO COMPAÑÍA POR DEFECTO")
             company_default = self.env['res.company'].search([('id', '=', company_default)], limit=1)
             if not company_default:
                 raise UserError(_("No se encontró la compañía con nombre %s.") % vals.get('company_default'))
@@ -391,6 +392,7 @@ class SaleOrderInherit(models.Model):
             else: 
                 raise UserError("No se encontró precio de lista para Marketing")
         else:
+            _logger.info("NO ES MARKETING")
             #Ajustar compañía si es TIPO 3
             if force_company and current_company_id != company_produccion_b.id:
                 wh = self.env['stock.warehouse'].search([('company_id', '=', company_produccion_b.id)], limit=1)
