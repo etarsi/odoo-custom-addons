@@ -1,3 +1,3 @@
 # -*- coding: utf-8 -*-
 
-from . import models, client_purchase_intent, product_template
+from . import models, client_purchase_intent, product_template, stock_picking

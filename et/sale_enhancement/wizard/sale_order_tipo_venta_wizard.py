@@ -88,20 +88,18 @@ class SaleOrderTipoVentaWizard(models.TransientModel):
         #recompute taxes
         sale._compute_tax_id()
 
-        # -------------------------
-        # Actualizar pickings relacionados
-        # -------------------------
-        # Solo los que no están hechos ni cancelados
+        # --- actualizar pickings relacionados ---
+        PickingType = self.env['stock.picking.type']
+
+        # solo pickings NO hechos ni cancelados
         pickings_to_change = sale.picking_ids.filtered(
             lambda p: p.state not in ('done', 'cancel')
         )
 
-        PickingType = self.env['stock.picking.type']
-
         for picking in pickings_to_change:
             old_type = picking.picking_type_id
 
-            # Buscar un picking_type del NUEVO almacén con el mismo código (outgoing/incoming/internal)
+            # buscar un tipo de operación del nuevo almacén con el mismo código
             new_type = PickingType.search([
                 ('warehouse_id', '=', warehouse.id),
                 ('code', '=', old_type.code),
@@ -112,15 +110,14 @@ class SaleOrderTipoVentaWizard(models.TransientModel):
                     "No se encontró un tipo de operación en el almacén %s para el código '%s'."
                 ) % (warehouse.display_name, old_type.code))
 
-            # Cambiar compañía, tipo de operación y ubicaciones del picking
-            picking.write({
+            # cambiamos tipo de operación, compañía y ubicaciones
+            picking.with_context(force_modify_picking=True).write({
                 'company_id': self.company_id.id,
                 'picking_type_id': new_type.id,
                 'location_id': new_type.default_location_src_id.id,
                 'location_dest_id': new_type.default_location_dest_id.id,
             })
 
-            # Cambiar compañía y ubicaciones en los movimientos
             move_vals = {
                 'company_id': self.company_id.id,
                 'location_id': new_type.default_location_src_id.id,
@@ -128,9 +125,4 @@ class SaleOrderTipoVentaWizard(models.TransientModel):
             }
             picking.move_ids_without_package.write(move_vals)
             picking.move_line_ids.write(move_vals)
-
-            # Si querés, reasignar reservas si estaba reservado
-            if picking.state in ('assigned', 'partially_available'):
-                picking.action_assign()
-
         return {'type': 'ir.actions.act_window_close'}
