@@ -55,12 +55,7 @@ class SaleOrderTipoVentaWizard(models.TransientModel):
                 self.condicion_m2m_id = self.env['condicion.venta'].search([('name', '!=', 'TIPO 3')], limit=1)
             if self.pricelist_id and self.pricelist_id.is_default:
                 self.pricelist_id = self.env['product.pricelist'].search([('is_default', '=', True)], limit=1)
-        return {'domain': domain}
-
-    def _recompute_sale_taxes_for_company(self, sale):
-        """ Recalcula y asignar los impuestos, los impuestos del pedido de venta según la compañía nueva. """
-        sale._compute_tax_id()
-        
+        return {'domain': domain}        
 
     def action_confirm(self):
         self.ensure_one()
@@ -91,5 +86,16 @@ class SaleOrderTipoVentaWizard(models.TransientModel):
             'warehouse_id': warehouse_id.id,
         })
         #recompute taxes
-        self._recompute_sale_taxes_for_company(sale)
+        sale._compute_tax_id()
+        
+        #Ahora en stock.picking recalcular las rutas y almacén
+        for picking in sale.picking_ids:
+            #solo actualizar si esta en state es diferente a done o cancel
+            if picking.state in ['done', 'cancel']:
+                continue
+            picking.write({
+                'warehouse_id': warehouse_id.id,
+                'company_id': self.company_id.id,
+            })
+            picking._onchange_location_ids()
         return {'type': 'ir.actions.act_window_close'}
