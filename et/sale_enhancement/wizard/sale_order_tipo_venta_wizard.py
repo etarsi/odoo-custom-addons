@@ -88,14 +88,47 @@ class SaleOrderTipoVentaWizard(models.TransientModel):
         #recompute taxes
         sale._compute_tax_id()
         
-        #Ahora en stock.picking recalcular las rutas y almacén
+        # --- Actualizar pickings relacionados ---
         for picking in sale.picking_ids:
-            #solo actualizar si esta en state es diferente a done o cancel
-            if picking.state in ['done', 'cancel']:
+            # sólo si no está hecho ni cancelado
+            if picking.state in ('done', 'cancel'):
                 continue
-            picking.write({
-                'warehouse_id': warehouse_id.id,
+
+            # Elegir picking_type según el tipo original
+            picking_type = False
+            if picking.picking_type_id.code == 'outgoing' and   warehouse_id.out_type_id:
+                picking_type = warehouse_id.out_type_id
+            elif picking.picking_type_id.code == 'incoming' and warehouse_id.in_type_id:
+                picking_type = warehouse_id.in_type_id
+            elif picking.picking_type_id.code == 'internal' and warehouse_id.int_type_id:
+                picking_type = warehouse_id.int_type_id
+
+            vals_picking = {
                 'company_id': self.company_id.id,
-            })
-            picking._onchange_location_ids()
+            }
+            if picking_type:
+                vals_picking.update({
+                    'picking_type_id': picking_type.id,
+                    'location_id': picking_type.default_location_src_id.id,
+                    'location_dest_id': picking_type.default_location_dest_id.id,
+                })
+
+            picking.write(vals_picking)
+
+            # --- Cambiar compañía (y ubicaciones) en los movimientos ---
+            move_vals = {'company_id': self.company_id.id}
+            if picking_type:
+                move_vals.update({
+                    'location_id': picking.location_id.id,
+                    'location_dest_id': picking.location_dest_id.id,
+                })
+
+            # stock.move
+            picking.move_ids_without_package.write(move_vals)
+            # stock.move.line (detalle de operaciones)
+            picking.move_line_ids.write(move_vals)
+
+            # Opcional: volver a asignar reservas si hace falta
+            if picking.state in ('assigned', 'partially_available'):
+                picking.action_assign()
         return {'type': 'ir.actions.act_window_close'}
