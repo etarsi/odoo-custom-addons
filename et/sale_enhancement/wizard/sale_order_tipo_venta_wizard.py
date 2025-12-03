@@ -70,12 +70,12 @@ class SaleOrderTipoVentaWizard(models.TransientModel):
         if not pricelist_id:
             raise UserError(_('No se encontró una lista de precios válida para la compañía seleccionada.'))
         #cambiar el warehouse si corresponde
-        warehouse_id = False
+        warehouse = False
         if self.company_id.id == 1:  # Producción B
-            warehouse_id = self.env['stock.warehouse'].search([('company_id', '=', 1)], limit=1)
+            warehouse = self.env['stock.warehouse'].search([('company_id', '=', 1)], limit=1)
         else:
-            warehouse_id = self.env['stock.warehouse'].search([('company_id', '=', self.company_id.id)], limit=1)
-        if not warehouse_id:
+            warehouse = self.env['stock.warehouse'].search([('company_id', '=', self.company_id.id)], limit=1)
+        if not warehouse:
             raise UserError(_('No se encontró un almacén para la compañía %s. Verifique su configuración de Almacenes.') % self.company_id.name)
 
         sale.write({
@@ -83,7 +83,7 @@ class SaleOrderTipoVentaWizard(models.TransientModel):
             'condicion_m2m': self.condicion_m2m_id.id,
             'pricelist_id': pricelist_id.id,
             'company_id': self.company_id.id,
-            'warehouse_id': warehouse_id.id,
+            'warehouse_id': warehouse.id,
         })
         #recompute taxes
         sale._compute_tax_id()
