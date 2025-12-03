@@ -87,48 +87,20 @@ class SaleOrderTipoVentaWizard(models.TransientModel):
         })
         #recompute taxes
         sale._compute_tax_id()
-        
+
+        sale_pickings = sale.picking_ids.filtered(lambda p: p.state not in ('done', 'cancel'))
         # --- Actualizar pickings relacionados ---
-        for picking in sale.picking_ids:
-            # sólo si no está hecho ni cancelado
-            if picking.state in ('done', 'cancel'):
-                continue
-
-            # Elegir picking_type según el tipo original
-            picking_type = False
-            if picking.picking_type_id.code == 'outgoing' and   warehouse_id.out_type_id:
-                picking_type = warehouse_id.out_type_id
-            elif picking.picking_type_id.code == 'incoming' and warehouse_id.in_type_id:
-                picking_type = warehouse_id.in_type_id
-            elif picking.picking_type_id.code == 'internal' and warehouse_id.int_type_id:
-                picking_type = warehouse_id.int_type_id
-
+        for picking in sale_pickings:
             vals_picking = {
                 'company_id': self.company_id.id,
+                # SOLO si de verdad querés cambiar tipo:
+                # 'picking_type_id': nuevo_tipo.id,
+                # 'location_id': nuevo_tipo.default_location_src_id.id,
+                # 'location_dest_id': nuevo_tipo.default_location_dest_id.id,
             }
-            if picking_type:
-                vals_picking.update({
-                    'picking_type_id': picking_type.id,
-                    'location_id': picking_type.default_location_src_id.id,
-                    'location_dest_id': picking_type.default_location_dest_id.id,
-                })
-
             picking.write(vals_picking)
 
-            # --- Cambiar compañía (y ubicaciones) en los movimientos ---
-            move_vals = {'company_id': self.company_id.id}
-            if picking_type:
-                move_vals.update({
-                    'location_id': picking.location_id.id,
-                    'location_dest_id': picking.location_dest_id.id,
-                })
-
-            # stock.move
-            picking.move_ids_without_package.write(move_vals)
-            # stock.move.line (detalle de operaciones)
-            picking.move_line_ids.write(move_vals)
-
-            # Opcional: volver a asignar reservas si hace falta
-            if picking.state in ('assigned', 'partially_available'):
-                picking.action_assign()
+            # Cambiar compañía en los movimientos relacionados
+            picking.move_ids_without_package.write({'company_id': self.company_id.id})
+            picking.move_line_ids.write({'company_id': self.company_id.id})
         return {'type': 'ir.actions.act_window_close'}
