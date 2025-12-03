@@ -89,6 +89,7 @@ class SaleOrderTipoVentaWizard(models.TransientModel):
         sale._compute_tax_id()
 
         sale_pickings = sale.picking_ids.filtered(lambda p: p.state not in ('done', 'cancel'))
+        _logger.info('Actualizando %s pickings relacionados al pedido %s', len(sale_pickings), sale.name)
         # --- Actualizar pickings relacionados ---
         for picking in sale_pickings:
             vals_picking = {
