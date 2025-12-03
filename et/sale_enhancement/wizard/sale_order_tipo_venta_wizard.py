@@ -57,6 +57,11 @@ class SaleOrderTipoVentaWizard(models.TransientModel):
                 self.pricelist_id = self.env['product.pricelist'].search([('is_default', '=', True)], limit=1)
         return {'domain': domain}
 
+    def _recompute_sale_taxes_for_company(self, sale):
+        """ Recalcula y asignar los impuestos, los impuestos del pedido de venta según la compañía nueva. """
+        sale._compute_tax_id()
+        
+
     def action_confirm(self):
         self.ensure_one()
         sale = self.sale_id
@@ -66,8 +71,7 @@ class SaleOrderTipoVentaWizard(models.TransientModel):
         else:
             pricelist_id = self.env['product.pricelist'].search([('is_default', '=', True)], limit=1)  
         
-        _logger.info('Asignando a pedido %s: compañía %s, condición venta %s, lista precios %s',
-                     sale.name, self.company_id.name, self.condicion_m2m_id.name, pricelist_id)
+        _logger.info('Asignando a pedido %s: compañía %s, condición venta %s, lista precios %s', sale.name, self.company_id.name, self.condicion_m2m_id.name, pricelist_id)
         if not pricelist_id:
             raise UserError(_('No se encontró una lista de precios válida para la compañía seleccionada.'))
         
@@ -75,5 +79,8 @@ class SaleOrderTipoVentaWizard(models.TransientModel):
             'company_default': self.company_id.id,
             'condicion_m2m': self.condicion_m2m_id.id,
             'pricelist_id': pricelist_id.id,
+            'company_id': self.company_id.id,
         })
+        #recompute taxes
+        self._recompute_sale_taxes_for_company(sale)
         return {'type': 'ir.actions.act_window_close'}
