@@ -88,20 +88,49 @@ class SaleOrderTipoVentaWizard(models.TransientModel):
         #recompute taxes
         sale._compute_tax_id()
 
-        sale_pickings = sale.picking_ids.filtered(lambda p: p.state not in ('done', 'cancel'))
-        _logger.info('Actualizando %s pickings relacionados al pedido %s', len(sale_pickings), sale.name)
-        # --- Actualizar pickings relacionados ---
-        for picking in sale_pickings:
-            vals_picking = {
-                'company_id': self.company_id.id,
-                # SOLO si de verdad querés cambiar tipo:
-                # 'picking_type_id': nuevo_tipo.id,
-                # 'location_id': nuevo_tipo.default_location_src_id.id,
-                # 'location_dest_id': nuevo_tipo.default_location_dest_id.id,
-            }
-            picking.write(vals_picking)
+        # -------------------------
+        # Actualizar pickings relacionados
+        # -------------------------
+        # Solo los que no están hechos ni cancelados
+        pickings_to_change = sale.picking_ids.filtered(
+            lambda p: p.state not in ('done', 'cancel')
+        )
 
-            # Cambiar compañía en los movimientos relacionados
-            picking.move_ids_without_package.write({'company_id': self.company_id.id})
-            picking.move_line_ids.write({'company_id': self.company_id.id})
+        PickingType = self.env['stock.picking.type']
+
+        for picking in pickings_to_change:
+            old_type = picking.picking_type_id
+
+            # Buscar un picking_type del NUEVO almacén con el mismo código (outgoing/incoming/internal)
+            new_type = PickingType.search([
+                ('warehouse_id', '=', warehouse.id),
+                ('code', '=', old_type.code),
+            ], limit=1)
+
+            if not new_type:
+                raise UserError(_(
+                    "No se encontró un tipo de operación en el almacén %s para el código '%s'."
+                ) % (warehouse.display_name, old_type.code))
+
+            # Cambiar compañía, tipo de operación y ubicaciones del picking
+            picking.write({
+                'company_id': self.company_id.id,
+                'picking_type_id': new_type.id,
+                'location_id': new_type.default_location_src_id.id,
+                'location_dest_id': new_type.default_location_dest_id.id,
+            })
+
+            # Cambiar compañía y ubicaciones en los movimientos
+            move_vals = {
+                'company_id': self.company_id.id,
+                'location_id': new_type.default_location_src_id.id,
+                'location_dest_id': new_type.default_location_dest_id.id,
+            }
+            picking.move_ids_without_package.write(move_vals)
+            picking.move_line_ids.write(move_vals)
+
+            # Si querés, reasignar reservas si estaba reservado
+            if picking.state in ('assigned', 'partially_available'):
+                picking.action_assign()
+
         return {'type': 'ir.actions.act_window_close'}
