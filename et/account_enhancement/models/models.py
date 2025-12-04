@@ -53,7 +53,6 @@ class AccountMoveInherit(models.Model):
                 ))
         return res
 
-    @api.multi
     def action_post(self):
         for move in self:
             if move.move_type == 'out_refund':
