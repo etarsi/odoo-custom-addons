@@ -41,14 +41,28 @@ class AccountMoveInherit(models.Model):
 
     total_amount_paid = fields.Float(string="Monto Pagado", compute="_compute_total_amount_paid")
    
-    # @api.model
-    # def create(self, vals):
-    #     partner = self.env['res.partner'].browse(vals['partner_id'])
-    #     if partner.user_id:
-    #         vals['user_id'] = partner.user_id.id
+    @api.model
+    def create(self, vals):
+        res = super().create(vals)
+        #validar nota de credito sea de tipo comprobante nota de credito
+        if res.move_type == 'out_refund':
+            if res.l10n_latam_document_type_id.internal_type != 'credit_note':
+                raise ValidationError(_("Se esperaba una Nota de Crédito, pero el documento %s es de tipo %s.") % (
+                    res.name,
+                    res.l10n_latam_document_type_id.internal_type,
+                ))
+        return res
 
-    #     return super().create(vals)
-        
+    @api.multi
+    def action_post(self):
+        for move in self:
+            if move.move_type == 'out_refund':
+                if move.l10n_latam_document_type_id.internal_type != 'credit_note':
+                    raise ValidationError(_("Se esperaba una Nota de Crédito, pero el documento %s es de tipo %s.") % (
+                        move.name,
+                        move.l10n_latam_document_type_id.internal_type,
+                    ))
+        return super().action_post()
 
 
     def _reverse_moves(self, default_values_list=None, cancel=False):
@@ -507,15 +521,17 @@ class ResPartner(models.Model):
 
 
 #SOLO DEBERIA ESTAR ACTIVO PARA EL SERVIDOR DE TEST PARA HACER PRUEBAS CON AFIP
-class AccountJournalInherit(models.Model):
-    _inherit = 'account.journal'
+#class AccountJournalInherit(models.Model):
+#    _inherit = 'account.journal'
 
-    @api.depends("l10n_ar_afip_pos_system")
-    def _compute_afip_ws(self):
-        """Depending on AFIP POS System selected set the proper AFIP WS"""
-        type_mapping = self._get_type_mapping()
-        for rec in self:
-            rec.afip_ws = False
+#    @api.depends("l10n_ar_afip_pos_system")
+#    def _compute_afip_ws(self):
+#        """Depending on AFIP POS System selected set the proper AFIP WS"""
+#        type_mapping = self._get_type_mapping()
+#        for rec in self:
+#            rec.afip_ws = False
+
+
 class AccountMovelLineInherit(models.Model):
     _inherit = 'account.move.line'
 
