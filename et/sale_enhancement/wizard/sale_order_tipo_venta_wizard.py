@@ -128,9 +128,9 @@ class SaleOrderTipoVentaWizard(models.TransientModel):
                 'picking_type_id': new_type.id,
                 'location_id': new_type.default_location_src_id.id,
             })
-            
+                        
             for line in picking.move_ids_without_package:
-                self.env.cr.execute("UPDATE stock_move_line SET state = 'waiting', company_id = %s, location_id = %s, warehouse_id = %s WHERE move_id = %s", (self.company_id.id, new_type.default_location_src_id.id, warehouse.id, line.id))
+                self.env.cr.execute("UPDATE stock_move SET state = 'waiting', company_id = %s, location_id = %s = %s WHERE id = %s", (self.company_id.id, new_type.default_location_src_id.id, line.id))
 
             # --------------------------
             # 4.d Volver el picking a waiting
