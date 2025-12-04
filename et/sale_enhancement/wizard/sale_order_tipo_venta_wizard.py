@@ -127,7 +127,6 @@ class SaleOrderTipoVentaWizard(models.TransientModel):
                 'company_id': self.company_id.id,
                 'picking_type_id': new_type.id,
                 'location_id': new_type.default_location_src_id.id,
-                'location_dest_id': new_type.default_location_dest_id.id,
             })
             
             for line in picking.move_ids_without_package:
