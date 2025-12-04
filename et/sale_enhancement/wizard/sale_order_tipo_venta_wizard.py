@@ -123,34 +123,15 @@ class SaleOrderTipoVentaWizard(models.TransientModel):
             self.env.cr.execute("UPDATE stock_picking SET state = 'draft' WHERE id = %s", (picking.id,))
             self.env.cr.execute("UPDATE stock_move SET state = 'draft' WHERE picking_id = %s", (picking.id,),)
             self.env.cr.commit()
-            # --------------------------
-            # 4.b Nuevo nombre por secuencia del tipo nuevo
-            # --------------------------
-            new_name = picking.name
-            if new_type.sequence_id:
-                new_name = new_type.sequence_id.next_by_id()
-
-            # --------------------------
-            # 4.c Cambiar compañía, tipo de operación, ubicaciones, nombre
-            # --------------------------
             picking.write({
                 'company_id': self.company_id.id,
                 'picking_type_id': new_type.id,
                 'location_id': new_type.default_location_src_id.id,
                 'location_dest_id': new_type.default_location_dest_id.id,
-                'name': new_name,
             })
-
-            move_vals = {
-                'company_id': self.company_id.id,
-                'location_id': new_type.default_location_src_id.id,
-                'location_dest_id': new_type.default_location_dest_id.id,
-                # si tenés warehouse_id / rule_id relacionados, podés sumarlos acá
-                # 'warehouse_id': warehouse.id,
-                # 'rule_id': algun_rule.id,
-            }
+            
             for line in picking.move_ids_without_package:
-                self.env.cr.execute("UPDATE stock_move_line SET state = 'waiting', company_id = %s, location_id = %s, location_dest_id = %s WHERE move_id = %s", (self.company_id.id, new_type.default_location_src_id.id, new_type.default_location_dest_id.id, line.id))
+                self.env.cr.execute("UPDATE stock_move_line SET state = 'waiting', company_id = %s, location_id = %s WHERE move_id = %s", (self.company_id.id, new_type.default_location_src_id.id, line.id))
 
             # --------------------------
             # 4.d Volver el picking a waiting
