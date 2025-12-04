@@ -104,7 +104,7 @@ class SaleOrderTipoVentaWizard(models.TransientModel):
             #ahora los stock moves
             for move in picking.move_lines:
                 vals_move = {
-                    'rule_id': rule.id if rule else move.rule_id.id,
+                    'rule_id': rule.id if rule else False,
                     'company_id': self.company_id.id,
                     'location_id': warehouse.lot_stock_id.id,
                     'warehouse_id': warehouse.id,
