@@ -107,6 +107,7 @@ class SaleOrderTipoVentaWizard(models.TransientModel):
                 move_line.write({
                     'company_id': self.company_id.id,
                     'location_id': warehouse.lot_stock_id.id,
+                    'warehouse_id': warehouse.id,
                 })
 
         return {'type': 'ir.actions.act_window_close'}
