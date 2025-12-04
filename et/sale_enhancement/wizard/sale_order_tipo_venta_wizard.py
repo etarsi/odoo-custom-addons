@@ -87,54 +87,26 @@ class SaleOrderTipoVentaWizard(models.TransientModel):
         })
         #recompute taxes
         sale._compute_tax_id()
-
-
-        # --------------------------
-        # 4) Actualizar pickings relacionados
-        # --------------------------
-        PickingType = self.env['stock.picking.type']
-
-        for picking in sale.picking_ids:
-            # No tocar hechos
-            if picking.state == 'done':
-                raise UserError(_('No se puede cambiar el TIPO en una transferencia hecha (%s).') % picking.name)
-
-            # Si está cancelado, podés saltarlo o decidir qué hacer
-            if picking.state == 'cancel':
-                continue
-
-            old_type = picking.picking_type_id
-
-            # Tipo de operación equivalente en el NUEVO almacén (mismo code)
-            new_type = PickingType.search([
-                ('warehouse_id', '=', warehouse.id),
-                ('code', '=', old_type.code),
-            ], limit=1)
-
-            if not new_type:
-                raise UserError(_(
-                    "No se encontró un tipo de operación en el almacén %s para el código '%s'."
-                ) % (warehouse.display_name, old_type.code))
-
-            # --------------------------
-            # 4.a Pasar a borrador picking y líneas
-            # --------------------------
-            #borrador por sql
-            self.env.cr.execute("UPDATE stock_picking SET state = 'draft' WHERE id = %s", (picking.id,))
-            self.env.cr.execute("UPDATE stock_move SET state = 'draft' WHERE picking_id = %s", (picking.id,),)
-            self.env.cr.commit()
+        
+        #modificar los stock pickings asociados si no estan done o cancelados
+        pickings = sale.mapped('picking_ids').filtered(lambda p: p.state not in ('done', 'cancel'))
+        for picking in pickings:
             picking.write({
                 'company_id': self.company_id.id,
-                'picking_type_id': new_type.id,
-                'location_id': new_type.default_location_src_id.id,
+                'location_id': warehouse.lot_stock_id.id,
             })
-                        
-            for line in picking.move_ids_without_package:
-                self.env.cr.execute("UPDATE stock_move SET state = 'waiting', company_id = %s, location_id = %s = %s WHERE id = %s", (self.company_id.id, new_type.default_location_src_id.id, line.id))
-
-            # --------------------------
-            # 4.d Volver el picking a waiting
-            # --------------------------
-            picking.write({'state': 'waiting'})
+            
+            #ahora los stock moves
+            for move in picking.move_lines:
+                move.write({
+                    'company_id': self.company_id.id,
+                    'location_id': warehouse.lot_stock_id.id,
+                })
+                
+            for move_line in picking.move_line_ids:
+                move_line.write({
+                    'company_id': self.company_id.id,
+                    'location_id': warehouse.lot_stock_id.id,
+                })
 
         return {'type': 'ir.actions.act_window_close'}
