@@ -107,6 +107,7 @@ class SaleOrderTipoVentaWizard(models.TransientModel):
                     'rule_id': rule.id if rule else move.rule_id.id,
                     'company_id': self.company_id.id,
                     'location_id': warehouse.lot_stock_id.id,
+                    'warehouse_id': warehouse.id,
                 }
                 move.write(vals_move)
                 
