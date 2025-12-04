@@ -87,39 +87,75 @@ class SaleOrderTipoVentaWizard(models.TransientModel):
         })
         #recompute taxes
         sale._compute_tax_id()
-        # --- actualizar pickings relacionados ---
-        PickingType = self.env['stock.picking.type']
-        # solo pickings NO hechos ni cancelados
-        pickings_to_change = sale.picking_ids.filtered(
-            lambda p: p.state not in ('done', 'cancel')
-        )
 
-        for picking in pickings_to_change:
+
+        # --------------------------
+        # 4) Actualizar pickings relacionados
+        # --------------------------
+        PickingType = self.env['stock.picking.type']
+
+        for picking in sale.picking_ids:
+            # No tocar hechos
+            if picking.state == 'done':
+                raise UserError(_('No se puede cambiar el TIPO en una transferencia hecha (%s).') % picking.name)
+
+            # Si está cancelado, podés saltarlo o decidir qué hacer
+            if picking.state == 'cancel':
+                continue
+
             old_type = picking.picking_type_id
-            # buscar un tipo de operación del nuevo almacén con el mismo código
+
+            # Tipo de operación equivalente en el NUEVO almacén (mismo code)
             new_type = PickingType.search([
                 ('warehouse_id', '=', warehouse.id),
                 ('code', '=', old_type.code),
             ], limit=1)
-            
+
             if not new_type:
                 raise UserError(_(
                     "No se encontró un tipo de operación en el almacén %s para el código '%s'."
                 ) % (warehouse.display_name, old_type.code))
 
-            # cambiamos tipo de operación, compañía y ubicaciones
-            picking.with_context(force_modify_picking=True).write({
+            # --------------------------
+            # 4.a Pasar a borrador picking y líneas
+            # --------------------------
+            picking.write({'state': 'draft'})
+            picking.move_ids_without_package.write({'state': 'draft'})
+
+            # --------------------------
+            # 4.b Nuevo nombre por secuencia del tipo nuevo
+            # --------------------------
+            new_name = picking.name
+            if new_type.sequence_id:
+                new_name = new_type.sequence_id.next_by_id()
+
+            # --------------------------
+            # 4.c Cambiar compañía, tipo de operación, ubicaciones, nombre
+            # --------------------------
+            picking.write({
                 'company_id': self.company_id.id,
                 'picking_type_id': new_type.id,
                 'location_id': new_type.default_location_src_id.id,
                 'location_dest_id': new_type.default_location_dest_id.id,
+                'name': new_name,
             })
 
             move_vals = {
                 'company_id': self.company_id.id,
                 'location_id': new_type.default_location_src_id.id,
                 'location_dest_id': new_type.default_location_dest_id.id,
+                # si tenés warehouse_id / rule_id relacionados, podés sumarlos acá
+                # 'warehouse_id': warehouse.id,
+                # 'rule_id': algun_rule.id,
             }
-            picking.move_ids_without_package.write(move_vals)
-            picking.move_line_ids.write(move_vals)
+            for line in picking.move_ids_without_package:
+                line.write(move_vals)
+                # volver cada línea a waiting (como en la acción que te mostraron)
+                line.write({'state': 'waiting'})
+
+            # --------------------------
+            # 4.d Volver el picking a waiting
+            # --------------------------
+            picking.write({'state': 'waiting'})
+
         return {'type': 'ir.actions.act_window_close'}
