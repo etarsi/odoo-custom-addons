@@ -457,9 +457,14 @@ class AccountMoveReversalInherit(models.TransientModel):
         invoice_date = None
         for move in self.move_ids:
             invoice_date = move.invoice_date
-        rango_fecha = invoice_date and (today - invoice_date).days
+
+        # rango de fecha cambiar a periodo ejemplo solo se puede quitar las perceppcion_iibb si estamos en el mismo mes
+        periodo_actual = today.month
+        if invoice_date:
+            periodo_factura = invoice_date.month
+
         if credit_notes and self.refund_method == 'modify':
-            if int(rango_fecha) > 30:
+            if periodo_actual != periodo_factura:
                 self._delete_impuestos_perceppcion_iibb(credit_notes)
                 credit_notes.update_taxes()
                 credit_notes._compute_amount()
@@ -485,7 +490,7 @@ class AccountMoveReversalInherit(models.TransientModel):
                     return action
                 self._delete_impuestos_perceppcion_iibb(new_move)
             else:
-                if int(rango_fecha) > 30:
+                if periodo_actual != periodo_factura:
                     self._delete_impuestos_perceppcion_iibb(new_move)
             new_move.update_taxes()
         return action
