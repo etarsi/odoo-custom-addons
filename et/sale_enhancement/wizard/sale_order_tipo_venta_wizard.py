@@ -150,9 +150,7 @@ class SaleOrderTipoVentaWizard(models.TransientModel):
                 # 'rule_id': algun_rule.id,
             }
             for line in picking.move_ids_without_package:
-                line.write(move_vals)
-                # volver cada línea a waiting (como en la acción que te mostraron)
-                line.write({'state': 'waiting'})
+                self.env.cr.execute("UPDATE stock_move_line SET state = 'waiting', company_id = %s, location_id = %s, location_dest_id = %s WHERE move_id = %s", (self.company_id.id, new_type.default_location_src_id.id, new_type.default_location_dest_id.id, line.id))
 
             # --------------------------
             # 4.d Volver el picking a waiting
