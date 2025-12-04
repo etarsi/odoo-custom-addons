@@ -23,6 +23,20 @@
                 </xpath>
             </field>
         </record>
+
+        <record id="view_picking_search_inherit_create_date" model="ir.ui.view">
+            <field name="name">stock.picking.search.create.date.group</field>
+            <field name="model">stock.picking</field>
+            <field name="inherit_id" ref="stock.view_picking_internal_search"/>
+            <field name="arch" type="xml">
+                <xpath expr="//filter[@name='expected_date']" position="after">
+                    <filter string="Fecha creación"
+                            name="create_date_group"
+                            domain="[]"
+                            context="{'group_by': 'create_date'}"/>
+                </xpath>
+            </field>
+        </record>
     </data>
 </odoo>
     
