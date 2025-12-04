@@ -41,14 +41,27 @@ class AccountMoveInherit(models.Model):
 
     total_amount_paid = fields.Float(string="Monto Pagado", compute="_compute_total_amount_paid")
    
-    # @api.model
-    # def create(self, vals):
-    #     partner = self.env['res.partner'].browse(vals['partner_id'])
-    #     if partner.user_id:
-    #         vals['user_id'] = partner.user_id.id
+    @api.model
+    def create(self, vals):
+        res = super().create(vals)
+        #validar nota de credito sea de tipo comprobante nota de credito
+        if res.move_type == 'out_refund':
+            if res.l10n_latam_document_type_id.internal_type != 'credit_note':
+                raise ValidationError(_("Se esperaba una Nota de Crédito, pero el documento %s es de tipo %s.") % (
+                    res.name,
+                    res.l10n_latam_document_type_id.internal_type,
+                ))
+        return res
 
-    #     return super().create(vals)
-        
+    def action_post(self):
+        for move in self:
+            if move.move_type == 'out_refund':
+                if move.l10n_latam_document_type_id.internal_type != 'credit_note':
+                    raise ValidationError(_("Se esperaba una Nota de Crédito, pero el documento %s es de tipo %s.") % (
+                        move.name,
+                        move.l10n_latam_document_type_id.internal_type,
+                    ))
+        return super().action_post()
 
 
     def _reverse_moves(self, default_values_list=None, cancel=False):
@@ -444,9 +457,14 @@ class AccountMoveReversalInherit(models.TransientModel):
         invoice_date = None
         for move in self.move_ids:
             invoice_date = move.invoice_date
-        rango_fecha = invoice_date and (today - invoice_date).days
+
+        # rango de fecha cambiar a periodo ejemplo solo se puede quitar las perceppcion_iibb si estamos en el mismo mes
+        periodo_actual = today.month
+        if invoice_date:
+            periodo_factura = invoice_date.month
+
         if credit_notes and self.refund_method == 'modify':
-            if int(rango_fecha) > 30:
+            if periodo_actual != periodo_factura:
                 self._delete_impuestos_perceppcion_iibb(credit_notes)
                 credit_notes.update_taxes()
                 credit_notes._compute_amount()
@@ -472,7 +490,7 @@ class AccountMoveReversalInherit(models.TransientModel):
                     return action
                 self._delete_impuestos_perceppcion_iibb(new_move)
             else:
-                if int(rango_fecha) > 30:
+                if periodo_actual != periodo_factura:
                     self._delete_impuestos_perceppcion_iibb(new_move)
             new_move.update_taxes()
         return action
@@ -516,6 +534,8 @@ class ResPartner(models.Model):
 #        type_mapping = self._get_type_mapping()
 #        for rec in self:
 #            rec.afip_ws = False
+
+
 class AccountMovelLineInherit(models.Model):
     _inherit = 'account.move.line'
 
