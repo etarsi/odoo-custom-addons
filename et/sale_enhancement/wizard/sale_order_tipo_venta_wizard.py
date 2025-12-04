@@ -119,9 +119,10 @@ class SaleOrderTipoVentaWizard(models.TransientModel):
             # --------------------------
             # 4.a Pasar a borrador picking y líneas
             # --------------------------
-            picking.write({'state': 'draft'})
-            picking.move_ids_without_package.write({'state': 'draft'})
-
+            #borrador por sql
+            self.env.cr.execute("UPDATE stock_picking SET state = 'draft' WHERE id = %s", (picking.id,))
+            self.env.cr.execute("UPDATE stock_move SET state = 'draft' WHERE picking_id = %s", (picking.id,),)
+            self.env.cr.commit()
             # --------------------------
             # 4.b Nuevo nombre por secuencia del tipo nuevo
             # --------------------------
