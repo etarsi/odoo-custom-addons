@@ -204,6 +204,12 @@ class OutInvoiceRefacturarWizard(models.TransientModel):
             # 2) Publicar SOLO las NC en borrador (evita "ya está publicado")
             draft_credits = credit_notes.filtered(lambda m: m.state == 'draft')
             if draft_credits:
+                for draft_credit in draft_credits:
+                    if draft_credit.l10_latam_document_type_id.internal_type != 'credit_note':
+                        raise ValidationError(_("Se esperaba una Nota de Crédito, pero el documento %s es de tipo %s.") % (
+                            draft_credit.name,
+                            draft_credit.l10_latam_document_type_id.internal_type,
+                        ))
                 draft_credits.action_post()
             credit_notes |= draft_credits
 
