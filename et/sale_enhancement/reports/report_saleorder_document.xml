@@ -15,5 +15,31 @@
     <xpath expr="//t[@t-set='information_block']" position="replace">
       <t t-set="information_block" t-value="''"/>
     </xpath>
+
+    <!-- 4) -->
+    <xpath expr="//div[@id='informations']" position="replace">
+      <div class="row mt32 mb32" id="informations">
+          <div class="col-auto col-3 mw-100 mb-2">
+              <strong>Fecha Presupuesto:</strong>
+              <p class="m-0" t-field="doc.date_order"/>
+          </div>
+          <div class="col-auto col-3 mw-100 mb-2">
+              <strong>Cliente:</strong>
+              <p class="m-0" t-field="doc.partner_id"/>
+          </div>
+          <div t-if="doc.partner_shipping_id" class="col-auto col-3 mw-100 mb-2">
+              <strong>Dirección de Entrega:</strong>
+              <p class="m-0" t-field="doc.partner_shipping_id"/>
+          </div>
+          <div t-if="doc.partner_id.vat" class="col-auto col-3 mw-100 mb-2" name="expiration_date">
+              <strong>CUIT:</strong>
+              <p class="m-0" t-field="doc.partner_id.vat"/>
+          </div>
+          <div t-if="doc.user_id.name" class="col-auto col-3 mw-100 mb-2">
+              <strong>Plazos de Pago:</strong>
+              <p class="m-0" t-field="doc.payment_term_id"/>
+          </div>
+      </div>
+    </xpath>
   </template>
 </odoo>
