@@ -90,21 +90,17 @@ class SaleOrderTipoVentaWizard(models.TransientModel):
         
         #modificar los stock pickings asociados si no estan done o cancelados
         pickings = sale.mapped('picking_ids').filtered(lambda p: p.state not in ('done', 'cancel'))
-        for picking in pickings:
-            picking.write({
-                'company_id': self.company_id.id,
-                'location_id': warehouse.lot_stock_id.id,
-            })
-            
+        for picking in pickings:            
             # regla del nuevo almacén para este tipo de operación (outgoing, incoming, internal)
             rule = self.env['stock.rule'].search([
                 ('warehouse_id', '=', warehouse.id),
                 ('picking_type_id', '=', picking.picking_type_id.id),
+                ('company_id', '=', self.company_id.id),
             ], limit=1)
             #ahora los stock moves
             for move in picking.move_lines:
                 vals_move = {
-                    'rule_id': rule.id if rule else False,
+                    'rule_id': rule.id,
                     'company_id': self.company_id.id,
                     'location_id': warehouse.lot_stock_id.id,
                     'warehouse_id': warehouse.id,
@@ -116,5 +112,9 @@ class SaleOrderTipoVentaWizard(models.TransientModel):
                     'company_id': self.company_id.id,
                     'location_id': warehouse.lot_stock_id.id,
                 })
+            picking.write({
+                'company_id': self.company_id.id,
+                'location_id': warehouse.lot_stock_id.id,
+            })
 
         return {'type': 'ir.actions.act_window_close'}
