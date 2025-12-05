@@ -82,16 +82,16 @@
                       <t t-if="not line.display_type">
                           <td name="td_code" style="font-size: 12px;"><span t-field="line.product_id.default_code"/></td>
                           <td name="td_name" style="font-size: 12px;"><span t-field="line.product_id.name"/></td>
-                          <td name="td_quantity" class="text-right" style="font-size: 12px;">
+                          <td name="td_quantity" class="text-right">
                               <span t-field="line.product_uom_qty" t-options='{"widget": "float", "precision": 0}'/>
                           </td>
-                          <td name="td_priceunit" class="text-right" style="font-size: 12px;">
+                          <td name="td_priceunit" class="text-right">
                               <span t-field="line.price_unit"/>
                           </td>
-                          <td t-if="display_discount" class="text-right" style="font-size: 12px;" groups="product.group_discount_per_so_line">
+                          <td t-if="display_discount" class="text-right" groups="product.group_discount_per_so_line">
                               <span t-field="line.discount"/>
                           </td>
-                          <td name="td_subtotal" class="text-right o_price_total" style="font-size: 12px;">
+                          <td name="td_subtotal" class="text-right o_price_total">
                               <span t-field="line.price_subtotal" groups="account.group_show_line_subtotals_tax_excluded"/>
                               <span t-field="line.price_total" groups="account.group_show_line_subtotals_tax_included"/>
                           </td>
