@@ -46,20 +46,25 @@ class AccountMoveInherit(models.Model):
         res = super().create(vals)
         #validar nota de credito sea de tipo comprobante nota de credito
         if res.move_type == 'out_refund':
+            internal_type = res.l10n_latam_document_type_id.internal_type
+            if not internal_type:
+                internal_type = 'No esta definido'
             if res.l10n_latam_document_type_id.internal_type != 'credit_note' and res.l10n_latam_use_documents:
-                raise ValidationError(_("Se esperaba una Nota de Crédito, pero el documento %s es de tipo %s.") % (
-                    res.name,
-                    res.l10n_latam_document_type_id.internal_type,
+                raise ValidationError(_("Se esperaba una Nota de Crédito, pero el Tipo Comprobante es: %s.") % (
+                    internal_type,
                 ))
         return res
 
     def action_post(self):
         for move in self:
+            #validar nota de credito sea de tipo comprobante nota de credito
             if move.move_type == 'out_refund':
+                internal_type = move.l10n_latam_document_type_id.internal_type
+                if not internal_type:
+                    internal_type = 'No esta definido'
                 if move.l10n_latam_document_type_id.internal_type != 'credit_note' and move.l10n_latam_use_documents:
-                    raise ValidationError(_("Se esperaba una Nota de Crédito, pero el documento %s es de tipo %s.") % (
-                        move.name,
-                        move.l10n_latam_document_type_id.internal_type,
+                    raise ValidationError(_("Se esperaba una Nota de Crédito, pero el Tipo Comprobante es: %s.") % (
+                        internal_type,
                     ))
         return super().action_post()
 
