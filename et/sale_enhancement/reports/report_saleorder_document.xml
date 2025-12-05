@@ -18,7 +18,7 @@
 
     <!-- 4) -->
     <xpath expr="//div[@id='informations']" position="replace">
-      <div class="row mt8 mb8" id="informations">
+      <div class="row mt16 mb16" id="informations">
         <div class="col-6">
             <strong>Cliente: </strong><span t-field="doc.partner_id"/>
             <br/>
