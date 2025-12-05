@@ -94,7 +94,7 @@ class SaleOrderTipoVentaWizard(models.TransientModel):
             # regla del nuevo almacén para este tipo de operación (outgoing, incoming, internal)
             rule = self.env['stock.rule'].search([
                 ('warehouse_id', '=', warehouse.id),
-                ('picking_type_id', '=', picking.picking_type_id.id),
+                ('location_src_id', '=', picking.location_id.id),
                 ('company_id', '=', self.company_id.id),
             ], limit=1)
             #ahora los stock moves
