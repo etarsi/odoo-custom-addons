@@ -18,31 +18,38 @@
 
     <!-- 4) -->
     <xpath expr="//div[@id='informations']" position="replace">
-      <div class="row mt16 mb16" id="informations">
-        <div class="col-6">
-            <strong>Cliente: </strong><span t-field="doc.partner_id"/>
+      <div id="informations" class="mt8 mb8" style="width:100%;">
+
+        <div style="width:50%; float:left; box-sizing:border-box; padding-right:10px;">
+          <strong>Cliente: </strong><span t-field="doc.partner_id"/>
+          <br/>
+          <t t-if="doc.partner_id.vat">
+            <strong>CUIT: </strong><span t-field="doc.partner_id.vat"/>
             <br/>
-            <t t-if="doc.partner_id.vat">
-              <strong>CUIT: </strong><span t-field="doc.partner_id.vat"/>
-              <br/>
-            </t>
-            <strong>Fecha Presupuesto: </strong> <span t-field="doc.date_order"/>
-            <br/>
+          </t>
+          <strong>Fecha Presupuesto: </strong>
+          <span t-field="doc.date_order"/>
+          <br/>
         </div>
-        <div class="col-6">
+
+        <div style="width:50%; float:left; box-sizing:border-box; padding-left:10px;">
           <t t-if="doc.partner_shipping_id">
-            <strong>Dirección de Entrega: </strong><span t-field="doc.partner_shipping_id"/>
+            <strong>Dirección de Entrega: </strong>
+            <span t-field="doc.partner_shipping_id"/>
             <br/>
           </t>
           <t t-if="doc.payment_term_id">
-            <strong>Plazos de Pago:</strong><span t-field="doc.payment_term_id"/>
+            <strong>Plazos de Pago: </strong>
+            <span t-field="doc.payment_term_id"/>
             <br/>
           </t>
           <t t-if="doc.user_id">
-            <strong>Comercial: </strong><span t-field="doc.user_id"/>
+            <strong>Comercial: </strong>
+            <span t-field="doc.user_id"/>
             <br/>
           </t>
         </div>
+        <div style="clear:both;"></div>
       </div>
     </xpath>
   </template>
