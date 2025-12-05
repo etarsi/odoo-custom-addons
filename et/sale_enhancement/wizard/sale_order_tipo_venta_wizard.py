@@ -87,20 +87,15 @@ class SaleOrderTipoVentaWizard(models.TransientModel):
         })
         #recompute taxes
         sale._compute_tax_id()
-        
+
         #modificar los stock pickings asociados si no estan done o cancelados
         pickings = sale.mapped('picking_ids').filtered(lambda p: p.state not in ('done', 'cancel'))
         for picking in pickings:            
-            # regla del nuevo almacén para este tipo de operación (outgoing, incoming, internal)
             rule = self.env['stock.rule'].search([
                 ('warehouse_id', '=', warehouse.id),
                 ('location_src_id', '=', warehouse.lot_stock_id.id),
                 ('company_id', '=', self.company_id.id),
             ], limit=1)
-            if not rule:
-                _logger.info('No se encontró regla para warehouse %s y compañía %s. Se omite la reasignación del picking %s', warehouse.name, self.company_id.name, picking.name)
-            else:
-                _logger.info('Asignando a picking %s: compañía %s, warehouse %s, regla %s', picking.name, self.company_id.name, warehouse.name, rule.name)
             #ahora los stock moves
             for move in picking.move_lines:
                 vals_move = {
@@ -110,15 +105,28 @@ class SaleOrderTipoVentaWizard(models.TransientModel):
                     'warehouse_id': warehouse.id,
                 }
                 move.write(vals_move)
-                
+            #y los move lines
             for move_line in picking.move_line_ids:
                 move_line.write({
                     'company_id': self.company_id.id,
                     'location_id': warehouse.lot_stock_id.id,
                 })
+            #finalmente el picking
             picking.write({
                 'company_id': self.company_id.id,
                 'location_id': warehouse.lot_stock_id.id,
             })
-
+        #Modificar las facturas asociadas si no estan posted o canceladas
+        #picking en estado done 
+        picking_dones = sale.mapped('picking_ids').filtered(lambda p: p.state == 'done')
+        if picking_dones:
+            for picking in picking_dones:
+                invoices = picking.mapped('invoice_ids').filtered(lambda inv: inv.state not in ('posted', 'cancel'))
+                if invoices:
+                    for invoice in invoices:
+                        invoice.write({
+                            'company_id': self.company_id.id,
+                        })
+                        #recompute taxes
+                        invoice._compute_tax_id()
         return {'type': 'ir.actions.act_window_close'}
