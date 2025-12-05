@@ -27,20 +27,20 @@
             <strong>CUIT: </strong><span t-field="doc.partner_id.vat"/>
             <br/>
           </t>
-          <strong>Fecha Presupuesto: </strong>
-          <span t-field="doc.date_order"/>
-          <br/>
-        </div>
-
-        <div style="width:50%; float:left; box-sizing:border-box; padding-left:10px;">
-          <t t-if="doc.partner_shipping_id">
-            <strong>Dirección de Entrega: </strong>
-            <span t-field="doc.partner_shipping_id"/>
-            <br/>
-          </t>
           <t t-if="doc.payment_term_id">
             <strong>Plazos de Pago: </strong>
             <span t-field="doc.payment_term_id"/>
+            <br/>
+          </t>
+        </div>
+
+        <div style="width:50%; float:left; box-sizing:border-box; padding-left:10px;">
+          <strong>Fecha Presupuesto: </strong>
+          <span t-field="doc.date_order"/>
+          <br/>
+          <t t-if="doc.partner_shipping_id">
+            <strong>Dirección de Entrega: </strong>
+            <span t-field="doc.partner_shipping_id"/>
             <br/>
           </t>
           <t t-if="doc.user_id">
