@@ -97,6 +97,10 @@ class SaleOrderTipoVentaWizard(models.TransientModel):
                 ('location_src_id', '=', warehouse.location_id.id),
                 ('company_id', '=', self.company_id.id),
             ], limit=1)
+            if not rule:
+                _logger.info('No se encontró regla para warehouse %s y compañía %s. Se omite la reasignación del picking %s', warehouse.name, self.company_id.name, picking.name)
+            else:
+                _logger.info('Asignando a picking %s: compañía %s, warehouse %s, regla %s', picking.name, self.company_id.name, warehouse.name, rule.name)
             #ahora los stock moves
             for move in picking.move_lines:
                 vals_move = {
