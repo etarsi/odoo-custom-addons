@@ -18,27 +18,31 @@
 
     <!-- 4) -->
     <xpath expr="//div[@id='informations']" position="replace">
-      <div class="row mt32 mb32" id="informations">
-          <div class="col-auto col-3 mw-100 mb-2">
-              <strong>Fecha Presupuesto:</strong>
-              <p class="m-0" t-field="doc.date_order"/>
-          </div>
-          <div class="col-auto col-3 mw-100 mb-2">
-              <strong>Cliente:</strong>
-              <p class="m-0" t-field="doc.partner_id"/>
-          </div>
-          <div t-if="doc.partner_shipping_id" class="col-auto col-3 mw-100 mb-2">
-              <strong>Dirección de Entrega:</strong>
-              <p class="m-0" t-field="doc.partner_shipping_id"/>
-          </div>
-          <div t-if="doc.partner_id.vat" class="col-auto col-3 mw-100 mb-2" name="expiration_date">
-              <strong>CUIT:</strong>
-              <p class="m-0" t-field="doc.partner_id.vat"/>
-          </div>
-          <div t-if="doc.user_id.name" class="col-auto col-3 mw-100 mb-2">
-              <strong>Plazos de Pago:</strong>
-              <p class="m-0" t-field="doc.payment_term_id"/>
-          </div>
+      <div class="row mt8 mb8" id="informations">
+        <div class="col-6">
+            <strong>Cliente: </strong><span t-field="doc.partner_id"/>
+            <br/>
+            <t t-if="doc.partner_id.vat">
+              <strong>CUIT: </strong><span t-field="doc.partner_id.vat"/>
+              <br/>
+            </t>
+            <strong>Fecha Presupuesto: </strong> <span t-field="doc.date_order"/>
+            <br/>
+        </div>
+        <div class="col-6">
+          <t t-if="doc.partner_shipping_id">
+            <strong>Dirección de Entrega: </strong><span t-field="doc.partner_shipping_id"/>
+            <br/>
+          </t>
+          <t t-if="doc.payment_term_id">
+            <strong>Plazos de Pago:</strong><span t-field="doc.payment_term_id"/>
+            <br/>
+          </t>
+          <t t-if="doc.user_id">
+            <strong>Comercial: </strong><span t-field="doc.user_id"/>
+            <br/>
+          </t>
+        </div>
       </div>
     </xpath>
   </template>
