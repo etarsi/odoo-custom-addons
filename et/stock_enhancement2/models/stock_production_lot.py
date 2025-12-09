@@ -16,13 +16,18 @@ class StockProductionLotInherit(models.Model):
 
     @api.model
     def create(self, vals):
-        new_lot = super(StockProductionLotInherit, self).create(vals)
-        
-        created_company_id = vals.get('company_id')
-        company_ids_to_replicate = [1, 2, 3, 4]
-        
-        for company_id in company_ids_to_replicate:
-            if created_company_id != company_id:
-                new_lot.copy(default={'company_id': company_id})
+        if not self.env.context.get('skip_lot_replication'):
+            company_ids_to_replicate = [1, 2, 3, 4]
+            created_company_id = vals.get('company_id')
+            
+            companies_to_copy = [
+                id for id in company_ids_to_replicate if id != created_company_id
+            ]
 
-        return new_lot
+            vals_for_copy = dict(vals, **{'context': {'skip_lot_replication': True}})
+            
+            for company_id in companies_to_copy:
+                vals_for_copy['company_id'] = company_id
+                super(StockProductionLotInherit, self).create(vals_for_copy)
+
+        return super(StockProductionLotInherit, self).create(vals)
