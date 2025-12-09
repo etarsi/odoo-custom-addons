@@ -3,7 +3,7 @@ from odoo.exceptions import UserError, ValidationError
 from collections import defaultdict
 from odoo.tools import float_round, float_compare  # Importa float_round si lo necesitas
 # from odoo.tools import float_compare  # Elimina esta línea si no usas float_compare
-import math 
+import math, json 
 import logging
 _logger = logging.getLogger(__name__)
 
@@ -649,12 +649,8 @@ class SaleOrderInherit(models.Model):
             )
 
         account_move = self.env["account.move"]
-
         # Armamos tax_lines_data SOLO con estas líneas
-        tax_lines_data = account_move._prepare_tax_lines_data_for_totals_from_object(
-            lines, compute_taxes
-        )
-
+        tax_lines_data = account_move._prepare_tax_lines_data_for_totals_from_object(lines, compute_taxes)
         # Recalculamos montos SOLO para estas líneas
         amount_untaxed = sum(
             (
@@ -682,9 +678,7 @@ class SaleOrderInherit(models.Model):
     def _get_filtered_tax_totals(self):
         """Tu filtro exacto."""
         self.ensure_one()
-        lines = self.order_line.filtered(
-            lambda l: not l.display_type and not l.is_cancelled and l.is_available
-        )
+        lines = self.order_line.filtered(lambda l: not l.display_type and not l.is_cancelled and l.is_available)
         return self._get_tax_totals_for_lines(lines)
 
     def _get_filtered_tax_totals_json(self):
