@@ -41,9 +41,7 @@ class StockProductionLotInherit(models.Model):
             
             is_lot = self.env['stock.production.lot'].search([('name', '=', original_name), ('company_id', '=', company_id)])
 
-            if is_lot:
-                continue
-            else:
+            if not is_lot:
                 new_lot.with_context(
                     **{self._REPLICATION_CONTEXT_KEY: True} 
                 ).copy(default=default_vals)
