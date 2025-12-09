@@ -639,8 +639,7 @@ class SaleOrderInherit(models.Model):
     def _get_tax_totals_for_lines(self, lines):
         self.ensure_one()
         def compute_taxes(order_line):
-            price = order_line.price_unit * (1 - (order_line.discount or 0.0) / 100.0) \
-                    - (order_line.discount_fixed or 0.0)
+            price = order_line.price_unit * (1 - (order_line.discount or 0.0) / 100.0)
             return order_line.tax_id._origin.compute_all(
                 price,
                 self.currency_id,
@@ -659,7 +658,7 @@ class SaleOrderInherit(models.Model):
         # Recalculamos montos SOLO para estas líneas
         amount_untaxed = sum(
             (
-                (l.price_unit * (1 - (l.discount or 0.0) / 100.0) - (l.discount_fixed or 0.0))
+                (l.price_unit * (1 - (l.discount or 0.0) / 100.0))
                 * (l.product_uom_qty or 0.0)
             )
             for l in lines
