@@ -47,7 +47,7 @@
           -->
           <t t-if="doc.partner_shipping_id">
             <strong>Dirección de Entrega: </strong>
-            <span t-esc="'%s %s %s' % (
+            <span t-esc="'%s, %s, %s' % (
                 doc.partner_shipping_id.street or '',
                 doc.partner_shipping_id.city or '',
                 doc.partner_shipping_id.state_id and doc.partner_shipping_id.state_id.name or ''
