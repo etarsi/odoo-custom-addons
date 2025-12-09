@@ -638,19 +638,41 @@ class SaleOrderInherit(models.Model):
     
     
     def _get_tax_totals_for_lines(self, lines):
-        """
-        Devuelve el dict tax_totals pero solo para 'lines'.
-        Reutiliza la misma lógica del core.
-        """
         self.ensure_one()
-        currency = self.currency_id
-        tax_totals = self.env['account.tax']._prepare_tax_totals(
-            base_lines=lines,
-            currency=currency,
-            company=self.company_id,
-            partner=self.partner_id,
-        )
-        return tax_totals
+
+        lines = lines.filtered(lambda l: not l.display_type)
+
+        base_lines = lines
+
+        Tax = self.env['account.tax']
+
+        # Odoo 15 (muy común)
+        if hasattr(Tax, '_get_tax_totals'):
+            try:
+                # Firma más vista en 15
+                return Tax._get_tax_totals(
+                    partner=self.partner_id,
+                    tax_base_lines=base_lines,
+                    currency=self.currency_id,
+                    company=self.company_id,
+                )
+            except TypeError:
+                # Por si la firma difiere en tu build
+                return Tax._get_tax_totals(self.partner_id, base_lines, self.currency_id, self.company_id)
+
+        # Odoo más nuevo
+        if hasattr(Tax, '_prepare_tax_totals'):
+            return Tax._prepare_tax_totals(
+                base_lines=base_lines,
+                currency=self.currency_id,
+                company=self.company_id,
+                partner=self.partner_id,
+            )
+
+        # Fallback simple (si tu build no tiene ninguno)
+        # En este caso te conviene no usar document_tax_totals
+        # y mostrar totales manuales.
+        return {}
     
     #COMPUTES
     @api.depends('order_line.product_id')
