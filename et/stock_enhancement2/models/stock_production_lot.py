@@ -20,11 +20,11 @@ class StockProductionLotInherit(models.Model):
     def create(self, vals):
         if self.env.context.get(self._REPLICATION_CONTEXT_KEY):
             return super(StockProductionLotInherit, self).create(vals)
-
+        
         new_lot = super(StockProductionLotInherit, self).create(vals)
         
         company_ids_to_replicate = [1, 2, 3, 4]
-        created_company_id = vals.get('company_id')
+        created_company_id = new_lot.company_id.id
         
         companies_to_copy = [
             id for id in company_ids_to_replicate if id != created_company_id
@@ -32,8 +32,15 @@ class StockProductionLotInherit(models.Model):
         
         for company_id in companies_to_copy:
             
+            original_name = new_lot.name
+            
+            default_vals = {
+                'company_id': company_id,
+                'name': original_name,
+            }
+            
             new_lot.with_context(
                 **{self._REPLICATION_CONTEXT_KEY: True} 
-            ).copy(default={'company_id': company_id})
+            ).copy(default=default_vals)
 
         return new_lot
