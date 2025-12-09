@@ -680,10 +680,6 @@ class SaleOrderInherit(models.Model):
         self.ensure_one()
         lines = self.order_line.filtered(lambda l: not l.display_type and not l.is_cancelled and l.is_available)
         return self._get_tax_totals_for_lines(lines)
-
-    def _get_filtered_tax_totals_json(self):
-        self.ensure_one()
-        return json.dumps(self._get_filtered_tax_totals())
     
     #COMPUTES
     @api.depends('order_line.product_id')
