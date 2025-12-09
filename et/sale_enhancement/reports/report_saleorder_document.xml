@@ -47,9 +47,11 @@
           -->
           <t t-if="doc.partner_shipping_id">
             <strong>Dirección de Entrega: </strong>
-            <div style="display:inline-block;"
-                t-field="doc.partner_shipping_id"
-                t-options="{'widget': 'contact', 'fields': ['address'], 'no_marker': True}"/>
+            <span t-esc="'%s %s %s' % (
+                doc.partner_shipping_id.street or '',
+                doc.partner_shipping_id.city or '',
+                doc.partner_shipping_id.state_id and doc.partner_shipping_id.state_id.name or ''
+            )"/>
           </t>
         </div>
         <div style="clear:both;"></div>
@@ -154,7 +156,7 @@
     </xpath>
     <!-- 1) Nota con etiqueta OBS: -->
     <xpath expr="//p[@t-field='doc.note']" position="replace">
-      <p t-if="doc.note"><strong>OBS: </strong><span t-field="doc.note"/></p>
+      <p t-if="doc.note"><strong>Obs.: </strong><span t-field="doc.note"/></p>
     </xpath>
     <!-- 2) Quitar términos y condiciones de pago -->
     <xpath expr="//p[@t-if='not is_html_empty(doc.payment_term_id.note)']" position="replace"/>
