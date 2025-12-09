@@ -636,43 +636,61 @@ class SaleOrderInherit(models.Model):
     def _default_note(self):
         return
     
-    
     def _get_tax_totals_for_lines(self, lines):
         self.ensure_one()
-
-        lines = lines.filtered(lambda l: not l.display_type)
-
-        base_lines = lines
-
-        Tax = self.env['account.tax']
-
-        # Odoo 15 (muy común)
-        if hasattr(Tax, '_get_tax_totals'):
-            try:
-                # Firma más vista en 15
-                return Tax._get_tax_totals(
-                    partner=self.partner_id,
-                    tax_base_lines=base_lines,
-                    currency=self.currency_id,
-                    company=self.company_id,
-                )
-            except TypeError:
-                # Por si la firma difiere en tu build
-                return Tax._get_tax_totals(self.partner_id, base_lines, self.currency_id, self.company_id)
-
-        # Odoo más nuevo
-        if hasattr(Tax, '_prepare_tax_totals'):
-            return Tax._prepare_tax_totals(
-                base_lines=base_lines,
-                currency=self.currency_id,
-                company=self.company_id,
-                partner=self.partner_id,
+        def compute_taxes(order_line):
+            price = order_line.price_unit * (1 - (order_line.discount or 0.0) / 100.0) \
+                    - (order_line.discount_fixed or 0.0)
+            return order_line.tax_id._origin.compute_all(
+                price,
+                self.currency_id,
+                order_line.product_uom_qty,
+                product=order_line.product_id,
+                partner=self.partner_shipping_id,
             )
 
-        # Fallback simple (si tu build no tiene ninguno)
-        # En este caso te conviene no usar document_tax_totals
-        # y mostrar totales manuales.
-        return {}
+        account_move = self.env["account.move"]
+
+        # Armamos tax_lines_data SOLO con estas líneas
+        tax_lines_data = account_move._prepare_tax_lines_data_for_totals_from_object(
+            lines, compute_taxes
+        )
+
+        # Recalculamos montos SOLO para estas líneas
+        amount_untaxed = sum(
+            (
+                (l.price_unit * (1 - (l.discount or 0.0) / 100.0) - (l.discount_fixed or 0.0))
+                * (l.product_uom_qty or 0.0)
+            )
+            for l in lines
+        )
+
+        amount_total = sum(
+            compute_taxes(l).get("total_included", 0.0)
+            for l in lines
+        )
+
+        # Mismo método del core que ya usás
+        tax_totals = account_move._get_tax_totals(
+            self.partner_id,
+            tax_lines_data,
+            amount_total,
+            amount_untaxed,
+            self.currency_id,
+        )
+        return tax_totals
+
+    def _get_filtered_tax_totals(self):
+        """Tu filtro exacto."""
+        self.ensure_one()
+        lines = self.order_line.filtered(
+            lambda l: not l.display_type and not l.is_cancelled and l.is_available
+        )
+        return self._get_tax_totals_for_lines(lines)
+
+    def _get_filtered_tax_totals_json(self):
+        self.ensure_one()
+        return json.dumps(self._get_filtered_tax_totals())
     
     #COMPUTES
     @api.depends('order_line.product_id')

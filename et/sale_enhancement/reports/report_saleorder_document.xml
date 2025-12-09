@@ -151,9 +151,7 @@
           </tr>
         </t>
         <!-- Tax totals filtrados -->
-        <t t-set="tax_totals_raw" t-value="json.loads(doc.tax_totals_json)"/>
-        <t t-set="tax_totals"
-          t-value="doc._get_tax_totals_for_lines(lines)"/>
+        <t t-set="tax_totals" t-value="doc._get_tax_totals_for_lines(lines)"/>
         <t t-call="account.document_tax_totals"/>
       </table>
     </xpath>
