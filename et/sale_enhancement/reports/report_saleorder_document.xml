@@ -139,7 +139,7 @@
           </tr>
           <tr>
             <td class="text-right" t-if="display_discount">
-              <strong>Descuento <t t-esc="' %.1f %%' % discount_percent"/></strong>
+              <strong>Descuento <t t-esc="(' %.1f' % discount_percent) + ' %'"/></strong>
             </td>
             <td class="text-right" t-if="display_discount">
               <span t-esc="discount_amount" t-options="{'widget':'monetary','display_currency': doc.currency_id}"/>
