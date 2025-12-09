@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>  
-  <template id="sale_report_hide_addresses" inherit_id="sale.report_saleorder_document">
+  <template id="report_saleorder_document_enhancement" inherit_id="sale.report_saleorder_document">
     <!-- 1) Quitar el forced_vat -->
     <xpath expr="//t[@t-set='forced_vat']" position="replace">
       <t t-set="forced_vat" t-value="False"/>
@@ -56,6 +56,7 @@
 
     <!-- heredar la table -->
     <xpath expr="//table[@class='table table-sm o_main_table']" position="replace">
+      <t t-set="display_discount" t-value="any(l.discount for l in doc.order_line)"/>
       <table class="table table-sm o_main_table">
           <!-- In case we want to repeat the header, remove "display: table-row-group" -->
           <thead style="display: table-row-group">
@@ -64,9 +65,7 @@
                   <th name="th_description" class="text-left">Descripción</th>
                   <th name="th_quantity" class="text-right">Unidades</th>
                   <th name="th_priceunit" class="text-right">Precio Unitario</th>
-                  <th name="th_discount" t-if="display_discount" class="text-right" groups="product.group_discount_per_so_line">
-                      <span>Desc.%</span>
-                  </th>
+                  <th name="th_discount" t-if="display_discount" class="text-right"><span>Desc.%</span></th>
                   <th name="th_subtotal" class="text-right">
                       <span groups="account.group_show_line_subtotals_tax_excluded">Importe</span>
                       <span groups="account.group_show_line_subtotals_tax_included">Precio Total</span>
@@ -74,13 +73,14 @@
               </tr>
           </thead>
           <tbody class="sale_tbody">
+              <t t-set="current_section" t-value="False"/>
               <t t-set="current_subtotal" t-value="0"/>
               <t t-foreach="doc.order_line" t-as="line">
                   <t t-set="current_subtotal" t-value="current_subtotal + line.price_subtotal" groups="account.group_show_line_subtotals_tax_excluded"/>
                   <t t-set="current_subtotal" t-value="current_subtotal + line.price_total" groups="account.group_show_line_subtotals_tax_included"/>
                   <tr t-att-class="'bg-200 font-weight-bold o_line_section' if line.display_type == 'line_section' else 'font-italic o_line_note' if line.display_type == 'line_note' else ''">
                       <t t-if="not line.display_type">
-                          <td name="td_code" style="font-size: 12px;"><span t-field="line.product_id.default_code"/></td>
+                          <td name="td_code"><span t-field="line.product_id.default_code"/></td>
                           <td name="td_name" style="font-size: 12px;"><span t-field="line.product_id.name"/></td>
                           <td name="td_quantity" class="text-right">
                               <span t-field="line.product_uom_qty" t-options='{"widget": "float", "precision": 0}'/>
@@ -88,7 +88,7 @@
                           <td name="td_priceunit" class="text-right">
                               <span t-field="line.price_unit"/>
                           </td>
-                          <td t-if="display_discount" class="text-right" groups="product.group_discount_per_so_line">
+                          <td class="text-right" t-if="display_discount" name="td_discount">
                               <span t-field="line.discount"/>
                           </td>
                           <td name="td_subtotal" class="text-right o_price_total">
@@ -119,6 +119,35 @@
                   </t>
               </t>
           </tbody>
+      </table>
+    </xpath>
+
+    <xpath expr="//div[@name='so_total_summary']//div[@name='total']//table" position="replace">
+      <table class="table table-sm">
+        <t t-set="lines" t-value="doc.order_line.filtered(lambda l: not l.display_type)"/>
+        <t t-set="amount_wo_discount" t-value="sum([(l.product_uom_qty or 0.0) * (l.price_unit or 0.0) for l in lines])"/>
+        <t t-set="discount_amount" t-value="sum([((l.product_uom_qty or 0.0) * (l.price_unit or 0.0)) * ((l.discount or 0.0) / 100.0) for l in lines])"/>
+        <t t-set="discount_percent" t-value="(discount_amount / amount_wo_discount * 100.0) if amount_wo_discount else 0.0"/>
+        <t t-if="discount_amount">
+          <tr>
+            <td class="text-right" t-if="display_discount">
+              <strong>Total sin Descuento</strong>
+            </td>
+            <td class="text-right" t-if="display_discount">
+              <span t-esc="amount_wo_discount" t-options="{'widget':'monetary','display_currency': doc.currency_id}"/>
+            </td>
+          </tr>
+          <tr>
+            <td class="text-right">
+              <strong>Descuento<t t-esc="' %.1f %%' % discount_percent"/></strong>
+            </td>
+            <td class="text-right">
+              <span t-esc="discount_amount" t-options="{'widget':'monetary','display_currency': doc.currency_id}"/>
+            </td>
+          </tr>
+        </t>
+        <t t-set="tax_totals" t-value="json.loads(doc.tax_totals_json)"/>
+        <t t-call="account.document_tax_totals"/>
       </table>
     </xpath>
   </template>
