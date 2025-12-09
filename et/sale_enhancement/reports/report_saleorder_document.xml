@@ -47,7 +47,9 @@
           -->
           <t t-if="doc.partner_shipping_id">
             <strong>Dirección de Entrega: </strong>
-            <span t-field="doc.partner_shipping_id"/>
+            <div style="display:inline-block;"
+                t-field="doc.partner_shipping_id"
+                t-options="{'widget': 'contact', 'fields': ['address'], 'no_marker': True}"/>
           </t>
         </div>
         <div style="clear:both;"></div>
@@ -121,7 +123,7 @@
           </tbody>
       </table>
     </xpath>
-
+    <!-- heredar el total summary -->
     <xpath expr="//div[@name='so_total_summary']//div[@name='total']//table" position="replace">
       <table class="table table-sm">
         <t t-set="lines" t-value="doc.order_line.filtered(lambda l: not l.display_type)"/>
@@ -130,7 +132,7 @@
         <t t-set="discount_percent" t-value="(discount_amount / amount_wo_discount * 100.0) if amount_wo_discount else 0.0"/>
         <t t-if="discount_amount">
           <tr>
-            <td class="text-right" t-if="display_discount">
+            <td class="text-left" t-if="display_discount">
               <strong>Total sin Descuento</strong>
             </td>
             <td class="text-right" t-if="display_discount">
@@ -138,7 +140,7 @@
             </td>
           </tr>
           <tr>
-            <td class="text-right" t-if="display_discount">
+            <td class="text-left" t-if="display_discount">
               <strong>Descuento <t t-esc="(' %.1f' % discount_percent) + ' %'"/></strong>
             </td>
             <td class="text-right" t-if="display_discount">
@@ -150,5 +152,11 @@
         <t t-call="account.document_tax_totals"/>
       </table>
     </xpath>
+    <!-- 1) Nota con etiqueta OBS: -->
+    <xpath expr="//p[@t-field='doc.note']" position="replace">
+      <p t-if="doc.note"><strong>OBS: </strong><span t-field="doc.note"/></p>
+    </xpath>
+    <!-- 2) Quitar términos y condiciones de pago -->
+    <xpath expr="//p[@t-if='not is_html_empty(doc.payment_term_id.note)']" position="replace"/>
   </template>
 </odoo>
