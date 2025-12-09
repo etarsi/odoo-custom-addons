@@ -644,9 +644,8 @@ class SaleOrderInherit(models.Model):
         """
         self.ensure_one()
         currency = self.currency_id
-        base_lines = [l._convert_to_tax_base_line_dict() for l in lines]
         tax_totals = self.env['account.tax']._prepare_tax_totals(
-            base_lines=base_lines,
+            base_lines=lines,
             currency=currency,
             company=self.company_id,
             partner=self.partner_id,
