@@ -127,6 +127,7 @@
         <t t-set="lines" t-value="doc.order_line.filtered(lambda l: not l.display_type)"/>
         <t t-set="amount_wo_discount" t-value="sum([(l.product_uom_qty or 0.0) * (l.price_unit or 0.0) for l in lines])"/>
         <t t-set="discount_amount" t-value="sum([((l.product_uom_qty or 0.0) * (l.price_unit or 0.0)) * ((l.discount or 0.0) / 100.0) for l in lines])"/>
+        <t t-set="discount_percent" t-value="(discount_amount / amount_wo_discount * 100.0) if amount_wo_discount else 0.0"/>
         <t t-if="discount_amount">
           <tr>
             <td class="text-right" t-if="display_discount">
@@ -138,7 +139,7 @@
           </tr>
           <tr>
             <td class="text-right" t-if="display_discount">
-              <strong>Descuento</strong>
+              <strong>Descuento <t t-esc="' %.1f %%' % discount_percent"/></strong>
             </td>
             <td class="text-right" t-if="display_discount">
               <span t-esc="discount_amount" t-options="{'widget':'monetary','display_currency': doc.currency_id}"/>
