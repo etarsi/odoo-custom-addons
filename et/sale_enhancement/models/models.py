@@ -836,21 +836,22 @@ class SaleOrderLineInherit(models.Model):
     @api.depends('disponible_unidades', 'product_uom_qty')
     def _compute_is_available(self):
         for record in self:
-                stock_moves_erp = self.env['stock.moves.erp'].search([('sale_line_id', '=', record.id), ('type', '=', 'reserve')], limit=1)
+                if not record.is_available:
+                    stock_moves_erp = self.env['stock.moves.erp'].search([('sale_line_id', '=', record.id), ('type', '=', 'reserve')], limit=1)
 
-                if stock_moves_erp: # esta comprometido
-                    disponible_real = stock_moves_erp.quantity + record.disponible_unidades
-                    if record.product_uom_qty <= disponible_real:
-                        record.is_available = True
-                    else:
-                        record.is_available = False
+                    if stock_moves_erp: # esta comprometido
+                        disponible_real = stock_moves_erp.quantity + record.disponible_unidades
+                        if record.product_uom_qty <= disponible_real:
+                            record.is_available = True
+                        else:
+                            record.is_available = False
 
 
-                else: # no esta comprometido
-                    if record.product_uom_qty <= record.disponible_unidades:
-                        record.is_available = True
-                    else:
-                        record.is_available = False
+                    else: # no esta comprometido
+                        if record.product_uom_qty <= record.disponible_unidades:
+                            record.is_available = True
+                        else:
+                            record.is_available = False
 
     
 
