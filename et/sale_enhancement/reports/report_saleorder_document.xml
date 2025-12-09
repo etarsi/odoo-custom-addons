@@ -153,13 +153,7 @@
         <!-- Tax totals filtrados -->
         <t t-set="tax_totals_raw" t-value="json.loads(doc.tax_totals_json)"/>
         <t t-set="tax_totals"
-          t-value="dict(
-            tax_totals_raw,
-            groups_by_subtotal={
-              k: [g for g in v if abs(g.get('tax_group_amount') or 0.0) > 0.00001]
-              for k, v in (tax_totals_raw.get('groups_by_subtotal') or {}).items()
-            }
-          )"/>
+          t-value="doc._get_tax_totals_for_lines(lines)"/>
         <t t-call="account.document_tax_totals"/>
       </table>
     </xpath>

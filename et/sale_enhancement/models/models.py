@@ -636,6 +636,23 @@ class SaleOrderInherit(models.Model):
     def _default_note(self):
         return
     
+    
+    def _get_tax_totals_for_lines(self, lines):
+        """
+        Devuelve el dict tax_totals pero solo para 'lines'.
+        Reutiliza la misma lógica del core.
+        """
+        self.ensure_one()
+        currency = self.currency_id
+        base_lines = [l._convert_to_tax_base_line_dict() for l in lines]
+        tax_totals = self.env['account.tax']._prepare_tax_totals(
+            base_lines=base_lines,
+            currency=currency,
+            company=self.company_id,
+            partner=self.partner_id,
+        )
+        return tax_totals
+    
     #COMPUTES
     @api.depends('order_line.product_id')
     def _compute_items_ids(self):
