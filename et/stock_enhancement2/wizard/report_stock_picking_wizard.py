@@ -73,12 +73,14 @@ class ReportStockPickingWizard(models.TransientModel):
         formato_celdas_derecha = excel.formato_celda_derecha(workbook)
         formato_celdas_decimal = excel.formato_celda_decimal(workbook)
         # Escribir encabezados
-        worksheet.write(0, 0, 'CODIGO', formato_encabezado)
-        worksheet.write(0, 1, 'DESCRIPCIÓN', formato_encabezado)
-        worksheet.write(0, 2, 'UNIDADES', formato_encabezado)
-        worksheet.write(0, 3, 'UxB', formato_encabezado)
-        worksheet.write(0, 4, 'RUBRO', formato_encabezado)
-        worksheet.write(0, 5, 'ESTADO', formato_encabezado)
+        worksheet.merge_range('A1:G1', self.partner_id.name, formato_encabezado)
+        
+        worksheet.write(4, 0, 'CODIGO', formato_encabezado)
+        worksheet.write(4, 1, 'DESCRIPCIÓN', formato_encabezado)
+        worksheet.write(4, 2, 'UNIDADES', formato_encabezado)
+        worksheet.write(4, 3, 'UxB', formato_encabezado)
+        worksheet.write(4, 4, 'RUBRO', formato_encabezado)
+        worksheet.write(4, 5, 'ESTADO', formato_encabezado)
         # Buscar facturas en el rango de fechas
         domain = [('state', '!=', 'cancel')]
         # Filtrar por temporada
@@ -92,7 +94,7 @@ class ReportStockPickingWizard(models.TransientModel):
         # Recolectar los estados seleccionados en una lista
         stocks_pickings = self.env['stock.picking'].search(domain)
         # Escribir datos
-        row = 1
+        row = 5
         if not stocks_pickings:
             raise ValidationError("No se encontraron albaranes para los criterios seleccionados.")
         for stock_picking in stocks_pickings:
@@ -106,13 +108,9 @@ class ReportStockPickingWizard(models.TransientModel):
                     if move.state_wms == 'closed' and stock_picking.state in ['done', 'cancel']:
                         continue
                     # solo imprimir las lineas que tengan ese rubro
-                    rubro_producto = move.product_id.x_rubro_producto
+                    rubro_producto = move.product_id.categ_id.parent_id.name
                     if rubro_producto != self.rubro_select:
                         continue
-                    uxb_id = move.product_id.packaging_ids[0] if move.product_id.packaging_ids else False
-                    bultos = 0
-                    if uxb_id:
-                        bultos = move.quantity_done/uxb_id.qty
                         
                     state = ''
                     if stock_picking.state_wms == 'closed' and stock_picking.state not in ['done', 'cancel']:
@@ -132,70 +130,15 @@ class ReportStockPickingWizard(models.TransientModel):
                     row += 1
             else:
                 continue
-            
-            # Fechas formateadas
-            date_facture = factura.invoice_date.strftime('%d/%m/%Y') if factura.invoice_date else ''
-            month_num = factura.invoice_date.strftime('%m') if factura.invoice_date else ''
-            month = MESES_ES.get(month_num, '') if month_num else ''
-            year = factura.invoice_date.strftime('%Y') if factura.invoice_date else ''
-            categorias = '-'.join(factura.partner_id.category_id.mapped('name')) if factura.partner_id.category_id else ''
-            if facturas_lines:
-                for line in facturas_lines:
-                    if not line.product_id and (line.quantity==0 or line.price_unit==0 or line.price_subtotal==0):
-                        continue
-                    # solo imprimir las lineas que tengan esa marca
-                    if self.marca_ids:
-                        if not line.product_id.product_brand_id:
-                            continue
-                        else:
-                            if line.product_id.product_brand_id.id not in self.marca_ids.ids:
-                                continue
-                    uxb_id = line.product_id.packaging_ids[0] if line.product_id.packaging_ids else False
-                    bultos = 0
-                    if uxb_id:
-                        bultos = line.quantity/uxb_id.qty
-                    quantity = line.quantity
-                    subtotal = line.price_subtotal
-                    if factura.move_type in ('out_refund', 'in_refund'):
-                        quantity = -abs(line.quantity)
-                        if line.price_subtotal > 0:
-                            subtotal = -abs(line.price_subtotal)
-                        else:
-                            subtotal = line.price_subtotal
-                    worksheet.write(row, 0, factura.name, formato_celdas_izquierda)
-                    worksheet.write(row, 1, date_facture, formato_celdas_derecha)
-                    worksheet.write(row, 2, month, formato_celdas_derecha)
-                    worksheet.write(row, 3, year, formato_celdas_derecha)
-                    worksheet.write(row, 4, factura.partner_id.name, formato_celdas_izquierda)
-                    worksheet.write(row, 5, categorias, formato_celdas_izquierda)
-                    worksheet.write(row, 6, factura.invoice_user_id.name, formato_celdas_izquierda)
-                    worksheet.write(row, 7, line.product_id.default_code if line.product_id.default_code else '', formato_celdas_izquierda)
-                    worksheet.write(row, 8, line.product_id.name, formato_celdas_izquierda)
-                    worksheet.write(row, 9, line.price_unit, formato_celdas_decimal)
-                    worksheet.write(row, 10, quantity, formato_celdas_decimal)
-                    worksheet.write(row, 11, uxb_id.name if uxb_id else '', formato_celdas_izquierda)
-                    worksheet.write(row, 12, bultos, formato_celdas_decimal)
-                    worksheet.write(row, 13, line.discount, formato_celdas_decimal)
-                    worksheet.write(row, 14, subtotal, formato_celdas_decimal)
-                    worksheet.write(row, 15, factura.company_id.name, formato_celdas_izquierda)
-                    worksheet.write(row, 16, line.product_id.categ_id.parent_id.name if line.product_id.categ_id.parent_id else '', formato_celdas_izquierda)
-                    worksheet.write(row, 17, line.product_id.categ_id.name if line.product_id.categ_id else '', formato_celdas_izquierda)
-                    worksheet.write(row, 18, line.product_id.product_brand_id.name if line.product_id.product_brand_id else '', formato_celdas_izquierda)
-                    worksheet.write(row, 19, line.product_id.x_contract_id.x_name if line.product_id.x_contract_id else ' ', formato_celdas_izquierda)
-                    worksheet.write(row, 20, line.product_id.x_subcontract_id.x_name if line.product_id.x_subcontract_id else ' ', formato_celdas_izquierda)
-                    worksheet.write(row, 21, line.product_id.x_character_id.x_name if line.product_id.x_character_id else ' ', formato_celdas_izquierda)
-                    worksheet.write(row, 22, line.product_id.x_property_id.x_name if line.product_id.x_property_id else ' ', formato_celdas_izquierda)
-                    row += 1
-
         workbook.close()
         output.seek(0)
         # Codificar el archivo en base64
         archivo_excel = base64.b64encode(output.read())
         attachment = self.env['ir.attachment'].create({
-            'name': f'reporte_factura.xlsx',  # Nombre del archivo con fecha
+            'name': f'Pendientes {self.partner_id.name.lower()} - {fields.Date.today()}.xlsx',  # Nombre del archivo con fecha
             'type': 'binary',  # Tipo binario para archivos
             'datas': archivo_excel,  # Datos codificados en base64
-            'store_fname': f'reporte_factura.xlsx',  # Nombre para almacenamiento
+            'store_fname': f'Pendientes {self.partner_id.name.lower()} - {fields.Date.today()}.xlsx',  # Nombre para almacenamiento
             'mimetype': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'  # Tipo MIME correcto
         })
         # Retornar acción para descargar el archivo
