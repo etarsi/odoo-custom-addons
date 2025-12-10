@@ -98,7 +98,7 @@ class ReportStockPickingWizard(models.TransientModel):
         if not stocks_pickings:
             raise ValidationError("No se encontraron albaranes para los criterios seleccionados.")
         for stock_picking in stocks_pickings:
-            pickings_moves = self.env['stock.move'].search([('picking_id', '=', stock_picking.id), ('product_id.categ_id.partner_id.name', '=', RUBROS.get(self.rubro_select, ''))])
+            pickings_moves = self.env['stock.move'].search([('picking_id', '=', stock_picking.id), ('product_id.categ_id.parent_id.name', '=', RUBROS.get(self.rubro_select, ''))])
             if pickings_moves:
                 for move in pickings_moves:
                     # omitir movimientos sin producto
