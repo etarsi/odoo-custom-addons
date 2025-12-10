@@ -109,11 +109,8 @@ class ReportStockPickingWizard(models.TransientModel):
                     # omitir movimientos cerrados con albaranes hechos o cancelados
                     if stock_picking.state_wms == 'closed' and stock_picking.state in ['done', 'cancel']:
                         continue
-                    # solo imprimir las lineas que tengan ese rubro
-                    rubro_producto = move.product_id.categ_id.parent_id.name
-                    if rubro_producto != self.rubro_select:
-                        continue
-                        
+                    row += 1
+                    _logger.info(f"Escribiendo producto {move.product_id.name} en fila {row}.")
                     state = ''
                     if stock_picking.state_wms == 'closed' and stock_picking.state not in ['done', 'cancel']:
                         state = 'PREPARADO'
