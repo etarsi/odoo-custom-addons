@@ -194,26 +194,25 @@ class OutInvoiceRefacturarWizard(models.TransientModel):
             if not company_comparacion['company_id']:
                 raise ValidationError(_("La factura %s debe pertenecer a la compañía seleccionada.") % (company_comparacion['name'],))
 
-            # 1) Reverso (NC) en la compañía original
-            code_comprobante_factura = move.l10n_latam_document_type_id.code
-            code_nc = False
-            if code_comprobante_factura == '1':
-                code_nc = self.env['l10n_latam.document.type'].search([('code', '=', '3'), ('internal_type', '=', 'credit_note')], limit=1)
-                if not code_nc:
-                    raise ValidationError(_("No se encontró el tipo de comprobante Nota de Crédito (3) para refacturar la factura %s.") % move.name)
-            elif code_comprobante_factura == '201':
-                code_nc = self.env['l10n_latam.document.type'].search([('code', '=', '203'), ('internal_type', '=', 'credit_note')], limit=1)
-                if not code_nc:
-                    raise ValidationError(_("No se encontró el tipo de comprobante Nota de Crédito (203) para refacturar la factura %s.") % move.name)
 
             reversal_vals = [{
                 'ref': _('Refacturación de %s') % move.name,
                 'date': fields.Date.context_today(self),
-                'l10n_latam_document_type_id': code_nc.id,  # Nota de Crédito
             }]
+            # 1) Reverso (NC) en la compañía original
+            code_comprobante_factura = move.l10n_latam_document_type_id.code
+            if code_comprobante_factura == '1':
+                code_nc = self.env['l10n_latam.document.type'].search([('code', '=', '3'), ('internal_type', '=', 'credit_note')], limit=1)
+                reversal_vals[0].update({'l10n_latam_document_type_id': code_nc.id})
+                if not code_nc:
+                    raise ValidationError(_("No se encontró el tipo de comprobante Nota de Crédito (3) para refacturar la factura %s.") % move.name)
+            elif code_comprobante_factura == '201':
+                code_nc = self.env['l10n_latam.document.type'].search([('code', '=', '203'), ('internal_type', '=', 'credit_note')], limit=1)
+                reversal_vals[0].update({'l10n_latam_document_type_id': code_nc.id})
+                if not code_nc:
+                    raise ValidationError(_("No se encontró el tipo de comprobante Nota de Crédito (203) para refacturar la factura %s.") % move.name)
 
             credit_notes = move._reverse_moves(default_values_list=reversal_vals, cancel=True)
-
             # 2) Publicar SOLO las NC en borrador (evita "ya está publicado")
             draft_credits = credit_notes.filtered(lambda m: m.state == 'draft')
             if draft_credits:
