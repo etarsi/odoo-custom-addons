@@ -4,8 +4,9 @@ from odoo.tools import float_round
 from datetime import date
 import base64
 import io
-import xlsxwriter
+import xlsxwriter, logging
 from . import excel
+_logger = logging.getLogger(__name__)
 
 MESES_ES = {
     '01': 'Enero',
@@ -94,11 +95,12 @@ class ReportStockPickingWizard(models.TransientModel):
         # Recolectar los estados seleccionados en una lista
         stocks_pickings = self.env['stock.picking'].search(domain)
         # Escribir datos
-        row = 5
+        row = 3
         if not stocks_pickings:
             raise ValidationError("No se encontraron albaranes para los criterios seleccionados.")
         for stock_picking in stocks_pickings:
             pickings_moves = self.env['stock.move'].search([('picking_id', '=', stock_picking.id), ('product_id.categ_id.parent_id.name', '=', RUBROS.get(self.rubro_select, ''))])
+            _logger.info(f"Procesando albarán {stock_picking.name} con {len(pickings_moves)} movimientos.")
             if pickings_moves:
                 for move in pickings_moves:
                     # omitir movimientos sin producto
