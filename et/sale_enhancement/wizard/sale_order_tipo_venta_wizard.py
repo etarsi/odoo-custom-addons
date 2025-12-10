@@ -13,7 +13,7 @@ class SaleOrderTipoVentaWizard(models.TransientModel):
     sale_id = fields.Many2one('sale.order', string='Pedido de venta', required=True)
     company_id = fields.Many2one('res.company', string='Compañía', required=True)
     condicion_m2m_id = fields.Many2one('condicion.venta', string='Condición de Venta', required=True)
-    pricelist_id = fields.Many2one('product.pricelist', string='Lista de Precios', required=False, readonly=True)
+    pricelist_id = fields.Many2one('product.pricelist', string='Lista de Precios', required=False, readonly=True, store=True)
 
     @api.model
     def default_get(self, fields_list):
