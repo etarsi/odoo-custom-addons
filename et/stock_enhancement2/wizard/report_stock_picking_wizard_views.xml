@@ -1,36 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <record id="view_reporte_factura_wizard_form" model="ir.ui.view">
-        <field name="name">reporte.factura.wizard.form</field>
-        <field name="model">reporte.factura.wizard</field>
+    <record id="view_report_stock_picking_wizard_form" model="ir.ui.view">
+        <field name="name">reporte.stock.picking.wizard.form</field>
+        <field name="model">reporte.stock.picking.wizard</field>
         <field name="arch" type="xml">
-            <form string="Reporte de Facturas" create="false" edit="false">
-                <group name="reporte_factura" string="Reporte de Facturas">
+            <form string="Reporte de Pendientes" create="false" edit="false">
+                <group name="reporte_stock_picking" string="Reporte de Pendientes">
                     <group>
-                        <field name="date_start"/>
-                        <field name="date_end"/>
-                        <field name="partner_ids" widget="many2many_tags"/>
-                        <field name="marca_ids" widget="many2many_tags"/>
-                        <field name="user_ids" widget="many2many_tags"/>
-                    </group>
-                    <group>
-                        <label for="is_out_invoice" string="Tipos de Factura"/>
-                        <div>
-                            <field name="is_out_invoice"/> Factura de Cliente<br/>
-                            <field name="is_out_refund"/> Nota de Crédito de Cliente<br/>
-                            <field name="is_in_invoice"/> Factura de Proveedor<br/>
-                            <field name="is_in_refund"/> Nota de Crédito de Proveedor
-                        </div>
-                    </group>    
-                    <group>
-                        <!-- Grupo para los tipos de factura como checkboxes -->
-                        <label for="is_draft" string="Estado de Factura"/>
-                        <div>
-                            <field name="is_draft"/> Borrador<br/>
-                            <field name="is_posted"/> Publicado<br/>
-                            <field name="is_cancel"/> Cancelado
-                        </div>
-                    </group>                 
+                        <field name="partner_id"/>
+                        <field name="rubro_select"/>
+                        <field name="temporada"/>
+                    </group>             
                 </group>
                 <footer>
                     <button name="action_generar_excel" type="object" string="Generar Excel" class="btn-primary"/>
@@ -40,11 +20,19 @@
         </field>
     </record>
 
-    <record id="action_reporte_factura_wizard" model="ir.actions.act_window">
-        <field name="name">Reporte de Facturas</field>
-        <field name="res_model">reporte.factura.wizard</field>
+    <record id="action_report_stock_picking_wizard" model="ir.actions.act_window">
+        <field name="name">Reporte de Pendientes</field>
+        <field name="res_model">reporte.stock.picking.wizard</field>
         <field name="view_mode">form</field>
-        <field name="view_id" ref="view_reporte_factura_wizard_form"/>
+        <field name="view_id" ref="view_report_stock_picking_wizard_form"/>
         <field name="target">new</field>
     </record>
+
+    <!-- Menu de inventario / informes  -->
+    <menuitem id="menu_report_stock_picking_wizard"
+              name="Reporte de Pendientes"
+              parent="stock.menu_warehouse_report"
+              action="action_report_stock_picking_wizard"
+              sequence="10"/>
+    
 </odoo>
