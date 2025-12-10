@@ -3,7 +3,7 @@ from odoo.exceptions import UserError, ValidationError
 from collections import defaultdict
 from odoo.tools import float_round, float_compare  # Importa float_round si lo necesitas
 # from odoo.tools import float_compare  # Elimina esta línea si no usas float_compare
-import math 
+import math, json 
 import logging
 _logger = logging.getLogger(__name__)
 
@@ -636,6 +636,51 @@ class SaleOrderInherit(models.Model):
     def _default_note(self):
         return
     
+    def _get_tax_totals_for_lines(self, lines):
+        self.ensure_one()
+        def compute_taxes(order_line):
+            price = order_line.price_unit * (1 - (order_line.discount or 0.0) / 100.0)
+            return order_line.tax_id._origin.compute_all(
+                price,
+                self.currency_id,
+                order_line.product_uom_qty,
+                product=order_line.product_id,
+                partner=self.partner_shipping_id,
+            )
+
+        account_move = self.env["account.move"]
+        # Armamos tax_lines_data SOLO con estas líneas
+        tax_lines_data = account_move._prepare_tax_lines_data_for_totals_from_object(lines, compute_taxes)
+        # Recalculamos montos SOLO para estas líneas
+        amount_untaxed = sum(
+            (
+                (l.price_unit * (1 - (l.discount or 0.0) / 100.0))
+                * (l.product_uom_qty or 0.0)
+            )
+            for l in lines
+        )
+
+        amount_total = sum(
+            compute_taxes(l).get("total_included", 0.0)
+            for l in lines
+        )
+
+        # Mismo método del core que ya usás
+        tax_totals = account_move._get_tax_totals(
+            self.partner_id,
+            tax_lines_data,
+            amount_total,
+            amount_untaxed,
+            self.currency_id,
+        )
+        return tax_totals
+
+    def _get_filtered_tax_totals(self):
+        """Tu filtro exacto."""
+        self.ensure_one()
+        lines = self.order_line.filtered(lambda l: not l.display_type and not l.is_cancelled and l.is_available)
+        return self._get_tax_totals_for_lines(lines)
+    
     #COMPUTES
     @api.depends('order_line.product_id')
     def _compute_items_ids(self):
@@ -836,21 +881,22 @@ class SaleOrderLineInherit(models.Model):
     @api.depends('disponible_unidades', 'product_uom_qty')
     def _compute_is_available(self):
         for record in self:
-                stock_moves_erp = self.env['stock.moves.erp'].search([('sale_line_id', '=', record.id), ('type', '=', 'reserve')], limit=1)
+                if not record.is_available:
+                    stock_moves_erp = self.env['stock.moves.erp'].search([('sale_line_id', '=', record.id), ('type', '=', 'reserve')], limit=1)
 
-                if stock_moves_erp: # esta comprometido
-                    disponible_real = stock_moves_erp.quantity + record.disponible_unidades
-                    if record.product_uom_qty <= disponible_real:
-                        record.is_available = True
-                    else:
-                        record.is_available = False
+                    if stock_moves_erp: # esta comprometido
+                        disponible_real = stock_moves_erp.quantity + record.disponible_unidades
+                        if record.product_uom_qty <= disponible_real:
+                            record.is_available = True
+                        else:
+                            record.is_available = False
 
 
-                else: # no esta comprometido
-                    if record.product_uom_qty <= record.disponible_unidades:
-                        record.is_available = True
-                    else:
-                        record.is_available = False
+                    else: # no esta comprometido
+                        if record.product_uom_qty <= record.disponible_unidades:
+                            record.is_available = True
+                        else:
+                            record.is_available = False
 
     
 

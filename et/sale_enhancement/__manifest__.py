@@ -25,6 +25,8 @@
     # always loaded
     'data': [
         'security/ir.model.access.csv',
+        #reports
+        'reports/report_saleorder_document.xml',
         #wizards
         'views/sale_order_tipo_venta_wizard.xml',
         #data

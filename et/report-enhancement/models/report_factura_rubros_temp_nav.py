@@ -8,7 +8,7 @@ RUBROS_LISTA = [
     'RODADOS',
     'PELOTAS',
     'INFLABLES',
-    'PISTOLA DE AGUA',
+    'PISTOLAS DE AGUA',
     'VEHICULOS A BATERIA',
     'RODADOS INFANTILES']    
 
@@ -25,7 +25,7 @@ class ReportFacturaRubrosTempNav(models.Model):
     amount_rodados = fields.Monetary('Rodados', readonly=True, currency_field='currency_id')
     amount_pelotas = fields.Monetary('Pelotas', readonly=True, currency_field='currency_id')
     amount_inflables = fields.Monetary('Inflables', readonly=True, currency_field='currency_id')
-    amount_pst_agua = fields.Monetary('Pistola de Agua', readonly=True, currency_field='currency_id')
+    amount_pst_agua = fields.Monetary('Pistolas de Agua', readonly=True, currency_field='currency_id')
     amount_vehiculos_b = fields.Monetary('Vehículos a Batería', readonly=True, currency_field='currency_id')
     amount_rodados_inf = fields.Monetary('Rodados Infantiles', readonly=True, currency_field='currency_id')
     total_amount_rubro = fields.Monetary('Total', readonly=True, currency_field='currency_id')
@@ -88,10 +88,10 @@ class ReportFacturaRubrosTempNav(models.Model):
                         END
                     ) AS amount_inflables,
 
-                    -- PISTOLA DE AGUA
+                    -- PISTOLAS DE AGUA
                     SUM(
                         CASE
-                            WHEN TRIM(UPPER(parent_categ.name)) = 'PISTOLA DE AGUA'
+                            WHEN TRIM(UPPER(parent_categ.name)) = 'PISTOLAS DE AGUA'
                             THEN aml.price_subtotal
                             ELSE 0
                         END
@@ -124,7 +124,7 @@ class ReportFacturaRubrosTempNav(models.Model):
                                 'RODADOS',
                                 'PELOTAS',
                                 'INFLABLES',
-                                'PISTOLA DE AGUA',
+                                'PISTOLAS DE AGUA',
                                 'VEHICULOS A BATERIA',
                                 'RODADOS INFANTILES'
                             )
@@ -159,7 +159,7 @@ class ReportFacturaRubrosTempNav(models.Model):
 	                                'RODADOS',
 	                                'PELOTAS',
 	                                'INFLABLES',
-	                                'PISTOLA DE AGUA',
+	                                'PISTOLAS DE AGUA',
 	                                'VEHICULOS A BATERIA',
 	                                'RODADOS INFANTILES'
 	                            )

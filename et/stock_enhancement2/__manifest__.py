@@ -30,11 +30,12 @@
 
     # always loaded
     'data': [
-        # 'security/ir.model.access.csv',
+        'security/ir.model.access.csv',
         'data/stock_picking_server_actions.xml',
         #'views/product_website_templates.xml',
         'views/views.xml',
         'views/delivery_carrier_views.xml',
+        'views/report_stock_picking_wizard_views.xml',
         #'views/stock_picking_views.xml',
         'views/res_config_settings_views.xml',
         'views/menu.xml',
