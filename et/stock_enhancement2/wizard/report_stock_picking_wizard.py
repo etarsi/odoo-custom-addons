@@ -85,9 +85,9 @@ class ReportStockPickingWizard(models.TransientModel):
         domain = [('state', '!=', 'cancel')]
         # Filtrar por temporada
         if self.temporada == 't_nino_2025':
-            domain += [('create_date', '>=', date(2025, 3, 1)), ('invoice_date', '<=', date(2025, 8, 31))]
+            domain += [('create_date', '>=', date(2025, 3, 1)), ('create_date', '<=', date(2025, 8, 31))]
         elif self.temporada == 't_nav_2025':
-            domain += [('create_date', '>=', date(2025, 9, 1)), ('invoice_date', '<=', date(2026, 2, 28))]
+            domain += [('create_date', '>=', date(2025, 9, 1)), ('create_date', '<=', date(2026, 2, 28))]
         # Filtrar por cliente si se seleccionó uno
         if self.partner_id:
             domain.append(('partner_id', '=', self.partner_id.id))
