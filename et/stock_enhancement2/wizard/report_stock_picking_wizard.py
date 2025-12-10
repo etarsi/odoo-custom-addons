@@ -184,7 +184,7 @@ class ReportStockPickingWizard(models.TransientModel):
         # =========================
         # TITULO
         # =========================
-        worksheet.merge_range(0, 0, 0, 5, (self.partner_id.name or '').upper(), fmt_title)
+        worksheet.merge_range(0, 0, 0, 6, (self.partner_id.name or '').upper(), fmt_title)
 
         # =========================
         # ENCABEZADOS
@@ -253,12 +253,12 @@ class ReportStockPickingWizard(models.TransientModel):
                 bultos = (unidades / uxb) if uxb else 0.0
 
                 worksheet.write(row, 0, move.product_id.default_code or '', fmt_text)
-                worksheet.write(row, 0, move.product_id.name or '', fmt_text)
-                worksheet.write_number(row, 1, unidades, fmt_int)
-                worksheet.write_number(row, 2, uxb, fmt_int)
-                worksheet.write_number(row, 3, bultos, fmt_dec2)
-                worksheet.write(row, 4, RUBROS.get(self.rubro_select, ''), fmt_text)
-                worksheet.write(row, 5, estado_txt, fmt_text)
+                worksheet.write(row, 1, move.product_id.name or '', fmt_text)
+                worksheet.write_number(row, 2, unidades, fmt_int)
+                worksheet.write_number(row, 3, uxb, fmt_int)
+                worksheet.write_number(row, 4, bultos, fmt_dec2)
+                worksheet.write(row, 5, RUBROS.get(self.rubro_select, ''), fmt_text)
+                worksheet.write(row, 6, estado_txt, fmt_text)
 
                 row += 1
 
