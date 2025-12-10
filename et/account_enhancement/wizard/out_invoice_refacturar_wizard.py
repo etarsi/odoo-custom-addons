@@ -196,6 +196,7 @@ class OutInvoiceRefacturarWizard(models.TransientModel):
 
             # 1) Reverso (NC) en la compañía original
             code_comprobante_factura = move.l10n_latam_document_type_id.code
+            code_nc = False
             if code_comprobante_factura == '1':
                 code_nc = self.env['l10n_latam.document.type'].search([('code', '=', '3'), ('internal_type', '=', 'credit_note')], limit=1)
                 if not code_nc:
