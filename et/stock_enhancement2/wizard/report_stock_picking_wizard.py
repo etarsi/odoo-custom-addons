@@ -155,11 +155,11 @@ class ReportStockPickingWizard(models.TransientModel):
         # FORMATOS (si no querés usar tu helper excel)
         # =========================
         fmt_title = workbook.add_format({
-            'bold': True, 'font_color': 'white', 'bg_color': '#000000', 'bg_border_color': '#ffffff', 'bg_border': 1,
+            'bold': True, 'font_color': 'white', 'bg_color': '#000000', 'set_border_color': '#ffffff', 'bg_border': 1,
             'align': 'center', 'valign': 'vcenter', 'border': 1
         })
         fmt_header = workbook.add_format({
-            'bold': True, 'font_color': 'white', 'bg_color': '#000000', 'bg_border_color': '#ffffff', 'bg_border': 1,
+            'bold': True, 'font_color': 'white', 'bg_color': '#000000', 'set_border_color': '#ffffff', 'bg_border': 1,
             'align': 'center', 'valign': 'vcenter', 'border': 1
         })
         fmt_text = workbook.add_format({'border': 1, 'align': 'left', 'valign': 'vcenter'})
