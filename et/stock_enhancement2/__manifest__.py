@@ -30,7 +30,7 @@
 
     # always loaded
     'data': [
-        # 'security/ir.model.access.csv',
+        'security/ir.model.access.csv',
         'data/stock_picking_server_actions.xml',
         #'views/product_website_templates.xml',
         'views/views.xml',
