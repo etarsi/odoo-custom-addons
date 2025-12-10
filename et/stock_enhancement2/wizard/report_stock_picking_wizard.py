@@ -53,98 +53,6 @@ class ReportStockPickingWizard(models.TransientModel):
                                                             ('rodados_infantiles', 'RODADOS INFANTILES')],
                                     required=True, default='juguetes', help='Seleccionar el rubro para el reporte')
     
-    def action_generar_excel22(self):
-        # Crear un buffer en memoria
-        output = io.BytesIO()
-        # Crear el archivo Excel
-        workbook = xlsxwriter.Workbook(output, {'in_memory': True})
-        worksheet = workbook.add_worksheet('Inventario')
-        # Agrupados por rangos consecutivos con mismo ancho
-        worksheet.set_column(0, 0, 15)   # CODIGO
-        worksheet.set_column(1, 1, 50)   # DESCRIPCION
-        worksheet.set_column(2, 2, 20)   # UNIDADES
-        worksheet.set_column(3, 3, 15)   # UXB
-        worksheet.set_column(4, 4, 20)   # BULTOS
-        worksheet.set_column(5, 5, 20)   # RUBRO
-        worksheet.set_column(6, 6, 25)   # ESTADO
-        
-        #formato de celdas
-        formato_encabezado = excel.formato_encabezado(workbook)
-        formato_celdas_izquierda = excel.formato_celda_izquierda(workbook)
-        formato_celdas_derecha = excel.formato_celda_derecha(workbook)
-        formato_celdas_decimal = excel.formato_celda_decimal(workbook)
-        # Escribir encabezados
-        worksheet.merge_range('A1:G1', self.partner_id.name, formato_encabezado)
-        
-        worksheet.write(4, 0, 'CODIGO', formato_encabezado)
-        worksheet.write(4, 1, 'DESCRIPCIÓN', formato_encabezado)
-        worksheet.write(4, 2, 'UNIDADES', formato_encabezado)
-        worksheet.write(4, 3, 'UxB', formato_encabezado)
-        worksheet.write(4, 4, 'RUBRO', formato_encabezado)
-        worksheet.write(4, 5, 'ESTADO', formato_encabezado)
-        # Buscar facturas en el rango de fechas
-        domain = [('state', '!=', 'cancel')]
-        # Filtrar por temporada
-        if self.temporada == 't_nino_2025':
-            domain += [('create_date', '>=', date(2025, 3, 1)), ('create_date', '<=', date(2025, 8, 31))]
-        elif self.temporada == 't_nav_2025':
-            domain += [('create_date', '>=', date(2025, 9, 1)), ('create_date', '<=', date(2026, 2, 28))]
-        # Filtrar por cliente si se seleccionó uno
-        if self.partner_id:
-            domain.append(('partner_id', '=', self.partner_id.id))
-        # Recolectar los estados seleccionados en una lista
-        stocks_pickings = self.env['stock.picking'].search(domain)
-        # Escribir datos
-        row = 3
-        if not stocks_pickings:
-            raise ValidationError("No se encontraron albaranes para los criterios seleccionados.")
-        for stock_picking in stocks_pickings:
-            pickings_moves = self.env['stock.move'].search([('picking_id', '=', stock_picking.id), ('product_id.categ_id.parent_id.name', '=', RUBROS.get(self.rubro_select, ''))])
-            _logger.info(f"Procesando albarán {stock_picking.name} con {len(pickings_moves)} movimientos.")
-            if pickings_moves:
-                for move in pickings_moves:
-                    # omitir movimientos sin producto
-                    if not move.product_id:
-                        continue
-                    # omitir movimientos cerrados con albaranes hechos o cancelados
-                    if stock_picking.state_wms == 'closed' and stock_picking.state in ['done', 'cancel']:
-                        continue
-                    row += 1
-                    _logger.info(f"Escribiendo producto {move.product_id.name} en fila {row}.")
-                    state = ''
-                    if stock_picking.state_wms == 'closed' and stock_picking.state not in ['done', 'cancel']:
-                        state = 'PREPARADO'
-                    elif stock_picking.state_wms == 'no':
-                        state = 'NO ENVIADO'
-                    elif stock_picking.state_wms == 'done':
-                        state = 'EN PREPARACIÓN'
-                    
-                    worksheet.write(row, 0, move.product_id.default_code if move.product_id.default_code else '', formato_celdas_izquierda)
-                    worksheet.write(row, 1, move.product_id.name, formato_celdas_izquierda)
-                    worksheet.write(row, 2, move.product_uom_qty, formato_celdas_decimal)
-                    worksheet.write(row, 3, move.product_packaging_id.name if move.product_packaging_id else '', formato_celdas_izquierda)
-                    worksheet.write(row, 4, move.product_packaging_qty, formato_celdas_decimal)
-                    worksheet.write(row, 5, state, formato_celdas_izquierda)
-                    row += 1
-            else:
-                continue
-        workbook.close()
-        output.seek(0)
-        # Codificar el archivo en base64
-        archivo_excel = base64.b64encode(output.read())
-        attachment = self.env['ir.attachment'].create({
-            'name': f'Pendientes {self.partner_id.name.lower()} - {fields.Date.today()}.xlsx',  # Nombre del archivo con fecha
-            'type': 'binary',  # Tipo binario para archivos
-            'datas': archivo_excel,  # Datos codificados en base64
-            'store_fname': f'Pendientes {self.partner_id.name.lower()} - {fields.Date.today()}.xlsx',  # Nombre para almacenamiento
-            'mimetype': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'  # Tipo MIME correcto
-        })
-        # Retornar acción para descargar el archivo
-        return {
-            'type': 'ir.actions.act_url',
-            'url': f'/web/content/{attachment.id}?download=true',  # URL para descarga
-            'target': 'self'  # Abrir en la misma ventana
-        }
         
     def action_generar_excel(self):
         output = io.BytesIO()
@@ -152,7 +60,7 @@ class ReportStockPickingWizard(models.TransientModel):
         worksheet = workbook.add_worksheet('Inventario')
 
         # =========================
-        # FORMATOS (si no querés usar tu helper excel)
+        # FORMATOS
         # =========================
         fmt_title = workbook.add_format({
             'bold': True,
@@ -179,7 +87,7 @@ class ReportStockPickingWizard(models.TransientModel):
         fmt_dec2 = workbook.add_format({'border': 1, 'align': 'center', 'valign': 'vcenter', 'num_format': '0.00'})
 
         # =========================
-        # COLUMNAS (como la imagen)
+        # COLUMNAS
         # =========================
         worksheet.set_column(0, 0, 15)  # CODIGO
         worksheet.set_column(1, 1, 55)  # DESCRIPCION
@@ -253,14 +161,11 @@ class ReportStockPickingWizard(models.TransientModel):
                     continue
                 if stock_picking.state_wms == 'closed' and stock_picking.state in ['done', 'cancel']:
                     continue
-
                 unidades = move.product_uom_qty or 0.0
-
                 # UxB numérico: suele estar en el packaging.qty
                 uxb = 0.0
                 if move.product_packaging_id and hasattr(move.product_packaging_id, 'qty'):
                     uxb = move.product_packaging_id.qty or 0.0
-
                 # BULTOS = unidades / UxB (como tu imagen)
                 bultos = (unidades / uxb) if uxb else 0.0
 
@@ -271,9 +176,7 @@ class ReportStockPickingWizard(models.TransientModel):
                 worksheet.write_number(row, 4, bultos, fmt_dec2)
                 worksheet.write(row, 5, RUBROS.get(self.rubro_select, ''), fmt_text)
                 worksheet.write(row, 6, estado_txt, fmt_text)
-
                 row += 1
-
         workbook.close()
         output.seek(0)
 
