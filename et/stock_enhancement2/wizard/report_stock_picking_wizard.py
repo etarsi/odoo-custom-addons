@@ -41,7 +41,7 @@ class ReportStockPickingWizard(models.TransientModel):
     temporada = fields.Selection(string='Temporada', selection=[
         ('t_nino_2025', 'Temporada Niño 2025'),
         ('t_nav_2025', 'Temporada Navidad 2025'),
-    ], required=True, help='Seleccionar la temporada para el reporte')  
+    ], required=True, default='t_nav_2025', help='Seleccionar la temporada para el reporte')  
     partner_id = fields.Many2one('res.partner', string='Cliente', help='Seleccionar un Cliente para filtrar', required=True)
     rubro_select = fields.Selection(string='Rubro', selection=[('juguetes', 'JUGUETES'),
                                                             ('maquillaje', 'MAQUILLAJE'),
@@ -163,13 +163,14 @@ class ReportStockPickingWizard(models.TransientModel):
             'align': 'center', 'valign': 'vcenter', 'border': 1
         })
         fmt_text = workbook.add_format({'border': 1, 'align': 'left', 'valign': 'vcenter'})
+        fmt_text2 = workbook.add_format({'border': 1, 'align': 'center', 'valign': 'vcenter'})
         fmt_int = workbook.add_format({'border': 1, 'align': 'center', 'valign': 'vcenter', 'num_format': '0'})
         fmt_dec2 = workbook.add_format({'border': 1, 'align': 'center', 'valign': 'vcenter', 'num_format': '0.00'})
 
         # =========================
         # COLUMNAS (como la imagen)
         # =========================
-        worksheet.set_column(0, 0, 15)   # CODIGO
+        worksheet.set_column(0, 0, 15)  # CODIGO
         worksheet.set_column(1, 1, 55)  # DESCRIPCION
         worksheet.set_column(2, 2, 12)  # UNIDADES
         worksheet.set_column(3, 3, 10)  # UxB
@@ -252,7 +253,7 @@ class ReportStockPickingWizard(models.TransientModel):
                 # BULTOS = unidades / UxB (como tu imagen)
                 bultos = (unidades / uxb) if uxb else 0.0
 
-                worksheet.write(row, 0, move.product_id.default_code or '', fmt_text)
+                worksheet.write(row, 0, move.product_id.default_code or '', fmt_text2)
                 worksheet.write(row, 1, move.product_id.name or '', fmt_text)
                 worksheet.write_number(row, 2, unidades, fmt_int)
                 worksheet.write_number(row, 3, uxb, fmt_int)
@@ -275,7 +276,17 @@ class ReportStockPickingWizard(models.TransientModel):
         })
 
         return {
-            'type': 'ir.actions.act_url',
-            'url': f'/web/content/{attachment.id}?download=true',
-            'target': 'self'
+            'type': 'ir.actions.client',
+            'tag': 'display_notification',
+            'params': {
+                'title': 'Éxito',
+                'message': 'Excel generado correctamente.',
+                'type': 'success',
+                'sticky': False,
+                'next': {
+                    'type': 'ir.actions.act_url',
+                    'url': f'/web/content/{attachment.id}?download=true',
+                    'target': 'self',
+                }
+            }
         }
