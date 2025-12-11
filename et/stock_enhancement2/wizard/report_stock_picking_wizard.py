@@ -8,31 +8,6 @@ import xlsxwriter, logging
 from . import excel
 _logger = logging.getLogger(__name__)
 
-MESES_ES = {
-    '01': 'Enero',
-    '02': 'Febrero',
-    '03': 'Marzo',
-    '04': 'Abril',
-    '05': 'Mayo',
-    '06': 'Junio',
-    '07': 'Julio',
-    '08': 'Agosto',
-    '09': 'Septiembre',
-    '10': 'Octubre',
-    '11': 'Noviembre',
-    '12': 'Diciembre',
-}
-
-RUBROS = {
-    'juguetes': 'JUGUETES',
-    'maquillaje': 'MAQUILLAJE',
-    'rodados': 'RODADOS',
-    'pelotas': 'PELOTAS',
-    'inflables': 'INFLABLES',
-    'pistolas_agua': 'PISTOLAS DE AGUA',
-    'vehiculos_bateria': 'VEHICULOS A BATERIA',
-    'rodados_infantiles': 'RODADOS INFANTILES',
-}
 
 class ReportStockPickingWizard(models.TransientModel):
     _name = 'report.stock.picking.wizard'
@@ -52,6 +27,7 @@ class ReportStockPickingWizard(models.TransientModel):
                                                             ('vehiculos_bateria', 'VEHICULOS A BATERIA'),
                                                             ('rodados_infantiles', 'RODADOS INFANTILES')],
                                     required=True, default='juguetes', help='Seleccionar el rubro para el reporte')
+    category_ids = fields.Many2many('product.category', string='Categorías de Producto', help='Filtrar por categorías de producto', domain=[('parent_id', '=', False)])
     
         
     def action_generar_excel(self):
@@ -136,11 +112,13 @@ class ReportStockPickingWizard(models.TransientModel):
         row = 2  # empezamos justo debajo de headers
 
         for stock_picking in stocks_pickings:
-            pickings_moves = self.env['stock.move'].search([
-                ('picking_id', '=', stock_picking.id),
-                ('product_id.categ_id.parent_id.name', '=', RUBROS.get(self.rubro_select, ''))
-            ])
-
+            category_ids = self.category_ids.ids
+            if category_ids:
+                pickings_moves = self.env['stock.move'].search([
+                    ('picking_id', '=', stock_picking.id),
+                    ('product_id.categ_id.parent_id', 'in', category_ids)
+                ])
+                
             if not pickings_moves:
                 continue
 
@@ -174,7 +152,7 @@ class ReportStockPickingWizard(models.TransientModel):
                 worksheet.write_number(row, 2, unidades, fmt_int)
                 worksheet.write_number(row, 3, uxb, fmt_int)
                 worksheet.write_number(row, 4, bultos, fmt_dec2)
-                worksheet.write(row, 5, RUBROS.get(self.rubro_select, ''), fmt_text)
+                worksheet.write(row, 5, move.product_id.categ_id.parent_id.name or '', fmt_text)
                 worksheet.write(row, 6, estado_txt, fmt_text)
                 row += 1
         workbook.close()
