@@ -18,7 +18,7 @@ class OutInvoiceRefacturarWizard(models.TransientModel):
 
     def _pick_sale_journal_for_partner(self, company, partner):
         """Devuelve un journal de venta válido (exportación/doméstico) para company/partner."""
-        Journal = self.env['account.journal'].with_company(company)
+        Journal = self.env['account.journal']
         base_domain = [
             ('company_id', '=', company.id),
             ('type', '=', 'sale'),
