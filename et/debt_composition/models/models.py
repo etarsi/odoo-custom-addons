@@ -25,6 +25,10 @@ class ReportDebtCompositionClient(models.Model):
     ], string='Origen', readonly=True)
     company_id = fields.Many2one('res.company', string='Compañía', readonly=True)
     currency_id = fields.Many2one('res.currency', string='Moneda', readonly=True)
+    category_ids = fields.Many2many('product.category',
+                                    'report_debt_composition_client_category_rel',
+                                    'report_id', 'category_id',
+                                    string='Rubros', readonly=True)
     
     @api.model
     def action_refresh_sql(self, *args, **kwargs):
@@ -61,6 +65,18 @@ class ReportDebtCompositionClient(models.Model):
             FROM report_debt_composition_client_tbl;
         """)
 
+        cr.execute("""
+            CREATE OR REPLACE VIEW report_debt_comp_cat_rel AS
+            SELECT
+                t.id AS report_id,
+                unnest(t.category_ids) AS category_id
+            FROM report_debt_composition_client_ids_tbl t
+            WHERE t.category_ids IS NOT NULL;
+        """)
+
+
+
+
 class ReportDebtCompositionClientCompany(models.Model):
     _name = "report.debt.composition.client.company"
     _auto = False
@@ -84,6 +100,11 @@ class ReportDebtCompositionClientCompany(models.Model):
     ], string='Origen', readonly=True)
     company_id = fields.Many2one('res.company', string='Compañía', readonly=True)
     currency_id = fields.Many2one('res.currency', string='Moneda', readonly=True)
+    category_ids = fields.Many2many('product.category',
+                                    'report_debt_composition_client_company_category_rel',
+                                    'report_id',
+                                    'category_id',
+                                    string='Rubros', readonly=True)
     
     
     def action_refresh_sql(self, partner_id=None, company_ids=None):
@@ -118,4 +139,14 @@ class ReportDebtCompositionClientCompany(models.Model):
                 company_id,
                 currency_id
             FROM report_debt_composition_client_company_ids_tbl;
+        """)
+        
+        
+        cr.execute("""
+            CREATE OR REPLACE VIEW report_debt_comp_cat_rel AS
+            SELECT
+                t.id AS report_id,
+                unnest(t.category_ids) AS category_id
+            FROM report_debt_composition_client_company_ids_tbl t
+            WHERE t.category_ids IS NOT NULL;
         """)
