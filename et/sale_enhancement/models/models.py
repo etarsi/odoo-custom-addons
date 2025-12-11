@@ -1054,7 +1054,7 @@ class ResPartnerInherit(models.Model):
 
     # heredado
     property_delivery_carrier_id = fields.Many2one('delivery.carrier', company_dependent=False, string="Delivery Method", help="Default delivery method used in sales orders.")
-    #fantasy_name = fields.Char('Nombre de Fantasía')
+    fantasy_name = fields.Char('Nombre de Fantasía')
 
     
 class SaleOrderSettings(models.Model):

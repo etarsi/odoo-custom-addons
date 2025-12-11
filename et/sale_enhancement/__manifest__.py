@@ -33,7 +33,7 @@
         'data/actions.xml',
         #views
         'views/templates.xml',
-        #'views/res_partner_views.xml',
+        'views/res_partner_views.xml',
         'views/product_template_views.xml',
         'views/product_pricelist_view.xml',
         'views/sale_order_views_tree.xml',
