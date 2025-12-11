@@ -172,14 +172,16 @@ class OutInvoiceRefacturarWizard(models.TransientModel):
         credit_notes = self.env['account.move']
 
         for move in self.account_move_ids:
-            vals = self._new_invoice_vals(move_src=move, company=self.company_id, pricelist=self.pricelist_id)
             if move.move_type != 'out_invoice':
                 raise ValidationError(_("La factura %s no es de cliente.") % move.name)
             if move.state != 'posted':
                 raise ValidationError(_("La factura %s debe estar Validada.") % move.name)
             company_comparacion = self.comparar_company_id(move.company_id)
             if not company_comparacion['company_id']:
-                raise ValidationError(_("La factura %s debe pertenecer a la compañía seleccionada.") % (company_comparacion['name'],))       
+                raise ValidationError(_("La factura %s debe pertenecer a la compañía seleccionada.") % (company_comparacion['name'],))
+            
+            # Valores para nueva factura       
+            vals = self._new_invoice_vals(move_src=move, company=self.company_id, pricelist=self.pricelist_id)
             
             # Acción según selección   
             if self.accion == 'solo_refacturar':
