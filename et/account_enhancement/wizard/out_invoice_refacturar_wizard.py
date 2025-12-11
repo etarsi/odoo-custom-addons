@@ -189,6 +189,16 @@ class OutInvoiceRefacturarWizard(models.TransientModel):
                 new = self.env['account.move'].with_company(self.company_id).create(vals)
                 new_invoices |= new
             elif self.accion == 'anular_refacturar':
+                existing_refunds = move.reversal_move_id.filtered(lambda m: m.move_type == 'out_refund' and m.state in ('draft', 'posted'))
+                if existing_refunds:
+                    raise ValidationError(_(
+                        "La factura %(invoice)s ya tiene una Nota de Crédito de reverso (%(refund)s) en estado %(state)s. "
+                        "No se puede volver a refacturar."
+                    ) % {
+                        'invoice': move.name,
+                        'refund': ', '.join(existing_refunds.mapped('name')),
+                        'state': ', '.join(existing_refunds.mapped('state')),
+                    })
                 if move.payment_state == 'reversed':
                     raise ValidationError(_("La factura %s ya fue refacturada, no se puede volver a refacturar.") % move.name)
   
@@ -216,12 +226,8 @@ class OutInvoiceRefacturarWizard(models.TransientModel):
                 if draft_credits:
                     for draft_credit in draft_credits:
                         if draft_credit.l10_latam_document_type_id.internal_type != 'credit_note':
-                            internal_type = draft_credit.l10_latam_document_type_id.internal_type
-                            if not internal_type:
-                                internal_type = 'No esta definido'
-                            raise ValidationError(_("Se esperaba una Nota de Crédito, pero el tipo comprobante es: %s.") % (
-                                internal_type,
-                            ))
+                            internal_type = draft_credit.l10n_latam_document_type_id.internal_type or 'No está definido'
+                            raise ValidationError(_("Se esperaba una Nota de Crédito, pero el tipo comprobante es: %s.") % internal_type)
                     draft_credits.action_post()
                 credit_notes |= draft_credits
 
