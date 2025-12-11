@@ -39,6 +39,9 @@ action['context'] = dict(env.context, default_account_move_ids=[(6, 0, recs.ids)
                     <group>
                         <field name="condicion_m2m_id"  options="{'no_create': True}"/>
                         <field name="pricelist_id" options="{'no_create': True}"/>
+                        <group string="Acción a realizar" col="2">
+                            <field name="accion" widget="radio" class="oe_inline"/>
+                        </group>
                     </group>
                 </group>
                 <footer>

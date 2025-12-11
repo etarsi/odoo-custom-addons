@@ -14,6 +14,15 @@ class OutInvoiceRefacturarWizard(models.TransientModel):
     company_id = fields.Many2one('res.company', string='Compañía', required=True)
     condicion_m2m_id = fields.Many2one('condicion.venta', string='Condición de Venta', required=True)
     pricelist_id = fields.Many2one('product.pricelist', string='Lista de precios', required=True)
+    accion = fields.Selection(
+        [
+            ('anular_refacturar', 'Anular y Refacturar'),
+            ('solo_refacturar', 'Solo Refacturar'),
+        ],
+        string='Acción',
+        required=True,
+        default='anular_refacturar',
+    )
 
 
     @api.model
@@ -163,53 +172,60 @@ class OutInvoiceRefacturarWizard(models.TransientModel):
         credit_notes = self.env['account.move']
 
         for move in self.account_move_ids:
-            if move.payment_state == 'reversed':
-                raise ValidationError(_("La factura %s ya fue refacturada, no se puede volver a refacturar.") % move.name)
+            vals = self._new_invoice_vals(move_src=move, company=self.company_id, pricelist=self.pricelist_id)
             if move.move_type != 'out_invoice':
                 raise ValidationError(_("La factura %s no es de cliente.") % move.name)
             if move.state != 'posted':
                 raise ValidationError(_("La factura %s debe estar Validada.") % move.name)
             company_comparacion = self.comparar_company_id(move.company_id)
             if not company_comparacion['company_id']:
-                raise ValidationError(_("La factura %s debe pertenecer a la compañía seleccionada.") % (company_comparacion['name'],))
+                raise ValidationError(_("La factura %s debe pertenecer a la compañía seleccionada.") % (company_comparacion['name'],))       
+            
+            # Acción según selección   
+            if self.accion == 'solo_refacturar':
+                # 2) Nueva factura en la compañía destino
+                new = self.env['account.move'].with_company(self.company_id).create(vals)
+                new_invoices |= new
+            elif self.accion == 'anular_refacturar':
+                if move.payment_state == 'reversed':
+                    raise ValidationError(_("La factura %s ya fue refacturada, no se puede volver a refacturar.") % move.name)
+  
+                reversal_vals = [{
+                    'ref': _('Refacturación de %s') % move.name,
+                    'date': fields.Date.context_today(self),
+                }]
 
+                # 1) Reverso (NC) en la compañía original
+                code_comprobante_factura = move.l10n_latam_document_type_id.code
+                if code_comprobante_factura == '1':
+                    code_nc = self.env['l10n_latam.document.type'].search([('code', '=', '3'), ('internal_type', '=', 'credit_note')], limit=1)
+                    reversal_vals[0].update({'l10n_latam_document_type_id': code_nc.id})
+                    if not code_nc:
+                        raise ValidationError(_("No se encontró el tipo de comprobante Nota de Crédito (3) para refacturar la factura %s.") % move.name)
+                elif code_comprobante_factura == '201':
+                    code_nc = self.env['l10n_latam.document.type'].search([('code', '=', '203'), ('internal_type', '=', 'credit_note')], limit=1)
+                    reversal_vals[0].update({'l10n_latam_document_type_id': code_nc.id})
+                    if not code_nc:
+                        raise ValidationError(_("No se encontró el tipo de comprobante Nota de Crédito (203) para refacturar la factura %s.") % move.name)
 
-            reversal_vals = [{
-                'ref': _('Refacturación de %s') % move.name,
-                'date': fields.Date.context_today(self),
-            }]
-            # 1) Reverso (NC) en la compañía original
-            code_comprobante_factura = move.l10n_latam_document_type_id.code
-            if code_comprobante_factura == '1':
-                code_nc = self.env['l10n_latam.document.type'].search([('code', '=', '3'), ('internal_type', '=', 'credit_note')], limit=1)
-                reversal_vals[0].update({'l10n_latam_document_type_id': code_nc.id})
-                if not code_nc:
-                    raise ValidationError(_("No se encontró el tipo de comprobante Nota de Crédito (3) para refacturar la factura %s.") % move.name)
-            elif code_comprobante_factura == '201':
-                code_nc = self.env['l10n_latam.document.type'].search([('code', '=', '203'), ('internal_type', '=', 'credit_note')], limit=1)
-                reversal_vals[0].update({'l10n_latam_document_type_id': code_nc.id})
-                if not code_nc:
-                    raise ValidationError(_("No se encontró el tipo de comprobante Nota de Crédito (203) para refacturar la factura %s.") % move.name)
+                credit_notes = move._reverse_moves(default_values_list=reversal_vals, cancel=True)
+                # 2) Publicar SOLO las NC en borrador (evita "ya está publicado")
+                draft_credits = credit_notes.filtered(lambda m: m.state == 'draft')
+                if draft_credits:
+                    for draft_credit in draft_credits:
+                        if draft_credit.l10_latam_document_type_id.internal_type != 'credit_note':
+                            internal_type = draft_credit.l10_latam_document_type_id.internal_type
+                            if not internal_type:
+                                internal_type = 'No esta definido'
+                            raise ValidationError(_("Se esperaba una Nota de Crédito, pero el tipo comprobante es: %s.") % (
+                                internal_type,
+                            ))
+                    draft_credits.action_post()
+                credit_notes |= draft_credits
 
-            vals = self._new_invoice_vals(move_src=move, company=self.company_id, pricelist=self.pricelist_id)
-            credit_notes = move._reverse_moves(default_values_list=reversal_vals, cancel=True)
-            # 2) Publicar SOLO las NC en borrador (evita "ya está publicado")
-            draft_credits = credit_notes.filtered(lambda m: m.state == 'draft')
-            if draft_credits:
-                for draft_credit in draft_credits:
-                    if draft_credit.l10_latam_document_type_id.internal_type != 'credit_note':
-                        internal_type = draft_credit.l10_latam_document_type_id.internal_type
-                        if not internal_type:
-                            internal_type = 'No esta definido'
-                        raise ValidationError(_("Se esperaba una Nota de Crédito, pero el tipo comprobante es: %s.") % (
-                            internal_type,
-                        ))
-                draft_credits.action_post()
-            credit_notes |= draft_credits
-
-            # 2) Nueva factura en la compañía destino
-            new = self.env['account.move'].with_company(self.company_id).create(vals)
-            new_invoices |= new
+                # 2) Nueva factura en la compañía destino
+                new = self.env['account.move'].with_company(self.company_id).create(vals)
+                new_invoices |= new
 
         # Mostrar nuevas facturas creadas
         action = self.env.ref('account.action_move_out_invoice_type').read()[0]
