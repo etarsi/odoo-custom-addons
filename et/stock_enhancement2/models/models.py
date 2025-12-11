@@ -212,35 +212,24 @@ class StockPickingInherit(models.Model):
 
     def consume_stock2(self):
         for record in self:
-            vals_list = []
 
             if record.move_ids_without_package:
                 for move in record.move_ids_without_package:
-                    vals = {}
                     default_code = move.product_id.default_code
 
                     if default_code:
                         if default_code.startswith('9'):
                             search_code = default_code[1:]
                         else:
-                            search_code = default_code
-
-                        stock_erp = self.env['stock.erp'].search([
-                            ('product_id.default_code', '=', search_code)
-                        ], limit=1)
-
-                        if not stock_erp:
-                            raise UserError(f'El producto [{default_code}]{move.product_id.name} no se encuentra en el listado de Stock. Avise al administrador.')
-                        
-                        vals['stock_erp'] = stock_erp.id
+                            search_code = default_code                        
                     else:
                         raise UserError(f'El producto {move.product_id.name} no tiene definido un código interno (default_code).')
 
                     stock_move_erp_RESERV = self.env['stock.moves.erp'].search([('product_id.default_code', '=', search_code), ('type', '=', 'reserve'), ('sale_line_id', '=', move.sale_line_id.id)], limit=1)
                     stock_move_erp_PREPAR = self.env['stock.moves.erp'].search([('product_id.default_code', '=', search_code), ('picking_id', '=', record.id), ('type', '=', 'preparation')], limit=1)
 
-                    stock_move_erp_RESERV.quantity_delivered += move.quantity_done
-                    stock_move_erp_PREPAR.quantity_delivered += move.quantity_done
+                    stock_move_erp_RESERV.quantity_delivered = move.quantity_done
+                    stock_move_erp_PREPAR.quantity_delivered = move.quantity_done
 
     ### PICKING
 
