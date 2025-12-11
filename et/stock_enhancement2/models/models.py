@@ -227,8 +227,8 @@ class StockPickingInherit(models.Model):
 
                     stock_move_erp_RESERV = self.env['stock.moves.erp'].search([('product_id.default_code', '=', search_code), ('type', '=', 'reserve'), ('sale_line_id', '=', move.sale_line_id.id)], limit=1)
                     stock_move_erp_PREPAR = self.env['stock.moves.erp'].search([('product_id.default_code', '=', search_code), ('picking_id', '=', record.id), ('type', '=', 'preparation')], limit=1)
-
-                    stock_move_erp_RESERV.quantity_delivered = move.quantity_done
+                    if stock_move_erp_RESERV: 
+                        stock_move_erp_RESERV.quantity_delivered = move.quantity_done
                     stock_move_erp_PREPAR.quantity_delivered = move.quantity_done
 
     ### PICKING
