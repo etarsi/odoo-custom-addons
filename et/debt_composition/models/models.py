@@ -66,7 +66,7 @@ class ReportDebtCompositionClient(models.Model):
         """)
 
         cr.execute("""
-            CREATE OR REPLACE VIEW report_debt_comp_client_cat_rel AS
+            CREATE OR REPLACE VIEW report_debt_comp_cat_rel AS
             SELECT
                 t.id AS report_id,
                 unnest(t.category_ids) AS category_id
