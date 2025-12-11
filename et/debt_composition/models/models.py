@@ -26,7 +26,7 @@ class ReportDebtCompositionClient(models.Model):
     company_id = fields.Many2one('res.company', string='Compañía', readonly=True)
     currency_id = fields.Many2one('res.currency', string='Moneda', readonly=True)
     category_ids = fields.Many2many('product.category',
-                                    'report_debt_composition_client_category_rel',
+                                    'report_debt_comp_cat_rel',
                                     'report_id', 'category_id',
                                     string='Rubros', readonly=True)
     
@@ -64,6 +64,7 @@ class ReportDebtCompositionClient(models.Model):
                 currency_id
             FROM report_debt_composition_client_tbl;
         """)
+
 
 
 
