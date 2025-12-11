@@ -70,7 +70,7 @@ class ReportDebtCompositionClient(models.Model):
             SELECT
                 t.id AS report_id,
                 unnest(t.category_ids) AS category_id
-            FROM report_debt_composition_client_ids_tbl t
+            FROM report_debt_composition_client_tbl t
             WHERE t.category_ids IS NOT NULL;
         """)
 
