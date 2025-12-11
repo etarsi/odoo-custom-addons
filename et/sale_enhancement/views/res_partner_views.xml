@@ -17,8 +17,8 @@
         <field name="model">res.partner</field>
         <field name="inherit_id" ref="base.view_res_partner_filter"/>
         <field name="arch" type="xml">
-            <xpath expr="//filter[@name='type_person']" position="after">
-                <filter name="fantasy_name_filter" string="Nombre de Fantasía" domain="[('fantasy_name', 'ilike', self)]"/>
+            <xpath expr="//filter[@name='name']" position="after">
+                <field name="fantasy_name_filter" string="Nombre de Fantasía" filter_domain="[('fantasy_name', 'ilike', self)]"/>
             </xpath>
         </field>
     </record>
