@@ -40,6 +40,7 @@ class AccountMoveInherit(models.Model):
     ], compute='_compute_calendar_color_state', store=False)
 
     total_amount_paid = fields.Float(string="Monto Pagado", compute="_compute_total_amount_paid")
+    category_ids = fields.Many2many('product.category', string="Categoría", compute="_compute_category_ids")
    
     @api.model
     def create(self, vals):
@@ -68,6 +69,15 @@ class AccountMoveInherit(models.Model):
                     ))
         return super().action_post()
 
+    @api.depends('line_ids.product_id')
+    def _compute_category_ids(self):
+        for record in self:
+            if record.line_ids:
+                categories = record.order_line.mapped('product_id.categ_id.parent_id')
+                categories_ids = categories.filtered(lambda c: c and c.id).ids
+                record.category_ids = [(6, 0, categories_ids)]
+            else:
+                record.category_ids = [(5, 0, 0)]
 
     def _reverse_moves(self, default_values_list=None, cancel=False):
         reversed_moves = super()._reverse_moves(default_values_list=default_values_list, cancel=cancel)
