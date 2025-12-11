@@ -47,7 +47,7 @@ class ReportFacturaRubrosTempNav(models.Model):
                     SUM(
                         CASE
                             WHEN TRIM(UPPER(parent_categ.name)) = 'JUGUETES'
-                            THEN (aml.price_subtotal * 
+                            THEN (aml.price_total * 
                                 CASE
                                     WHEN ldt.internal_type = 'credit_note' OR am.move_type = 'out_refund' THEN -1
                                     ELSE 1
@@ -61,7 +61,7 @@ class ReportFacturaRubrosTempNav(models.Model):
                     SUM(
                         CASE
                             WHEN TRIM(UPPER(parent_categ.name)) = 'MAQUILLAJE'
-                            THEN (aml.price_subtotal * 
+                            THEN (aml.price_total * 
                                 CASE
                                     WHEN ldt.internal_type = 'credit_note' OR am.move_type = 'out_refund' THEN -1
                                     ELSE 1
@@ -75,7 +75,7 @@ class ReportFacturaRubrosTempNav(models.Model):
                     SUM(
                         CASE
                             WHEN TRIM(UPPER(parent_categ.name)) = 'RODADOS'
-                            THEN (aml.price_subtotal * 
+                            THEN (aml.price_total * 
                                 CASE
                                     WHEN ldt.internal_type = 'credit_note' OR am.move_type = 'out_refund' THEN -1
                                     ELSE 1
@@ -89,7 +89,7 @@ class ReportFacturaRubrosTempNav(models.Model):
                     SUM(
                         CASE
                             WHEN TRIM(UPPER(parent_categ.name)) = 'PELOTAS'
-                            THEN (aml.price_subtotal *
+                            THEN (aml.price_total *
                                 CASE
                                     WHEN ldt.internal_type = 'credit_note' OR am.move_type = 'out_refund' THEN -1
                                     ELSE 1
@@ -103,7 +103,7 @@ class ReportFacturaRubrosTempNav(models.Model):
                     SUM(
                         CASE
                             WHEN TRIM(UPPER(parent_categ.name)) = 'INFLABLES'
-                            THEN (aml.price_subtotal *
+                            THEN (aml.price_total *
                                 CASE
                                     WHEN ldt.internal_type = 'credit_note' OR am.move_type = 'out_refund' THEN -1
                                     ELSE 1
@@ -117,7 +117,7 @@ class ReportFacturaRubrosTempNav(models.Model):
                     SUM(
                         CASE
                             WHEN TRIM(UPPER(parent_categ.name)) = 'PISTOLAS DE AGUA'
-                            THEN (aml.price_subtotal *
+                            THEN (aml.price_total *
                                 CASE
                                     WHEN ldt.internal_type = 'credit_note' OR am.move_type = 'out_refund' THEN -1
                                     ELSE 1
@@ -131,7 +131,7 @@ class ReportFacturaRubrosTempNav(models.Model):
                     SUM(
                         CASE
                             WHEN TRIM(UPPER(parent_categ.name)) = 'VEHICULOS A BATERIA'
-                            THEN (aml.price_subtotal *
+                            THEN (aml.price_total *
                                 CASE
                                     WHEN ldt.internal_type = 'credit_note' OR am.move_type = 'out_refund' THEN -1
                                     ELSE 1
@@ -145,7 +145,7 @@ class ReportFacturaRubrosTempNav(models.Model):
                     SUM(
                         CASE
                             WHEN TRIM(UPPER(parent_categ.name)) = 'RODADOS INFANTILES'
-                            THEN (aml.price_subtotal *
+                            THEN (aml.price_total *
                                 CASE
                                     WHEN ldt.internal_type = 'credit_note' OR am.move_type = 'out_refund' THEN -1
                                     ELSE 1
@@ -168,7 +168,7 @@ class ReportFacturaRubrosTempNav(models.Model):
                                 'VEHICULOS A BATERIA',
                                 'RODADOS INFANTILES'
                             )
-                            THEN (aml.price_subtotal *
+                            THEN (aml.price_total *
                                 CASE
                                     WHEN ldt.internal_type = 'credit_note' OR am.move_type = 'out_refund' THEN -1
                                     ELSE 1
@@ -208,7 +208,7 @@ class ReportFacturaRubrosTempNav(models.Model):
 	                                'VEHICULOS A BATERIA',
 	                                'RODADOS INFANTILES'
 	                            )
-	                AND aml.price_subtotal > 0
+	                AND aml.price_total <> 0
                 GROUP BY
                     am.partner_id,
                     am.invoice_user_id,
