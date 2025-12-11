@@ -28,6 +28,7 @@ class ReportFacturaRubrosTempNav(models.Model):
     amount_pst_agua = fields.Monetary('Pistolas de Agua', readonly=True, currency_field='currency_id')
     amount_vehiculos_b = fields.Monetary('Vehículos a Batería', readonly=True, currency_field='currency_id')
     amount_rodados_inf = fields.Monetary('Rodados Infantiles', readonly=True, currency_field='currency_id')
+    amount_caballitos_slt = fields.Monetary('Caballitos Saltarines', readonly=True, currency_field='currency_id')
     total_amount_rubro = fields.Monetary('Total', readonly=True, currency_field='currency_id')
     currency_id = fields.Many2one('res.currency', 'Moneda', readonly=True)
 
@@ -154,6 +155,20 @@ class ReportFacturaRubrosTempNav(models.Model):
                             ELSE 0
                         END
                     ) AS amount_rodados_inf,
+                    
+                    -- CABALLITOS SALTARINES
+                    SUM(
+                        CASE
+                            WHEN TRIM(UPPER(parent_categ.name)) = 'CABALLITOS SALTARINES'
+                            THEN (aml.price_total *
+                                CASE
+                                    WHEN ldt.internal_type = 'credit_note' OR am.move_type = 'out_refund' THEN -1
+                                    ELSE 1
+                                END
+                            )
+                            ELSE 0
+                        END
+                    ) AS amount_caballitos_slt,
 
                     -- TOTAL RUBROS (solo los 8 rubros de la lista)
                     SUM(
@@ -166,7 +181,8 @@ class ReportFacturaRubrosTempNav(models.Model):
                                 'INFLABLES',
                                 'PISTOLAS DE AGUA',
                                 'VEHICULOS A BATERIA',
-                                'RODADOS INFANTILES'
+                                'RODADOS INFANTILES',
+                                'CABALLITOS SALTARINES'
                             )
                             THEN (aml.price_total *
                                 CASE
@@ -206,7 +222,8 @@ class ReportFacturaRubrosTempNav(models.Model):
 	                                'INFLABLES',
 	                                'PISTOLAS DE AGUA',
 	                                'VEHICULOS A BATERIA',
-	                                'RODADOS INFANTILES'
+	                                'RODADOS INFANTILES',
+                                    'CABALLITOS SALTARINES'
 	                            )
 	                AND aml.price_total <> 0
                 GROUP BY
