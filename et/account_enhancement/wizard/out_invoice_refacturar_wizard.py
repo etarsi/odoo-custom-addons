@@ -16,32 +16,6 @@ class OutInvoiceRefacturarWizard(models.TransientModel):
     pricelist_id = fields.Many2one('product.pricelist', string='Lista de precios', required=True)
 
 
-    def _pick_sale_journal_for_partner(self, company, partner):
-        """Devuelve un journal de venta válido (exportación/doméstico) para company/partner."""
-        Journal = self.env['account.journal']
-        base_domain = [
-            ('company_id', '=', company.id),
-            ('type', '=', 'sale'),
-            ('l10n_latam_use_documents', '=', True),
-        ]
-
-        is_foreign = (
-            partner.country_id and partner.country_id != company.account_fiscal_country_id
-        ) or partner.l10n_ar_afip_responsibility_type_id.code in ('9','10')
-
-        dom = base_domain + [
-            ('l10n_ar_afip_pos_system', 'in' if is_foreign else 'not in', list(EXPO_POS))
-        ]
-        journal = Journal.search(dom, limit=1)
-        if not journal:
-            action = self.env.ref('account.action_account_journal_form')
-            msg = (_("You are trying to create an invoice for foreign partner but you don't have an exportation journal")
-                if is_foreign else
-                _("You are trying to create an invoice for domestic partner but you don't have a domestic market journal"))
-            raise RedirectWarning(msg, action.id, _('Go to Journals'))
-        return journal, dom
-
-
     @api.model
     def default_get(self, fields_list):
         res = super().default_get(fields_list)
@@ -129,7 +103,12 @@ class OutInvoiceRefacturarWizard(models.TransientModel):
 
     def _new_invoice_vals(self, move_src, company, pricelist):
         # Valores base (compruebo journal de venta)
-        journal, _ = self._pick_sale_journal_for_partner(self.company_id, move_src.partner_id)
+        journal = self.env['account.journal'].search([
+            ('company_id', '=', company.id),
+            ('type', '=', 'sale'),
+        ], limit=1)
+        if not journal:
+            raise ValidationError(_("No se encontró un diario de ventas para la compañía %s. Por favor, configure uno.") % company.name)
         # Fiscal position del partner en la compañía destino
         fp = move_src.partner_id.property_account_position_id
 
@@ -212,6 +191,7 @@ class OutInvoiceRefacturarWizard(models.TransientModel):
                 if not code_nc:
                     raise ValidationError(_("No se encontró el tipo de comprobante Nota de Crédito (203) para refacturar la factura %s.") % move.name)
 
+            vals = self._new_invoice_vals(move_src=move, company=self.company_id, pricelist=self.pricelist_id)
             credit_notes = move._reverse_moves(default_values_list=reversal_vals, cancel=True)
             # 2) Publicar SOLO las NC en borrador (evita "ya está publicado")
             draft_credits = credit_notes.filtered(lambda m: m.state == 'draft')
@@ -228,7 +208,6 @@ class OutInvoiceRefacturarWizard(models.TransientModel):
             credit_notes |= draft_credits
 
             # 2) Nueva factura en la compañía destino
-            vals = self._new_invoice_vals(move_src=move, company=self.company_id, pricelist=self.pricelist_id)
             new = self.env['account.move'].with_company(self.company_id).create(vals)
             new_invoices |= new
 
