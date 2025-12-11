@@ -73,7 +73,7 @@ class AccountMoveInherit(models.Model):
     def _compute_category_ids(self):
         for record in self:
             if record.line_ids:
-                categories = record.order_line.mapped('product_id.categ_id.parent_id')
+                categories = record.line_ids.mapped('product_id.categ_id.parent_id')
                 categories_ids = categories.filtered(lambda c: c and c.id).ids
                 record.category_ids = [(6, 0, categories_ids)]
             else:
