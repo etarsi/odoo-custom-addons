@@ -2,16 +2,6 @@
 from odoo import models, fields, tools
 
 
-RUBROS_LISTA = [
-    'JUGUETES',
-    'MAQUILLAJE',
-    'RODADOS',
-    'PELOTAS',
-    'INFLABLES',
-    'PISTOLAS DE AGUA',
-    'VEHICULOS A BATERIA',
-    'RODADOS INFANTILES']    
-
 class ReportFacturaRubrosTemp(models.Model):
     _name = 'report.factura.rubros.temp'
     _description = 'Reporte de Facturas por Rubros Temporada Niño 2025'

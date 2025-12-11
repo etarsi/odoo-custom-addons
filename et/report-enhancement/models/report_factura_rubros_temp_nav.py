@@ -1,16 +1,6 @@
 # models/report_customer_rubro.py
 from odoo import models, fields, tools
-
-
-RUBROS_LISTA = [
-    'JUGUETES',
-    'MAQUILLAJE',
-    'RODADOS',
-    'PELOTAS',
-    'INFLABLES',
-    'PISTOLAS DE AGUA',
-    'VEHICULOS A BATERIA',
-    'RODADOS INFANTILES']    
+ 
 
 class ReportFacturaRubrosTempNav(models.Model):
     _name = 'report.factura.rubros.temp.nav'
@@ -213,7 +203,7 @@ class ReportFacturaRubrosTempNav(models.Model):
                     AND am.move_type IN ('out_invoice', 'out_refund')      -- solo facturas y notas de crédito de cliente
                     AND aml.product_id IS NOT null
                     AND am.invoice_date >= '2025-09-01'
-                    AND am.invoice_date <= '2026-01-31'
+                    AND am.invoice_date <= '2026-02-28'
                     AND TRIM(UPPER(parent_categ.name)) IN (
 	                                'JUGUETES',
 	                                'MAQUILLAJE',
