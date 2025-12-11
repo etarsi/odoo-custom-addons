@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_partner_enhancement_form" model="ir.ui.view">
+        <field name="name">res.partner.enhancement.form</field>
+        <field name="model">res.partner</field>
+        <field name="inherit_id" ref="base.view_partner_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='category_id']" position="after">
+                <field name="fantasy_name"/>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- agregar en el buscador de contacto -->
+    <record id="view_partner_enhancement_search" model="ir.ui.view">
+        <field name="name">res.partner.enhancement.search</field>
+        <field name="model">res.partner</field>
+        <field name="inherit_id" ref="base.view_res_partner_filter"/>
+        <field name="arch" type="xml">
+            <xpath expr="//filter[@name='type_person']" position="after">
+                <filter name="fantasy_name_filter" string="Nombre de Fantasía" domain="[('fantasy_name', 'ilike', self)]"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>

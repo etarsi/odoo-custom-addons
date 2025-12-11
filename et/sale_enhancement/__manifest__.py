@@ -20,7 +20,7 @@
     'version': '0.1',
 
     # any module necessary for this one to work correctly
-    'depends': ['sale', 'delivery', 'sebigus-split-orders', 'stock_enhancement2', 'product', 'stock'],
+    'depends': ['base', 'sale', 'delivery', 'sebigus-split-orders', 'stock_enhancement2', 'product', 'stock', 'contact'],
 
     # always loaded
     'data': [
@@ -33,6 +33,7 @@
         'data/actions.xml',
         #views
         'views/templates.xml',
+        'views/res_partner_views.xml',
         'views/product_template_views.xml',
         'views/product_pricelist_view.xml',
         'views/sale_order_views_tree.xml',
