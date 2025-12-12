@@ -16,6 +16,7 @@
                 <field name="amount_vehiculos_b" sum="Vehículos a Batería" optional="show"/>
                 <field name="amount_caballitos_slt" sum="Caballitos Saltarines" optional="show"/>
                 <field name="amount_inflables" sum="Inflables" optional="show"/>
+                <field name="amount_otro_rubro" sum="Otros Rubros" optional="show"/>
                 <field name="total_amount_rubro" sum="Total" optional="show"/>
             </tree>
         </field>

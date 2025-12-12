@@ -19,6 +19,7 @@ class ReportFacturaRubrosTemp(models.Model):
     amount_vehiculos_b = fields.Monetary('Vehículos a Batería', readonly=True, currency_field='currency_id')
     amount_rodados_inf = fields.Monetary('Rodados Infantiles', readonly=True, currency_field='currency_id')
     amount_caballitos_slt = fields.Monetary('Caballitos Saltarines', readonly=True, currency_field='currency_id')
+    amount_otros = fields.Monetary('Otros Rubros', readonly=True, currency_field='currency_id')
     total_amount_rubro = fields.Monetary('Total', readonly=True, currency_field='currency_id')
     currency_id = fields.Many2one('res.currency', 'Moneda', readonly=True)
 
@@ -159,11 +160,11 @@ class ReportFacturaRubrosTemp(models.Model):
                             ELSE 0
                         END
                     ) AS amount_caballitos_slt,
-
-                    -- TOTAL RUBROS (solo los 8 rubros de la lista)
+                    
+                    -- OTROS RUBROS (los que no están en la lista)
                     SUM(
                         CASE
-                            WHEN TRIM(UPPER(parent_categ.name)) IN (
+                            WHEN parent_categ.id IS NOT null AND TRIM(UPPER(parent_categ.name)) NOT IN (
                                 'JUGUETES',
                                 'MAQUILLAJE',
                                 'RODADOS',
@@ -174,6 +175,20 @@ class ReportFacturaRubrosTemp(models.Model):
                                 'RODADOS INFANTILES',
                                 'CABALLITOS SALTARINES'
                             )
+                            THEN (aml.price_total *
+                                CASE
+                                    WHEN ldt.internal_type = 'credit_note' OR am.move_type = 'out_refund' THEN -1
+                                    ELSE 1
+                                END
+                            )
+                            ELSE 0
+                        END
+                    ) AS amount_otros,
+
+                    -- TOTAL RUBROS (Todos los rubros)
+                    SUM(
+                        CASE
+                            WHEN parent_categ.id IS NOT null
                             THEN (aml.price_total *
                                 CASE
                                     WHEN ldt.internal_type = 'credit_note' OR am.move_type = 'out_refund' THEN -1
@@ -204,17 +219,7 @@ class ReportFacturaRubrosTemp(models.Model):
                     AND aml.product_id IS NOT null
                     AND am.invoice_date >= '2025-03-01'
                     AND am.invoice_date <= '2025-08-31'
-                    AND TRIM(UPPER(parent_categ.name)) IN (
-	                                'JUGUETES',
-	                                'MAQUILLAJE',
-	                                'RODADOS',
-	                                'PELOTAS',
-	                                'INFLABLES',
-	                                'PISTOLAS DE AGUA',
-	                                'VEHICULOS A BATERIA',
-	                                'RODADOS INFANTILES',
-                                    'CABALLITOS SALTARINES'
-	                            )
+                    AND parent_categ.id IS NOT null 
 	                AND aml.price_total <> 0
                 GROUP BY
                     am.partner_id,
