@@ -56,6 +56,7 @@
         'views/account_payment_views.xml',
         'views/res_partner_views.xml',
         'views/account_move_line_views.xml',
+        'views/report_factura_proveedor_views.xml',
         #'views/templates.xml',
         'views/menu.xml',
         'views/res_partner_debt_composition_report_views.xml'

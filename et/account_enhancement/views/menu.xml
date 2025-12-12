@@ -5,6 +5,12 @@
                 parent="account.menu_finance_payables"
                 action="action_account_move_calendar_to_pay"
                 sequence="40"/>
+    <!-- Menús bajo “Reportes Nico” (ajustá el padre) -->
+    <menuitem id="menu_report_factura_proveedor"
+        name="Reporte de Facturas Proveedor"
+        parent="account.menu_finance_payables"
+        action="action_report_factura_proveedor"
+        sequence="50"/>
 
     <!-- SUBMENU DE REPORTE ACCOUNT FACTURAS-->
     <menuitem 
