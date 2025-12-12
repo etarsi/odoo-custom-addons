@@ -4,7 +4,7 @@
         <field name="name">report.factura.proveedor.tree</field>
         <field name="model">report.factura.proveedor</field>
         <field name="arch" type="xml">
-            <tree string="Reporte de Facturas de Proveedor" create="0" edit="0" delete="0" default_order="total_amount_rubro desc">
+            <tree string="Reporte de Facturas de Proveedor" create="0" edit="0" delete="0">
                 <field name="fecha" optional="show"/>
                 <field name="tipo" optional="show"/>
                 <field name="punto_venta" optional="show"/>
