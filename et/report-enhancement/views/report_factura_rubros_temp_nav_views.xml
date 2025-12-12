@@ -15,8 +15,8 @@
                 <field name="amount_pst_agua" sum="Pistola de Agua" optional="show"/>
                 <field name="amount_vehiculos_b" sum="Vehículos a Batería" optional="show"/>
                 <field name="amount_caballitos_slt" sum="Caballitos Saltarines" optional="show"/>
-                <field name="amount_otros" sum="Otros Rubros" optional="show"/>
                 <field name="amount_inflables" sum="Inflables" optional="show"/>
+                <field name="amount_otros" sum="Otros Rubros" optional="show"/>
                 <field name="total_amount_rubro" sum="Total" optional="show"/>
             </tree>
         </field>
