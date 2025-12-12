@@ -32,24 +32,51 @@ class ReportFacturaProveedor(models.Model):
                     am.id AS id,
                     am.invoice_date AS fecha,
                     am.l10n_latam_document_type_id AS tipo,
-
                     -- Tomamos número de comprobante (name)
-                    split_part(
-                        COALESCE(am.name),
-                        '-', 1
-                    ) AS punto_venta,
-                    split_part(
-                        COALESCE(am.name),
-                        '-', 2
-                    ) AS numero_desde,
-                    split_part(
-                        COALESCE(am.name),
-                        '-', 2
-                    ) AS numero_hasta,
-
+                    CAST(
+                        NULLIF(
+                            split_part(
+                                regexp_replace(
+                                    COALESCE(am.l10n_latam_document_number, am.name),
+                                    '^[^0-9]*',  -- todo lo no numérico al inicio
+                                    ''
+                                ),
+                                '-',
+                                1
+                            ),
+                            ''
+                        ) AS INTEGER
+                    )::text AS punto_venta,
+                    CAST(
+                        NULLIF(
+                            split_part(
+                                regexp_replace(
+                                    COALESCE(am.l10n_latam_document_number, am.name),
+                                    '^[^0-9]*',
+                                    ''
+                                ),
+                                '-',
+                                2
+                            ),
+                            ''
+                        ) AS INTEGER
+                    )::text AS numero_desde,
+                    CAST(
+                        NULLIF(
+                            split_part(
+                                regexp_replace(
+                                    COALESCE(am.l10n_latam_document_number, am.name),
+                                    '^[^0-9]*',
+                                    ''
+                                ),
+                                '-',
+                                2
+                            ),
+                            ''
+                        ) AS INTEGER
+                    )::text AS numero_hasta,
                     am.partner_id AS partner_id,
                     am.currency_id AS currency_id,
-
                     -- Definimos un signo para que las NC de proveedor resten
                     (am.amount_untaxed * 
                         CASE
