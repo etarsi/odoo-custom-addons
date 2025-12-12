@@ -25,6 +25,7 @@ class ReportStockPickingWizard(models.TransientModel):
 
     @api.onchange('partner_id')
     def _onchange_partner_id(self):
+        self.parent_ids = False
         if self.partner_id:
             return {'domain': {'parent_ids': [('parent_id', '=', self.partner_id.id)]}}
 
