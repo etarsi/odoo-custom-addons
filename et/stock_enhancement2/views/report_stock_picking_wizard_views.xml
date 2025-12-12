@@ -7,7 +7,7 @@
             <form string="Reporte de Pendientes" create="false" edit="false">
                 <group name="reporte_stock_picking" string="Reporte de Pendientes">
                     <group>
-                        <field name="partner_id" options="{'no_create': True}" domain="[('company_type', '=', 'company')]"/>
+                        <field name="partner_id" options="{'no_create': True}" domain="[('is_company', '=', True)]"/>
                         <field name="parent_ids" options="{'no_create': True}" widget="many2many_tags"/>
                         <field name="category_ids" options="{'no_create': True}" widget="many2many_tags"/>
                         <field name="temporada"/>
