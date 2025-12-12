@@ -148,7 +148,7 @@ class ReporteFacturaWizard(models.TransientModel):
         # Escribir datos
         row = 1
         for factura in facturas:
-            facturas_lines = self.env['account.move.line'].search([('move_id', '=', factura.id)])
+            facturas_lines = factura.invoice_line_ids
             # Fechas formateadas
             date_facture = factura.invoice_date.strftime('%d/%m/%Y') if factura.invoice_date else ''
             month_num = factura.invoice_date.strftime('%m') if factura.invoice_date else ''
