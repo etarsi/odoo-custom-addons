@@ -17,19 +17,17 @@ class ReportStockPickingWizard(models.TransientModel):
         ('t_nino_2025', 'Temporada Niño 2025'),
         ('t_nav_2025', 'Temporada Navidad 2025'),
     ], required=True, default='t_nav_2025', help='Seleccionar la temporada para el reporte')  
-    partner_id = fields.Many2one('res.partner', string='Cliente', help='Seleccionar un Cliente para filtrar', required=True)
-    rubro_select = fields.Selection(string='Rubro', selection=[('juguetes', 'JUGUETES'),
-                                                            ('maquillaje', 'MAQUILLAJE'),
-                                                            ('rodados', 'RODADOS'),
-                                                            ('pelotas', 'PELOTAS'),
-                                                            ('inflables', 'INFLABLES'),
-                                                            ('pistolas_agua', 'PISTOLAS DE AGUA'),
-                                                            ('vehiculos_bateria', 'VEHICULOS A BATERIA'),
-                                                            ('rodados_infantiles', 'RODADOS INFANTILES')],
-                                    required=True, default='juguetes', help='Seleccionar el rubro para el reporte')
+    partner_id = fields.Many2one('res.partner', string='Cliente', help='Seleccionar un Cliente para filtrar', required=True, domain=[('company_type', '=', 'company')])
+    parent_ids = fields.Many2many('res.partner', string='Cliente Relacionado', help='Filtrar por empresa padre y los que pertenecen a ella',
+                                domain=[('company_type', '=', 'person'), ('parent_id', '!=', False)])
     category_ids = fields.Many2many('product.category', string='Categorías de Producto', help='Filtrar por categorías de producto', domain=[('parent_id', '=', False)])
     
-        
+
+    @api.onchange('partner_id')
+    def _onchange_partner_id(self):
+        if self.partner_id:
+            return {'domain': {'parent_ids': [('parent_id', '=', self.partner_id.id)]}}
+
     def action_generar_excel(self):
         output = io.BytesIO()
         workbook = xlsxwriter.Workbook(output, {'in_memory': True})
@@ -93,6 +91,7 @@ class ReportStockPickingWizard(models.TransientModel):
         # DOMAIN
         # =========================
         domain = [('state', '!=', 'cancel')]
+        clientes_ids = []
 
         if self.temporada == 't_nino_2025':
             domain += [('create_date', '>=', date(2025, 3, 1)), ('create_date', '<=', date(2025, 8, 31))]
@@ -100,8 +99,12 @@ class ReportStockPickingWizard(models.TransientModel):
             domain += [('create_date', '>=', date(2025, 9, 1)), ('create_date', '<=', date(2026, 2, 28))]
 
         if self.partner_id:
-            domain.append(('partner_id', '=', self.partner_id.id))
-
+            clientes_ids.append(self.partner_id.id)
+        if self.parent_ids:
+            clientes_ids += self.parent_ids.ids
+        if clientes_ids:
+            domain += [('partner_id', 'in', clientes_ids)]
+            
         stocks_pickings = self.env['stock.picking'].search(domain)
         if not stocks_pickings:
             raise ValidationError("No se encontraron albaranes para los criterios seleccionados.")
@@ -110,14 +113,13 @@ class ReportStockPickingWizard(models.TransientModel):
         # DATA
         # =========================
         row = 2  # empezamos justo debajo de headers
-
         for stock_picking in stocks_pickings:
-            category_ids = self.category_ids.ids
-            if category_ids:
-                pickings_moves = self.env['stock.move'].search([
-                    ('picking_id', '=', stock_picking.id),
-                    ('product_id.categ_id.parent_id', 'in', category_ids)
-                ])
+            domain_moves = [('picking_id', '=', stock_picking.id)]
+            if self.category_ids:
+                domain_moves += [('product_id.categ_id.parent_id', 'in', self.category_ids.ids)]
+            else:
+                domain_moves += [('product_id.categ_id.parent_id', '!=', False)]
+            pickings_moves = self.env['stock.move'].search(domain_moves)
                 
             if not pickings_moves:
                 continue
