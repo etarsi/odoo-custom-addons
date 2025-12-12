@@ -28,6 +28,12 @@
         <field name="arch" type="xml">
             <search string="Buscar facturación por rubro">
                 <field name="partner_id" string="Cliente"/>
+                <field name="tipo" string="Tipo de Comprobante"/>
+                <separator/>
+                <filter string="Fecha"
+                    name="filter_fecha"
+                    domain="[]"
+                    context="{'group_by': 'fecha'}"/>
             </search>
         </field>
     </record>

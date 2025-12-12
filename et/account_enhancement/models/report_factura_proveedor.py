@@ -38,7 +38,7 @@ class ReportFacturaProveedor(models.Model):
                             split_part(
                                 regexp_replace(
                                     COALESCE(am.name),
-                                    '^[^0-9]*',  -- todo lo no numérico al inicio
+                                    '^[^0-9]*',
                                     ''
                                 ),
                                 '-',
