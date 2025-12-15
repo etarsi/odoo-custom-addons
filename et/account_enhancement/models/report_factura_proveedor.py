@@ -98,7 +98,7 @@ class ReportFacturaProveedor(models.Model):
                     -- Otros tributos = todas las percepciones/impuestos que NO sean IVA 21
                     tax.otros_trib AS amount_otros_trib,
 
-                    -- IVA 21%
+                    -- IVA 21
                     tax.iva_21 AS amount_iva_total,
                     
                     -- Importe total
@@ -114,8 +114,8 @@ class ReportFacturaProveedor(models.Model):
                         aml.move_id,
                         SUM(
                             CASE
-                                -- acá matcheamos el IVA 21%
-                                WHEN at.name ILIKE 'IVA 21%'
+                                -- acá matcheamos el IVA 21
+                                WHEN at.name ILIKE 'IVA 21%%'
                                     THEN ABS(aml.balance)
                                 ELSE 0
                             END
@@ -123,8 +123,8 @@ class ReportFacturaProveedor(models.Model):
                         
                         SUM(
                             CASE
-                                -- todo lo que NO es IVA 21 se va a "otros tributos"
-                                WHEN at.name ILIKE 'IVA 21%' OR at.name ILIKE 'IVA exento'
+                                -- todo lo que NO es IVA 21 se va a otros tributos
+                                WHEN at.name ILIKE 'IVA 21%%' OR at.name ILIKE 'IVA exento%%'
                                     THEN 0
                                 ELSE ABS(aml.balance)
                             END
@@ -132,8 +132,8 @@ class ReportFacturaProveedor(models.Model):
 
                         SUM(
                             CASE
-                                -- acá matcheamos el IVA exento
-                                WHEN at.name ILIKE 'IVA exento'
+                                -- aca matcheamos el IVA exento
+                                WHEN at.name ILIKE 'IVA exento%%'
                                     THEN ABS(aml.balance)
                                 ELSE 0
                             END
