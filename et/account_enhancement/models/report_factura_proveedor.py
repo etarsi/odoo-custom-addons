@@ -39,7 +39,7 @@ class ReportFacturaProveedor(models.Model):
                         NULLIF(
                             split_part(
                                 regexp_replace(
-                                    COALESCE(am.l10n_latam_document_number, am.name),
+                                    COALESCE(am.name),
                                     '^[^0-9]*',      -- todo lo no numérico al inicio
                                     ''
                                 ),
@@ -54,7 +54,7 @@ class ReportFacturaProveedor(models.Model):
                         NULLIF(
                             split_part(
                                 regexp_replace(
-                                    COALESCE(am.l10n_latam_document_number, am.name),
+                                    COALESCE(am.name),
                                     '^[^0-9]*',
                                     ''
                                 ),
@@ -69,7 +69,7 @@ class ReportFacturaProveedor(models.Model):
                         NULLIF(
                             split_part(
                                 regexp_replace(
-                                    COALESCE(am.l10n_latam_document_number, am.name),
+                                    COALESCE(am.name),
                                     '^[^0-9]*',
                                     ''
                                 ),
