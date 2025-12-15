@@ -31,7 +31,9 @@
                 <field name="tipo" string="Tipo de Comprobante"/>
                 <separator/>
                 <filter name="fecha" string="Fecha" date="fecha"/>
-
+                <filter name="comp_exterior" string="Comprobante Exterior" domain="[('tipo.doc_code_prefix', '=', 'FA-I')]"/>
+                <filter name="sin_comp_exterior" string="Sin Comprobante Exterior" domain="[('tipo.doc_code_prefix', '!=', 'FA-I')]"/>
+                <separator/>
                 <filter string="Fecha"
                     name="filter_fecha"
                     domain="[]"
@@ -44,5 +46,9 @@
         <field name="name">Reporte de Facturas Proveedor</field>
         <field name="res_model">report.factura.proveedor</field>
         <field name="view_mode">tree</field>
+        <!--- asignar un filter por defecto -->
+        <field name="context">{'search_default_sin_comp_exterior': 1}</field>
+        
+
     </record>
 </odoo>
