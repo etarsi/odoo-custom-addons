@@ -86,14 +86,14 @@ class ReportFacturaProveedor(models.Model):
                     am.partner_id AS partner_id,
                     am.currency_id AS currency_id,
 
-                    -- monto neto gravado total = total factura
+                    -- monto neto gravado total
                     (CASE
-                        WHEN COALESCE(tax.iva_exento, 0.0) > 0.0 THEN 0.0
+                        WHEN tax.iva_no_gravado > 0.0 OR tax.otros_trib > 0.0 THEN 0.0
                         ELSE am.amount_untaxed
                     END) AS amount_netgrav_total,
 
                     -- Monto no gravado 
-                    0.0::numeric AS amount_nograv_total,
+                    tax.iva_no_gravado AS amount_nograv_total,
 
                     -- Op. Exentas
                     tax.iva_exento AS amount_op_exentas,
@@ -101,8 +101,8 @@ class ReportFacturaProveedor(models.Model):
                     -- Otros tributos = todas las percepciones/impuestos que NO sean IVA 21
                     tax.otros_trib AS amount_otros_trib,
 
-                    -- IVA 21
-                    tax.iva_21 AS amount_iva_total,
+                    -- IVA total
+                    tax.iva_total AS amount_iva_total,
                     
                     -- Importe total
                     am.amount_total AS amount_total
@@ -115,32 +115,45 @@ class ReportFacturaProveedor(models.Model):
                 LEFT JOIN (
                     SELECT
                         aml.move_id,
+                        -- IVA No Gravado
                         SUM(
                             CASE
-                                -- acá matcheamos el IVA 21
-                                WHEN at.name ILIKE 'IVA 21%%'
+                                -- TODOS QUE SON IVA No Gravado
+                                WHEN at.name ILIKE 'IVA No Gravado%%'
                                     THEN ABS(aml.balance)
                                 ELSE 0
                             END
-                        ) AS iva_21,          
+                        ) as iva_no_gravado,
                         
+                        -- IVA Exento
                         SUM(
                             CASE
                                 -- todo lo que NO es IVA 21 se va a otros tributos
-                                WHEN at.name ILIKE 'IVA 21%%' OR at.name ILIKE 'IVA Exento%%'
-                                    THEN 0
-                                ELSE ABS(aml.balance)
-                            END
-                        ) AS otros_trib,
-
-                        SUM(
-                            CASE
-                                -- aca matcheamos el IVA exento
                                 WHEN at.name ILIKE 'IVA Exento%%'
                                     THEN ABS(aml.balance)
                                 ELSE 0
                             END
-                        ) AS iva_exento        
+                        ) AS iva_exento,    
+
+                        -- otros tributos
+                        SUM(
+                            CASE
+                                -- aca matcheamos el IVA exento
+                                WHEN at.name NOT IN ('IVA 21%%', 'IVA 27%%', 'IVA 10.5%%', 'IVA 0%%', 'IVA Exento%%', 'IVA No Gravado%%')
+                                    THEN ABS(aml.balance)
+                                ELSE 0
+                            END
+                        ) AS otros_trib,
+                        
+                        -- IVA TOTAL
+                        SUM(
+                            CASE
+                                WHEN at.name IN ('IVA 21%%', 'IVA 27%%', 'IVA 10.5%%', 'IVA 0%%')
+                                    THEN ABS(aml.balance)
+                                ELSE 0
+                            END
+                        ) AS iva_total,              
+                        
                     FROM account_move_line aml
                     JOIN account_tax at
                         ON at.id = aml.tax_line_id
@@ -148,100 +161,6 @@ class ReportFacturaProveedor(models.Model):
                 ) AS tax
                     ON tax.move_id = am.id
 
-                WHERE
-                    am.state = 'posted'
-                    AND am.move_type IN ('in_invoice', 'in_refund')
-                    AND aj.name IN (
-                        'FACTURAS PROVEEDORES LAVALLE',
-                        'FACTURAS PROVEEDORES DEPOSITO'
-                    )
-            )
-        """ % self._table)
-    
-
-    def init_obsoleto(self):
-        tools.drop_view_if_exists(self._cr, self._table)
-        self._cr.execute("""
-            CREATE OR REPLACE VIEW %s AS (
-                SELECT
-                    am.id AS id,
-                    am.invoice_date AS fecha,
-                    am.l10n_latam_document_type_id AS tipo,
-                    -- Tomamos número de comprobante (name)
-                    CAST(
-                        NULLIF(
-                            split_part(
-                                regexp_replace(
-                                    COALESCE(am.name),
-                                    '^[^0-9]*',
-                                    ''
-                                ),
-                                '-',
-                                1
-                            ),
-                            ''
-                        ) AS INTEGER
-                    )::text AS punto_venta,
-                    CAST(
-                        NULLIF(
-                            split_part(
-                                regexp_replace(
-                                    COALESCE(am.name),
-                                    '^[^0-9]*',
-                                    ''
-                                ),
-                                '-',
-                                2
-                            ),
-                            ''
-                        ) AS INTEGER
-                    )::text AS numero_desde,
-                    CAST(
-                        NULLIF(
-                            split_part(
-                                regexp_replace(
-                                    COALESCE(am.name),
-                                    '^[^0-9]*',
-                                    ''
-                                ),
-                                '-',
-                                2
-                            ),
-                            ''
-                        ) AS INTEGER
-                    )::text AS numero_hasta,
-                    am.partner_id AS partner_id,
-                    am.currency_id AS currency_id,
-                    -- Definimos un signo para que las NC de proveedor resten
-                    (am.amount_untaxed * 
-                        CASE
-                            WHEN am.move_type = 'in_refund' THEN -1
-                            ELSE 1
-                        END
-                    ) AS amount_netgrav_total,
-
-                    -- Por ahora estos en 0 (luego se pueden desglosar por impuestos)
-                    0.0::numeric AS amount_nograv_total,
-                    0.0::numeric AS amount_op_exentas,
-                    0.0::numeric AS amount_otros_trib,
-
-                    (am.amount_tax *
-                        CASE
-                            WHEN am.move_type = 'in_refund' THEN -1
-                            ELSE 1
-                        END
-                    ) AS amount_iva_total,
-
-                    (am.amount_total *
-                        CASE
-                            WHEN am.move_type = 'in_refund' THEN -1
-                            ELSE 1
-                        END
-                    ) AS amount_total
-
-                FROM account_move am
-                JOIN account_journal aj
-                    ON aj.id = am.journal_id
                 WHERE
                     am.state = 'posted'
                     AND am.move_type IN ('in_invoice', 'in_refund')
