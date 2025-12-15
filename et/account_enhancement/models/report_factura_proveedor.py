@@ -23,8 +23,140 @@ class ReportFacturaProveedor(models.Model):
     amount_otros_trib = fields.Monetary('Otros Tributos', readonly=True, currency_field='currency_id')
     amount_iva_total = fields.Monetary('IVA Total', readonly=True, currency_field='currency_id')
     amount_total = fields.Monetary('Importe Total', readonly=True, currency_field='currency_id')
-    
+
+
+
     def init(self):
+        tools.drop_view_if_exists(self._cr, self._table)
+        self._cr.execute("""
+            CREATE OR REPLACE VIEW %s AS (
+                SELECT
+                    am.id AS id,
+                    am.invoice_date AS fecha,
+
+                    -- Limpiamos el prefijo (FA-A, NC-B, etc.) y dejamos solo 00003-000043224
+                    CAST(
+                        NULLIF(
+                            split_part(
+                                regexp_replace(
+                                    COALESCE(am.l10n_latam_document_number, am.name),
+                                    '^[^0-9]*',      -- todo lo no numérico al inicio
+                                    ''
+                                ),
+                                '-',
+                                1
+                            ),
+                            ''
+                        ) AS INTEGER
+                    )::text AS punto_venta,
+
+                    CAST(
+                        NULLIF(
+                            split_part(
+                                regexp_replace(
+                                    COALESCE(am.l10n_latam_document_number, am.name),
+                                    '^[^0-9]*',
+                                    ''
+                                ),
+                                '-',
+                                2
+                            ),
+                            ''
+                        ) AS INTEGER
+                    )::text AS numero_desde,
+
+                    CAST(
+                        NULLIF(
+                            split_part(
+                                regexp_replace(
+                                    COALESCE(am.l10n_latam_document_number, am.name),
+                                    '^[^0-9]*',
+                                    ''
+                                ),
+                                '-',
+                                2
+                            ),
+                            ''
+                        ) AS INTEGER
+                    )::text AS numero_hasta,
+
+                    am.partner_id AS partner_id,
+                    am.currency_id AS currency_id,
+
+                    -- monto neto gravado total = total factura
+                    (CASE
+                        WHEN COALESCE(tax.iva_exento, 0.0) > 0.0 THEN 0.0
+                        ELSE am.amount_untaxed
+                    END) AS amount_netgrav_total,
+
+                    -- Monto no gravado 
+                    0.0::numeric AS amount_nograv_total,
+
+                    -- Op. Exentas
+                    tax.iva_exento AS amount_op_exentas,
+                        
+                    -- Otros tributos = todas las percepciones/impuestos que NO sean IVA 21
+                    tax.otros_trib AS amount_otros_trib,
+
+                    -- IVA 21%
+                    tax.iva_21 AS amount_iva_total,
+                    
+                    -- Importe total
+                    am.amount_total AS amount_total
+
+                FROM account_move am
+                JOIN account_journal aj
+                    ON aj.id = am.journal_id
+
+                -- Subquery que agrupa los impuestos por factura
+                LEFT JOIN (
+                    SELECT
+                        aml.move_id,
+                        SUM(
+                            CASE
+                                -- acá matcheamos el IVA 21%
+                                WHEN at.name ILIKE 'IVA 21%%'
+                                    THEN ABS(aml.balance)
+                                ELSE 0
+                            END
+                        ) AS iva_21,          
+                        
+                        SUM(
+                            CASE
+                                -- todo lo que NO es IVA 21 se va a "otros tributos"
+                                WHEN at.name ILIKE 'IVA 21%%' OR at.name ILIKE 'IVA exento%%'
+                                    THEN 0
+                                ELSE ABS(aml.balance)
+                            END
+                        ) AS otros_trib,
+
+                        SUM(
+                            CASE
+                                -- acá matcheamos el IVA exento
+                                WHEN at.name ILIKE 'IVA exento%%'
+                                    THEN ABS(aml.balance)
+                                ELSE 0
+                            END
+                        ) AS iva_exento        
+                    FROM account_move_line aml
+                    JOIN account_tax at
+                        ON at.id = aml.tax_line_id
+                    GROUP BY aml.move_id
+                ) AS tax
+                    ON tax.move_id = am.id
+
+                WHERE
+                    am.state = 'posted'
+                    AND am.move_type IN ('in_invoice', 'in_refund')
+                    AND aj.name IN (
+                        'FACTURAS PROVEEDORES LAVALLE',
+                        'FACTURAS PROVEEDORES DEPOSITO'
+                    )
+            )
+        """ % self._table)
+    
+
+    def init_obsoleto(self):
         tools.drop_view_if_exists(self._cr, self._table)
         self._cr.execute("""
             CREATE OR REPLACE VIEW %s AS (
