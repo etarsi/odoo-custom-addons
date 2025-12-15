@@ -79,6 +79,7 @@ class OutInvoiceRefacturarWizard(models.TransientModel):
             'fiscal_position_id': self.sale_id.partner_invoice_id.property_account_position_id.id,
             'invoice_payment_term_id': self.sale_id.payment_term_id,
             'wms_code': False,
+
         }
 
     def comparar_company_id(self, company_id):
@@ -131,18 +132,23 @@ class OutInvoiceRefacturarWizard(models.TransientModel):
             'invoice_origin': move_src.name,
             'payment_reference': move_src.payment_reference or move_src.name,
             'journal_id': journal.id,
+            'pricelist_id': move_src.pricelist_id.id if move_src.special_price else self.pricelist_id.id,
+            'special_price': move_src.special_price,
             'invoice_user_id': move_src.invoice_user_id.id,
             'invoice_line_ids': [],
         }
 
         for line in move_src.invoice_line_ids.filtered(lambda l: not l.display_type):
             # precio: si hay pricelist, recalculo; si no, dejo el de origen
-            price_unit = pricelist.price_get(
-                line.product_id.id,
-                line.quantity or 1.0,
-            )[pricelist.id]
-            if not price_unit:
+            if move_src.special_price:
                 price_unit = line.price_unit
+            else:
+                price_unit = pricelist.price_get(
+                    line.product_id.id,
+                    line.quantity or 1.0,
+                )[pricelist.id]
+                if not price_unit:
+                    price_unit = line.price_unit
 
             # impuestos: mapear por compañía y aplicar FP
             mapped_taxes = self._map_taxes_to_company(line.tax_ids, company, fp, move_src.invoice_date)
