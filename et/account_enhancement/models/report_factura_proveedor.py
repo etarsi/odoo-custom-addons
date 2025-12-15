@@ -115,7 +115,7 @@ class ReportFacturaProveedor(models.Model):
                         SUM(
                             CASE
                                 -- acá matcheamos el IVA 21%
-                                WHEN at.name ILIKE 'IVA 21%%'
+                                WHEN at.name ILIKE 'IVA 21%'
                                     THEN ABS(aml.balance)
                                 ELSE 0
                             END
@@ -124,7 +124,7 @@ class ReportFacturaProveedor(models.Model):
                         SUM(
                             CASE
                                 -- todo lo que NO es IVA 21 se va a "otros tributos"
-                                WHEN at.name ILIKE 'IVA 21%%' OR at.name ILIKE 'IVA exento%%'
+                                WHEN at.name ILIKE 'IVA 21%' OR at.name ILIKE 'IVA exento'
                                     THEN 0
                                 ELSE ABS(aml.balance)
                             END
@@ -133,7 +133,7 @@ class ReportFacturaProveedor(models.Model):
                         SUM(
                             CASE
                                 -- acá matcheamos el IVA exento
-                                WHEN at.name ILIKE 'IVA exento%%'
+                                WHEN at.name ILIKE 'IVA exento'
                                     THEN ABS(aml.balance)
                                 ELSE 0
                             END
