@@ -30,6 +30,8 @@
                 <field name="partner_id" string="Cliente"/>
                 <field name="tipo" string="Tipo de Comprobante"/>
                 <separator/>
+                <filter name="fecha_factura" string="Fecha" date="fecha_factura"/>
+
                 <filter string="Fecha"
                     name="filter_fecha"
                     domain="[]"
