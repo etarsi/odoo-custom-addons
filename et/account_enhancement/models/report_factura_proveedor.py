@@ -33,14 +33,15 @@ class ReportFacturaProveedor(models.Model):
                 SELECT
                     am.id AS id,
                     am.invoice_date AS fecha,
+                    am.l10n_latam_document_type_id AS tipo,
 
-                    -- Limpiamos el prefijo (FA-A, NC-B, etc.) y dejamos solo 00003-000043224
+                    -- Tomamos número de comprobante (name)
                     CAST(
                         NULLIF(
                             split_part(
                                 regexp_replace(
                                     COALESCE(am.name),
-                                    '^[^0-9]*',      -- todo lo no numérico al inicio
+                                    '^[^0-9]*',
                                     ''
                                 ),
                                 '-',
@@ -50,6 +51,7 @@ class ReportFacturaProveedor(models.Model):
                         ) AS INTEGER
                     )::text AS punto_venta,
 
+                    -- Número de comprobante (name)
                     CAST(
                         NULLIF(
                             split_part(
@@ -65,6 +67,7 @@ class ReportFacturaProveedor(models.Model):
                         ) AS INTEGER
                     )::text AS numero_desde,
 
+                    -- Número de comprobante (name)
                     CAST(
                         NULLIF(
                             split_part(
