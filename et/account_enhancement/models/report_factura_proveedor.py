@@ -15,6 +15,7 @@ class ReportFacturaProveedor(models.Model):
     punto_venta = fields.Char('Punto de Venta', readonly=True)
     numero_desde = fields.Char('Número Desde', readonly=True)
     numero_hasta = fields.Char('Número Hasta', readonly=True)
+    numero_factura = fields.Char('Número de Factura', readonly=True)
     partner_id = fields.Many2one('res.partner', 'Denominación Emisor', readonly=True)
     currency_id = fields.Many2one('res.currency', 'Moneda', readonly=True)
     amount_netgrav_total = fields.Monetary('Neto Gravado Total', readonly=True, currency_field='currency_id')
@@ -51,8 +52,7 @@ class ReportFacturaProveedor(models.Model):
                             ''
                         ) AS INTEGER
                     )::text AS punto_venta,
-
-                    -- Número de comprobante (name)
+                    -- Número de factura (name)
                     CAST(
                         NULLIF(
                             split_part(
@@ -66,36 +66,20 @@ class ReportFacturaProveedor(models.Model):
                             ),
                             ''
                         ) AS INTEGER
-                    )::text AS numero_desde,
-
-                    -- Número de comprobante (name)
-                    CAST(
-                        NULLIF(
-                            split_part(
-                                regexp_replace(
-                                    COALESCE(am.name),
-                                    '^[^0-9]*',
-                                    ''
-                                ),
-                                '-',
-                                2
-                            ),
-                            ''
-                        ) AS INTEGER
-                    )::text AS numero_hasta,
+                    )::text AS numero_factura,
                     -- proveedor
                     am.partner_id AS partner_id,
                     -- moneda
                     am.currency_id AS currency_id,
                     -- monto neto gravado total
                     (CASE
-                        WHEN tax.iva_no_gravado > 0.0 OR tax.otros_trib > 0.0 THEN 0.0
+                        WHEN tax.neto_no_gravado > 0.0 OR tax.op_exentas > 0.0 THEN 0.0
                         ELSE am.amount_untaxed
                     END) AS amount_netgrav_total,
-                    -- Monto no gravado 
-                    tax.iva_no_gravado AS amount_nograv_total,
+                    -- Neto no gravado 
+                    tax.neto_no_gravado AS amount_nograv_total,
                     -- Op. Exentas
-                    tax.iva_exento AS amount_op_exentas,
+                    tax.op_exentas AS amount_op_exentas,
                     -- Otros tributos = todas las percepciones/impuestos que NO sean IVA 21
                     tax.otros_trib AS amount_otros_trib,
                     -- IVA total
@@ -112,17 +96,18 @@ class ReportFacturaProveedor(models.Model):
                 LEFT JOIN (
                     SELECT
                         aml.move_id,
-                        -- IVA No Gravado
+                        -- IVA No Gravado/neto_no_gravado
                         SUM(
                             CASE
                                 -- TODOS QUE SON IVA No Gravado
-                                WHEN at.name ILIKE 'IVA No Gravado%%'
+                                WHEN at.name ILIKE 'IVA No Gravado%%' OR aml.l10n_latam_document_type_id IN (
+                                    SELECT id FROM l10n_latam_document_type WHERE l10n_ar_letter = 'C')
                                     THEN ABS(aml.balance)
                                 ELSE 0
                             END
-                        ) as iva_no_gravado,
+                        ) as neto_no_gravado,
                         
-                        -- IVA Exento
+                        -- op Exentas
                         SUM(
                             CASE
                                 -- todo lo que NO es IVA 21 se va a otros tributos
@@ -130,7 +115,7 @@ class ReportFacturaProveedor(models.Model):
                                     THEN ABS(aml.balance)
                                 ELSE 0
                             END
-                        ) AS iva_exento,    
+                        ) AS op_exentas,    
 
                         -- otros tributos
                         SUM(
@@ -151,8 +136,9 @@ class ReportFacturaProveedor(models.Model):
                             END
                         ) AS iva_total            
                     FROM account_move_line aml
+                    join account_move_line_account_tax_rel taxsrel on taxsrel.account_move_line_id = aml.id
                     JOIN account_tax at
-                        ON at.id = aml.tax_line_id
+                        ON at.id = taxsrel.account_tax_id
                     GROUP BY aml.move_id
                 ) AS tax
                     ON tax.move_id = am.id
@@ -163,6 +149,6 @@ class ReportFacturaProveedor(models.Model):
                     AND aj.name IN (
                         'FACTURAS PROVEEDORES LAVALLE',
                         'FACTURAS PROVEEDORES DEPOSITO'
-                    )
+                    );
             )
         """ % self._table)
