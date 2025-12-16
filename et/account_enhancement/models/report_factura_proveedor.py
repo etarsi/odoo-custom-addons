@@ -149,6 +149,6 @@ class ReportFacturaProveedor(models.Model):
                     AND aj.name IN (
                         'FACTURAS PROVEEDORES LAVALLE',
                         'FACTURAS PROVEEDORES DEPOSITO'
-                    );
+                    )
             )
         """ % self._table)
