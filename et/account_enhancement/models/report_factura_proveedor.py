@@ -23,6 +23,7 @@ class ReportFacturaProveedor(models.Model):
     amount_otros_trib = fields.Monetary('Otros Tributos', readonly=True, currency_field='currency_id')
     amount_iva_total = fields.Monetary('IVA Total', readonly=True, currency_field='currency_id')
     amount_total = fields.Monetary('Importe Total', readonly=True, currency_field='currency_id')
+    company_id = fields.Many2one('res.company', 'Compañía', readonly=True)
 
 
 
@@ -82,31 +83,27 @@ class ReportFacturaProveedor(models.Model):
                             ''
                         ) AS INTEGER
                     )::text AS numero_hasta,
-
+                    -- proveedor
                     am.partner_id AS partner_id,
+                    -- moneda
                     am.currency_id AS currency_id,
-
                     -- monto neto gravado total
                     (CASE
                         WHEN tax.iva_no_gravado > 0.0 OR tax.otros_trib > 0.0 THEN 0.0
                         ELSE am.amount_untaxed
                     END) AS amount_netgrav_total,
-
                     -- Monto no gravado 
                     tax.iva_no_gravado AS amount_nograv_total,
-
                     -- Op. Exentas
                     tax.iva_exento AS amount_op_exentas,
-                        
                     -- Otros tributos = todas las percepciones/impuestos que NO sean IVA 21
                     tax.otros_trib AS amount_otros_trib,
-
                     -- IVA total
                     tax.iva_total AS amount_iva_total,
-                    
                     -- Importe total
-                    am.amount_total AS amount_total
-
+                    am.amount_total AS amount_total,
+                    -- Company
+                    am.company_id AS company_id
                 FROM account_move am
                 JOIN account_journal aj
                     ON aj.id = am.journal_id

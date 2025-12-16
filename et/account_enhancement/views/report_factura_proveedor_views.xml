@@ -17,6 +17,7 @@
                 <field name="amount_otros_trib" sum="Otros Tributos" optional="show"/>
                 <field name="amount_iva_total" sum="IVA Total" optional="show"/>
                 <field name="amount_total" sum="Total" optional="show"/>
+                <field name="company_id" optional="hide"/>
             </tree>
         </field>
     </record>
