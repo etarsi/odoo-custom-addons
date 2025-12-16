@@ -59,35 +59,11 @@ class OutInvoiceRefacturarWizard(models.TransientModel):
         new_date = today + timedelta(days=x)
         return new_date
 
-    def _prepare_invoice_base_vals(self, company):
-        invoice_date_due = fields.Date.context_today(self)
-
-        if self.sale_id.payment_term_id:
-            extra_days = max(self.sale_id.payment_term_id.line_ids.mapped('days') or [0])
-            invoice_date_due = self.set_due_date_plus_x(extra_days)
-        
-        return {
-            'move_type': 'out_invoice',
-            'partner_id': 1,
-            'partner_shipping_id': self.sale_id.partner_shipping_id,
-            'invoice_date': fields.Date.context_today(self),
-            'invoice_date_due': invoice_date_due,
-            'company_id': company.id,
-            'currency_id': company.currency_id.id,
-            'invoice_origin': self.sale_id.name,
-            'payment_reference': self.sale_id.name,
-            'fiscal_position_id': self.sale_id.partner_invoice_id.property_account_position_id.id,
-            'invoice_payment_term_id': self.sale_id.payment_term_id,
-            'wms_code': False,
-
-        }
-
     def comparar_company_id(self, company_id):
         for move in self.account_move_ids:
             if move.company_id != company_id:
                 return {'company_id': False, 'name': move.name}    
         return {'company_id': True}
-
 
 
     # ---------------- Core helpers ----------------
@@ -132,7 +108,7 @@ class OutInvoiceRefacturarWizard(models.TransientModel):
             'invoice_origin': move_src.name,
             'payment_reference': move_src.payment_reference or move_src.name,
             'journal_id': journal.id,
-            'pricelist_id': move_src.pricelist_id.id if move_src.special_price else self.pricelist_id.id,
+            'pricelist_id': self.pricelist_id.id,
             'special_price': move_src.special_price,
             'invoice_user_id': move_src.invoice_user_id.id,
             'invoice_line_ids': [],
