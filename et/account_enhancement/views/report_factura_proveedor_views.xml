@@ -8,8 +8,7 @@
                 <field name="fecha" optional="show"/>
                 <field name="tipo" optional="show"/>
                 <field name="punto_venta" optional="show"/>
-                <field name="numero_desde" optional="show"/>
-                <field name="numero_hasta" optional="show"/>
+                <field name="numero_factura" optional="show"/>
                 <field name="partner_id" optional="show"/>
                 <field name="amount_netgrav_total" sum="Neto Gravado Total" optional="show"/>
                 <field name="amount_nograv_total" sum="Neto No Gravado" optional="show"/>

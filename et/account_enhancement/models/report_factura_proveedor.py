@@ -15,7 +15,7 @@ class ReportFacturaProveedor(models.Model):
     punto_venta = fields.Char('Punto de Venta', readonly=True)
     numero_desde = fields.Char('Número Desde', readonly=True)
     numero_hasta = fields.Char('Número Hasta', readonly=True)
-    numero_factura = fields.Char('Número de Factura', readonly=True)
+    numero_factura = fields.Char('Nro. Factura', readonly=True)
     partner_id = fields.Many2one('res.partner', 'Denominación Emisor', readonly=True)
     currency_id = fields.Many2one('res.currency', 'Moneda', readonly=True)
     amount_netgrav_total = fields.Monetary('Neto Gravado Total', readonly=True, currency_field='currency_id')
