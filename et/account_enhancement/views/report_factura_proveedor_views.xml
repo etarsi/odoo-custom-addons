@@ -8,8 +8,7 @@
                 <field name="fecha" optional="show"/>
                 <field name="tipo" optional="show"/>
                 <field name="punto_venta" optional="show"/>
-                <field name="numero_desde" optional="show"/>
-                <field name="numero_hasta" optional="show"/>
+                <field name="numero_factura" optional="show"/>
                 <field name="partner_id" optional="show"/>
                 <field name="amount_netgrav_total" sum="Neto Gravado Total" optional="show"/>
                 <field name="amount_nograv_total" sum="Neto No Gravado" optional="show"/>
@@ -17,6 +16,7 @@
                 <field name="amount_otros_trib" sum="Otros Tributos" optional="show"/>
                 <field name="amount_iva_total" sum="IVA Total" optional="show"/>
                 <field name="amount_total" sum="Total" optional="show"/>
+                <field name="company_id" optional="hide"/>
             </tree>
         </field>
     </record>
@@ -31,13 +31,15 @@
                 <field name="tipo" string="Tipo de Comprobante"/>
                 <separator/>
                 <filter name="fecha" string="Fecha" date="fecha"/>
-                <filter name="comp_exterior" string="Comprobante Exterior" domain="[('tipo.doc_code_prefix', '=', 'FA-I')]"/>
-                <filter name="sin_comp_exterior" string="Sin Comprobante Exterior" domain="[('tipo.doc_code_prefix', '!=', 'FA-I')]"/>
                 <separator/>
                 <filter string="Fecha"
                     name="filter_fecha"
                     domain="[]"
                     context="{'group_by': 'fecha'}"/>
+                <filter string="Compañia"
+                    name="filter_company"
+                    domain="[]"
+                    context="{'group_by': 'company_id'}"/>
             </search>
         </field>
     </record>
@@ -47,6 +49,7 @@
         <field name="res_model">report.factura.proveedor</field>
         <field name="view_mode">tree</field>
         <!--- asignar un filter por defecto -->
-        <field name="context">{'search_default_sin_comp_exterior': 1}</field>
+        <field name="domain">[('tipo.doc_code_prefix', '!=', 'FA-I')]</field>
+        <field name="view_id" ref="view_report_factura_proveedor_tree"/>
     </record>
 </odoo>

@@ -41,6 +41,8 @@ class AccountMoveInherit(models.Model):
 
     total_amount_paid = fields.Float(string="Monto Pagado", compute="_compute_total_amount_paid")
     category_ids = fields.Many2many('product.category', string="Categoría", compute="_compute_category_ids")
+    pricelist_id = fields.Many2one('product.pricelist', string="Lista de Precios")
+    special_price = fields.Boolean(string="Precio Especial", default=False)
    
     @api.model
     def create(self, vals):

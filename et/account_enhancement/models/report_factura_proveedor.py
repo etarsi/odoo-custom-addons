@@ -13,8 +13,7 @@ class ReportFacturaProveedor(models.Model):
     fecha = fields.Date('Fecha', readonly=True)
     tipo = fields.Many2one('l10n_latam.document.type', 'Tipo', readonly=True)
     punto_venta = fields.Char('Punto de Venta', readonly=True)
-    numero_desde = fields.Char('Número Desde', readonly=True)
-    numero_hasta = fields.Char('Número Hasta', readonly=True)
+    numero_factura = fields.Char('Nro. Factura', readonly=True)
     partner_id = fields.Many2one('res.partner', 'Denominación Emisor', readonly=True)
     currency_id = fields.Many2one('res.currency', 'Moneda', readonly=True)
     amount_netgrav_total = fields.Monetary('Neto Gravado Total', readonly=True, currency_field='currency_id')
@@ -23,6 +22,7 @@ class ReportFacturaProveedor(models.Model):
     amount_otros_trib = fields.Monetary('Otros Tributos', readonly=True, currency_field='currency_id')
     amount_iva_total = fields.Monetary('IVA Total', readonly=True, currency_field='currency_id')
     amount_total = fields.Monetary('Importe Total', readonly=True, currency_field='currency_id')
+    company_id = fields.Many2one('res.company', 'Compañía', readonly=True)
 
 
 
@@ -166,6 +166,7 @@ class ReportFacturaProveedor(models.Model):
                     am.id AS id,
                     am.invoice_date AS fecha,
                     am.l10n_latam_document_type_id AS tipo,
+
                     -- Tomamos número de comprobante (name)
                     CAST(
                         NULLIF(
@@ -181,6 +182,7 @@ class ReportFacturaProveedor(models.Model):
                             ''
                         ) AS INTEGER
                     )::text AS punto_venta,
+                    -- Número de factura (name)
                     CAST(
                         NULLIF(
                             split_part(
@@ -194,53 +196,120 @@ class ReportFacturaProveedor(models.Model):
                             ),
                             ''
                         ) AS INTEGER
-                    )::text AS numero_desde,
-                    CAST(
-                        NULLIF(
-                            split_part(
-                                regexp_replace(
-                                    COALESCE(am.name),
-                                    '^[^0-9]*',
-                                    ''
-                                ),
-                                '-',
-                                2
-                            ),
-                            ''
-                        ) AS INTEGER
-                    )::text AS numero_hasta,
+                    )::text AS numero_factura,
+                    -- proveedor
                     am.partner_id AS partner_id,
+                    -- moneda
                     am.currency_id AS currency_id,
-                    -- Definimos un signo para que las NC de proveedor resten
-                    (am.amount_untaxed * 
-                        CASE
-                            WHEN am.move_type = 'in_refund' THEN -1
-                            ELSE 1
-                        END
-                    ) AS amount_netgrav_total,
+                    -- Neto gravado: si hay no gravado o exento, lo ponemos en 0, si no usamos amount_untaxed
+                    CASE
+                        WHEN (COALESCE(base_class.neto_no_gravado, 0) > 0 OR COALESCE(base_class.op_exentas, 0) > 0)
+                        OR (am.l10n_latam_document_type_id IN ( SELECT id FROM l10n_latam_document_type WHERE l10n_ar_letter = 'C'))
+                        THEN 0
+                        ELSE am.amount_untaxed
+                    END AS amount_netgrav_total,
 
-                    -- Por ahora estos en 0 (luego se pueden desglosar por impuestos)
-                    0.0::numeric AS amount_nograv_total,
-                    0.0::numeric AS amount_op_exentas,
-                    0.0::numeric AS amount_otros_trib,
+                    -- Neto no gravado
+                    CASE 
+                        WHEN am.l10n_latam_document_type_id IN (SELECT id FROM l10n_latam_document_type WHERE l10n_ar_letter = 'C')
+                        THEN 0
+                        ELSE COALESCE(base_class.neto_no_gravado, 0)
+                    END AS amount_nograv_total,
 
-                    (am.amount_tax *
-                        CASE
-                            WHEN am.move_type = 'in_refund' THEN -1
-                            ELSE 1
-                        END
-                    ) AS amount_iva_total,
+                    -- Op. Exentas
+                    CASE 
+                        WHEN am.l10n_latam_document_type_id IN (SELECT id FROM l10n_latam_document_type WHERE l10n_ar_letter = 'C')
+                        THEN 0
+                        ELSE COALESCE(base_class.op_exentas, 0)
+                    END AS amount_op_exentas,
+                    -- Otros tributos
+                    CASE 
+                        WHEN am.l10n_latam_document_type_id IN (SELECT id FROM l10n_latam_document_type WHERE l10n_ar_letter = 'C')
+                        THEN 0
+                        ELSE COALESCE(tax_imp.otros_trib, 0)
+                    END AS amount_otros_trib,
+                    -- IVA total
+                    CASE 
+                        WHEN am.l10n_latam_document_type_id IN (SELECT id FROM l10n_latam_document_type WHERE l10n_ar_letter = 'C')
+                        THEN 0
+                        ELSE COALESCE(tax_imp.iva_total, 0)
+                    END AS amount_iva_total,
 
-                    (am.amount_total *
-                        CASE
-                            WHEN am.move_type = 'in_refund' THEN -1
-                            ELSE 1
-                        END
-                    ) AS amount_total
-
+                    am.amount_total,
+                    am.company_id
                 FROM account_move am
                 JOIN account_journal aj
                     ON aj.id = am.journal_id
+
+                -- Subquery que agrupa los impuestos por factura
+                LEFT JOIN (
+                    SELECT
+                        aml_tax.move_id,
+
+                        -- IVA TOTAL (21, 27, 10.5, 0)
+                        SUM(
+                            CASE
+                                WHEN at.name ILIKE 'IVA 21%%'
+                                OR at.name ILIKE 'IVA 27%%'
+                                OR at.name ILIKE 'IVA 10,5%%'
+                                OR at.name ILIKE 'IVA 10.5%%'
+                                OR at.name ILIKE 'IVA 0%%'
+                                THEN ABS(aml_tax.balance)
+                                ELSE 0
+                            END
+                        ) AS iva_total,
+
+                        -- Otros tributos = todo lo que NO es IVA
+                        SUM(
+                            CASE
+                                WHEN at.name ILIKE 'IVA 21%%'
+                                OR at.name ILIKE 'IVA 27%%'
+                                OR at.name ILIKE 'IVA 10,5%%'
+                                OR at.name ILIKE 'IVA 10.5%%'
+                                OR at.name ILIKE 'IVA 0%%'
+                                THEN 0
+                                ELSE ABS(aml_tax.balance)
+                            END
+                        ) AS otros_trib
+
+                    FROM account_move_line aml_tax
+                    JOIN account_tax at
+                        ON at.id = aml_tax.tax_line_id          -- SOLO líneas de impuesto
+                    GROUP BY aml_tax.move_id
+                ) tax_imp
+                    ON tax_imp.move_id = am.id
+                    
+                LEFT JOIN (
+                    SELECT
+                        aml_base.move_id,
+
+                        -- Neto no gravado
+                        SUM(
+                            CASE
+                                WHEN at_ex.name ILIKE 'IVA No Gravado%%'
+                                THEN ABS(aml_base.balance)
+                                ELSE 0
+                            END
+                        ) AS neto_no_gravado,
+
+                        -- Operaciones exentas
+                        SUM(
+                            CASE
+                                WHEN at_ex.name ILIKE 'IVA Exento%%'
+                                THEN ABS(aml_base.balance)
+                                ELSE 0
+                            END
+                        ) AS op_exentas
+
+                    FROM account_move_line aml_base
+                    JOIN account_move_line_account_tax_rel rel
+                        ON rel.account_move_line_id = aml_base.id
+                    JOIN account_tax at_ex
+                        ON at_ex.id = rel.account_tax_id
+                    GROUP BY aml_base.move_id
+                ) base_class
+                    ON base_class.move_id = am.id
+
                 WHERE
                     am.state = 'posted'
                     AND am.move_type IN ('in_invoice', 'in_refund')
