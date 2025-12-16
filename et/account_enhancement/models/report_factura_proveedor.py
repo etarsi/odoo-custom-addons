@@ -71,23 +71,28 @@ class ReportFacturaProveedor(models.Model):
                     am.partner_id AS partner_id,
                     -- moneda
                     am.currency_id AS currency_id,
-                    -- monto neto gravado total
-                    (CASE
-                        WHEN tax.neto_no_gravado > 0.0 OR tax.op_exentas > 0.0 THEN 0.0
+                    -- Neto gravado: si hay no gravado o exento, lo ponemos en 0, si no usamos amount_untaxed
+                    CASE
+                        WHEN COALESCE(base_class.neto_no_gravado, 0) > 0
+                        OR COALESCE(base_class.op_exentas, 0) > 0
+                        THEN 0
                         ELSE am.amount_untaxed
-                    END) AS amount_netgrav_total,
-                    -- Neto no gravado 
-                    tax.neto_no_gravado AS amount_nograv_total,
+                    END AS amount_netgrav_total,
+
+                    -- Neto no gravado
+                    COALESCE(base_class.neto_no_gravado, 0) AS amount_nograv_total,
+
                     -- Op. Exentas
-                    tax.op_exentas AS amount_op_exentas,
-                    -- Otros tributos = todas las percepciones/impuestos que NO sean IVA 21
-                    tax.otros_trib AS amount_otros_trib,
+                    COALESCE(base_class.op_exentas, 0) AS amount_op_exentas,
+
+                    -- Otros tributos
+                    COALESCE(tax_imp.otros_trib, 0) AS amount_otros_trib,
+
                     -- IVA total
-                    tax.iva_total AS amount_iva_total,
-                    -- Importe total
-                    am.amount_total AS amount_total,
-                    -- Company
-                    am.company_id AS company_id
+                    COALESCE(tax_imp.iva_total, 0) AS amount_iva_total,
+
+                    am.amount_total,
+                    am.company_id
                 FROM account_move am
                 JOIN account_journal aj
                     ON aj.id = am.journal_id
@@ -95,53 +100,71 @@ class ReportFacturaProveedor(models.Model):
                 -- Subquery que agrupa los impuestos por factura
                 LEFT JOIN (
                     SELECT
-                        aml.move_id,
-                        -- IVA No Gravado/neto_no_gravado
-                        SUM(
-                            CASE
-                                -- TODOS QUE SON IVA No Gravado
-                                WHEN at.name ILIKE 'IVA No Gravado%%' OR aml.l10n_latam_document_type_id IN (
-                                    SELECT id FROM l10n_latam_document_type WHERE l10n_ar_letter = 'C')
-                                    THEN ABS(aml.balance)
-                                ELSE 0
-                            END
-                        ) as neto_no_gravado,
-                        
-                        -- op Exentas
-                        SUM(
-                            CASE
-                                -- todo lo que NO es IVA 21 se va a otros tributos
-                                WHEN at.name ILIKE 'IVA Exento%%'
-                                    THEN ABS(aml.balance)
-                                ELSE 0
-                            END
-                        ) AS op_exentas,    
+                        aml_tax.move_id,
 
-                        -- otros tributos
+                        -- IVA TOTAL (21, 27, 10.5, 0)
                         SUM(
                             CASE
-                                -- aca matcheamos el IVA exento
-                                WHEN at.name NOT IN ('IVA 21%%', 'IVA 27%%', 'IVA 10.5%%', 'IVA 0%%', 'IVA Exento%%', 'IVA No Gravado%%')
-                                    THEN ABS(aml.balance)
+                                WHEN at.name ILIKE 'IVA 21%%'
+                                OR at.name ILIKE 'IVA 27%%'
+                                OR at.name ILIKE 'IVA 10,5%%'
+                                OR at.name ILIKE 'IVA 10.5%%'
+                                OR at.name ILIKE 'IVA 0%%'
+                                THEN ABS(aml_tax.balance)
                                 ELSE 0
                             END
-                        ) AS otros_trib,
-                        
-                        -- IVA TOTAL
+                        ) AS iva_total,
+
+                        -- Otros tributos = todo lo que NO es IVA
                         SUM(
                             CASE
-                                WHEN at.name IN ('IVA 21%%', 'IVA 27%%', 'IVA 10.5%%', 'IVA 0%%')
-                                    THEN ABS(aml.balance)
-                                ELSE 0
+                                WHEN at.name ILIKE 'IVA 21%%'
+                                OR at.name ILIKE 'IVA 27%%'
+                                OR at.name ILIKE 'IVA 10,5%%'
+                                OR at.name ILIKE 'IVA 10.5%%'
+                                OR at.name ILIKE 'IVA 0%%'
+                                THEN 0
+                                ELSE ABS(aml_tax.balance)
                             END
-                        ) AS iva_total            
-                    FROM account_move_line aml
-                    join account_move_line_account_tax_rel taxsrel on taxsrel.account_move_line_id = aml.id
+                        ) AS otros_trib
+
+                    FROM account_move_line aml_tax
                     JOIN account_tax at
-                        ON at.id = taxsrel.account_tax_id
-                    GROUP BY aml.move_id
-                ) AS tax
-                    ON tax.move_id = am.id
+                        ON at.id = aml_tax.tax_line_id          -- SOLO líneas de impuesto
+                    GROUP BY aml_tax.move_id
+                ) tax_imp
+                    ON tax_imp.move_id = am.id
+                    
+                LEFT JOIN (
+                    SELECT
+                        aml_base.move_id,
+
+                        -- Neto no gravado
+                        SUM(
+                            CASE
+                                WHEN at_ex.name ILIKE 'IVA No Gravado%%'
+                                THEN ABS(aml_base.balance)
+                                ELSE 0
+                            END
+                        ) AS neto_no_gravado,
+
+                        -- Operaciones exentas
+                        SUM(
+                            CASE
+                                WHEN at_ex.name ILIKE 'IVA Exento%%'
+                                THEN ABS(aml_base.balance)
+                                ELSE 0
+                            END
+                        ) AS op_exentas
+
+                    FROM account_move_line aml_base
+                    JOIN account_move_line_account_tax_rel rel
+                        ON rel.account_move_line_id = aml_base.id
+                    JOIN account_tax at_ex
+                        ON at_ex.id = rel.account_tax_id
+                    GROUP BY aml_base.move_id
+                ) base_class
+                    ON base_class.move_id = am.id
 
                 WHERE
                     am.state = 'posted'
