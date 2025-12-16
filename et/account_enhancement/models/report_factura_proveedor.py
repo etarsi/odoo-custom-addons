@@ -152,8 +152,7 @@ class ReportFacturaProveedor(models.Model):
                                     THEN ABS(aml.balance)
                                 ELSE 0
                             END
-                        ) AS iva_total,              
-                        
+                        ) AS iva_total            
                     FROM account_move_line aml
                     JOIN account_tax at
                         ON at.id = aml.tax_line_id
