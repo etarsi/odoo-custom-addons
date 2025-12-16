@@ -141,6 +141,7 @@ class OutInvoiceRefacturarWizard(models.TransientModel):
                 'price_unit': price_unit,
                 'discount': line.discount,
                 'tax_ids': [(6, 0, mapped_taxes.ids)],
+                'sale_line_ids': [(6, 0, line.sale_line_ids.ids)],
             }))
 
         return vals
