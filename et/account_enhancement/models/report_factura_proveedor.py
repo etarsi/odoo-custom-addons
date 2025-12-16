@@ -73,23 +73,37 @@ class ReportFacturaProveedor(models.Model):
                     am.currency_id AS currency_id,
                     -- Neto gravado: si hay no gravado o exento, lo ponemos en 0, si no usamos amount_untaxed
                     CASE
-                        WHEN COALESCE(base_class.neto_no_gravado, 0) > 0
-                        OR COALESCE(base_class.op_exentas, 0) > 0
+                        WHEN (COALESCE(base_class.neto_no_gravado, 0) > 0 OR COALESCE(base_class.op_exentas, 0) > 0)
+                        OR (am.l10n_latam_document_type_id IN ( SELECT id FROM l10n_latam_document_type WHERE l10n_ar_letter = 'C'))
                         THEN 0
                         ELSE am.amount_untaxed
                     END AS amount_netgrav_total,
 
                     -- Neto no gravado
-                    COALESCE(base_class.neto_no_gravado, 0) AS amount_nograv_total,
+                    CASE 
+                        WHEN am.l10n_latam_document_type_id IN (SELECT id FROM l10n_latam_document_type WHERE l10n_ar_letter = 'C')
+                        THEN 0
+                        ELSE COALESCE(base_class.neto_no_gravado, 0)
+                    END AS amount_nograv_total,
 
                     -- Op. Exentas
-                    COALESCE(base_class.op_exentas, 0) AS amount_op_exentas,
-
+                    CASE 
+                        WHEN am.l10n_latam_document_type_id IN (SELECT id FROM l10n_latam_document_type WHERE l10n_ar_letter = 'C')
+                        THEN 0
+                        ELSE COALESCE(base_class.op_exentas, 0)
+                    END AS amount_op_exentas,
                     -- Otros tributos
-                    COALESCE(tax_imp.otros_trib, 0) AS amount_otros_trib,
-
+                    CASE 
+                        WHEN am.l10n_latam_document_type_id IN (SELECT id FROM l10n_latam_document_type WHERE l10n_ar_letter = 'C')
+                        THEN 0
+                        ELSE COALESCE(tax_imp.otros_trib, 0)
+                    END AS amount_otros_trib,
                     -- IVA total
-                    COALESCE(tax_imp.iva_total, 0) AS amount_iva_total,
+                    CASE 
+                        WHEN am.l10n_latam_document_type_id IN (SELECT id FROM l10n_latam_document_type WHERE l10n_ar_letter = 'C')
+                        THEN 0
+                        ELSE COALESCE(tax_imp.iva_total, 0)
+                    END AS amount_iva_total,
 
                     am.amount_total,
                     am.company_id
