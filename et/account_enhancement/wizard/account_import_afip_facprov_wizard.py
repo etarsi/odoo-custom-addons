@@ -148,7 +148,7 @@ class AccountImportAfipFacprovWizard(models.TransientModel):
         return DocType.search(dom, limit=1)
 
     def _get_purchase_vat_tax(self, rate, company_id):
-        Tax = self.env['account.tax'].with_company(self.company_id)
+        Tax = self.env['account.tax'].with_company(company_id)
         tax = Tax.search([
             ('type_tax_use', '=', 'purchase'),
             ('amount_type', '=', 'percent'),
