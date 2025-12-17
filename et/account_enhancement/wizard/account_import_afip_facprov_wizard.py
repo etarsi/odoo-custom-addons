@@ -147,14 +147,14 @@ class AccountImportAfipFacprovWizard(models.TransientModel):
             dom.append(('country_id', '=', country.id))
         return DocType.search(dom, limit=1)
 
-    def _get_purchase_vat_tax(self, rate):
+    def _get_purchase_vat_tax(self, rate, company_id):
         Tax = self.env['account.tax'].with_company(self.company_id)
         tax = Tax.search([
             ('type_tax_use', '=', 'purchase'),
             ('amount_type', '=', 'percent'),
             ('amount', '=', float(rate)),
             ('price_include', '=', False),
-            ('company_id', 'in', [self.company_id.id, False]),
+            ('company_id', 'in', [company_id.id, False]),
         ], limit=1)
         return tax
 
@@ -238,6 +238,7 @@ class AccountImportAfipFacprovWizard(models.TransientModel):
             fac_proveedor = self.env['account.move'].search([('name', 'ilike', nro), ('partner_id.vat', '=', self._norm_cuit(emisor_cuit)), ('company_id', '=', self.company_id.id)], limit=1)         
             tipo_comprobante = self.env['l10n_latam.document.type'].search([('code', '=', tipo_code)], limit=1)
             journal_id = self.env['account.journal'].search([('name', 'in', ['FACTURAS PROVEEDORES LAVALLE', 'FACTURAS PROVEEDORES DEPOSITO'])], limit=1)
+            company_id = self.env['res.company'].search([('partner_id.vat', '=', self._norm_cuit(company_nif))], limit=1)
             currency = False
             moneda_symbol = ws.cell(r, c_moneda).value
 
@@ -289,7 +290,7 @@ class AccountImportAfipFacprovWizard(models.TransientModel):
                 }
 
                 if rate and iva_col_name:
-                    tax = self._get_purchase_vat_tax(rate)
+                    tax = self._get_purchase_vat_tax(rate, company_id)
                     if not tax:
                         missing_taxes.add(rate)
                     else:
