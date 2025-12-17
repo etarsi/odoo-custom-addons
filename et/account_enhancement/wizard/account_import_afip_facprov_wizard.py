@@ -111,14 +111,6 @@ class AccountImportAfipFacprovWizard(models.TransientModel):
 
         return (False, 'in_invoice')
 
-    def _format_doc_number(self, pv, number):
-        try:
-            pv_i = int(float(pv))
-            num_i = int(float(number))
-        except Exception:
-            return False
-        return f"{pv_i:04d}-{num_i:08d}"
-
     def _get_doc_type(self, prefix):
         if not prefix:
             return False
@@ -198,7 +190,7 @@ class AccountImportAfipFacprovWizard(models.TransientModel):
 
         created_move_ids = []
         missing_taxes = set()
-
+        move_type = 'in_invoice'
         # Recorremos filas de datos
         for r in range(header_row + 1, ws.max_row + 1):
             fecha = self._to_date(ws.cell(r, c_fecha).value)
@@ -206,40 +198,37 @@ class AccountImportAfipFacprovWizard(models.TransientModel):
                 continue
 
             tipo_raw = ws.cell(r, c_tipo).value
-            prefix, move_type = self._parse_tipo_to_prefix_and_move_type(tipo_raw)
             pv = ws.cell(r, c_pv).value
             nro = ws.cell(r, c_nro).value
             partner_vat = ws.cell(r, c_cae).value
             company_nif = ws.cell(r, c_company).value 
             company_actual = self.env.company.partner_id.vat
             tipo_cambio = ws.cell(r, c_tc).value 
-            if company_nif and company_actual and self._norm_cuit(company_nif) != self._norm_cuit(company_actual):
-                raise ValidationError("Esta intentando verificar facturas que no corresponden a la compañía actual.")
-            
-            fac_proveedor = self.env['account.move'].search([('name', 'ilike', nro), ('partner_id.vat', '=', self._norm_cuit(partner_vat)), ('company_id', '=', self.company_id.id)], limit=1)
-            if fac_proveedor:
-                continue
-            
-            doc_number = self._format_doc_number(pv, nro)
-            if not doc_number:
-                raise ValidationError(_("Fila %s: no se pudo armar PV-Número (Punto de Venta / Número Desde).") % r)
-
+            tipo_cambio = self._to_float(tipo_cambio) if tipo_cambio else 1.0
             cae = ws.cell(r, c_cae).value if c_cae else False
             emisor_cuit = self._norm_cuit(ws.cell(r, c_emisor_doc).value)
             emisor_name = ws.cell(r, c_emisor_name).value if c_emisor_name else False
-            partner = self.env['res.partner'].search([('vat', '=', self._norm_cuit(partner_vat))], limit=1)
+            partner = self.env['res.partner'].search([('vat', '=', self._norm_cuit(partner_vat))], limit=1)   
+            fac_proveedor = self.env['account.move'].search([('name', 'ilike', nro), ('partner_id.vat', '=', self._norm_cuit(partner_vat)), ('company_id', '=', self.company_id.id)], limit=1)         
+            currency = False
+            moneda_symbol = ws.cell(r, c_moneda).value
+            # VALIDACIONES
+            if company_nif and company_actual and self._norm_cuit(company_nif) != self._norm_cuit(company_actual):
+                raise ValidationError("Esta intentando verificar facturas que no corresponden a la compañía actual.")
             if not partner:
-                raise ValidationError(_("Fila %s: no existe el proveedor %s (%s) y está deshabilitada la creación automática.") % (r, emisor_name, emisor_cuit))
+                raise ValidationError(_("Fila %s: no existe el proveedor %s (%s).") % (r, emisor_name, emisor_cuit))
+            if fac_proveedor:
+                continue
 
             # Moneda
-            currency = False
             if tipo_cambio == 1:
                 currency = self.company_id.currency_id
             else:
-                currency = self.env['res.currency'].search([('symbol', '=', ws.cell(r, c_moneda).value)], limit=1)
+                currency = self.env['res.currency'].search([('symbol', '=', moneda_symbol)], limit=1)
                 if not currency:
                     raise ValidationError(_("Fila %s: no se encontró la moneda con símbolo '%s'.") % (r, ws.cell(r, c_moneda).value or ''))
                 
+            # Como separar el tip                
             # Construcción de líneas
             lines = []
 
@@ -300,7 +289,7 @@ class AccountImportAfipFacprovWizard(models.TransientModel):
                 'date': fecha,
                 'currency_id': currency.id,
                 'invoice_line_ids': lines,
-                'ref': doc_number,
+                'compute_currency_rate': tipo_cambio,
             }
 
             if doc_type and 'l10n_latam_document_type_id' in Move._fields:
