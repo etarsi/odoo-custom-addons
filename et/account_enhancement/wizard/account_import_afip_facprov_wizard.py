@@ -329,7 +329,8 @@ class AccountImportAfipFacprovWizard(models.TransientModel):
                 'date': fecha,
                 'currency_id': currency.id,
                 'invoice_line_ids': lines,
-                'compute_currency_rate': tipo_cambio,
+                'computed_currency_rate': tipo_cambio,
+                'l10n_ar_currency_rate': tipo_cambio,
             }
 
             move = Move.create(vals)
