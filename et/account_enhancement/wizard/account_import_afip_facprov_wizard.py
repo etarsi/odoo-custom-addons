@@ -232,10 +232,10 @@ class AccountImportAfipFacprovWizard(models.TransientModel):
             emisor_cuit = self._norm_cuit(ws.cell(r, c_emisor_doc).value)
             emisor_name = ws.cell(r, c_emisor_name).value if c_emisor_name else False
             partner = self.env['res.partner'].search([('vat', '=', self._norm_cuit(emisor_cuit))], limit=1)   
-            fac_proveedor = self.env['account.move'].search([('name', 'ilike', nro), ('partner_id.vat', '=', self._norm_cuit(emisor_cuit)), ('company_id', '=', self.company_id.id)], limit=1)         
-            tipo_comprobante = self.env['l10n_latam.document.type'].search([('code', '=', tipo_code)], limit=1)
-            journal_id = self.env['account.journal'].search([('name', 'in', ['FACTURAS PROVEEDORES LAVALLE', 'FACTURAS PROVEEDORES DEPOSITO'])], limit=1)
             company_id = self.env['res.company'].search([('partner_id.vat', '=', self._norm_cuit(company_nif))], limit=1)
+            fac_proveedor = self.env['account.move'].search([('name', 'ilike', nro), ('partner_id.vat', '=', self._norm_cuit(emisor_cuit)), ('company_id', '=', company_id.id)], limit=1)         
+            tipo_comprobante = self.env['l10n_latam.document.type'].search([('code', '=', tipo_code)], limit=1)
+            journal_id = self.env['account.journal'].search([('name', 'in', ['FACTURAS PROVEEDORES LAVALLE', 'FACTURAS PROVEEDORES DEPOSITO']), ('company_id', '=', company_id.id)], limit=1)
             currency = False
             moneda_symbol = ws.cell(r, c_moneda).value
 
