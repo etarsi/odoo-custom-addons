@@ -1,0 +1,24 @@
+<odoo>
+    <record id="view_account_import_afip_facprov_wizard_form" model="ir.ui.view">
+        <field name="name">account.import.afip.facprov.wizard.form</field>
+        <field name="model">account.import.afip.facprov.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Importar AFIP, Facturas Proveedores">
+                <group>
+                    <field name="file"/>
+                </group>
+                <footer>
+                    <button string="Importar" type="object" name="import_data" class="btn-primary"/>
+                    <button string="Cancelar" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_account_import_afip_facprov_wizard" model="ir.actions.act_window">
+    <field name="name">Importar AFIP Facturas Proveedores</field>
+    <field name="res_model">account.import.afip.facprov.wizard</field>
+    <field name="view_mode">form</field>
+    <field name="target">new</field>
+    </record>
+</odoo>

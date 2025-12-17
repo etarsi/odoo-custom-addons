@@ -37,6 +37,7 @@
         'data/group_pago.xml',
         'data/ir_cron.xml',
         'views/account_payment_group_suprimir_wizard_views.xml',
+        'views/account_import_afip_facprov_wizard_views.xml',
         'data/action_payment_group.xml',
         #Reportes
         'wizard/generar_factura_wizard_views.xml',

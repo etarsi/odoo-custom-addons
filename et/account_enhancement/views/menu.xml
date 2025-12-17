@@ -5,12 +5,19 @@
                 parent="account.menu_finance_payables"
                 action="action_account_move_calendar_to_pay"
                 sequence="40"/>
-    <!-- Menús bajo “Reportes Nico” (ajustá el padre) -->
+    <!-- Submenu report de factura de proveedores -->
     <menuitem id="menu_report_factura_proveedor"
         name="Reporte de Facturas Proveedor"
         parent="account.menu_finance_payables"
         action="action_report_factura_proveedor"
         sequence="50"/>
+
+    <!-- Submenu de Importar AFIP Facturas Proveedores -->
+    <menuitem id="menu_account_import_afip_facprov_wizard"
+        name="Importar AFIP Facturas Proveedores"
+        parent="account.menu_finance_payables"
+        action="action_account_import_afip_facprov_wizard"
+        sequence="60"/>
 
     <!-- SUBMENU DE REPORTE ACCOUNT FACTURAS-->
     <menuitem 
