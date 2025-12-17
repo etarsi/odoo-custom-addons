@@ -283,7 +283,7 @@ class AccountImportAfipFacprovWizard(models.TransientModel):
 
                 line = {
                     'name': _("Base IVA %s%%") % (str(rate).replace('.', ',')),
-                    'account_id': self.expense_account_id.id,
+                    'account_id': journal_id.default_account_id.id,
                     'quantity': 1.0,
                     'price_unit': neto,
                 }
