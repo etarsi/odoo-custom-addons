@@ -18,6 +18,32 @@ class AccountImportAfipFacprovWizard(models.TransientModel):
     
 
     # ---------------- HELPERS ----------------
+    
+    def _extract_tipo_num(self, value):
+        """
+        Devuelve el número inicial del campo Tipo.
+        Ejemplos:
+        '1 - Factura A'  -> 1
+        '11 - Factura C' -> 11
+        '3 - Nota de Crédito A' -> 3
+        11.0 -> 11
+        """
+        if value in (None, '', False):
+            return False
+
+        # Si Excel lo trae como número
+        if isinstance(value, (int, float)):
+            try:
+                return int(value)
+            except Exception:
+                return False
+
+        text = str(value).strip()
+
+        # Caso típico: "11 - Factura C"
+        m = re.match(r'^\s*(\d+)', text)
+        return int(m.group(1)) if m else False
+
     def _to_float(self, v):
         if v in (None, '', False):
             return 0.0
@@ -197,8 +223,8 @@ class AccountImportAfipFacprovWizard(models.TransientModel):
             if not fecha:
                 continue
 
-            tipo_raw = ws.cell(r, c_tipo).value
-            pv = ws.cell(r, c_pv).value
+            tipo = ws.cell(r, c_tipo).value
+            tipo_code = self._extract_tipo_num(tipo)
             nro = ws.cell(r, c_nro).value
             partner_vat = ws.cell(r, c_cae).value
             company_nif = ws.cell(r, c_company).value 
@@ -210,9 +236,16 @@ class AccountImportAfipFacprovWizard(models.TransientModel):
             emisor_name = ws.cell(r, c_emisor_name).value if c_emisor_name else False
             partner = self.env['res.partner'].search([('vat', '=', self._norm_cuit(partner_vat))], limit=1)   
             fac_proveedor = self.env['account.move'].search([('name', 'ilike', nro), ('partner_id.vat', '=', self._norm_cuit(partner_vat)), ('company_id', '=', self.company_id.id)], limit=1)         
+            tipo_comprobante = self.env['l10n_latam.document.type'].search([('code', '=', tipo_code)], limit=1)
+            journal_id = self.env['account.journal'].search([('name', 'in', ['FACTURAS PROVEEDORES LAVALLE', 'FACTURAS PROVEEDORES DEPOSITO'])], limit=1)
             currency = False
             moneda_symbol = ws.cell(r, c_moneda).value
+
             # VALIDACIONES
+            if not journal_id:
+                raise ValidationError(_("No se encontró el diario para Facturas de Proveedores."))
+            if not tipo_comprobante:
+                raise ValidationError(_("Fila %s: tipo de comprobante inválido o no soportado: '%s'.") % (r, str(tipo)))
             if company_nif and company_actual and self._norm_cuit(company_nif) != self._norm_cuit(company_actual):
                 raise ValidationError("Esta intentando verificar facturas que no corresponden a la compañía actual.")
             if not partner:
@@ -227,11 +260,29 @@ class AccountImportAfipFacprovWizard(models.TransientModel):
                 currency = self.env['res.currency'].search([('symbol', '=', moneda_symbol)], limit=1)
                 if not currency:
                     raise ValidationError(_("Fila %s: no se encontró la moneda con símbolo '%s'.") % (r, ws.cell(r, c_moneda).value or ''))
-                
+            
+            #INFORMACION DE LA FACTURA
+            move_type = 'in_invoice'
+            if tipo_comprobante.internal_type == 'credit_note':
+                move_type = 'in_refund'
+
+            vals = {
+                'move_type': move_type,
+                'company_id': self.company_id.id,
+                'journal_id': journal_id.id,
+                'l10_latam_document_type_id': tipo_comprobante.id,
+                'partner_id': partner.id,
+                'invoice_date': fecha,
+                'date': fecha,
+                'currency_id': currency.id,
+                'invoice_line_ids': lines,
+                'compute_currency_rate': tipo_cambio,
+            }
+            
+            #LINEAS 
             # Como separar el tip                
             # Construcción de líneas
             lines = []
-
             # Bases por alícuota
             for rate, neto_col_name, iva_col_name in iva_rates:
                 c_neto = self._col(col_map, neto_col_name)
@@ -279,40 +330,15 @@ class AccountImportAfipFacprovWizard(models.TransientModel):
                         'price_unit': ex,
                     }))
 
-
-            vals = {
-                'move_type': move_type,
-                'company_id': self.company_id.id,
-                'journal_id': self.journal_id.id,
-                'partner_id': partner.id,
-                'invoice_date': fecha,
-                'date': fecha,
-                'currency_id': currency.id,
-                'invoice_line_ids': lines,
-                'compute_currency_rate': tipo_cambio,
-            }
-
-            if doc_type and 'l10n_latam_document_type_id' in Move._fields:
-                vals['l10n_latam_document_type_id'] = doc_type.id
-            if 'l10n_latam_document_number' in Move._fields:
-                vals['l10n_latam_document_number'] = doc_number
-
-            # CAE si existe el campo
-            if cae and 'l10n_ar_afip_auth_code' in Move._fields:
-                vals['l10n_ar_afip_auth_code'] = str(int(float(cae))) if str(cae).isdigit() else str(cae)
-
             move = Move.create(vals)
             created_move_ids.append(move.id)
-
-            if self.auto_post:
-                move.action_post()
 
         if not created_move_ids:
             raise UserError(_("No se creó ningún comprobante (posibles duplicados o archivo vacío)."))
 
         return {
             'type': 'ir.actions.act_window',
-            'name': _('Comprobantes importados'),
+            'name': _('Comprobantes Factura Importados'),
             'res_model': 'account.move',
             'view_mode': 'tree,form',
             'domain': [('id', 'in', created_move_ids)],
