@@ -301,7 +301,7 @@ class AccountImportAfipFacprovWizard(models.TransientModel):
                 if ng > 0:
                     lines.append((0, 0, {
                         'name': _("Neto no gravado"),
-                        'account_id': self.expense_account_id.id,
+                        'account_id': journal_id.default_account_id.id,
                         'quantity': 1.0,
                         'price_unit': ng,
                     }))
@@ -312,7 +312,7 @@ class AccountImportAfipFacprovWizard(models.TransientModel):
                 if ex > 0:
                     lines.append((0, 0, {
                         'name': _("Operaciones exentas"),
-                        'account_id': self.expense_account_id.id,
+                        'account_id': journal_id.default_account_id.id,
                         'quantity': 1.0,
                         'price_unit': ex,
                     }))
