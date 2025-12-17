@@ -18,7 +18,6 @@ class AccountImportAfipFacprovWizard(models.TransientModel):
     
 
     # ---------------- HELPERS ----------------
-    
     def _extract_tipo_num(self, value):
         """
         Devuelve el número inicial del campo Tipo.
@@ -131,14 +130,12 @@ class AccountImportAfipFacprovWizard(models.TransientModel):
             raise UserError(_("No se pudo leer el Excel. Asegúrese que sea .xlsx válido.\nDetalle: %s") % e)
 
         ws = wb[wb.sheetnames[0]]
-
         header_row = self._find_header_row(ws)
         if not header_row:
             raise UserError(_("No se encontró la fila de encabezados. Se esperaba un formato AFIP 'Mis Comprobantes Recibidos'."))
 
-        col_map = self._build_col_map(ws, header_row)
-
         # Columnas necesarias
+        col_map = self._build_col_map(ws, header_row)
         c_fecha = self._col(col_map, 'Fecha')
         c_tipo = self._col(col_map, 'Tipo')
         c_pv = self._col(col_map, 'Punto de Venta')
@@ -165,10 +162,8 @@ class AccountImportAfipFacprovWizard(models.TransientModel):
         ]
         c_ng = self._col(col_map, 'Neto No Gravado')
         c_ex = self._col(col_map, 'Op. Exentas')
-        c_ot = self._col(col_map, 'Otros Tributos')
 
         Move = self.env['account.move'].with_company(self.company_id)
-
         created_move_ids = []
         missing_taxes = set()
         move_type = 'in_invoice'
@@ -181,12 +176,10 @@ class AccountImportAfipFacprovWizard(models.TransientModel):
             tipo = ws.cell(r, c_tipo).value
             tipo_code = self._extract_tipo_num(tipo)
             nro = ws.cell(r, c_nro).value
-            partner_vat = ws.cell(r, c_cae).value
             company_nif = ws.cell(r, c_company).value 
             company_actual = self.env.company.partner_id.vat
             tipo_cambio = ws.cell(r, c_tc).value 
             tipo_cambio = self._to_float(tipo_cambio) if tipo_cambio else 1.0
-            cae = ws.cell(r, c_cae).value if c_cae else False
             emisor_cuit = self._norm_cuit(ws.cell(r, c_emisor_doc).value)
             emisor_name = ws.cell(r, c_emisor_name).value if c_emisor_name else False
             partner = self.env['res.partner'].search([('vat', '=', self._norm_cuit(emisor_cuit))], limit=1)   
@@ -222,8 +215,6 @@ class AccountImportAfipFacprovWizard(models.TransientModel):
             if tipo_comprobante.internal_type == 'credit_note':
                 move_type = 'in_refund'
 
-
-            
             #LINEAS 
             # Como separar el tip                
             # Construcción de líneas
@@ -238,7 +229,7 @@ class AccountImportAfipFacprovWizard(models.TransientModel):
                     continue
 
                 line = {
-                    'name': _("Base IVA %s%%") % (str(rate).replace('.', ',')),
+                    'name': ' ',
                     'account_id': journal_id.default_account_id.id,
                     'quantity': 1.0,
                     'price_unit': neto,
@@ -265,7 +256,7 @@ class AccountImportAfipFacprovWizard(models.TransientModel):
                 ng = self._to_float(ws.cell(r, c_ng).value)
                 if ng > 0:
                     lines.append((0, 0, {
-                        'name': _("Neto no gravado"),
+                        'name': ' ',
                         'account_id': journal_id.default_account_id.id,
                         'quantity': 1.0,
                         'price_unit': ng,
@@ -284,7 +275,7 @@ class AccountImportAfipFacprovWizard(models.TransientModel):
                 ex = self._to_float(ws.cell(r, c_ex).value)
                 if ex > 0:
                     lines.append((0, 0, {
-                        'name': _("Operaciones exentas"),
+                        'name': ' ',
                         'account_id': journal_id.default_account_id.id,
                         'quantity': 1.0,
                         'price_unit': ex,
@@ -295,7 +286,7 @@ class AccountImportAfipFacprovWizard(models.TransientModel):
             if tipo_comprobante.l10n_ar_letter == 'C':
                 import_total = self._to_float(ws.cell(r, c_total).value) if c_total else 0.0
                 lines.append((0, 0, {
-                    'name': _("Otros tributos"),
+                    'name': ' ',
                     'account_id': journal_id.default_account_id.id,
                     'quantity': 1.0,
                     'price_unit': import_total,
