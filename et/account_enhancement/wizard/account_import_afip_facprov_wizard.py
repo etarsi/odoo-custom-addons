@@ -316,6 +316,16 @@ class AccountImportAfipFacprovWizard(models.TransientModel):
                         'quantity': 1.0,
                         'price_unit': ex,
                     }))
+            
+            # Factura o nota de credito de letras C
+            if tipo_comprobante.doc_ar_letter == 'C':
+                import_total = self._to_float(ws.cell(r, c_total).value) if c_total else 0.0
+                lines.append((0, 0, {
+                    'name': _("Otros tributos"),
+                    'account_id': journal_id.default_account_id.id,
+                    'quantity': 1.0,
+                    'price_unit': import_total,
+                }))
 
             vals = {
                 'move_type': move_type,
