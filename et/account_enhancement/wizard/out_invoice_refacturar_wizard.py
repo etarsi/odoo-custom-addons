@@ -74,7 +74,6 @@ class OutInvoiceRefacturarWizard(models.TransientModel):
         2) impuestos del producto en esa compañía; luego
         3) aplica fiscal position.
         """
-        #tengo que comparar la fecha invoice_date con la fecha actual si hay diferencia de 30 dias debe quitar el impuesto de Percepción IIBB CABA Aplicada.
         Tax = self.env['account.tax'].with_company(company)
         mapped = self.env['account.tax']
         for tax in taxes:
@@ -83,7 +82,8 @@ class OutInvoiceRefacturarWizard(models.TransientModel):
             if cand:
                 mapped |= cand
         tax_name = 'percepción iibb'
-        if invoice_date and (fields.Date.from_string(invoice_date) - fields.Date.context_today(self)).days > 30:
+        #invoice date y fecha actual para filtrar percepciones iibb si la fecha esta en el mismo mes
+        if invoice_date.month == fields.Date.context_today(self).month and invoice_date.year == fields.Date.context_today(self).year:
             mapped = mapped.filtered(lambda t: tax_name not in (t.name or '').lower())
         return partner_fp.map_tax(mapped) if partner_fp and mapped else mapped
 
@@ -194,14 +194,15 @@ class OutInvoiceRefacturarWizard(models.TransientModel):
                 code_comprobante_factura = move.l10n_latam_document_type_id.code
                 if code_comprobante_factura == '1':
                     code_nc = self.env['l10n_latam.document.type'].search([('code', '=', '3'), ('internal_type', '=', 'credit_note')], limit=1)
-                    reversal_vals[0].update({'l10n_latam_document_type_id': code_nc.id})
                     if not code_nc:
                         raise ValidationError(_("No se encontró el tipo de comprobante Nota de Crédito (3) para refacturar la factura %s.") % move.name)
+                    reversal_vals[0].update({'l10n_latam_document_type_id': code_nc.id})
+
                 elif code_comprobante_factura == '201':
                     code_nc = self.env['l10n_latam.document.type'].search([('code', '=', '203'), ('internal_type', '=', 'credit_note')], limit=1)
-                    reversal_vals[0].update({'l10n_latam_document_type_id': code_nc.id})
                     if not code_nc:
-                        raise ValidationError(_("No se encontró el tipo de comprobante Nota de Crédito (203) para refacturar la factura %s.") % move.name)
+                        raise ValidationError(_("No se encontró el tipo de comprobante Nota de Crédito (203) para refacturar la factura %s.") % move.name)  
+                    reversal_vals[0].update({'l10n_latam_document_type_id': code_nc.id})
 
                 credit_notes = move._reverse_moves(default_values_list=reversal_vals, cancel=True)
                 # 2) Publicar SOLO las NC en borrador (evita "ya está publicado")
