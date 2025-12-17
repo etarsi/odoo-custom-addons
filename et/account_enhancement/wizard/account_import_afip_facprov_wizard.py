@@ -105,48 +105,6 @@ class AccountImportAfipFacprovWizard(models.TransientModel):
     def _col(self, col_map, name):
         return col_map.get(name.strip().upper())
 
-    def _parse_tipo_to_prefix_and_move_type(self, tipo_raw):
-        """
-        Ejemplos:
-        - '1 - Factura A' -> ('FA-A', 'in_invoice')
-        - '11 - Factura C' -> ('FA-C', 'in_invoice')
-        - '3 - Nota de Crédito A' -> ('NC-A', 'in_refund')
-        - '2 - Nota de Débito A' -> ('ND-A', 'in_invoice')
-        """
-        if not tipo_raw:
-            return (False, 'in_invoice')
-
-        txt = str(tipo_raw).strip()
-        if '-' in txt:
-            txt = txt.split('-', 1)[1].strip()
-        up = txt.upper()
-
-        # letra final típica (A/B/C/E/I)
-        letter = up.split()[-1].strip() if up.split() else ''
-        if letter not in ('A', 'B', 'C', 'E', 'I'):
-            # fallback: intenta última letra suelta
-            m = re.search(r"\b([ABCEI])\b$", up)
-            letter = m.group(1) if m else ''
-
-        if 'NOTA DE CR' in up or 'NOTA DE CRÉ' in up:
-            return (f"NC-{letter or 'A'}", 'in_refund')
-        if 'NOTA DE DE' in up or 'NOTA DE DÉ' in up:
-            return (f"ND-{letter or 'A'}", 'in_invoice')
-        if 'FACTURA' in up:
-            return (f"FA-{letter or 'A'}", 'in_invoice')
-
-        return (False, 'in_invoice')
-
-    def _get_doc_type(self, prefix):
-        if not prefix:
-            return False
-        DocType = self.env['l10n_latam.document.type']
-        country = (self.company_id.account_fiscal_country_id or self.company_id.country_id)
-        dom = [('doc_code_prefix', '=', prefix)]
-        if country:
-            dom.append(('country_id', '=', country.id))
-        return DocType.search(dom, limit=1)
-
     def _get_purchase_vat_tax(self, rate, company_id):
         tax = self.env['account.tax'].search([
             ('type_tax_use', '=', 'purchase'),
@@ -297,6 +255,13 @@ class AccountImportAfipFacprovWizard(models.TransientModel):
 
             # Neto no gravado
             if c_ng:
+                tax = self.env['account.tax'].search([
+                    ('type_tax_use', '=', 'purchase'),
+                    ('company_id', '=', company_id.id),
+                    ('name', 'ilike', 'IVA No Gravado'),
+                    ('active', '=', True)], limit=1)
+                if not tax:
+                    raise ValidationError(_("No se encontró el impuesto para 'IVA No Gravado'."))
                 ng = self._to_float(ws.cell(r, c_ng).value)
                 if ng > 0:
                     lines.append((0, 0, {
@@ -304,10 +269,18 @@ class AccountImportAfipFacprovWizard(models.TransientModel):
                         'account_id': journal_id.default_account_id.id,
                         'quantity': 1.0,
                         'price_unit': ng,
+                        'tax_ids': [(6, 0, [tax.id])]
                     }))
 
             # Exentas
             if c_ex:
+                tax = self.env['account.tax'].search([
+                    ('type_tax_use', '=', 'purchase'),
+                    ('company_id', '=', company_id.id),
+                    ('name', 'ilike', 'IVA Exento'),
+                    ('active', '=', True)], limit=1)
+                if not tax:
+                    raise ValidationError(_("No se encontró el impuesto para 'IVA Exento'."))
                 ex = self._to_float(ws.cell(r, c_ex).value)
                 if ex > 0:
                     lines.append((0, 0, {
@@ -315,6 +288,7 @@ class AccountImportAfipFacprovWizard(models.TransientModel):
                         'account_id': journal_id.default_account_id.id,
                         'quantity': 1.0,
                         'price_unit': ex,
+                        'tax_ids': [(6, 0, [tax.id])],
                     }))
             
             # Factura o nota de credito de letras C
