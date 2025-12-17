@@ -323,7 +323,7 @@ class AccountImportAfipFacprovWizard(models.TransientModel):
                 'move_type': move_type,
                 'company_id': self.company_id.id,
                 'journal_id': journal_id.id,
-                'l10_latam_document_type_id': tipo_comprobante.id,
+                'l10n_latam_document_type_id': tipo_comprobante.id,
                 'partner_id': partner.id,
                 'invoice_date': fecha,
                 'date': fecha,
