@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Grupo en categoría Ventas (Sales) -->
+    <record id="group_sale_order_special_permissions" model="res.groups">
+        <field name="name">Ventas: Permisos Especiales</field>
+        <!-- Categoría: Sales / Ventas -->
+        <field name="category_id" ref="base.module_category_sales_management"/>
+    </record>
+</odoo>

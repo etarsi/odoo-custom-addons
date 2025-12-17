@@ -83,6 +83,13 @@ class SaleOrderTipoVentaWizard(models.TransientModel):
             'company_id': self.company_id.id,
             'warehouse_id': warehouse.id,
         })
+        # agregar en el chat del pedido la modificación realizada y quien la hizo
+        sale.message_post(body=_('Tipo de venta modificado a "%s", Compañía a "%s", Lista de Precios a "%s" por el usuario %s desde el asistente de modificación de tipo de venta.') % (
+            self.condicion_m2m_id.name,
+            self.company_id.name,
+            pricelist_id.name,
+            self.env.user.name,
+        ))
         #recompute taxes
         sale._compute_tax_id()
 
@@ -114,6 +121,11 @@ class SaleOrderTipoVentaWizard(models.TransientModel):
                 'company_id': self.company_id.id,
                 'location_id': warehouse.lot_stock_id.id,
             })
+            # agregar en el chat del picking la modificación realizada y quien la hizo
+            picking.message_post(body=_('Compañía modificada a "%s" por el usuario %s desde el asistente de modificación de tipo de venta del pedido de venta asociado.') % (
+                self.company_id.name,
+                self.env.user.name,
+            ))
         #Modificar las facturas asociadas si no estan posted o canceladas
         #picking en estado done 
         picking_dones = sale.mapped('picking_ids').filtered(lambda p: p.state == 'done')

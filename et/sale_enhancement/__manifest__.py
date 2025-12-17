@@ -30,6 +30,7 @@
         #wizards
         'views/sale_order_tipo_venta_wizard.xml',
         #data
+        'data/groups.xml',
         'data/actions.xml',
         #views
         'views/templates.xml',

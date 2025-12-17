@@ -12,11 +12,12 @@
                     <button name="%(sale_enhancement.action_sale_order_tipo_venta_wizard)d"
                             string="Cambiar tipo de venta"
                             type="action"
-                            class="btn-secondary"/>
+                            class="btn-secondary"
+                            groups="sale_enhancement.group_sale_order_special_permissions"/>
                     
                 </xpath>
                 <xpath expr="//page[@name='other_information']//field[@name='company_id']" position="after">
-                    <field name="company_default" string="Compañía" options="{'no_create': True, 'no_create_edit': True}" attrs="{'readonly': [('state', 'in', ['sale', 'done', 'cancel'])]}"/>
+                    <field name="company_default" string="Compañía Forzada" options="{'no_create': True, 'no_create_edit': True}" attrs="{'readonly': [('state', 'in', ['sale', 'done', 'cancel'])]}"/>
                 </xpath>
                 <!-- hacer invisible la company_id -->
                 <xpath expr="//page[@name='other_information']//field[@name='company_id']" position="attributes">
@@ -24,7 +25,7 @@
                 </xpath>
                 <!-- agregar company_id debajo de sale_order_template_id -->
                 <xpath expr="//field[@name='sale_order_template_id']" position="after">
-                    <field name="company_id" string="Compañía por defecto" options="{'no_create': True, 'no_create_edit': True}" attrs="{'readonly': [('state', 'in', ['sale', 'done', 'cancel'])]}"/>
+                    <field name="company_id" string="Compañía" options="{'no_create': True, 'no_create_edit': True}" attrs="{'readonly': [('state', 'in', ['sale', 'done', 'cancel'])]}"/>
                     <field name="is_marketing" string="Venta Marketing" attrs="{'readonly': [('state', 'in', ['sale', 'done', 'cancel'])]}" />
                 </xpath>
             </field>
