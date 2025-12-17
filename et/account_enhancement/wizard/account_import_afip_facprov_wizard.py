@@ -266,18 +266,7 @@ class AccountImportAfipFacprovWizard(models.TransientModel):
             if tipo_comprobante.internal_type == 'credit_note':
                 move_type = 'in_refund'
 
-            vals = {
-                'move_type': move_type,
-                'company_id': self.company_id.id,
-                'journal_id': journal_id.id,
-                'l10_latam_document_type_id': tipo_comprobante.id,
-                'partner_id': partner.id,
-                'invoice_date': fecha,
-                'date': fecha,
-                'currency_id': currency.id,
-                'invoice_line_ids': lines,
-                'compute_currency_rate': tipo_cambio,
-            }
+
             
             #LINEAS 
             # Como separar el tip                
@@ -329,6 +318,19 @@ class AccountImportAfipFacprovWizard(models.TransientModel):
                         'quantity': 1.0,
                         'price_unit': ex,
                     }))
+
+            vals = {
+                'move_type': move_type,
+                'company_id': self.company_id.id,
+                'journal_id': journal_id.id,
+                'l10_latam_document_type_id': tipo_comprobante.id,
+                'partner_id': partner.id,
+                'invoice_date': fecha,
+                'date': fecha,
+                'currency_id': currency.id,
+                'invoice_line_ids': lines,
+                'compute_currency_rate': tipo_cambio,
+            }
 
             move = Move.create(vals)
             created_move_ids.append(move.id)
