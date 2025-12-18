@@ -327,7 +327,7 @@ class AccountImportAfipFacprovWizard(models.TransientModel):
                         'name': _('Comprobantes Factura Importados'),
                         'res_model': 'account.move',
                         'view_mode': 'tree,form',
-                        'views': [(False, 'list')],
+                        'views': [(False, 'list'), (False, 'form')],
                         'domain': [('id', 'in', created_move_ids)],
                         'target': 'current',
                     }
@@ -361,7 +361,7 @@ class AccountImportAfipFacprovWizard(models.TransientModel):
                         'name': _('Comprobantes Factura Importados'),
                         'res_model': 'account.move',
                         'view_mode': 'tree,form',
-                        'views': [(False, 'list')],
+                        'views': [(False, 'list'), (False, 'form')],
                         'domain': [('id', 'in', created_move_ids)],
                         'target': 'current',
                     }
