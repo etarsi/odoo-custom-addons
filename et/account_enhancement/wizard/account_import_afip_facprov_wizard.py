@@ -167,6 +167,7 @@ class AccountImportAfipFacprovWizard(models.TransientModel):
         created_move_ids = []
         missing_taxes = set()
         move_type = 'in_invoice'
+        fila_no_registrada = ""
         # Recorremos filas de datos
         for r in range(header_row + 1, ws.max_row + 1):
             fecha = self._to_date(ws.cell(r, c_fecha).value)
@@ -189,7 +190,6 @@ class AccountImportAfipFacprovWizard(models.TransientModel):
             currency = False
             moneda_symbol = ws.cell(r, c_moneda).value
             numero_documento = f"{int(p_venta):04d}-{int(num_fac):08d}"
-            fila_no_registrada = ""
             # VALIDACIONES
             if not journal_id:
                 raise ValidationError(_("No se encontró el diario para Facturas de Proveedores."))
