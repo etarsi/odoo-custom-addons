@@ -172,10 +172,10 @@ class AccountImportAfipFacprovWizard(models.TransientModel):
             fecha = self._to_date(ws.cell(r, c_fecha).value)
             if not fecha:
                 continue
-
+            p_venta = ws.cell(r, c_pv).value
+            num_fac = ws.cell(r, c_nro).value
             tipo = ws.cell(r, c_tipo).value
             tipo_code = self._extract_tipo_num(tipo)
-            nro = ws.cell(r, c_nro).value
             company_nif = ws.cell(r, c_company).value 
             company_actual = self.env.company.partner_id.vat
             tipo_cambio = ws.cell(r, c_tc).value 
@@ -184,12 +184,12 @@ class AccountImportAfipFacprovWizard(models.TransientModel):
             emisor_name = ws.cell(r, c_emisor_name).value if c_emisor_name else False
             partner = self.env['res.partner'].search([('vat', '=', self._norm_cuit(emisor_cuit))], limit=1)   
             company_id = self.env['res.company'].search([('partner_id.vat', '=', self._norm_cuit(company_nif))], limit=1)
-            fac_proveedor = self.env['account.move'].search([('name', 'ilike', nro), ('partner_id.vat', '=', self._norm_cuit(emisor_cuit)), ('company_id', '=', company_id.id)], limit=1)         
+            fac_proveedor = self.env['account.move'].search([('name', 'ilike', num_fac), ('partner_id.vat', '=', self._norm_cuit(emisor_cuit)), ('company_id', '=', company_id.id)], limit=1)         
             tipo_comprobante = self.env['l10n_latam.document.type'].search([('code', '=', tipo_code)], limit=1)
             journal_id = self.env['account.journal'].search([('name', 'in', ['FACTURAS PROVEEDORES LAVALLE', 'FACTURAS PROVEEDORES DEPOSITO']), ('company_id', '=', company_id.id)], limit=1)
             currency = False
             moneda_symbol = ws.cell(r, c_moneda).value
-
+            numero_documento = f"{int(p_venta):04d}-{int(num_fac):08d}"
             # VALIDACIONES
             if not journal_id:
                 raise ValidationError(_("No se encontró el diario para Facturas de Proveedores."))
@@ -304,6 +304,7 @@ class AccountImportAfipFacprovWizard(models.TransientModel):
                 'invoice_line_ids': lines,
                 'computed_currency_rate': tipo_cambio,
                 'l10n_ar_currency_rate': tipo_cambio,
+                'l10n_latam_document_number': numero_documento,
             }
 
             move = Move.create(vals)
