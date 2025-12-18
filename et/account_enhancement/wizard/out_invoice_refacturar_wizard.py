@@ -202,7 +202,7 @@ class OutInvoiceRefacturarWizard(models.TransientModel):
                     code_nc = self.env['l10n_latam.document.type'].search([('code', '=', '203'), ('internal_type', '=', 'credit_note')], limit=1)
                     if not code_nc:
                         raise ValidationError(_("No se encontró el tipo de comprobante Nota de Crédito (203) para refacturar la factura %s.") % move.name)  
-                    reversal_vals[0].update({'l10n_latam_document_type_id': code_nc.id})
+                    reversal_vals[0].update({'l10n_latam_document_type_id': code_nc.id, 'afip_fce_es_aulacion': True})
 
                 credit_notes = move._reverse_moves(default_values_list=reversal_vals, cancel=True)
                 # 2) Publicar SOLO las NC en borrador (evita "ya está publicado")
