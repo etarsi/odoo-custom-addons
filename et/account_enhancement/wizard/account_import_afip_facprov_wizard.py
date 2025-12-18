@@ -198,7 +198,7 @@ class AccountImportAfipFacprovWizard(models.TransientModel):
             if company_nif and company_actual and self._norm_cuit(company_nif) != self._norm_cuit(company_actual):
                 raise ValidationError("Esta intentando verificar facturas que no corresponden a la compañía actual.")
             if not partner:
-                fila_no_registrada += f"\n- Fila {r}: No se encontró el proveedor con CUIT '{emisor_cuit}'."
+                fila_no_registrada += f"\n Fila: {r}, "
                 continue
             if fac_proveedor:
                 continue
@@ -312,13 +312,13 @@ class AccountImportAfipFacprovWizard(models.TransientModel):
             created_move_ids.append(move.id)
 
 
-        if len(fila_no_registrada) > 0:
+        if len(fila_no_registrada) > 0 and created_move_ids:
             response = {
                 'type': 'ir.actions.client',
                 'tag': 'display_notification',
                 'params': {
                     'title': 'Atención',
-                    'message': f'Se importaron {len(created_move_ids)} - Facturas de Proveedor. Sin embargo, Estas filas no se pudieron importar:\n{fila_no_registrada}',
+                    'message': f'Se importaron {len(created_move_ids)} - Fac. Proveedor. Sin embargo, Estas filas no se pudieron importar:\n{fila_no_registrada}',
                     'type': 'warning',
                     'sticky': True,
                     'timeout': 30000,
@@ -333,41 +333,51 @@ class AccountImportAfipFacprovWizard(models.TransientModel):
                     }
                 }
             }
-
+        elif len(fila_no_registrada) > 0 and not created_move_ids:
+            response = {
+                'type': 'ir.actions.client',
+                'tag': 'display_notification',
+                'params': {
+                    'title': 'Atención',
+                    'message': f'No se importó ninguna Factura de Proveedor. Estas filas no se pudieron importar:\n{fila_no_registrada}',
+                    'type': 'warning',
+                    'sticky': True,
+                    'timeout': 30000,
+                    'next': {'type': 'ir.actions.act_window_close' }
+                }
+            }
+        elif created_move_ids and not len(fila_no_registrada) > 0:
+            response = {
+                'type': 'ir.actions.client',
+                'tag': 'display_notification',
+                'params': {
+                    'title': 'Éxito',
+                    'message': f'Se importaron {len(created_move_ids)} Facturas de Proveedor correctamente.',
+                    'type': 'success',
+                    'sticky': False,
+                    'timeout': 30000,
+                    'next': {
+                        'type': 'ir.actions.act_window',
+                        'name': _('Comprobantes Factura Importados'),
+                        'res_model': 'account.move',
+                        'view_mode': 'tree,form',
+                        'views': [(False, 'list')],
+                        'domain': [('id', 'in', created_move_ids)],
+                        'target': 'current',
+                    }
+                }
+            }
         else:
-            if len(created_move_ids) > 0:
-                response = {
-                    'type': 'ir.actions.client',
-                    'tag': 'display_notification',
-                    'params': {
-                        'title': 'Éxito',
-                        'message': f'Se importaron {len(created_move_ids)} - Facturas de Proveedor correctamente.',
-                        'type': 'success',
-                        'sticky': False,
-                        'timeout': 30000,
-                        'next': {
-                            'type': 'ir.actions.act_window',
-                            'name': _('Comprobantes Factura Importados'),
-                            'res_model': 'account.move',
-                            'view_mode': 'tree,form',
-                            'views': [(False, 'list')],
-                            'domain': [('id', 'in', created_move_ids)],
-                            'target': 'current',
-                        }
-                    }
+            response = {
+                'type': 'ir.actions.client',
+                'tag': 'display_notification',
+                'params': {
+                    'title': 'Atención',
+                    'message': 'No se encontró ninguna Factura de Proveedor Pendiente a importar.',
+                    'type': 'info',
+                    'sticky': False,
+                    'timeout': 30000,
+                    'next': {'type': 'ir.actions.act_window_close' }
                 }
-            else:
-                response = {
-                    'type': 'ir.actions.client',
-                    'tag': 'display_notification',
-                    'params': {
-                        'title': 'Éxito',
-                        'message': 'No se importó ningúna Factura de Proveedor Pendiente a importar.',
-                        'type': 'info',
-                        'sticky': False,
-                        'timeout': 30000,
-                        'next': {'type': 'ir.actions.act_window_close' }
-                    }
-                }
-
+            }
         return response
