@@ -132,10 +132,14 @@ class StockMovesERP(models.Model):
     def cancel_sale_line(self):
         for record in self:
             if record.sale_line_id:
-                if record.sale_line_id.invoice_lines:
-                    raise UserError(f"No se puede borrar la línea de venta {record.sale_line_id.name} porque ya fue facturada.")            
-                record.sale_line_id.product_uom_qty = 0
-                record.sale_line_id.is_cancelled = True
+                if record.sale_line_id.qty_delivered > 0:
+                    if  record.sale_line_id.product_uom_qty == (record.sale_line_id.qty_delivered + 10):
+                        raise UserError(f"No se puede borrar la línea de venta {record.sale_line_id.name} porque ya tiene cantidades entregadas.")
+                    
+                    #raise UserError(f"No se puede borrar la línea de venta {record.sale_line_id.name} porque ya tiene cantidades entregadas.")
+                else:    
+                    record.sale_line_id.product_uom_qty = 0
+                    record.sale_line_id.is_cancelled = True
 
     
     def cancel_picking_line(self):

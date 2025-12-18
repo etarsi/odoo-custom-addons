@@ -353,62 +353,27 @@ class StockERP(models.Model):
         self.fisico_unidades = 0
 
 
-    class StockPickingInherit(models.Model):
-        _inherit = 'stock.picking'
+class StockPickingInherit(models.Model):
+    _inherit = 'stock.picking'
 
 
-        def anular_envio(self):
-            for record in self:
-                if record.state == 'done':
-                    raise UserError('No se puede anular el envío a Digip porque la trasnferencia está validada.')
-                
-                record.state_wms = 'no'
-                record.codigo_wms = ''
-
-                if record.picking_type_code == 'outgoing':
-                    record.cancel_preparation()
-
-
-        def cancel_preparation(self):
-            for record in self:
-
-                if record.move_ids_without_package:
-                    for move in record.move_ids_without_package:
-                        default_code = move.product_id.default_code
-
-                        if default_code:
-                            if default_code.startswith('9'):
-                                search_code = default_code[1:]
-                            else:
-                                search_code = default_code
-
-                        product_id = self.env['product.product'].search([('default_code', '=', search_code)], limit=1)
-                        stock_moves_erp = self.env['stock.moves.erp'].search([('sale_id', '=', record.sale_id.id), ('product_id', '=', product_id.id), ('type', '=', 'preparation')], limit=1)
-
-                        if stock_moves_erp:
-                            stock_moves_erp.undo_preparation()
-                        #else:
-                        #    raise UserError('No se encontró movimiento de stock para anular')
-
+    def anular_envio(self):
+        for record in self:
+            if record.state == 'done':
+                raise UserError('No se puede anular el envío a Digip porque la trasnferencia está validada.')
             
+            record.state_wms = 'no'
+            record.codigo_wms = ''
+
+            if record.picking_type_code == 'outgoing':
+                record.cancel_preparation()
 
 
-        def enviar(self):
-            for record in self:                
+    def cancel_preparation(self):
+        for record in self:
 
-                record.update_availability()
-
-                if record.move_ids_without_package:
-                    for move in record.move_ids_without_package:
-                        if move.product_available_percent == 0:
-                            raise UserError(f'No se puede enviar a Digip. El producto: [{move.product_id.default_code}]{move.product_id.name} no tiene disponibilidad')
-
-                res = super().enviar()
-                
-
+            if record.move_ids_without_package:
                 for move in record.move_ids_without_package:
-                    vals = {}
-
                     default_code = move.product_id.default_code
 
                     if default_code:
@@ -417,50 +382,93 @@ class StockERP(models.Model):
                         else:
                             search_code = default_code
 
-                        product_id = self.env['product.product'].search([
-                            ('default_code', '=', default_code)
-                        ], limit=1)
+                    product_id = self.env['product.product'].search([('default_code', '=', search_code)], limit=1)
+                    stock_moves_erp = self.env['stock.moves.erp'].search([('sale_id', '=', record.sale_id.id), ('product_id', '=', product_id.id), ('type', '=', 'preparation')], limit=1)
 
-                        stock_erp = self.env['stock.erp'].search([
-                            ('product_id.default_code', '=', search_code)
-                        ], limit=1)
-
-                    
-                    vals['stock_erp'] = stock_erp.id
-                    vals['picking_id'] = record.id
-                    vals['sale_id'] = record.sale_id.id
-                    vals['sale_line_id'] = move.sale_line_id.id
-                    vals['partner_id'] = record.sale_id.partner_id.id
-                    vals['product_id'] = product_id.id
-                    vals['quantity'] = move.product_uom_qty
-                    vals['uxb'] = move.product_packaging_id.qty or ''
-                    vals['bultos'] = move.product_packaging_qty
-                    vals['type'] = 'preparation'
-
-                    self.env['stock.moves.erp'].create(vals)
-            
-
-        def enviar_recepcion(self):
-            for record in self:
-                if not record.container:
-                    raise UserError('No se puede enviar a Digip porque el campo "Contenedor" está vacío.')
-                
-                res = super().enviar_recepcion()
+                    if stock_moves_erp:
+                        stock_moves_erp.undo_preparation()
+                    #else:
+                    #    raise UserError('No se encontró movimiento de stock para anular')
 
         
-        def action_cancel(self):
-            for record in self:
-                if record.state_wms != 'no':
-                    raise UserError('No se puede cancelar la transferencia porque el pedido está enviado a Digip.')
-                
-                if record.move_ids_without_package:
-                    for move in record.move_ids_without_package:
-                        
-                        stock_moves_erp = self.env['stock.moves.erp'].search([('sale_line_id', '=', move.sale_line_id.id), ('type', '=', 'reserve')], limit=1)
 
-                        if stock_moves_erp:
-                            stock_moves_erp.unreserve_stock()
+
+    def enviar(self):
+        for record in self:                
+
+            record.update_availability()
+
+            if record.move_ids_without_package:
+                for move in record.move_ids_without_package:
+                    if move.product_available_percent == 0:
+                        raise UserError(f'No se puede enviar a Digip. El producto: [{move.product_id.default_code}]{move.product_id.name} no tiene disponibilidad')
+
+            res = super().enviar()
+            
+
+            for move in record.move_ids_without_package:
+                vals = {}
+
+                default_code = move.product_id.default_code
+
+                if default_code:
+                    if default_code.startswith('9'):
+                        search_code = default_code[1:]
+                    else:
+                        search_code = default_code
+
+                    product_id = self.env['product.product'].search([
+                        ('default_code', '=', default_code)
+                    ], limit=1)
+
+                    stock_erp = self.env['stock.erp'].search([
+                        ('product_id.default_code', '=', search_code)
+                    ], limit=1)
+
                 
-                    record.state = 'cancel'
+                vals['stock_erp'] = stock_erp.id
+                vals['picking_id'] = record.id
+                vals['sale_id'] = record.sale_id.id
+                vals['sale_line_id'] = move.sale_line_id.id
+                vals['partner_id'] = record.sale_id.partner_id.id
+                vals['product_id'] = product_id.id
+                vals['quantity'] = move.product_uom_qty
+                vals['uxb'] = move.product_packaging_id.qty or ''
+                vals['bultos'] = move.product_packaging_qty
+                vals['type'] = 'preparation'
+
+                self.env['stock.moves.erp'].create(vals)
+        
+
+    def enviar_recepcion(self):
+        for record in self:
+            if not record.container:
+                raise UserError('No se puede enviar a Digip porque el campo "Contenedor" está vacío.')
+            
+            res = super().enviar_recepcion()
+
+    
+    def action_cancel(self):
+        for record in self:
+            if record.state_wms != 'no':
+                raise UserError('No se puede cancelar la transferencia porque el pedido está enviado a Digip.')
+            
+            if record.move_ids_without_package:
+                for move in record.move_ids_without_package:
+                    stock_moves_erp = self.env['stock.moves.erp'].search([('sale_line_id', '=', move.sale_line_id.id), ('type', '=', 'reserve')], limit=1)
+                    if stock_moves_erp:
+                        record.cancel_sale_line(stock_moves_erp, move)
+                record.state = 'cancel'
+            else:
+                record.state = 'cancel'
+            
+    def cancel_sale_line(self, stock_moves_erp, picking_move):
+        if stock_moves_erp.sale_line_id:
+            if stock_moves_erp.sale_line_id.qty_delivered > 0:
+                if  stock_moves_erp.sale_line_id.product_uom_qty >= (stock_moves_erp.sale_line_id.qty_delivered + picking_move.product_uom_qty):
+                    stock_moves_erp.sale_line_id.product_uom_qty -= picking_move.product_uom_qty
                 else:
-                    raise UserError('No se puede cancelar una transferencia que no tiene movimientos de stock')
+                    raise UserError(f"No se puede borrar la línea de venta {stock_moves_erp.sale_line_id.name} porque ya tiene cantidades entregadas.")
+            else:    
+                stock_moves_erp.sale_line_id.product_uom_qty = 0
+                stock_moves_erp.sale_line_id.is_cancelled = True
