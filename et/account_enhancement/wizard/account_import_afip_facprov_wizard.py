@@ -181,7 +181,6 @@ class AccountImportAfipFacprovWizard(models.TransientModel):
             tipo_cambio = ws.cell(r, c_tc).value 
             tipo_cambio = self._to_float(tipo_cambio) if tipo_cambio else 1.0
             emisor_cuit = self._norm_cuit(ws.cell(r, c_emisor_doc).value)
-            emisor_name = ws.cell(r, c_emisor_name).value if c_emisor_name else False
             partner = self.env['res.partner'].search([('vat', '=', self._norm_cuit(emisor_cuit))], limit=1)   
             company_id = self.env['res.company'].search([('partner_id.vat', '=', self._norm_cuit(company_nif))], limit=1)
             fac_proveedor = self.env['account.move'].search([('name', 'ilike', num_fac), ('partner_id.vat', '=', self._norm_cuit(emisor_cuit)), ('company_id', '=', company_id.id)], limit=1)         
@@ -313,7 +312,7 @@ class AccountImportAfipFacprovWizard(models.TransientModel):
             created_move_ids.append(move.id)
 
 
-        if fila_no_registrada:
+        if len(fila_no_registrada) > 0:
             response = {
                 'type': 'ir.actions.client',
                 'tag': 'display_notification',
