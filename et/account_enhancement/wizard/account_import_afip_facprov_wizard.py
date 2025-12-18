@@ -190,6 +190,7 @@ class AccountImportAfipFacprovWizard(models.TransientModel):
             currency = False
             moneda_symbol = ws.cell(r, c_moneda).value
             numero_documento = f"{int(p_venta):04d}-{int(num_fac):08d}"
+            fila_no_registrada = ""
             # VALIDACIONES
             if not journal_id:
                 raise ValidationError(_("No se encontró el diario para Facturas de Proveedores."))
@@ -198,7 +199,8 @@ class AccountImportAfipFacprovWizard(models.TransientModel):
             if company_nif and company_actual and self._norm_cuit(company_nif) != self._norm_cuit(company_actual):
                 raise ValidationError("Esta intentando verificar facturas que no corresponden a la compañía actual.")
             if not partner:
-                raise ValidationError(_("Fila %s: no existe el proveedor %s (%s).") % (r, emisor_name, emisor_cuit))
+                fila_no_registrada += f"\n- Fila {r}: No se encontró el proveedor con CUIT '{emisor_cuit}'."
+                continue
             if fac_proveedor:
                 continue
 
@@ -311,13 +313,56 @@ class AccountImportAfipFacprovWizard(models.TransientModel):
             created_move_ids.append(move.id)
 
         if not created_move_ids:
-            raise UserError(_("No se creó ningún comprobante (posibles duplicados o archivo vacío)."))
-
-        return {
-            'type': 'ir.actions.act_window',
-            'name': _('Comprobantes Factura Importados'),
-            'res_model': 'account.move',
-            'view_mode': 'tree,form',
-            'domain': [('id', 'in', created_move_ids)],
-            'target': 'current',
-        }
+            response = {
+                'type': 'ir.actions.client',
+                'tag': 'display_notification',
+                'params': {
+                    'title': 'Éxito',
+                    'message': 'No se importó ningúna Factura de Proveedor Pendiente a importar.',
+                    'type': 'info',
+                    'sticky': False,
+                    'timeout': 12000,
+                }
+            }    
+        else:
+            if not fila_no_registrada:
+                response = {
+                    'type': 'ir.actions.client',
+                    'tag': 'display_notification',
+                    'params': {
+                        'title': 'Éxito',
+                        'message': f'Se importaron {len(created_move_ids)} - Facturas de Proveedor correctamente.',
+                        'type': 'success',
+                        'sticky': False,
+                        'timeout': 12000,
+                        'next': {
+                            'type': 'ir.actions.act_window',
+                            'name': _('Comprobantes Factura Importados'),
+                            'res_model': 'account.move',
+                            'view_mode': 'tree,form',
+                            'domain': [('id', 'in', created_move_ids)],
+                            'target': 'current',
+                        }
+                    }
+                }
+            else:
+                response = {
+                    'type': 'ir.actions.client',
+                    'tag': 'display_notification',
+                    'params': {
+                        'title': 'Atención',
+                        'message': f'Se importaron {len(created_move_ids)} - Facturas de Proveedor. Sin embargo, Estas filas no se pudieron importar:\n{fila_no_registrada}',
+                        'type': 'warning',
+                        'sticky': True,
+                        'timeout': 12000,
+                        'next': {
+                            'type': 'ir.actions.act_window',
+                            'name': _('Comprobantes Factura Importados'),
+                            'res_model': 'account.move',
+                            'view_mode': 'tree,form',
+                            'domain': [('id', 'in', created_move_ids)],
+                            'target': 'current',
+                        }
+                    }
+                }
+        return response
