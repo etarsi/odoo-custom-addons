@@ -198,7 +198,7 @@ class AccountImportAfipFacprovWizard(models.TransientModel):
             if company_nif and company_actual and self._norm_cuit(company_nif) != self._norm_cuit(company_actual):
                 raise ValidationError("Esta intentando verificar facturas que no corresponden a la compañía actual.")
             if not partner:
-                fila_no_registrada += f"\n Fila: {r}, "
+                fila_no_registrada += f"\n , Fila: {r}"
                 continue
             if fac_proveedor:
                 continue
@@ -320,8 +320,8 @@ class AccountImportAfipFacprovWizard(models.TransientModel):
                     'title': 'Atención',
                     'message': f'Se importaron {len(created_move_ids)} - Fac. Proveedor. Sin embargo, Estas filas no se pudieron importar:\n{fila_no_registrada}',
                     'type': 'warning',
-                    'sticky': True,
-                    'timeout': 30000,
+                    'sticky': False,
+                    'timeout': 15000,
                     'next': {
                         'type': 'ir.actions.act_window',
                         'name': _('Comprobantes Factura Importados'),
@@ -341,8 +341,8 @@ class AccountImportAfipFacprovWizard(models.TransientModel):
                     'title': 'Atención',
                     'message': f'No se importó ninguna Factura de Proveedor. Estas filas no se pudieron importar:\n{fila_no_registrada}',
                     'type': 'warning',
-                    'sticky': True,
-                    'timeout': 30000,
+                    'sticky': False,
+                    'timeout': 15000,  
                     'next': {'type': 'ir.actions.act_window_close' }
                 }
             }
@@ -355,7 +355,7 @@ class AccountImportAfipFacprovWizard(models.TransientModel):
                     'message': f'Se importaron {len(created_move_ids)} Facturas de Proveedor correctamente.',
                     'type': 'success',
                     'sticky': False,
-                    'timeout': 30000,
+                    'timeout': 15000,
                     'next': {
                         'type': 'ir.actions.act_window',
                         'name': _('Comprobantes Factura Importados'),
@@ -372,11 +372,11 @@ class AccountImportAfipFacprovWizard(models.TransientModel):
                 'type': 'ir.actions.client',
                 'tag': 'display_notification',
                 'params': {
-                    'title': 'Atención',
+                    'title': 'Información',
                     'message': 'No se encontró ninguna Factura de Proveedor Pendiente a importar.',
                     'type': 'info',
                     'sticky': False,
-                    'timeout': 30000,
+                    'timeout': 15000,
                     'next': {'type': 'ir.actions.act_window_close' }
                 }
             }
