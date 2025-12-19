@@ -118,15 +118,14 @@ class ReportStockPickingFacturaWizard(models.TransientModel):
         # DOMAIN
         # =========================
         domain = [('state', '!=', 'done')]
-        clientes_ids = []
 
         if self.temporada == 't_nino_2025':
             domain += [('create_date', '>=', date(2025, 3, 1)), ('create_date', '<=', date(2025, 8, 31))]
         elif self.temporada == 't_nav_2025':
             domain += [('create_date', '>=', date(2025, 9, 1)), ('create_date', '<=', date(2026, 2, 28))]
         
-        if clientes_ids:
-            domain += [('partner_id', 'in', clientes_ids)]
+        if self.partner_ids:
+            domain += [('partner_id', 'in', self.partner_ids.ids)]
             
         stocks_pickings = self.env['stock.picking'].search(domain)
         if not stocks_pickings:
