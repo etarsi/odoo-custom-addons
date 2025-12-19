@@ -150,10 +150,10 @@ class ReportStockPickingFacturaWizard(models.TransientModel):
             invoice_ids = stock_picking.invoice_ids.filtered(lambda inv: inv.state != 'cancel')
             if invoice_ids:
                 for invoice in invoice_ids:
-                    if invoice.type == 'out_invoice':
+                    if invoice.move_type == 'out_invoice':
                         facturas.add(invoice.name)
                         t_facturado += invoice.amount_total
-                    elif invoice.type == 'out_refund':
+                    elif invoice.move_type == 'out_refund':
                         facturas.add(invoice.name)
                         t_ncredito += invoice.amount_total            
                 #t_ncredito sea negativo
