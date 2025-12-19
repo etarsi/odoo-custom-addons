@@ -117,7 +117,7 @@ class ReportStockPickingFacturaWizard(models.TransientModel):
         # =========================
         # DOMAIN
         # =========================
-        domain = [('state', '!=', 'done')]
+        domain = [('state', '=', 'done')]
 
         if self.temporada == 't_nino_2025':
             domain += [('create_date', '>=', date(2025, 3, 1)), ('create_date', '<=', date(2025, 8, 31))]
