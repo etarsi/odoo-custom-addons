@@ -137,7 +137,7 @@ class ReportStockPickingFacturaWizard(models.TransientModel):
         row = 2  # empezamos justo debajo de headers
         row2 = 2  # empezamos justo debajo de headers de hoja BASE DE DATOS
         for stock_picking in stocks_pickings:
-            date_done = stock_picking.date_done.strftime('%d/%m/%Y')
+            date_done = stock_picking.date_done.strftime('%d/%m/%Y') if stock_picking.date_done else ''
             t_facturado = 0.0
             t_ncredito = 0.0
             t_cant_bultos = 0.0
