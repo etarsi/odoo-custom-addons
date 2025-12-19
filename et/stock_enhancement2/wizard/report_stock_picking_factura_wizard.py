@@ -61,22 +61,22 @@ class ReportStockPickingFacturaWizard(models.TransientModel):
         # =========================
         # TITULO
         # =========================
-        worksheet.merge_range(0, 0, 0, 6, ('REPORTE DE TRANSFERENCIAS-FACTURAS REALIZADAS'), fmt_title)
+        worksheet.merge_range(0, 0, 0, 11, ('REPORTE DE TRANSFERENCIAS-FACTURAS REALIZADAS'), fmt_title)
         # =========================
         # COLUMNAS DE LA HOJA REPORTE DE ENTREGA
         # =========================
         worksheet.set_column(0, 0, 15)      # Fecha
-        worksheet.set_column(2, 2, 25)      # Doc. Origen
-        worksheet.set_column(8, 8, 40)      # Cliente
-        worksheet.set_column(9, 9, 15)      # Cantidad de Bultos
-        worksheet.set_column(5, 5, 20)      # Total Facturado
-        worksheet.set_column(6, 6, 20)      # Total N. Credito en Negativo
-        worksheet.set_column(7, 7, 25)      # RUBROS (/)
-        worksheet.set_column(11, 11, 25)    # COMPAÑIA
-        worksheet.set_column(3, 3, 50)      # Transferencia
-        worksheet.set_column(1, 1, 15)      # Código WMS
-        worksheet.set_column(4, 4, 30)      # Facturas (/)
-        worksheet.set_column(10, 10, 15)    # Cant. LINEA DE PEDIDOS
+        worksheet.set_column(1, 1, 30)      # Doc. Origen
+        worksheet.set_column(2, 2, 60)      # Cliente
+        worksheet.set_column(3, 3, 15)      # Cantidad de Bultos
+        worksheet.set_column(4, 4, 15)      # Total Facturado
+        worksheet.set_column(5, 5, 15)      # Total N. Credito en Negativo
+        worksheet.set_column(6, 6, 30)      # RUBROS (/)
+        worksheet.set_column(7, 7, 25)      # COMPAÑIA
+        worksheet.set_column(8, 8, 50)      # Transferencia
+        worksheet.set_column(9, 9, 15)      # Código WMS
+        worksheet.set_column(10, 10, 30)     # Facturas (/)
+        worksheet.set_column(11, 11, 15)    # Cant. LINEA DE PEDIDOS
         # Alto de filas de título/encabezado
         worksheet.set_row(0, 20)
         worksheet.set_row(1, 18)
@@ -208,24 +208,23 @@ class ReportStockPickingFacturaWizard(models.TransientModel):
                 worksheet2.write_number(row2, 3, uxb, fmt_int)
                 worksheet2.write_number(row2, 4, bultos, fmt_dec2)
                 worksheet2.write(row2, 5, move.product_id.categ_id.parent_id.name or '', fmt_text2)
-                worksheet2.write(row2, 6, move.name, fmt_text2)
+                worksheet2.write(row2, 6, stock_picking.name, fmt_text2)
                 row2 += 1
                 
                 
             #DATOS DE LAS FILAS DE REPORTE ENTREGA
             worksheet.write(row, 0, date_done, fmt_text2)
-            worksheet.write(row, 1, move.origin, fmt_text2)
-            worksheet.write(row, 2, move.partner_id.name, fmt_text2)
+            worksheet.write(row, 1, stock_picking.origin, fmt_text)
+            worksheet.write(row, 2, stock_picking.partner_id.name, fmt_text)
             worksheet.write(row, 3, t_cant_bultos, fmt_text2)
             worksheet.write(row, 4, t_facturado, fmt_text2)
             worksheet.write(row, 5, t_ncredito, fmt_text2)
             worksheet.write(row, 6, rubros_str, fmt_text2)
-            worksheet.write(row, 7, move.company_id.name, fmt_text2)
-            worksheet.write(row, 8, move.name, fmt_int)
-            worksheet.write(row, 9, move.codigo_wms, fmt_text)
+            worksheet.write(row, 7, stock_picking.company_id.name, fmt_text2)
+            worksheet.write(row, 8, stock_picking.name, fmt_text)
+            worksheet.write(row, 9, stock_picking.codigo_wms, fmt_text)
             worksheet.write(row, 10, facturas_str, fmt_text2)
-            worksheet.write(row, 11, move.product_id.categ_id.parent_id.name, fmt_text)
-            worksheet.write(row, 12, t_cant_lineas, fmt_int)
+            worksheet.write(row, 11, t_cant_lineas, fmt_int)
             row += 1
         workbook.close()
         output.seek(0)
