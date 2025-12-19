@@ -17,7 +17,7 @@ class ReportStockPickingFacturaWizard(models.TransientModel):
         ('t_nino_2025', 'Temporada Niño 2025'),
         ('t_nav_2025', 'Temporada Navidad 2025'),
     ], required=True, default='t_nav_2025', help='Seleccionar la temporada para el reporte')  
-    partner_ids = fields.Many2many('res.partner', string='Clientes', help='Seleccionar un Cliente para filtrar', required=True)
+    partner_ids = fields.Many2many('res.partner', string='Clientes', help='Seleccionar un Cliente para filtrar')
     category_ids = fields.Many2many('product.category', string='Categorías de Producto', help='Filtrar por categorías de producto', domain=[('parent_id', '=', False)])
     company_ids = fields.Many2many('res.company', string='Compañías', help='Filtrar por Compañías')
     
@@ -232,10 +232,10 @@ class ReportStockPickingFacturaWizard(models.TransientModel):
 
         archivo_excel = base64.b64encode(output.read())
         attachment = self.env['ir.attachment'].create({
-            'name': f'Pendientes {self.partner_id.name.lower()} - {fields.Date.today()}.xlsx',
+            'name': f'Reporte Transferencias/Factura - {fields.Date.today()}.xlsx',
             'type': 'binary',
             'datas': archivo_excel,
-            'store_fname': f'Pendientes {self.partner_id.name.lower()} - {fields.Date.today()}.xlsx',
+            'store_fname': f'Reporte Transferencias/Factura - {fields.Date.today()}.xlsx',
             'mimetype': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
         })
 
