@@ -61,7 +61,7 @@ class ReportStockPickingFacturaWizard(models.TransientModel):
         # =========================
         # TITULO
         # =========================
-        worksheet.merge_range(0, 0, 0, 6, ('REPORTE DE TRANSFERENCIAS-FACTURAS REALIZADAS').upper(), fmt_title)
+        worksheet.merge_range(0, 0, 0, 6, ('REPORTE DE TRANSFERENCIAS-FACTURAS REALIZADAS'), fmt_title)
         # =========================
         # COLUMNAS DE LA HOJA REPORTE DE ENTREGA
         # =========================
@@ -215,12 +215,12 @@ class ReportStockPickingFacturaWizard(models.TransientModel):
             #DATOS DE LAS FILAS DE REPORTE ENTREGA
             worksheet.write(row, 0, date_done, fmt_text2)
             worksheet.write(row, 1, move.origin, fmt_text2)
-            worksheet.write(row, 2, move.partner_id.name.upper(), fmt_text2)
+            worksheet.write(row, 2, move.partner_id.name, fmt_text2)
             worksheet.write(row, 3, t_cant_bultos, fmt_text2)
             worksheet.write(row, 4, t_facturado, fmt_text2)
             worksheet.write(row, 5, t_ncredito, fmt_text2)
             worksheet.write(row, 6, rubros_str, fmt_text2)
-            worksheet.write(row, 7, move.company_id.name.upper(), fmt_text2)
+            worksheet.write(row, 7, move.company_id.name, fmt_text2)
             worksheet.write(row, 8, move.name, fmt_int)
             worksheet.write(row, 9, move.codigo_wms, fmt_text)
             worksheet.write(row, 10, facturas_str, fmt_text2)
