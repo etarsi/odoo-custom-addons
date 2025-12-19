@@ -131,6 +131,38 @@ class SaleOrderTipoVentaWizard(models.TransientModel):
         picking_dones = sale.mapped('picking_ids').filtered(lambda p: p.state == 'done')
         if picking_dones:
             for picking in picking_dones:
+                if not picking.invoice_ids:
+                    rule = self.env['stock.rule'].search([
+                        ('warehouse_id', '=', warehouse.id),
+                        ('location_src_id', '=', warehouse.lot_stock_id.id),
+                        ('company_id', '=', self.company_id.id),
+                    ], limit=1)
+                    #ahora los stock moves
+                    for move in picking.move_lines:
+                        vals_move = {
+                            'rule_id': rule.id,
+                            'company_id': self.company_id.id,
+                            'location_id': warehouse.lot_stock_id.id,
+                            'warehouse_id': warehouse.id,
+                        }
+                        move.write(vals_move)
+                    #y los move lines
+                    for move_line in picking.move_line_ids:
+                        move_line.write({
+                            'company_id': self.company_id.id,
+                            'location_id': warehouse.lot_stock_id.id,
+                        })
+                    #finalmente el picking
+                    picking.write({
+                        'company_id': self.company_id.id,
+                        'location_id': warehouse.lot_stock_id.id,
+                    })
+                    # agregar en el chat del picking la modificación realizada y quien la hizo
+                    picking.message_post(body=_('Compañía modificada a "%s" por el usuario %s desde el asistente de modificación de tipo de venta del pedido de venta asociado.') % (
+                        self.company_id.name,
+                        self.env.user.name,
+                    ))
+                #ahora las facturas asociadas
                 invoices = picking.mapped('invoice_ids').filtered(lambda inv: inv.state not in ('posted', 'cancel'))
                 if invoices:
                     for invoice in invoices:
@@ -139,4 +171,8 @@ class SaleOrderTipoVentaWizard(models.TransientModel):
                         })
                         #recompute taxes
                         invoice._compute_tax_id()
+                        # agregar en el chat de la factura la modificación realizada y quien la hizo
+                        invoice.message_post(body=_('Compañía modificada a "%s" por el usuario %s desde el asistente de modificación de tipo de venta del pedido de venta asociado.') % (
+                            self.company_id.name, self.env.user.name,
+                        ))
         return {'type': 'ir.actions.act_window_close'}
