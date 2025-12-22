@@ -17,6 +17,8 @@ odoo.define("account_financial_report.client_action", function (require) {
                 );
                 this.$buttons.on("click", ".o_report_print", this.on_click_print);
                 this.$buttons.on("click", ".o_report_export", this.on_click_export);
+                console.log("AFRReportAction start - buttons added");
+                console.log(this.$buttons);
 
                 this.controlPanelProps.cp_content = {
                     $buttons: this.$buttons,
