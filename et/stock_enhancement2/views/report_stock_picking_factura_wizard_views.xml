@@ -10,7 +10,10 @@
                         <field name="partner_ids" options="{'no_create': True}" widget="many2many_tags"/>
                         <field name="category_ids" options="{'no_create': True}" widget="many2many_tags"/>
                         <field name="temporada"/>
-                    </group>             
+                    </group>       
+                    <group>
+                        <field name="type_picking" widget="selection"/>
+                    </group>      
                 </group>
                 <footer>
                     <button name="action_generar_excel" type="object" string="Generar Excel" class="btn-primary"/>
