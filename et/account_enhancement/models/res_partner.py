@@ -10,6 +10,7 @@ from odoo.tools.float_utils import float_compare
 _logger = logging.getLogger(__name__)
 
 class ResPartnerInherit(models.Model):
+    _name = 'res.partner'
     _inherit = 'res.partner'
     
     diario_prov_afip_import_id = fields.Selection(string='Diario Proveedor AFIP Import', selection=[
