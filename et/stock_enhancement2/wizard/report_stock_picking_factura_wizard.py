@@ -213,10 +213,12 @@ class ReportStockPickingFacturaWizard(models.TransientModel):
                 row2 += 1
             
             t_cant_bultos = float_round(t_cant_bultos, 2)
+            #Sacar el nombre del cliente si tiene 
+            partner_name = (stock_picking.partner_id.parent_id.name + ' / ' + stock_picking.partner_id.name) if stock_picking.partner_id.parent_id else stock_picking.partner_id.name
             #DATOS DE LAS FILAS DE REPORTE ENTREGA
             worksheet.write(row, 0, date_done, fmt_text2)
             worksheet.write(row, 1, stock_picking.origin, fmt_text)
-            worksheet.write(row, 2, stock_picking.partner_id.name, fmt_text)
+            worksheet.write(row, 2, partner_name or '', fmt_text)
             worksheet.write(row, 3, t_cant_bultos, fmt_text2)
             worksheet.write(row, 4, t_facturado, fmt_moneda)
             worksheet.write(row, 5, t_ncredito, fmt_moneda)

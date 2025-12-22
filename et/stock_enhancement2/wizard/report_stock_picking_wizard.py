@@ -79,7 +79,7 @@ class ReportStockPickingWizard(models.TransientModel):
         # =========================
         # TITULO
         # =========================
-        worksheet.merge_range(0, 0, 0, 6, (self.partner_id.name or '').upper(), fmt_title)
+        worksheet.merge_range(0, 0, 0, 6, (self.partner_id.name or 'TODOS LOS CLIENTES').upper(), fmt_title)
 
         # =========================
         # ENCABEZADOS
@@ -163,10 +163,10 @@ class ReportStockPickingWizard(models.TransientModel):
 
         archivo_excel = base64.b64encode(output.read())
         attachment = self.env['ir.attachment'].create({
-            'name': f'Pendientes {self.partner_id.name.lower()} - {fields.Date.today()}.xlsx',
+            'name': f'Pendientes {self.partner_id.name.lower() if self.partner_id else "todos"} - {fields.Date.today()}.xlsx',
             'type': 'binary',
             'datas': archivo_excel,
-            'store_fname': f'Pendientes {self.partner_id.name.lower()} - {fields.Date.today()}.xlsx',
+            'store_fname': f'Pendientes {self.partner_id.name.lower() if self.partner_id else "todos"} - {fields.Date.today()}.xlsx',
             'mimetype': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
         })
 
