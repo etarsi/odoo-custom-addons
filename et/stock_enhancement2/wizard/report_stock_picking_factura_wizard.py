@@ -57,7 +57,7 @@ class ReportStockPickingFacturaWizard(models.TransientModel):
         })
         fmt_text = workbook.add_format({'border': 1, 'align': 'left', 'valign': 'vcenter'})
         fmt_text2 = workbook.add_format({'border': 1, 'align': 'center', 'valign': 'vcenter'})
-        fmt_moneda = workbook.add_format({'border': 1, 'align': 'center', 'valign': 'vcenter', 'num_format': '$#,##0.00'})
+        fmt_moneda = workbook.add_format({'border': 1, 'align': 'right', 'valign': 'vcenter', 'num_format': '$#,##0.00'})
         fmt_int = workbook.add_format({'border': 1, 'align': 'center', 'valign': 'vcenter', 'num_format': '0'})
         fmt_dec2 = workbook.add_format({'border': 1, 'align': 'center', 'valign': 'vcenter', 'num_format': '0.00'})
 
@@ -73,8 +73,8 @@ class ReportStockPickingFacturaWizard(models.TransientModel):
         worksheet.set_column(1, 1, 30)      # Doc. Origen
         worksheet.set_column(2, 2, 60)      # Cliente
         worksheet.set_column(3, 3, 15)      # Cantidad de Bultos
-        worksheet.set_column(4, 4, 15)      # Total Facturado
-        worksheet.set_column(5, 5, 15)      # Total N. Credito en Negativo
+        worksheet.set_column(4, 4, 20)      # Total Facturado
+        worksheet.set_column(5, 5, 20)      # Total N. Credito en Negativo
         worksheet.set_column(6, 6, 30)      # RUBROS (/)
         worksheet.set_column(7, 7, 20)      # COMPAÑIA
         worksheet.set_column(8, 8, 55)      # Transferencia
@@ -105,7 +105,7 @@ class ReportStockPickingFacturaWizard(models.TransientModel):
         worksheet2.set_column(3, 3, 10)  # UxB
         worksheet2.set_column(4, 4, 12)  # BULTOS
         worksheet2.set_column(5, 5, 28)  # RUBRO
-        worksheet2.set_column(6, 6, 22)  # Transferencia
+        worksheet2.set_column(6, 6, 60)  # Transferencia
         # Alto de filas de título/encabezado
         worksheet2.set_row(0, 20)
         worksheet2.set_row(1, 18)
