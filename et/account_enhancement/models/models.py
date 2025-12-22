@@ -519,40 +519,6 @@ class AccountMoveReversalInherit(models.TransientModel):
             if line_tax_ids:
                 line.write({'tax_ids': [(6, 0, line_tax_ids.ids)]})
 
-class ResPartner(models.Model):
-    _inherit = 'res.partner'
-
-    def action_resumen_composicion(self):
-        """Abrir facturas del cliente (y contactos hijos) en vista tree personalizada."""
-        self.ensure_one()
-        action = self.env.ref('account_enhancement.action_partner_invoices_tree').read()[0]
-        # facturas cliente + NC cliente, solo publicadas; incluye partner y sus hijos
-        action['domain'] = [
-            ('move_type', 'in', ['out_invoice']),
-            ('state', '=', 'posted'),
-            ('partner_id', 'child_of', self.commercial_partner_id.id),
-        ]
-        # orden por fecha de factura (reciente primero)
-        action['context'] = {
-            'search_default_group_by_partner': 0,
-            'search_default_open': 0,
-            'default_move_type': 'out_invoice',
-        }
-        return action
-
-
-#SOLO DEBERIA ESTAR ACTIVO PARA EL SERVIDOR DE TEST PARA HACER PRUEBAS CON AFIP
-#class AccountJournalInherit(models.Model):
-#    _inherit = 'account.journal'
-
-#    @api.depends("l10n_ar_afip_pos_system")
-#    def _compute_afip_ws(self):
-#        """Depending on AFIP POS System selected set the proper AFIP WS"""
-#        type_mapping = self._get_type_mapping()
-#        for rec in self:
-#            rec.afip_ws = False
-
-
 class AccountMovelLineInherit(models.Model):
     _inherit = 'account.move.line'
 
