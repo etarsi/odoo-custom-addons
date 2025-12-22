@@ -22,8 +22,11 @@
     # assets are loaded in the backend
     'assets': {
         'web.assets_backend': [
+            'account_enhancement/static/src/js/afr_report_action.js',
             'account_enhancement/static/src/js/account_move.js',
             'account_enhancement/static/src/js/list_row_number.js',
+            #XML
+            'account_enhancement/static/src/xml/afr_control_buttons_inherit.xml',
             'account_enhancement/static/src/xml/field_row_number.xml',
         ],
     },
@@ -62,14 +65,6 @@
         'views/menu.xml',
         'views/res_partner_debt_composition_report_views.xml'
     ],
-    'assets': {
-        'web.assets_backend': [
-            #JS
-            'account_enhancement/static/src/js/afr_report_action.js',
-            #XML
-            'account_enhancement/static/src/xml/afr_control_buttons_inherit.xml',
-        ],
-    },
     # only loaded in demonstration mode
     'demo': [
         'demo/demo.xml',
