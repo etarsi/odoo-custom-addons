@@ -199,10 +199,10 @@ class AccountImportAfipFacprovWizard(models.TransientModel):
             if not partner:
                 fila_no_registrada += f"\n , Fila: {r} - No se encontró el proveedor con CUIT: {emisor_cuit}"
                 continue
-            if not partner.diario_prov_afip_import:
+            if not partner.diario_prov_afip_import_id:
                 fila_no_registrada += f"\n , Fila: {r} - El proveedor {partner.name} no tiene configurado el diario para Facturas AFIP Import."
                 continue
-            if not partner.cuenta_prov_afip_import:
+            if not partner.cuenta_prov_afip_import_id:
                 fila_no_registrada += f"\n , Fila: {r} - El proveedor {partner.name} no tiene configurada la cuenta para Facturas AFIP Import."
                 continue
             if fac_proveedor:
