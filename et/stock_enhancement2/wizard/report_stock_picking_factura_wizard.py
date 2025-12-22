@@ -14,6 +14,7 @@ class ReportStockPickingFacturaWizard(models.TransientModel):
     _description = 'Wizard para Exportar Transferencias y Facturas'
 
     temporada = fields.Selection(string='Temporada', selection=[
+        ('t_all', 'Todas las Temporadas'),
         ('t_nino_2025', 'Temporada Niño 2025'),
         ('t_nav_2025', 'Temporada Navidad 2025'),
     ], required=True, default='t_nav_2025', help='Seleccionar la temporada para el reporte')  
@@ -24,7 +25,8 @@ class ReportStockPickingFacturaWizard(models.TransientModel):
         ('inputs', 'Insumos'),
         ('order', 'Pedidos'),
         ('all', 'Todos'),
-    ], required=False, help='Seleccionar el tipo de transferencia para el reporte', default='order')
+    ], required=False, help='Seleccionar el tipo de transferencia para el reporte', default='order', required=True)
+    
 
 
     def action_generar_excel(self):
@@ -122,11 +124,11 @@ class ReportStockPickingFacturaWizard(models.TransientModel):
         # DOMAIN
         # =========================
         domain = [('state', '=', 'done')]
-
-        if self.temporada == 't_nino_2025':
-            domain += [('create_date', '>=', date(2025, 3, 1)), ('create_date', '<=', date(2025, 8, 31))]
-        elif self.temporada == 't_nav_2025':
-            domain += [('create_date', '>=', date(2025, 9, 1)), ('create_date', '<=', date(2026, 2, 28))]
+        if self.temporada != 't_all':
+            if self.temporada == 't_nino_2025':
+                domain += [('create_date', '>=', date(2025, 3, 1)), ('create_date', '<=', date(2025, 8, 31))]
+            elif self.temporada == 't_nav_2025':
+                domain += [('create_date', '>=', date(2025, 9, 1)), ('create_date', '<=', date(2026, 2, 28))]
         
         if self.partner_ids:
             domain += [('partner_id', 'in', self.partner_ids.ids)]

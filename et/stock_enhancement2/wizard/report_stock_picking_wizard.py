@@ -17,7 +17,7 @@ class ReportStockPickingWizard(models.TransientModel):
         ('t_nino_2025', 'Temporada Niño 2025'),
         ('t_nav_2025', 'Temporada Navidad 2025'),
     ], required=True, default='t_nav_2025', help='Seleccionar la temporada para el reporte')  
-    partner_id = fields.Many2one('res.partner', string='Cliente', help='Seleccionar un Cliente para filtrar', required=True, domain=[('is_company', '=', True)])
+    partner_id = fields.Many2one('res.partner', string='Cliente', help='Seleccionar un Cliente para filtrar', domain=[('is_company', '=', True)])
     parent_ids = fields.Many2many('res.partner', string='Cliente Relacionado', help='Filtrar por empresa padre y los que pertenecen a ella',
                                 domain=[('company_type', '=', 'person'), ('parent_id', '!=', False)])
     category_ids = fields.Many2many('product.category', string='Categorías de Producto', help='Filtrar por categorías de producto', domain=[('parent_id', '=', False)])
