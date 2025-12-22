@@ -18,9 +18,11 @@
             </xpath>
             <xpath expr="//page[@name='internal_notes']" position="after">
                 <page string="Configuración AFIP Import" name="afip_import_config">
-                    <group>
-                        <field name="diario_prov_afip_import_id"/>
-                        <field name="cuenta_prov_afip_import_id"/>
+                    <group name="afip_import_group" string="Configuración AFIP Import">
+                        <group>
+                            <field name="diario_prov_afip_import_id"/>
+                            <field name="cuenta_prov_afip_import_id"/>
+                        </group>
                     </group>
                 </page>
             </xpath>

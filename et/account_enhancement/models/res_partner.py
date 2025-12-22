@@ -12,11 +12,11 @@ _logger = logging.getLogger(__name__)
 class ResPartnerInherit(models.Model):
     _inherit = 'res.partner'
     
-    diario_prov_afip_import_id = fields.Selection(string='Diario Proveedor AFIP Import', selection=[
+    diario_prov_afip_import_id = fields.Selection(string='Diario Proveedor', selection=[
         ('lavalle', 'FACTURAS PROVEEDORES LAVALLE'),
         ('deposito', 'FACTURAS PROVEEDORES DEPOSITO'),
-    ], help='Seleccionar el diario para facturas de proveedor AFIP Import')
-    cuenta_prov_afip_import_id = fields.Many2one('account.account', string='Cuenta Proveedor AFIP Import', help='Seleccionar la cuenta para facturas de proveedor AFIP Import')
+    ], help='Seleccionar el diario para facturas de proveedor AFIP Import', default='lavalle')
+    cuenta_prov_afip_import_id = fields.Many2one('account.account', string='Cuenta Proveedor', help='Seleccionar la cuenta para facturas de proveedor AFIP Import')
 
     def action_resumen_composicion(self):
         """Abrir facturas del cliente (y contactos hijos) en vista tree personalizada."""
