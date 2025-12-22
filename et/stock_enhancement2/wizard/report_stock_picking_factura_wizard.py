@@ -99,8 +99,8 @@ class ReportStockPickingFacturaWizard(models.TransientModel):
         # =========================
         # COLUMNAS DE LA BASE DE DATOS
         # =========================
-        worksheet2.set_column(0, 0, 15)  # CODIGO
-        worksheet2.set_column(1, 1, 55)  # DESCRIPCION
+        worksheet2.set_column(0, 0, 12)  # CODIGO
+        worksheet2.set_column(1, 1, 60)  # DESCRIPCION
         worksheet2.set_column(2, 2, 12)  # UNIDADES
         worksheet2.set_column(3, 3, 10)  # UxB
         worksheet2.set_column(4, 4, 12)  # BULTOS
@@ -112,7 +112,7 @@ class ReportStockPickingFacturaWizard(models.TransientModel):
         # =========================
         # ENCABEZADOS
         # =========================
-        headers2 = ['CODIGO', 'DESCRIPCION', 'UNIDADES', 'UxB', 'BULTOS', 'RUBRO', 'ESTADO']
+        headers2 = ['CODIGO', 'DESCRIPCION', 'UNIDADES', 'UxB', 'BULTOS', 'RUBRO', 'TRANSFERENCIA']
         for col, h in enumerate(headers2):
             worksheet2.write(1, col, h, fmt_header)
             
@@ -202,12 +202,12 @@ class ReportStockPickingFacturaWizard(models.TransientModel):
                 # BULTOS = unidades / UxB (como tu imagen)
                 bultos = (unidades / uxb) if uxb else 0.0
                 worksheet2.write(row2, 0, move.product_id.default_code or '', fmt_text2)
-                worksheet2.write(row2, 1, move.product_id.name or '', fmt_text2)
+                worksheet2.write(row2, 1, move.product_id.name or '', fmt_text)
                 worksheet2.write_number(row2, 2, unidades, fmt_int)
                 worksheet2.write_number(row2, 3, uxb, fmt_int)
                 worksheet2.write_number(row2, 4, bultos, fmt_dec2)
                 worksheet2.write(row2, 5, rubros_str or '', fmt_text2)
-                worksheet2.write(row2, 6, stock_picking.name, fmt_text2)
+                worksheet2.write(row2, 6, stock_picking.name, fmt_text)
                 row2 += 1
             
             t_cant_bultos = float_round(t_cant_bultos, 2)
