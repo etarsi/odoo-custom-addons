@@ -186,21 +186,40 @@ class AccountImportAfipFacprovWizard(models.TransientModel):
             company_id = self.env['res.company'].search([('partner_id.vat', '=', self._norm_cuit(company_nif))], limit=1)
             fac_proveedor = self.env['account.move'].search([('name', 'ilike', num_fac), ('partner_id.vat', '=', self._norm_cuit(emisor_cuit)), ('company_id', '=', company_id.id)], limit=1)         
             tipo_comprobante = self.env['l10n_latam.document.type'].search([('code', '=', tipo_code)], limit=1)
-            journal_id = self.env['account.journal'].search([('name', 'in', ['FACTURAS PROVEEDORES LAVALLE', 'FACTURAS PROVEEDORES DEPOSITO']), ('company_id', '=', company_id.id)], limit=1)
+            journal_id = False
             currency = False
+            account_id = False
             moneda_symbol = ws.cell(r, c_moneda).value
             numero_documento = f"{int(p_venta):04d}-{int(num_fac):08d}"
             # VALIDACIONES
-            if not journal_id:
-                raise ValidationError(_("No se encontró el diario para Facturas de Proveedores."))
             if not tipo_comprobante:
                 raise ValidationError(_("Fila %s: tipo de comprobante inválido o no soportado: '%s'.") % (r, str(tipo)))
             if company_nif and company_actual and self._norm_cuit(company_nif) != self._norm_cuit(company_actual):
                 raise ValidationError("Esta intentando verificar facturas que no corresponden a la compañía actual.")
             if not partner:
-                fila_no_registrada += f"\n , Fila: {r}"
+                fila_no_registrada += f"\n , Fila: {r} - No se encontró el proveedor con CUIT: {emisor_cuit}"
+                continue
+            if not partner.diario_prov_afip_import:
+                fila_no_registrada += f"\n , Fila: {r} - El proveedor {partner.name} no tiene configurado el diario para Facturas AFIP Import."
+                continue
+            if not partner.cuenta_prov_afip_import:
+                fila_no_registrada += f"\n , Fila: {r} - El proveedor {partner.name} no tiene configurada la cuenta para Facturas AFIP Import."
                 continue
             if fac_proveedor:
+                continue
+            
+            if partner.diario_prov_afip_import_id == 'lavalle':
+                diario_name = 'FACTURAS PROVEEDORES LAVALLE'
+            else:
+                diario_name = 'FACTURAS PROVEEDORES DEPOSITO'
+            journal_id = self.env['account.journal'].search([('name', '=', diario_name), ('company_id', '=', company_id.id)], limit=1)
+            if not journal_id:
+                raise ValidationError(_("No se encontró el diario para Facturas de Proveedores."))
+            
+            account_id = partner.cuenta_prov_afip_import_id
+            account_id = self.env['account.account'].search([('name', '=', account_id.name), ('company_id', '=', company_id.id)], limit=1)
+            if not account_id:
+                fila_no_registrada += f"\n , Fila: {r} - No se encontró la cuenta para Facturas de Proveedores: {partner.cuenta_prov_afip_import_id.name}"
                 continue
 
             # Moneda
@@ -231,7 +250,7 @@ class AccountImportAfipFacprovWizard(models.TransientModel):
 
                 line = {
                     'name': ' ',
-                    'account_id': journal_id.default_account_id.id,
+                    'account_id': account_id.id,
                     'quantity': 1.0,
                     'price_unit': neto,
                 }
@@ -258,7 +277,7 @@ class AccountImportAfipFacprovWizard(models.TransientModel):
                 if ng > 0:
                     lines.append((0, 0, {
                         'name': ' ',
-                        'account_id': journal_id.default_account_id.id,
+                        'account_id': account_id.id,
                         'quantity': 1.0,
                         'price_unit': ng,
                         'tax_ids': [(6, 0, [tax.id])]
@@ -277,7 +296,7 @@ class AccountImportAfipFacprovWizard(models.TransientModel):
                 if ex > 0:
                     lines.append((0, 0, {
                         'name': ' ',
-                        'account_id': journal_id.default_account_id.id,
+                        'account_id': account_id.id,
                         'quantity': 1.0,
                         'price_unit': ex,
                         'tax_ids': [(6, 0, [tax.id])],
@@ -285,12 +304,20 @@ class AccountImportAfipFacprovWizard(models.TransientModel):
             
             # Factura o nota de credito de letras C
             if tipo_comprobante.l10n_ar_letter == 'C':
+                tax = self.env['account.tax'].search([
+                    ('type_tax_use', '=', 'purchase'),
+                    ('company_id', '=', company_id.id),
+                    ('name', 'ilike', 'IVA No Corresponde'),
+                    ('active', '=', True)], limit=1)
+                if not tax:
+                    raise ValidationError(_("No se encontró el impuesto para 'IVA Exento'."))
                 import_total = self._to_float(ws.cell(r, c_total).value) if c_total else 0.0
                 lines.append((0, 0, {
                     'name': ' ',
-                    'account_id': journal_id.default_account_id.id,
+                    'account_id': account_id.id,
                     'quantity': 1.0,
                     'price_unit': import_total,
+                    'tax_ids': [(6, 0, [tax.id])]
                 }))
 
             vals = {
@@ -320,7 +347,7 @@ class AccountImportAfipFacprovWizard(models.TransientModel):
                     'title': 'Atención',
                     'message': f'Se importaron {len(created_move_ids)} - Fac. Proveedor. Sin embargo, Estas filas no se pudieron importar:\n{fila_no_registrada}',
                     'type': 'warning',
-                    'sticky': False,
+                    'sticky': True,
                     'timeout': 15000,
                     'next': {
                         'type': 'ir.actions.act_window',
@@ -341,7 +368,7 @@ class AccountImportAfipFacprovWizard(models.TransientModel):
                     'title': 'Atención',
                     'message': f'No se importó ninguna Factura de Proveedor. Estas filas no se pudieron importar:\n{fila_no_registrada}',
                     'type': 'warning',
-                    'sticky': False,
+                    'sticky': True,
                     'timeout': 15000,  
                     'next': {'type': 'ir.actions.act_window_close' }
                 }
@@ -354,7 +381,7 @@ class AccountImportAfipFacprovWizard(models.TransientModel):
                     'title': 'Éxito',
                     'message': f'Se importaron {len(created_move_ids)} Facturas de Proveedor correctamente.',
                     'type': 'success',
-                    'sticky': False,
+                    'sticky': True,
                     'timeout': 15000,
                     'next': {
                         'type': 'ir.actions.act_window',
@@ -375,7 +402,7 @@ class AccountImportAfipFacprovWizard(models.TransientModel):
                     'title': 'Información',
                     'message': 'No se encontró ninguna Factura de Proveedor Pendiente a importar.',
                     'type': 'info',
-                    'sticky': False,
+                    'sticky': True,
                     'timeout': 15000,
                     'next': {'type': 'ir.actions.act_window_close' }
                 }
