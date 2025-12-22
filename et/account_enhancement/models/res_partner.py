@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from odoo import models, api, fields, _
+from odoo import models, fields, _
 from collections import OrderedDict
 from dateutil.relativedelta import relativedelta
 from odoo.exceptions import AccessError, UserError, ValidationError
