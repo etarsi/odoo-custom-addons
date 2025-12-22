@@ -28,7 +28,7 @@
         ],
     },
     # any module necessary for this one to work correctly
-    'depends': ['base', 'account', 'account_check_printing', 'account_payment_group', 'l10n_latam_check', 'l10n_ar', 'l10n_ar_reports','l10n_ar_afipws_fe', 'mail', 'sale', 'product', 'sale_enhancement', 'l10n_ar_ux'],
+    'depends': ['base', 'account', 'account_check_printing', 'account_payment_group', 'l10n_latam_check', 'l10n_ar', 'l10n_ar_reports','l10n_ar_afipws_fe', 'mail', 'sale', 'product', 'sale_enhancement', 'l10n_ar_ux', 'account_financial_report'],
 
     # always loaded
     'data': [
@@ -62,8 +62,17 @@
         'views/menu.xml',
         'views/res_partner_debt_composition_report_views.xml'
     ],
+    'assets': {
+        'web.assets_backend': [
+            #JS
+            'account_enhancement/static/src/js/afr_report_action.js',
+            #XML
+            'account_enhancement/static/src/xml/afr_control_buttons_inherit.xml',
+        ],
+    },
     # only loaded in demonstration mode
     'demo': [
         'demo/demo.xml',
     ],
+    
 }

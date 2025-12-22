@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+
+  <t t-inherit="account_financial_report.client_action.ControlButtons"
+     t-inherit-mode="extension">
+
+    <xpath expr="//button[contains(@class,'o_report_print')]" position="attributes">
+      <attribute name="title">Export XLSX</attribute>
+    </xpath>
+
+    <xpath expr="//button[contains(@class,'o_report_print')]" position="replace">
+      <button type="button"
+              class="btn btn-primary o_report_print"
+              title="Export XLSX">
+        Excel
+      </button>
+    </xpath>
+
+  </t>
+
+</templates>
