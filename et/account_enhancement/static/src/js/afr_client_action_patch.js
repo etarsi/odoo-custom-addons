@@ -1,67 +1,43 @@
-odoo.define("account_enhancement.afr_client_action_patch", function (require) {
+odoo.define("account_enhancement.afr_patch_by_require", function (require) {
     "use strict";
 
-    console.log("[AFR PATCH] JS cargado: account_enhancement.afr_client_action_patch");
+    console.log("[AFR PATCH] JS cargado (patch por require)");
 
-    const core = require("web.core");
-    const QWeb = core.qweb;
+    // Esto carga el módulo original (AMD) y te devuelve la clase
+    const AFRAction = require("account_financial_report.client_action");
 
-    const TAG = "account_financial_report.client_action";
+    console.log("[AFR PATCH] Módulo base cargado:", AFRAction);
 
-    // 1) Confirmar que el tag existe en el registry
-    const AFRAction = core.action_registry.get(TAG);
-    if (!AFRAction) {
-        console.error(`[AFR PATCH] NO existe el tag en action_registry: ${TAG}`);
-        return;
-    }
-
-    console.log(`[AFR PATCH] Tag encontrado en action_registry: ${TAG}`, AFRAction);
-
-    // 2) Parchar (NO re-registrar)
     AFRAction.include({
         start: function () {
-            console.log("[AFR PATCH] start() ejecutándose - antes de _super", this);
-
+            console.log("[AFR PATCH] start() antes de _super");
             const res = this._super.apply(this, arguments);
 
             return Promise.resolve(res).then(() => {
-                console.log("[AFR PATCH] start() - después de _super", this);
+                console.log("[AFR PATCH] start() después de _super");
 
-                // Render botones (para confirmar que el template existe)
-                let html;
-                try {
-                    html = QWeb.render("account_financial_report.client_action.ControlButtons", {});
-                    console.log("[AFR PATCH] QWeb.render OK (ControlButtons)");
-                } catch (e) {
-                    console.error("[AFR PATCH] QWeb.render FALLÓ (ControlButtons). ¿Existe el template?", e);
+                if (!this.$buttons) {
+                    console.warn("[AFR PATCH] this.$buttons no existe. El módulo base quizá no renderiza botones como esperás.");
                     return;
                 }
 
-                this.$buttons = $(html);
-                console.log("[AFR PATCH] Botones renderizados:", this.$buttons);
-
-                // Limpieza por si se ejecuta más de una vez
+                // Re-bind para asegurarnos de que 'this' sea correcto
                 this.$buttons.off("click", ".o_report_print");
                 this.$buttons.off("click", ".o_report_export");
 
-                // Bind seguro (con log)
                 this.$buttons.on("click", ".o_report_print", (ev) => {
-                    console.log("[AFR PATCH] CLICK Print -> se redirige a Export XLSX");
+                    console.log("[AFR PATCH] CLICK Print -> Export XLSX");
                     ev.preventDefault();
                     return this.on_click_export(ev);
                 });
 
                 this.$buttons.on("click", ".o_report_export", (ev) => {
-                    console.log("[AFR PATCH] CLICK Export -> handler ejecutado");
+                    console.log("[AFR PATCH] CLICK Export -> XLSX");
                     ev.preventDefault();
                     return this.on_click_export(ev);
                 });
 
-                // Insertar en control panel
-                this.controlPanelProps.cp_content = { $buttons: this.$buttons };
-                this._controlPanelWrapper.update(this.controlPanelProps);
-
-                console.log("[AFR PATCH] Control panel actualizado con botones");
+                console.log("[AFR PATCH] Handlers re-bindeados OK");
             });
         },
 
@@ -70,8 +46,6 @@ odoo.define("account_enhancement.afr_client_action_patch", function (require) {
                 report_name: this.report_name,
                 report_file: this.report_file,
                 title: this.title,
-                data: this.data,
-                context: this.context,
             });
 
             const action = {
@@ -83,15 +57,9 @@ odoo.define("account_enhancement.afr_client_action_patch", function (require) {
                 context: this.context,
                 display_name: this.title,
             };
-            console.log("[AFR PATCH] do_action con:", action);
 
+            console.log("[AFR PATCH] do_action:", action);
             return this.do_action(action);
-        },
-
-        _get_xlsx_name: function (str) {
-            if (!_.isString(str)) return str;
-            const parts = str.split(".");
-            return `a_f_r.report_${parts[parts.length - 1]}_xlsx`;
         },
     });
 
