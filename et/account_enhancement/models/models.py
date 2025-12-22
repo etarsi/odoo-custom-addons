@@ -524,29 +524,3 @@ class AccountMovelLineInherit(models.Model):
 
     lot_id = fields.Many2one('stock.production.lot', string='Nro Lote')
     
-class ResPartnerInherit(models.Model):
-    _inherit = 'res.partner'
-    
-    diario_prov_afip_import_id = fields.Selection(string='Diario Proveedor AFIP Import', selection=[
-        ('lavalle', 'FACTURAS PROVEEDORES LAVALLE'),
-        ('deposito', 'FACTURAS PROVEEDORES DEPOSITO'),
-    ], help='Seleccionar el diario para facturas de proveedor AFIP Import')
-    cuenta_prov_afip_import_id = fields.Many2one('account.account', string='Cuenta Proveedor AFIP Import', help='Seleccionar la cuenta para facturas de proveedor AFIP Import')
-
-    def action_resumen_composicion(self):
-        """Abrir facturas del cliente (y contactos hijos) en vista tree personalizada."""
-        self.ensure_one()
-        action = self.env.ref('account_enhancement.action_partner_invoices_tree').read()[0]
-        # facturas cliente + NC cliente, solo publicadas; incluye partner y sus hijos
-        action['domain'] = [
-            ('move_type', 'in', ['out_invoice']),
-            ('state', '=', 'posted'),
-            ('partner_id', 'child_of', self.commercial_partner_id.id),
-        ]
-        # orden por fecha de factura (reciente primero)
-        action['context'] = {
-            'search_default_group_by_partner': 0,
-            'search_default_open': 0,
-            'default_move_type': 'out_invoice',
-        }
-        return action
