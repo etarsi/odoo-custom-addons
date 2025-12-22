@@ -192,16 +192,8 @@ class ReportStockPickingFacturaWizard(models.TransientModel):
                 if move.product_id.categ_id.parent_id:
                     rubros.add(move.product_id.categ_id.parent_id.name)
                     rubros_str = '/'.join(rubros)   
-            
-            
-            
                 # BULTOS = unidades / UxB (como tu imagen)
                 bultos = (unidades / uxb) if uxb else 0.0
-                
-                if not move.product_id:
-                    continue
-                if stock_picking.state_wms == 'closed' and stock_picking.state in ['done', 'cancel']:
-                    continue
                 unidades = move.product_uom_qty or 0.0
                 # UxB numérico: suele estar en el packaging.qty
                 uxb = 0.0
@@ -209,16 +201,14 @@ class ReportStockPickingFacturaWizard(models.TransientModel):
                     uxb = move.product_packaging_id.qty or 0.0
                 # BULTOS = unidades / UxB (como tu imagen)
                 bultos = (unidades / uxb) if uxb else 0.0
-
                 worksheet2.write(row2, 0, move.product_id.default_code or '', fmt_text2)
                 worksheet2.write(row2, 1, move.product_id.name or '', fmt_text2)
                 worksheet2.write_number(row2, 2, unidades, fmt_int)
                 worksheet2.write_number(row2, 3, uxb, fmt_int)
                 worksheet2.write_number(row2, 4, bultos, fmt_dec2)
-                worksheet2.write(row2, 5, move.product_id.categ_id.parent_id.name or '', fmt_text2)
+                worksheet2.write(row2, 5, rubros_str or '', fmt_text2)
                 worksheet2.write(row2, 6, stock_picking.name, fmt_text2)
                 row2 += 1
-                
             
             t_cant_bultos = float_round(t_cant_bultos, 2)
             #DATOS DE LAS FILAS DE REPORTE ENTREGA
