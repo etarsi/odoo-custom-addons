@@ -5,6 +5,7 @@ odoo.define("account_enhancement.afr_client_action_patch", function (require) {
 
     // Tomo la acción YA registrada por account_financial_report
     const AFRAction = core.action_registry.get("account_financial_report.client_action");
+    console.log("AFRAction:", AFRAction);
     if (!AFRAction) {
         // Si no existe, es que el módulo no cargó o el tag es otro
         return;
