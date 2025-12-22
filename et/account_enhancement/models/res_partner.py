@@ -9,7 +9,7 @@ from odoo.tools.misc import format_date, format_amount
 from odoo.tools.float_utils import float_compare
 _logger = logging.getLogger(__name__)
 
-class ResPartner(models.Model):
+class ResPartnerInherit(models.Model):
     _inherit = 'res.partner'
     
     diario_prov_afip_import_id = fields.Selection(string='Diario Proveedor AFIP Import', selection=[
