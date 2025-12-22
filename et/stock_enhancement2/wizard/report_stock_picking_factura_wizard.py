@@ -25,7 +25,7 @@ class ReportStockPickingFacturaWizard(models.TransientModel):
         ('inputs', 'Insumos'),
         ('order', 'Pedidos'),
         ('all', 'Todos'),
-    ], required=False, help='Seleccionar el tipo de transferencia para el reporte', default='order', required=True)
+    ], help='Seleccionar el tipo de transferencia para el reporte', default='order', required=True)
     
 
 
