@@ -146,7 +146,13 @@ class ReportStockPickingFacturaWizard(models.TransientModel):
         # =========================
         row = 2  # empezamos justo debajo de headers
         row2 = 2  # empezamos justo debajo de headers de hoja BASE DE DATOS
+        if self.category_ids:
+            #filtrar por las category_ids seleccionadas
+            stocks_pickings = stocks_pickings.filtered(lambda sp: not sp.move_ids_without_package.filtered(lambda m: m.product_id.categ_id.parent_id not in self.category_ids))
         for stock_picking in stocks_pickings:
+            
+            if self.category_ids and stock_picking.move_ids_without_package.filtered(lambda m: m.product_id.categ_id.parent_id not in self.category_ids):
+                continue
             date_done = stock_picking.date_done.strftime('%d/%m/%Y') if stock_picking.date_done else ''
             t_facturado = 0.0
             t_ncredito = 0.0
