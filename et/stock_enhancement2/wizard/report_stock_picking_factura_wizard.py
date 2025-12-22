@@ -150,9 +150,6 @@ class ReportStockPickingFacturaWizard(models.TransientModel):
             #filtrar por las category_ids seleccionadas
             stocks_pickings = stocks_pickings.filtered(lambda sp: not sp.move_ids_without_package.filtered(lambda m: m.product_id.categ_id.parent_id not in self.category_ids))
         for stock_picking in stocks_pickings:
-            
-            if self.category_ids and stock_picking.move_ids_without_package.filtered(lambda m: m.product_id.categ_id.parent_id not in self.category_ids):
-                continue
             date_done = stock_picking.date_done.strftime('%d/%m/%Y') if stock_picking.date_done else ''
             t_facturado = 0.0
             t_ncredito = 0.0
@@ -176,18 +173,7 @@ class ReportStockPickingFacturaWizard(models.TransientModel):
                 facturas_str = '/'.join(facturas)
                 if t_ncredito > 0:
                     t_ncredito = -abs(t_ncredito)
-            
-            domain_moves = [('picking_id', '=', stock_picking.id)]
-            if self.category_ids:
-                domain_moves += [('product_id.categ_id.parent_id', 'in', self.category_ids.ids)]
-            else:
-                domain_moves += [('product_id.categ_id.parent_id', '!=', False)]
-            # Buscar los movimientos de stock asociados al albarán
-            pickings_moves = self.env['stock.move'].search(domain_moves)
-            if not pickings_moves:
-                continue
-
-            for move in pickings_moves:
+            for move in stock_picking.move_ids_without_package:
                 if not move.product_id:
                     continue
                 t_cant_bultos += move.product_packaging_qty
