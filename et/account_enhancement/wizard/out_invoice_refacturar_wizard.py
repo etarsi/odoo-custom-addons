@@ -42,8 +42,15 @@ class OutInvoiceRefacturarWizard(models.TransientModel):
     def _onchange_accion_descuento(self):
         if self.accion_descuento and len(self.account_move_ids) > 1:
             self.accion_descuento = False
-            raise ValidationError(_("Solo se puede modificar el descuento cuando se refactura una única factura a la vez."))
-        else:
+            self.descuento_porcentaje = 0.0
+            return {
+                'warning': {
+                    'title': _("Acción no permitida"),
+                    'message': _("No se puede modificar el descuento cuando se seleccionan múltiples facturas."),
+                }
+            }
+        
+        if not self.accion_descuento:
             self.descuento_porcentaje = 0.0
 
     @api.onchange('descuento_porcentaje')
