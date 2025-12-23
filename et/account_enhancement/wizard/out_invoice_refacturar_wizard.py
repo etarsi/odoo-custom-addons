@@ -144,9 +144,9 @@ class OutInvoiceRefacturarWizard(models.TransientModel):
                     price_unit = line.price_unit
                     
             # Aplicar descuento si corresponde
-            if self.accion_descuento:
-                line_discount = self.descuento_porcentaje
-                line.discount = line_discount
+            #if self.accion_descuento:
+            #    line_discount = self.descuento_porcentaje
+            #    line.discount = line_discount
             # impuestos: mapear por compañía y aplicar FP
             mapped_taxes = self._map_taxes_to_company(line.tax_ids, company, fp, move_src.invoice_date)
             if not mapped_taxes and line.product_id:
@@ -223,7 +223,7 @@ class OutInvoiceRefacturarWizard(models.TransientModel):
                     code_nc = self.env['l10n_latam.document.type'].search([('code', '=', '203'), ('internal_type', '=', 'credit_note')], limit=1)
                     if not code_nc:
                         raise ValidationError(_("No se encontró el tipo de comprobante Nota de Crédito (203) para refacturar la factura %s.") % move.name)  
-                    reversal_vals[0].update({'l10n_latam_document_type_id': code_nc.id, 'afip_fce_es_aulacion': True})
+                    reversal_vals[0].update({'l10n_latam_document_type_id': code_nc.id, 'afip_fce_es_anulacion': True})
 
                 credit_notes = move._reverse_moves(default_values_list=reversal_vals, cancel=True)
                 # 2) Publicar SOLO las NC en borrador (evita "ya está publicado")
@@ -238,6 +238,8 @@ class OutInvoiceRefacturarWizard(models.TransientModel):
 
                 # 2) Nueva factura en la compañía destino
                 new = self.env['account.move'].with_company(self.company_id).create(vals)
+                # Recalcular impuestos
+                #new._recompute_tax_lines()
                 new_invoices |= new
 
         # Mostrar nuevas facturas creadas
