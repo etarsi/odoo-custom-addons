@@ -23,7 +23,8 @@ class OutInvoiceRefacturarWizard(models.TransientModel):
         required=True,
         default='anular_refacturar',
     )
-
+    accion_descuento = fields.Boolean(string="Modificar Descuento", default=False, help="Permite modificar el descuento en las líneas de la nueva factura.")
+    descuento_porcentaje = fields.Float(string="Porcentaje de Descuento", digits=(5, 2), help="Porcentaje de descuento a aplicar en las líneas de la nueva factura.")
 
     @api.model
     def default_get(self, fields_list):
@@ -36,6 +37,18 @@ class OutInvoiceRefacturarWizard(models.TransientModel):
                 raise ValidationError(_("Seleccioná al menos una factura de cliente."))
             res['account_move_ids'] = [(6, 0, moves.ids)]
         return res
+
+    @api.onchange('accion_descuento')
+    def _onchange_accion_descuento(self):
+        if self.accion_descuento and len(self.account_move_ids) > 1:
+            raise ValidationError(_("Solo se puede modificar el descuento cuando se refactura una única factura a la vez."))
+        else:
+            self.descuento_porcentaje = 0.0
+
+    @api.onchange('descuento_porcentaje')
+    def _onchange_descuento_porcentaje(self):
+        if self.descuento_porcentaje < 0.0 or self.descuento_porcentaje > 100.0:
+            raise ValidationError(_("El porcentaje de descuento debe estar entre 0 y 100."))
 
     @api.onchange('company_id')
     def _onchange_company_id(self):
@@ -81,10 +94,6 @@ class OutInvoiceRefacturarWizard(models.TransientModel):
                                ('company_id', '=', company.id)], limit=1)
             if cand:
                 mapped |= cand
-        tax_name = 'percepción iibb'
-        #invoice date y fecha actual para filtrar percepciones iibb si la fecha esta en el mismo mes
-        if invoice_date.month == fields.Date.context_today(self).month and invoice_date.year == fields.Date.context_today(self).year:
-            mapped = mapped.filtered(lambda t: tax_name not in (t.name or '').lower())
         return partner_fp.map_tax(mapped) if partner_fp and mapped else mapped
 
     def _new_invoice_vals(self, move_src, company, pricelist):
