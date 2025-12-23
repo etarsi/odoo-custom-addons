@@ -142,11 +142,7 @@ class OutInvoiceRefacturarWizard(models.TransientModel):
                 )[pricelist.id]
                 if not price_unit:
                     price_unit = line.price_unit
-                    
-            # Aplicar descuento si corresponde
-            if self.accion_descuento:
-                line_discount = self.descuento_porcentaje
-                line.discount = line_discount
+
             # impuestos: mapear por compañía y aplicar FP
             mapped_taxes = self._map_taxes_to_company(line.tax_ids, company, fp, move_src.invoice_date)
             if not mapped_taxes and line.product_id:
@@ -160,7 +156,7 @@ class OutInvoiceRefacturarWizard(models.TransientModel):
                 'quantity': line.quantity,
                 'product_uom_id': line.product_uom_id.id,
                 'price_unit': price_unit,
-                'discount': line.discount,
+                'discount': self.descuento_porcentaje if self.accion_descuento else line.discount,
                 'tax_ids': [(6, 0, mapped_taxes.ids)],
                 'sale_line_ids': [(6, 0, line.sale_line_ids.ids)],
             }))
@@ -190,10 +186,11 @@ class OutInvoiceRefacturarWizard(models.TransientModel):
             # Acción según selección   
             if self.accion == 'solo_refacturar':
                 # 2) Nueva factura en la compañía destino
-                new = self.env['account.move'].with_company(self.company_id).create(vals)
-                new = new.with_context(check_move_validity=False)
+                new = self.env['account.move'].with_company(self.company_id).with_context(check_move_validity=False).create(vals)
                 # Recomputar SIEMPRE: impuestos + cuenta a cobrar/pagar + términos de pago
-                new.with_context(check_move_validity=False)
+                new.with_context(check_move_validity=False)._recompute_dynamic_lines(recompute_all_taxes=True)
+                # Validación final (acá sí querés que explote si queda mal)
+                new._check_balanced()
                 new_invoices |= new
             elif self.accion == 'anular_refacturar':
                 existing_refunds = move.reversal_move_id.filtered(lambda m: m.move_type == 'out_refund' and m.state in ('draft', 'posted'))
