@@ -144,9 +144,9 @@ class OutInvoiceRefacturarWizard(models.TransientModel):
                     price_unit = line.price_unit
                     
             # Aplicar descuento si corresponde
-            #if self.accion_descuento:
-            #    line_discount = self.descuento_porcentaje
-            #    line.discount = line_discount
+            if self.accion_descuento:
+                line_discount = self.descuento_porcentaje
+                line.discount = line_discount
             # impuestos: mapear por compañía y aplicar FP
             mapped_taxes = self._map_taxes_to_company(line.tax_ids, company, fp, move_src.invoice_date)
             if not mapped_taxes and line.product_id:
@@ -239,7 +239,8 @@ class OutInvoiceRefacturarWizard(models.TransientModel):
                 # 2) Nueva factura en la compañía destino
                 new = self.env['account.move'].with_company(self.company_id).create(vals)
                 # Recalcular impuestos
-                #new._recompute_tax_lines()
+                if self.accion_descuento:
+                    new._recompute_tax_lines()
                 new_invoices |= new
 
         # Mostrar nuevas facturas creadas
