@@ -240,7 +240,11 @@ class OutInvoiceRefacturarWizard(models.TransientModel):
                 new = self.env['account.move'].with_company(self.company_id).create(vals)
                 # Recalcular impuestos
                 if self.accion_descuento:
-                    new._recompute_tax_lines()
+                    # Recalcular impuestos + cuenta a cobrar/pagar en forma consistente
+                    new.with_context(check_move_validity=False)._recompute_dynamic_lines(recompute_all_taxes=True)
+
+                    # Validación final: si sigue mal, que explote acá (y no “a mitad”)
+                    new._check_balanced()
                 new_invoices |= new
 
         # Mostrar nuevas facturas creadas
