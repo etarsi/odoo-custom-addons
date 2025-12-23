@@ -24,7 +24,7 @@ class OutInvoiceRefacturarWizard(models.TransientModel):
         default='anular_refacturar',
     )
     accion_descuento = fields.Boolean(string="Modificar Descuento", default=False, help="Permite modificar el descuento en las líneas de la nueva factura.")
-    descuento_porcentaje = fields.Float(string="Porcentaje de Descuento", digits=(5, 2), help="Porcentaje de descuento a aplicar en las líneas de la nueva factura.")
+    descuento_porcentaje = fields.Float(string="Descuento (%)", digits=(5, 2), help="Porcentaje de descuento a aplicar en las líneas de la nueva factura.")
 
     @api.model
     def default_get(self, fields_list):
@@ -142,7 +142,11 @@ class OutInvoiceRefacturarWizard(models.TransientModel):
                 )[pricelist.id]
                 if not price_unit:
                     price_unit = line.price_unit
-
+                    
+            # Aplicar descuento si corresponde
+            if self.accion_descuento:
+                line_discount = self.descuento_porcentaje
+                line.discount = line_discount
             # impuestos: mapear por compañía y aplicar FP
             mapped_taxes = self._map_taxes_to_company(line.tax_ids, company, fp, move_src.invoice_date)
             if not mapped_taxes and line.product_id:

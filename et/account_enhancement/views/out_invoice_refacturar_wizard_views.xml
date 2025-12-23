@@ -36,6 +36,7 @@ action['context'] = dict(env.context, default_account_move_ids=[(6, 0, recs.ids)
                         <field name="account_move_ids" widget="many2many_tags" />
                         <field name="company_id"  options="{'no_create': True}" domain="[('id', 'in', [1, 2, 3, 4])]"/>
                         <field name="accion_descuento" widget="boolean"/>
+                        <!-- Colocar descuento_porcentaje al lado de accion_descuento -->
                         <field name="descuento_porcentaje" attrs="{'invisible': [('accion_descuento', '=', False)]}" widget="float"/>
                     </group>
                     <group>
