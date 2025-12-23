@@ -230,21 +230,18 @@ class OutInvoiceRefacturarWizard(models.TransientModel):
                 draft_credits = credit_notes.filtered(lambda m: m.state == 'draft')
                 if draft_credits:
                     for draft_credit in draft_credits:
-                        if draft_credit.l10_latam_document_type_id.internal_type != 'credit_note':
+                        if draft_credit.l10n_latam_document_type_id.internal_type != 'credit_note':
                             internal_type = draft_credit.l10n_latam_document_type_id.internal_type or 'No está definido'
                             raise ValidationError(_("Se esperaba una Nota de Crédito, pero el tipo comprobante es: %s.") % internal_type)
                     draft_credits.action_post()
                 credit_notes |= draft_credits
 
                 # 2) Nueva factura en la compañía destino
-                new = self.env['account.move'].with_company(self.company_id).create(vals)
-                # Recalcular impuestos
-                if self.accion_descuento:
-                    # Recalcular impuestos + cuenta a cobrar/pagar en forma consistente
-                    new.with_context(check_move_validity=False)._recompute_dynamic_lines(recompute_all_taxes=True)
-
-                    # Validación final: si sigue mal, que explote acá (y no “a mitad”)
-                    new._check_balanced()
+                new = self.env['account.move'].with_company(self.company_id).with_context(check_move_validity=False).create(vals)
+                # Recomputar SIEMPRE: impuestos + cuenta a cobrar/pagar + términos de pago
+                new.with_context(check_move_validity=False)._recompute_dynamic_lines(recompute_all_taxes=True)
+                # Validación final (acá sí querés que explote si queda mal)
+                new._check_balanced()
                 new_invoices |= new
 
         # Mostrar nuevas facturas creadas
