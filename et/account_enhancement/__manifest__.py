@@ -22,7 +22,7 @@
     # assets are loaded in the backend
     'assets': {
         'web.assets_backend': [
-            'account_enhancement/static/src/js/afr_client_action_patch.js',
+            'account_enhancement/static/src/js/afr_patch_by_require.js',
             'account_enhancement/static/src/js/account_move.js',
             'account_enhancement/static/src/js/list_row_number.js',
             #XML
