@@ -190,7 +190,11 @@ class OutInvoiceRefacturarWizard(models.TransientModel):
             # Acción según selección   
             if self.accion == 'solo_refacturar':
                 # 2) Nueva factura en la compañía destino
-                new = self.env['account.move'].with_company(self.company_id).create(vals)
+                new = self.env['account.move'].with_company(self.company_id).with_context(check_move_validity=False).create(vals)
+                # Recomputar SIEMPRE: impuestos + cuenta a cobrar/pagar + términos de pago
+                new.with_context(check_move_validity=False)._recompute_dynamic_lines(recompute_all_taxes=True)
+                # Validación final (acá sí querés que explote si queda mal)
+                new._check_balanced()
                 new_invoices |= new
             elif self.accion == 'anular_refacturar':
                 existing_refunds = move.reversal_move_id.filtered(lambda m: m.move_type == 'out_refund' and m.state in ('draft', 'posted'))
@@ -237,9 +241,11 @@ class OutInvoiceRefacturarWizard(models.TransientModel):
                 credit_notes |= draft_credits
 
                 # 2) Nueva factura en la compañía destino
-                new = self.env['account.move'].with_company(self.company_id).with_context(check_move_validity=False,).create(vals)
+                new = self.env['account.move'].with_company(self.company_id).with_context(check_move_validity=False).create(vals)
+                # Recomputar SIEMPRE: impuestos + cuenta a cobrar/pagar + términos de pago
+                new.with_context(check_move_validity=False)._recompute_dynamic_lines(recompute_all_taxes=True)
                 # Validación final (acá sí querés que explote si queda mal)
-                #new._check_balanced()
+                new._check_balanced()
                 new_invoices |= new
 
         # Mostrar nuevas facturas creadas
