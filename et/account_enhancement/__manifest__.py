@@ -22,11 +22,10 @@
     # assets are loaded in the backend
     'assets': {
         'web.assets_backend': [
-            'account_enhancement/static/src/js/afr_patch_by_require.js',
+            #JS
             'account_enhancement/static/src/js/account_move.js',
             'account_enhancement/static/src/js/list_row_number.js',
             #XML
-            'account_enhancement/static/src/xml/afr_control_buttons_inherit.xml',
             'account_enhancement/static/src/xml/field_row_number.xml',
         ],
     },
