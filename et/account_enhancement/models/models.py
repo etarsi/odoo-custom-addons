@@ -45,23 +45,6 @@ class AccountMoveInherit(models.Model):
     special_price = fields.Boolean(string="Precio Especial", default=False)
     
     # ENVIO DE CORREO---------------------------------------------------------
-    def _get_invoice_report_action(self):
-        """Obtiene el ir.actions.report de la factura (QWeb PDF)."""
-        self.ensure_one()
-
-        # Preferido: si tu localización redefine el reporte, esto lo respeta
-        if hasattr(self, "_get_name_invoice_report"):
-            report_xmlid = self._get_name_invoice_report()
-            report = self.env.ref(report_xmlid, raise_if_not_found=False)
-            if report:
-                return report
-
-        # Fallback típico (puede variar según instalación)
-        report = self.env.ref("account.account_invoices", raise_if_not_found=False)
-        if not report:
-            raise UserError(_("No se encontró el reporte PDF de factura (ir.actions.report)."))
-        return report
-    
     def _get_default_invoice_mail_template(self):
         """Toma una plantilla estándar si existe; si no, buscá una de account.move."""
         self.ensure_one()
@@ -125,8 +108,8 @@ class AccountMoveInherit(models.Model):
                 raise UserError(_("La factura %s debe estar Validada (posteada) para enviarla.") % (move.name or move.id))
 
             template = move._get_default_invoice_mail_template()
-            report = move._get_invoice_report_action()
-
+            report_name = move._get_name_invoice_report()
+            report = self.env["ir.actions.report"]._get_report_from_name(report_name)
             pdf_bytes, _ = report._render_qweb_pdf([move.id])
             filename = "%s.pdf" % ((move.name or "Factura").replace("/", "_"))
             attachment = move._get_or_create_invoice_pdf_attachment(pdf_bytes, filename)
