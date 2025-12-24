@@ -1,127 +1,96 @@
+<?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <data>
-        <record id="mail_template_invoice_facture" model="mail.template">
-            <field name="name">SEBIGUS - Envío Factura (Diseño)</field>
-            <field name="model_id" ref="account.model_account_move"/>
-            <field name="subject">${object.company_id.name} | Factura ${object.name}</field>
-            <field name="email_from">${(object.company_id.email_formatted or user.email_formatted) | safe}</field>
-            <field name="email_to">${object.partner_id.email or ''}</field>
-            <field name="lang">${object.partner_id.lang}</field>
-            <field name="auto_delete" eval="False"/>
-            <field name="body_html" type="html"><![CDATA[
-                % set company = object.company_id
-                % set partner = object.partner_id
-                <div style="margin:0; padding:0; background:#f6f7fb;">
-                <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background:#f6f7fb; padding:24px 0;">
+    <record id="mail_template_invoice_facture" model="mail.template">
+        <field name="name">SEBIGUS - Envío Factura (Diseño)</field>
+        <field name="model_id" ref="account.model_account_move"/>
+        <field name="subject">${object.company_id.name} | Factura ${object.name}</field>
+        <field name="email_from">${(object.company_id.email_formatted or user.email_formatted) | safe}</field>
+        <field name="email_to">${object.partner_id.email or ''}</field>
+        <field name="lang">${object.partner_id.lang}</field>
+        <field name="auto_delete" eval="False"/>
+
+        <field name="body_html" type="html"><![CDATA[
+% set company = object.company_id
+% set partner = object.partner_id
+
+<div style="margin:0; padding:0; background:#f6f7fb;">
+  <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background:#f6f7fb; padding:24px 0;">
+    <tr>
+      <td align="center">
+        <table role="presentation" width="640" cellspacing="0" cellpadding="0" border="0" style="width:640px; max-width:640px; background:#ffffff; border-radius:18px; overflow:hidden; box-shadow:0 10px 30px rgba(16,24,40,.10);">
+
+          <tr>
+            <td style="padding:18px 22px; background: linear-gradient(90deg, #00B8D9 0%, #FF4FA3 55%, #FFB020 100%);">
+              <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0">
                 <tr>
-                <td align="center">
-                    <table role="presentation" width="640" cellspacing="0" cellpadding="0" border="0" style="width:640px; max-width:640px; background:#ffffff; border-radius:18px; overflow:hidden; box-shadow:0 10px 30px rgba(16,24,40,.10);">
-
-                    <!-- Header -->
-                    <tr>
-                        <td style="padding:18px 22px; background: linear-gradient(90deg, #00B8D9 0%, #FF4FA3 55%, #FFB020 100%);">
-                        <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0">
-                            <tr>
-                            <td align="left" style="vertical-align:middle;">
-                                <img src="${image_data_uri(company.logo)}" alt="${company.name}" style="height:44px; display:block; border:0;"/>
-                            </td>
-                            <td align="right" style="vertical-align:middle; font-family:Arial, sans-serif; color:#ffffff; font-size:12px;">
-                                <div style="opacity:.95;">
-                                ${company.name}
-                                </div>
-                                % if company.phone:
-                                <div style="opacity:.90;">${company.phone}</div>
-                                % endif
-                                % if company.email:
-                                <div style="opacity:.90;">${company.email}</div>
-                                % endif
-                            </td>
-                            </tr>
-                        </table>
-                        </td>
-                    </tr>
-
-                    <!-- Body -->
-                    <tr>
-                        <td style="padding:26px 26px 10px 26px; font-family:Arial, sans-serif; color:#101828;">
-                        <div style="font-size:18px; font-weight:700; margin-bottom:10px;">
-                            Hola ${partner.name or ''},
-                        </div>
-
-                        <div style="font-size:14px; line-height:1.55; color:#344054;">
-                            Te enviamos tu factura <b style="color:#101828;">${object.name}</b>
-                            % if object.invoice_date:
-                            emitida el <b>${format_date(object.invoice_date)}</b>
-                            % endif
-                            por un total de
-                            <b style="color:#101828;">${format_amount(object.amount_total, object.currency_id)}</b>.
-                        </div>
-
-                        <!-- Summary card -->
-                        <div style="margin-top:18px; border:1px solid #EAECF0; border-radius:14px; padding:14px 14px; background:#fbfbff;">
-                            <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="font-family:Arial, sans-serif;">
-                            <tr>
-                                <td style="padding:6px 0; font-size:13px; color:#667085;">Cliente</td>
-                                <td style="padding:6px 0; font-size:13px; color:#101828; text-align:right; font-weight:600;">${partner.name or ''}</td>
-                            </tr>
-                            <tr>
-                                <td style="padding:6px 0; font-size:13px; color:#667085;">Comprobante</td>
-                                <td style="padding:6px 0; font-size:13px; color:#101828; text-align:right; font-weight:600;">${object.name}</td>
-                            </tr>
-                            <tr>
-                                <td style="padding:6px 0; font-size:13px; color:#667085;">Total</td>
-                                <td style="padding:6px 0; font-size:13px; color:#101828; text-align:right; font-weight:700;">${format_amount(object.amount_total, object.currency_id)}</td>
-                            </tr>
-                            % if object.invoice_date_due:
-                            <tr>
-                                <td style="padding:6px 0; font-size:13px; color:#667085;">Vencimiento</td>
-                                <td style="padding:6px 0; font-size:13px; color:#101828; text-align:right; font-weight:600;">${format_date(object.invoice_date_due)}</td>
-                            </tr>
-                            % endif
-                            </table>
-                        </div>
-
-                        <!-- CTA -->
-                        <div style="margin-top:18px; text-align:center;">
-                            <a href="${object.get_portal_url()}"
-                            style="display:inline-block; padding:12px 18px; border-radius:12px; text-decoration:none; font-weight:700;
-                                    font-family:Arial,sans-serif; font-size:14px; color:#ffffff;
-                                    background: linear-gradient(90deg, #00B8D9 0%, #FF4FA3 60%, #FFB020 100%);">
-                            Ver factura online
-                            </a>
-                        </div>
-
-                        <div style="margin-top:18px; font-size:13px; line-height:1.6; color:#475467;">
-                            La factura se adjunta en PDF a este correo.
-                            Si necesitás asistencia, respondé este mensaje y te ayudamos.
-                        </div>
-
-                        <div style="margin-top:18px; font-size:13px; color:#667085;">
-                            Saludos,<br/>
-                            <b style="color:#101828;">${company.name}</b>
-                        </div>
-                        </td>
-                    </tr>
-
-                    <!-- Footer -->
-                    <tr>
-                        <td style="padding:14px 22px; background:#0B1220; font-family:Arial, sans-serif; color:#ffffff;">
-                        <div style="font-size:12px; opacity:.90;">
-                            ${company.street or ''} ${company.city or ''} ${company.state_id and company.state_id.name or ''} ${company.zip or ''}
-                        </div>
-                        <div style="font-size:12px; opacity:.85; margin-top:6px;">
-                            Este correo fue generado automáticamente por ${company.name}.
-                        </div>
-                        </td>
-                    </tr>
-
-                    </table>
-                </td>
+                  <td align="left" style="vertical-align:middle;">
+                    <img src="${image_data_uri(company.logo)}" alt="${company.name}" style="height:44px; display:block; border:0;"/>
+                  </td>
+                  <td align="right" style="vertical-align:middle; font-family:Arial, sans-serif; color:#ffffff; font-size:12px;">
+                    <div style="opacity:.95;">${company.name}</div>
+                    % if company.phone:
+                      <div style="opacity:.90;">${company.phone}</div>
+                    % endif
+                    % if company.email:
+                      <div style="opacity:.90;">${company.email}</div>
+                    % endif
+                  </td>
                 </tr>
-                </table>
-                </div>
-                    ]]>
-            </field>
-        </record>
-    </data>
+              </table>
+            </td>
+          </tr>
+
+          <tr>
+            <td style="padding:26px 26px 10px 26px; font-family:Arial, sans-serif; color:#101828;">
+              <div style="font-size:18px; font-weight:700; margin-bottom:10px;">
+                Hola ${partner.name or ''},
+              </div>
+
+              <div style="font-size:14px; line-height:1.55; color:#344054;">
+                Te enviamos tu factura <b style="color:#101828;">${object.name}</b>
+                % if object.invoice_date:
+                  emitida el <b>${format_date(object.invoice_date)}</b>
+                % endif
+                por un total de
+                <b style="color:#101828;">${format_amount(object.amount_total, object.currency_id)}</b>.
+              </div>
+
+              <div style="margin-top:18px; text-align:center;">
+                <a href="${object.get_portal_url()}"
+                   style="display:inline-block; padding:12px 18px; border-radius:12px; text-decoration:none; font-weight:700;
+                          font-family:Arial,sans-serif; font-size:14px; color:#ffffff;
+                          background: linear-gradient(90deg, #00B8D9 0%, #FF4FA3 60%, #FFB020 100%);">
+                  Ver factura online
+                </a>
+              </div>
+
+              <div style="margin-top:18px; font-size:13px; line-height:1.6; color:#475467;">
+                La factura se adjunta en PDF a este correo. Si necesitás asistencia, respondé este mensaje.
+              </div>
+
+              <div style="margin-top:18px; font-size:13px; color:#667085;">
+                Saludos,<br/>
+                <b style="color:#101828;">${company.name}</b>
+              </div>
+            </td>
+          </tr>
+
+          <tr>
+            <td style="padding:14px 22px; background:#0B1220; font-family:Arial, sans-serif; color:#ffffff;">
+              <div style="font-size:12px; opacity:.90;">
+                ${company.street or ''} ${company.city or ''} ${company.state_id and company.state_id.name or ''} ${company.zip or ''}
+              </div>
+              <div style="font-size:12px; opacity:.85; margin-top:6px;">
+                Este correo fue generado automáticamente por ${company.name}.
+              </div>
+            </td>
+          </tr>
+
+        </table>
+      </td>
+    </tr>
+  </table>
+</div>
+        ]]></field>
+    </record>
 </odoo>
