@@ -135,9 +135,7 @@ class AccountMoveInherit(models.Model):
 
             # Registrar en chatter y dejar el adjunto visible en la factura
             move.message_post(
-                body=_("Factura enviada por correo a %s") % str(move.partner_id.email),
-                attachment_ids=[attachment.id],
-            )
+                body="Factura enviada por correo a %s" % (move.partner_id.email or "N/A"), attachment_ids=[attachment.id])
 
         return
     # FIN ENVIO DE CORREO---------------------------------------------------------
