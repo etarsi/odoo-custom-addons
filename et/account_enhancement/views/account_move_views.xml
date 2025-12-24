@@ -13,6 +13,20 @@
                     <field name="journal_id" options="{'no_create': True}" attrs="{'readonly': [('state', '!=', 'draft')]}" />
                 </div>
             </xpath>
+            <!-- Lo insertamos dentro del <header> del formulario -->
+            <xpath expr="//header" position="inside">
+                <button name="action_mail_invoice_partner_send"
+                        type="object"
+                        string="Enviar factura por email"
+                        class="btn-primary"
+                        attrs="{
+                            'invisible': [
+                                '|',
+                                ('move_type','not in',('out_invoice','out_refund')),
+                                ('state','!=','posted')
+                            ]
+                        }"/>
+            </xpath>
         </field>
     </record>
 

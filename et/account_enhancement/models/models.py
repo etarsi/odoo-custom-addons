@@ -6,7 +6,7 @@ from odoo.exceptions import AccessError, UserError, ValidationError
 import logging, json
 from datetime import date, datetime
 from odoo.tools.misc import format_date, format_amount
-from odoo.tools.float_utils import float_compare
+import base64
 _logger = logging.getLogger(__name__)
 
 class AccountMoveInherit(models.Model):
@@ -43,6 +43,122 @@ class AccountMoveInherit(models.Model):
     category_ids = fields.Many2many('product.category', string="Categoría", compute="_compute_category_ids")
     pricelist_id = fields.Many2one('product.pricelist', string="Lista de Precios")
     special_price = fields.Boolean(string="Precio Especial", default=False)
+    
+    # ENVIO DE CORREO---------------------------------------------------------
+    def _get_invoice_report_action(self):
+        """Obtiene el ir.actions.report de la factura (QWeb PDF)."""
+        self.ensure_one()
+
+        # Preferido: si tu localización redefine el reporte, esto lo respeta
+        if hasattr(self, "_get_name_invoice_report"):
+            report_xmlid = self._get_name_invoice_report()
+            report = self.env.ref(report_xmlid, raise_if_not_found=False)
+            if report:
+                return report
+
+        # Fallback típico (puede variar según instalación)
+        report = self.env.ref("account.account_invoices", raise_if_not_found=False)
+        if not report:
+            raise UserError(_("No se encontró el reporte PDF de factura (ir.actions.report)."))
+        return report
+    
+    def _get_default_invoice_mail_template(self):
+        """Toma una plantilla estándar si existe; si no, buscá una de account.move."""
+        self.ensure_one()
+
+        # En muchas BD existe este XMLID (si no, cae al search)
+        template = self.env.ref("account.email_template_edi_invoice", raise_if_not_found=False)
+        if template:
+            return template
+
+        # Alternativa: buscar cualquier template de account.move
+        template = self.env["mail.template"].search(
+            [("model_id.model", "=", "account.move")],
+            limit=1
+        )
+        if not template:
+            raise UserError(_("No hay plantilla de email configurada para Facturas (mail.template)."))
+        return template
+
+    def _get_or_create_invoice_pdf_attachment(self, pdf_bytes, filename):
+        self.ensure_one()
+        Attachment = self.env["ir.attachment"].sudo()
+
+        # Evitar duplicados: si ya existe el mismo nombre para esta factura, reutilizar
+        existing = Attachment.search([
+            ("res_model", "=", "account.move"),
+            ("res_id", "=", self.id),
+            ("name", "=", filename),
+            ("mimetype", "=", "application/pdf"),
+        ], limit=1)
+
+        if existing:
+            return existing
+
+        return Attachment.create({
+            "name": filename,
+            "type": "binary",
+            "datas": base64.b64encode(pdf_bytes),
+            "mimetype": "application/pdf",
+            "res_model": "account.move",
+            "res_id": self.id,
+        })
+   
+    def action_mail_invoice_partner_send(self):
+        """
+        Envío DIRECTO (sin modal):
+        - Renderiza PDF
+        - Guarda adjunto en la factura
+        - Envía email con plantilla + adjunto
+        - Marca invoice_sent
+        - Log en chatter
+        """
+        for move in self:
+            if move.move_type not in ("out_invoice", "out_refund"):
+                continue
+
+            if not move.partner_id.email:
+                raise ValidationError(_("El cliente '%s' no tiene email configurado.") % move.partner_id.display_name)
+
+            # Recomendación: enviar sólo si está posteada
+            if move.state != "posted":
+                raise UserError(_("La factura %s debe estar Validada (posteada) para enviarla.") % (move.name or move.id))
+
+            template = move._get_default_invoice_mail_template()
+            report = move._get_invoice_report_action()
+
+            pdf_bytes, _ = report._render_qweb_pdf([move.id])
+            filename = "%s.pdf" % ((move.name or "Factura").replace("/", "_"))
+            attachment = move._get_or_create_invoice_pdf_attachment(pdf_bytes, filename)
+
+            email_values = {
+                "email_to": move.partner_id.email,
+                "attachment_ids": [(4, attachment.id)],
+            }
+
+            # Enviar directo (sin wizard)
+            template.with_context(
+                lang=move.partner_id.lang or self.env.user.lang,
+                force_email=True,
+            ).send_mail(
+                move.id,
+                force_send=True,
+                raise_exception=True,
+                email_values=email_values,
+            )
+
+            # Marcar como enviada (equivalente al flujo del wizard)
+            if "invoice_sent" in move._fields:
+                move.write({"invoice_sent": True})
+
+            # Registrar en chatter y dejar el adjunto visible en la factura
+            move.message_post(
+                body=_("Factura enviada por correo a %s") % move.partner_id.email,
+                attachment_ids=[attachment.id],
+            )
+
+        return
+    # FIN ENVIO DE CORREO---------------------------------------------------------
    
     @api.model
     def create(self, vals):
