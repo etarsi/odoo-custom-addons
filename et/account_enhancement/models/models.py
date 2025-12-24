@@ -107,7 +107,7 @@ class AccountMoveInherit(models.Model):
             if move.state != "posted":
                 raise UserError(_("La factura %s debe estar Validada (posteada) para enviarla.") % (move.name or move.id))
 
-            template = move._get_default_invoice_mail_template()
+            template = self.env.ref("account_enhancement.mail_template_invoice_facture", raise_if_not_found=False)
             report = self.env.ref("account.account_invoices")  # ir.actions.report
             pdf_bytes, _ = report._render_qweb_pdf([move.id])
             filename = "%s.pdf" % ((move.name or "Factura").replace("/", "_"))
@@ -115,7 +115,7 @@ class AccountMoveInherit(models.Model):
 
             email_values = {
                 "email_to": move.partner_id.email,
-                "attachment_ids": [(4, attachment.id)],
+                #"attachment_ids": [(4, attachment.id)],
             }
 
             # Enviar directo (sin wizard)

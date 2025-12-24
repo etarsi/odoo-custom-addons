@@ -45,6 +45,7 @@
         'wizard/generar_factura_wizard_views.xml',
         #Templates
         'template/report_payment_group_document_views.xml',
+        'template/mail_template_invoice_facture.xml',
         #permissions
         'permissions/res_group.xml',
         'views/views.xml',
