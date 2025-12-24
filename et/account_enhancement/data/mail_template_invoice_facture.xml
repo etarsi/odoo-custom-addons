@@ -9,10 +9,9 @@
         <field name="lang">${object.partner_id.lang}</field>
         <field name="auto_delete" eval="False"/>
 
-        <field name="body_html" type="html"><![CDATA[
+        <field name="body_html" type="html">
 % set company = object.company_id
 % set partner = object.partner_id
-
 <div style="margin:0; padding:0; background:#f6f7fb;">
   <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background:#f6f7fb; padding:24px 0;">
     <tr>
@@ -91,6 +90,6 @@
     </tr>
   </table>
 </div>
-        ]]></field>
+        </field>
     </record>
 </odoo>
