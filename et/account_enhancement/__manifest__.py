@@ -38,6 +38,7 @@
         # Data
         'data/group_pago.xml',
         'data/ir_cron.xml',
+        'data/mail_template_invoice_facture.xml',
         'views/account_payment_group_suprimir_wizard_views.xml',
         'views/account_import_afip_facprov_wizard_views.xml',
         'data/action_payment_group.xml',
@@ -45,7 +46,6 @@
         'wizard/generar_factura_wizard_views.xml',
         #Templates
         'template/report_payment_group_document_views.xml',
-        'template/mail_template_invoice_facture.xml',
         #permissions
         'permissions/res_group.xml',
         'views/views.xml',
