@@ -27,6 +27,11 @@ class ReportStockPickingWizard(models.TransientModel):
     def _onchange_partner_id(self):
         self.parent_ids = False
         if self.partner_id:
+            parent_ids = self.env['res.partner'].search([('parent_id', '=', self.partner_id.id)])
+            if parent_ids:
+                self.parent_ids = parent_ids
+            else:
+                self.parent_ids = False
             return {'domain': {'parent_ids': [('parent_id', '=', self.partner_id.id)]}}
 
     def action_generar_excel(self):
