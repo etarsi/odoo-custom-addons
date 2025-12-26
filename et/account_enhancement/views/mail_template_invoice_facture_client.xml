@@ -4,10 +4,10 @@
     <record id="mail_template_invoice_facture_client" model="mail.template">
       <field name="name">SEBIGUS - Envío Factura (Diseño)</field>
       <field name="model_id" ref="account.model_account_move"/>
-      <field name="subject">${object.company_id.name} | Factura ${object.name}</field>
-      <field name="email_from">${(object.company_id.email_formatted or user.email_formatted) | safe}</field>
-      <field name="email_to">${object.partner_id.email or ''}</field>
-      <field name="lang">${object.partner_id.lang}</field>
+      <field name="email_from">{{ object.company_id.email }}</field>
+      <field name="email_to">{{ object.partner_id.email}}</field>
+      <field name="subject">Factura {{ object.name }}</field>
+      <field name="lang">{{ object.partner_id.lang }}</field>
       <field name="auto_delete" eval="False"/>
       <field name="body_html" type="html">
           <div style="margin: 0px; padding: 0px;">
