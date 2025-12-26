@@ -16,7 +16,7 @@
             <div style="border-radius:16px; overflow:hidden; border:1px solid #EAECF0; background:#ffffff;">
               <div>
                 <!-- Cambiá la ruta por tu imagen: la colocás en static/src/img/ -->
-                <img t-att-src="'%s/account_enhancement/static/src/img/banner-correo.png'"
+                <img t-att-src="http://192.168.30.85:8069/account_enhancement/static/src/img/banner-correo.png"
                       style="width:100%; display:block; border:0;"
                       alt="BANNER"/>
               </div>
@@ -34,17 +34,7 @@
                   <t t-if="object.invoice_date">
                     Fecha: <b><t t-out="object.invoice_date"/></b>
                   </t>
-                  <t t-if="object.invoice_date_due">
-                    Vencimiento: <b><t t-out="object.invoice_date_due"/></b>
-                  </t>
                 </div>
-
-                <!-- Referencia de pago (opcional) -->
-                <t t-if="object.payment_reference">
-                  <div style="font-family:Arial, sans-serif; font-size:13px; color:#475467; margin-top:10px;">
-                    Referencia de pago: <b><t t-out="object.payment_reference"/></b>
-                  </div>
-                </t>
 
                 <div style="font-family:Arial, sans-serif; font-size:13px; color:#475467; line-height:1.6; margin-top:12px;">
                   La factura se adjunta en PDF a este correo. Ante cualquier consulta, respondé este mensaje y te ayudamos.
