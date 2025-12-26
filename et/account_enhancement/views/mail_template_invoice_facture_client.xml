@@ -32,10 +32,10 @@
                 <div style="font-family:Arial, sans-serif; font-size:14px; line-height:1.6; color:#344054; margin-top:10px;">
                   Importe total: <b><t t-out="object.amount_total"/> <t t-out="object.currency_id.symbol"/></b>
                   <t t-if="object.invoice_date">
-                    &nbsp;|&nbsp; Fecha: <b><t t-out="object.invoice_date"/></b>
+                    Fecha: <b><t t-out="object.invoice_date"/></b>
                   </t>
                   <t t-if="object.invoice_date_due">
-                    &nbsp;|&nbsp; Vencimiento: <b><t t-out="object.invoice_date_due"/></b>
+                    Vencimiento: <b><t t-out="object.invoice_date_due"/></b>
                   </t>
                 </div>
 
