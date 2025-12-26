@@ -109,22 +109,30 @@ class AccountMoveInherit(models.Model):
             filename = "%s.pdf" % ((move.name or "Factura").replace("/", "_"))
             attachment = move._get_or_create_invoice_pdf_attachment(pdf_bytes, filename)
 
-            email_values = {
+            email_values_cliente = {
                 "email_to": move.partner_id.email,
                 #"attachment_ids": [(4, attachment.id)],
             }
+            
+            email_values_user = {
+                "email_to": move.invoice_user_id.email,
+                #"attachment_ids": [(4, attachment.id)],
+            }
 
-            # Enviar directo (sin wizard)
-            template.with_context(
-                lang=move.partner_id.lang or self.env.user.lang,
-                force_email=True,
-            ).send_mail(
-                move.id,
-                force_send=True,
-                raise_exception=True,
-                email_values=email_values,
-            )
-
+            # Enviar tanto al cliente como al usuario asignado
+            for email_values in [email_values_cliente, email_values_user]:
+                if not email_values["email_to"]:
+                    continue  # saltar si no hay email
+                template.with_context(
+                    lang=move.partner_id.lang or self.env.user.lang,
+                    force_email=True,
+                ).send_mail(
+                    move.id,
+                    force_send=True,
+                    raise_exception=True,
+                    email_values=email_values,
+                )
+                
             # Marcar como enviada (equivalente al flujo del wizard)
             if "invoice_sent" in move._fields:
                 move.write({"invoice_sent": True})
