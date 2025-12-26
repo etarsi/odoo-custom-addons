@@ -110,11 +110,11 @@ class AccountMoveInherit(models.Model):
 
             email_values_cliente = {
                 "email_to": move.partner_id.email,
-                #"attachment_ids": [(4, attachment.id)],
+                "attachment_ids": [(4, attachment.id)],
             }
             email_values_user = {
                 "email_to": move.invoice_user_id.partner_id.email,
-                #"attachment_ids": [(4, attachment.id)],
+                "attachment_ids": [(4, attachment.id)],
             }
 
             # Enviar tanto al cliente como al usuario asignado
