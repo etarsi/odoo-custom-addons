@@ -38,7 +38,7 @@
         # Data
         'data/group_pago.xml',
         'data/ir_cron.xml',
-        #'data/mail_template_invoice_facture.xml',
+        'data/mail_template_invoice_facture.xml',
         'views/account_payment_group_suprimir_wizard_views.xml',
         'views/account_import_afip_facprov_wizard_views.xml',
         'data/action_payment_group.xml',
