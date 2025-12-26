@@ -28,7 +28,7 @@
                 </div>
                 <t t-if="object.company_id.id == 1">
                   <div style="font-family:Arial, sans-serif; font-size:14px; color:#344054; line-height:1.6; margin-top:10px;">
-                    Adjuntamos su cotización: <b><t t-out="object.name"/></b></b>.
+                    Adjuntamos su cotización: <b><t t-out="object.name"/></b>.
                   </div>
                 </t>
                 <t t-else="">
