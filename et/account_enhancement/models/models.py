@@ -111,13 +111,13 @@ class AccountMoveInherit(models.Model):
             email_values_cliente = {
                 "email_from": f"Sebigus <{move.company_id.email}>",
                 "email_to": move.partner_id.email,
-                "subject": f"Factura {move.name}" if move.company_id.id != 1 else f"Cotización {move.name}",
+                "subject":  f"{move.company_id.name.upper()}-FACTURA: {move.name}" if move.company_id.id != 1 else f"SEBIGUS-COTIZACION: {move.name}",
                 "attachment_ids": [(4, attachment.id)],
             }
             email_values_user = {
                 "email_from": f"Sebigus <{move.company_id.email}>",
                 "email_to": move.invoice_user_id.partner_id.email,
-                "subject": f"Factura {move.name}" if move.company_id.id != 1 else f"Cotización {move.name}",
+                "subject":  f"{move.company_id.name.upper()}-FACTURA: {move.name}" if move.company_id.id != 1 else f"SEBIGUS-COTIZACION: {move.name}",
                 "attachment_ids": [(4, attachment.id)],
             }
 
