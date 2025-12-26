@@ -51,7 +51,7 @@
                 </t>
                 <t t-else="">
                   <div style="font-family:Arial, sans-serif; font-size:13px; color:#475467; line-height:1.6; margin-top:12px;">
-                    La factura se adjunta en PDF a este correo. Ante cualquier consulta, comuniquese con su vendedor.
+                    La factura se adjunta en PDF a este correo. Ante cualquier consulta, comuníquese con su vendedor.
                   </div>
                 </t>
 
