@@ -99,11 +99,10 @@ class AccountMoveInherit(models.Model):
         for move in self:
             if move.move_type not in ("out_invoice", "out_refund"):
                 continue
-
             if not move.partner_id.email:
                 raise ValidationError(_("El cliente '%s' no tiene un Correo configurado.") % move.partner_id.display_name)
 
-            template = move._get_default_invoice_mail_template()
+            template = self.env.ref("account_enhancement.mail_template_invoice_facture_client", raise_if_not_found=False)
             report = self.env.ref("account.account_invoices")  # ir.actions.report
             pdf_bytes, _ = report._render_qweb_pdf([move.id])
             filename = "%s.pdf" % ((move.name or "Factura").replace("/", "_"))
@@ -113,7 +112,6 @@ class AccountMoveInherit(models.Model):
                 "email_to": move.partner_id.email,
                 #"attachment_ids": [(4, attachment.id)],
             }
-            
             email_values_user = {
                 "email_to": move.invoice_user_id.partner_id.email,
                 #"attachment_ids": [(4, attachment.id)],
@@ -140,7 +138,6 @@ class AccountMoveInherit(models.Model):
             # Registrar en chatter y dejar el adjunto visible en la factura
             move.message_post(
                 body="Factura enviada por correo a %s" % (move.partner_id.email or "N/A"), attachment_ids=[attachment.id])
-
         return
     # FIN ENVIO DE CORREO---------------------------------------------------------
     
