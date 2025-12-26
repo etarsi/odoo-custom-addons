@@ -101,7 +101,7 @@ class StockERP(models.Model):
         for record in stock_digip:
             stock_erp = self.env['stock.erp'].search([('product_id.default_code', '=', record['codigo'])], limit=1)
             if stock_erp:
-                stock_digip = record['stock']['disponible'] + record['stock']['enPreparacion']
+                stock_digip = record['stock']['disponible'] + record['stock']['enPreparacion'] + record['stock']['bloqueados'] 
                 stock_erp.digip_unidades = stock_digip
                 stock_erp.fisico_unidades = stock_digip
                 stock_erp.entregable_unidades = record['stock']['disponible']
