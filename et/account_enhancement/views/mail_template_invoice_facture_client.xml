@@ -26,30 +26,43 @@
                 <div style="font-family:Arial, sans-serif; font-size:20px; font-weight:700; color:#101828;">
                   Hola, <t t-out="object.partner_id.name"/>
                 </div>
-                <div style="font-family:Arial, sans-serif; font-size:14px; line-height:1.6; color:#344054; margin-top:10px;">
-                  Adjuntamos tu factura <b><t t-out="object.name"/></b> emitida por <b><t t-out="object.company_id.name"/></b>.
-                </div>
+                <t t-if="object.company_id.id == 1"> <!-- PRODUCCION B-->
+                  <div style="font-family:Arial, sans-serif; font-size:14px; color:#344054; line-height:1.6; margin-top:10px;">
+                    Adjuntamos su cotización: <b><t t-out="object.name"/></b></b>.
+                  </div>
+                </t>
+                <t t-else="">
+                  <div style="font-family:Arial, sans-serif; font-size:14px; line-height:1.6; color:#344054; margin-top:10px;">
+                    Adjuntamos tu factura <b><t t-out="object.name"/></b> emitida por <b><t t-out="object.company_id.name"/></b>.
+                  </div>
+                </t>
 
                 <div style="font-family:Arial, sans-serif; font-size:14px; line-height:1.6; color:#344054; margin-top:10px;">
-                  Importe total: <b><t t-out="object.amount_total"/> <t t-out="object.currency_id.symbol"/></b>
+                  Importe total: <t t-out="object.currency_id.symbol"/> <b><t t-out="object.amount_total"/></b> <br/>
                   <t t-if="object.invoice_date">
                     Fecha: <b><t t-out="object.invoice_date"/></b>
                   </t>
                 </div>
 
-                <div style="font-family:Arial, sans-serif; font-size:13px; color:#475467; line-height:1.6; margin-top:12px;">
-                  La factura se adjunta en PDF a este correo. Ante cualquier consulta, respondé este mensaje y te ayudamos.
-                </div>
+                <t t-if="object.company_id.id == 1"> <!-- PRODUCCION B-->
+                  <div style="font-family:Arial, sans-serif; font-size:13px; color:#475467; line-height:1.6; margin-top:12px;">
+                    Por favor, revise la cotización y Ante cualquier consulta, comuniquese con su vendedor.
+                  </div>
+                </t>
+                <t t-else="">
+                  <div style="font-family:Arial, sans-serif; font-size:13px; color:#475467; line-height:1.6; margin-top:12px;">
+                    La factura se adjunta en PDF a este correo. Ante cualquier consulta, comuniquese con su vendedor.
+                  </div>
+                </t>
 
                 <div style="font-family:Arial, sans-serif; font-size:13px; color:#667085; margin-top:14px;">
-                  Saludos,<br/>
-                  <b><t t-out="object.company_id.name"/></b>
+                  Saludos cordiales, <b>Equipo de Sebigus.</b>
                 </div>
               </div>
 
               <!-- Footer -->
               <div style="padding:12px 18px 16px 18px; font-family:Arial, sans-serif; font-size:12px; color:#98A2B3;">
-                Este correo fue generado automáticamente por <t t-out="object.company_id.name"/>.
+                Este correo fue generado automáticamente por Equipo de Sebigus.
               </div>
             </div>
 

@@ -109,10 +109,12 @@ class AccountMoveInherit(models.Model):
             attachment = move._get_or_create_invoice_pdf_attachment(pdf_bytes, filename)
 
             email_values_cliente = {
+                "email_from": f"Sebigus <{move.company_id.email}>",
                 "email_to": move.partner_id.email,
                 "attachment_ids": [(4, attachment.id)],
             }
             email_values_user = {
+                "email_from": f"Sebigus <{move.company_id.email}>",
                 "email_to": move.invoice_user_id.partner_id.email,
                 "attachment_ids": [(4, attachment.id)],
             }
