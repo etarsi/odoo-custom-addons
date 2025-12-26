@@ -38,9 +38,9 @@
                 </t>
 
                 <div style="font-family:Arial, sans-serif; font-size:14px; line-height:1.6; color:#344054; margin-top:10px;">
-                  Importe total: <t t-out="object.currency_id.symbol"/> <b><t t-out="object.amount_total"/></b> <br/>
+                  Importe total: <t t-out="format_amount(object.amount_total, object.currency_id)"/> <br/>
                   <t t-if="object.invoice_date">
-                    Fecha: <b><t t-out="object.invoice_date"/></b>
+                    Fecha: <b><t t-out="format_date(object.invoice_date)"/></b>
                   </t>
                 </div>
 
