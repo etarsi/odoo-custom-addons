@@ -1,15 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
+  <data>
     <record id="mail_template_invoice_facture" model="mail.template">
-        <field name="name">SEBIGUS - Envío Factura (Diseño)</field>
-        <field name="model_id" ref="account.model_account_move"/>
-        <field name="subject">${object.company_id.name} | Factura ${object.name}</field>
-        <field name="email_from">${(object.company_id.email_formatted or user.email_formatted) | safe}</field>
-        <field name="email_to">${object.partner_id.email or ''}</field>
-        <field name="lang">${object.partner_id.lang}</field>
-        <field name="auto_delete" eval="False"/>
+      <field name="name">SEBIGUS - Envío Factura (Diseño)</field>
+      <field name="model_id" ref="account.model_account_move"/>
+      <field name="subject">${object.company_id.name} | Factura ${object.name}</field>
+      <field name="email_from">${(object.company_id.email_formatted or user.email_formatted) | safe}</field>
+      <field name="email_to">${object.partner_id.email or ''}</field>
+      <field name="lang">${object.partner_id.lang}</field>
+      <field name="auto_delete" eval="False"/>
 
-        <field name="body_html" type="html">
+      <field name="body_html" type="html"><![CDATA[
 % set company = object.company_id
 % set partner = object.partner_id
 <div style="margin:0; padding:0; background:#f6f7fb;">
@@ -17,13 +18,16 @@
     <tr>
       <td align="center">
         <table role="presentation" width="640" cellspacing="0" cellpadding="0" border="0" style="width:640px; max-width:640px; background:#ffffff; border-radius:18px; overflow:hidden; box-shadow:0 10px 30px rgba(16,24,40,.10);">
-
           <tr>
             <td style="padding:18px 22px; background: linear-gradient(90deg, #00B8D9 0%, #FF4FA3 55%, #FFB020 100%);">
               <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0">
                 <tr>
                   <td align="left" style="vertical-align:middle;">
-                    <img src="${image_data_uri(company.logo)}" alt="${company.name}" style="height:44px; display:block; border:0;"/>
+                    % if company.logo:
+                      <img src="${image_data_uri(company.logo)}" alt="${company.name}" style="height:44px; display:block; border:0;"/>
+                    % else:
+                      <span style="font-family:Arial,sans-serif; font-size:18px; font-weight:700; color:#ffffff;">${company.name}</span>
+                    % endif
                   </td>
                   <td align="right" style="vertical-align:middle; font-family:Arial, sans-serif; color:#ffffff; font-size:12px;">
                     <div style="opacity:.95;">${company.name}</div>
@@ -90,6 +94,7 @@
     </tr>
   </table>
 </div>
-        </field>
+      ]]></field>
     </record>
+  </data>
 </odoo>
