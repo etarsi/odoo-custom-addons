@@ -101,13 +101,9 @@ class AccountMoveInherit(models.Model):
                 continue
 
             if not move.partner_id.email:
-                raise ValidationError(_("El cliente '%s' no tiene email configurado.") % move.partner_id.display_name)
+                raise ValidationError(_("El cliente '%s' no tiene un Correo configurado.") % move.partner_id.display_name)
 
-            # Recomendación: enviar sólo si está posteada
-            if move.state != "posted":
-                raise UserError(_("La factura %s debe estar Validada (posteada) para enviarla.") % (move.name or move.id))
-
-            template = self.env.ref("account_enhancement.mail_template_invoice_facture", raise_if_not_found=False)
+            template = move._get_default_invoice_mail_template()
             report = self.env.ref("account.account_invoices")  # ir.actions.report
             pdf_bytes, _ = report._render_qweb_pdf([move.id])
             filename = "%s.pdf" % ((move.name or "Factura").replace("/", "_"))
@@ -139,7 +135,7 @@ class AccountMoveInherit(models.Model):
 
         return
     # FIN ENVIO DE CORREO---------------------------------------------------------
-   
+    
     @api.model
     def create(self, vals):
         res = super().create(vals)
