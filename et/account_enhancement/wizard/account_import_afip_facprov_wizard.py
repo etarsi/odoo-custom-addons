@@ -241,7 +241,11 @@ class AccountImportAfipFacprovWizard(models.TransientModel):
             move_type = 'in_invoice'
             if tipo_comprobante.internal_type == 'credit_note':
                 move_type = 'in_refund'
-
+                
+            # tipo comprobante B no registra factura
+            if tipo_comprobante.l10n_ar_letter == 'B':
+                fila_no_registrada += f"\n , Fila: {r} - El tipo de comprobante B no se registra en el sistema."
+                continue
             #LINEAS 
             # Como separar el tip                
             # Construcción de líneas
