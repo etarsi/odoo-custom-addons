@@ -17,7 +17,7 @@
               <div>
                 <!-- Cambiá la ruta por tu imagen: la colocás en static/src/img/ -->
                 <t t-set="base_url" t-value="ctx.get('base_url')"/>
-                <img t-att-src="base_url + '/account_enhancement/static/src/img/banner-correo.png'"
+                <img t-att-src="base_url + '/account_enhancement/static/src/img/banner-correo1.png'"
                     style="width:100%; display:block; border:0;"
                     alt="BANNER"/>
               </div>
