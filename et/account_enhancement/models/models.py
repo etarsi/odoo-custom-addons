@@ -115,7 +115,7 @@ class AccountMoveInherit(models.Model):
             }
             
             email_values_user = {
-                "email_to": move.invoice_user_id.email,
+                "email_to": move.invoice_user_id.partner_id.email,
                 #"attachment_ids": [(4, attachment.id)],
             }
 
