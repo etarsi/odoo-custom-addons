@@ -6,6 +6,8 @@ import re
 from io import BytesIO
 from datetime import datetime, date
 from openpyxl import load_workbook
+import logging
+_logger = logging.getLogger(__name__)
 
 
 class AccountImportAfipFacprovWizard(models.TransientModel):
@@ -196,7 +198,9 @@ class AccountImportAfipFacprovWizard(models.TransientModel):
                 raise ValidationError(_("Fila %s: tipo de comprobante inválido o no soportado: '%s'.") % (r, str(tipo)))
             #INFORMACION DE LA FACTURA
             move_type = 'in_invoice'
-            print(f"tipo_comprobante nombre:{tipo_comprobante.name}, tipo interno:{tipo_comprobante.internal_type}")
+            _logger.info(f"==========================================")
+            _logger.info(f"tipo_comprobante nombre:{tipo_comprobante.name}, tipo interno:{tipo_comprobante.internal_type}")
+            _logger.info(f"==========================================")
             if tipo_comprobante.internal_type == 'credit_note':
                 move_type = 'in_refund'
 
