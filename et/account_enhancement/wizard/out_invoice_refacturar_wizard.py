@@ -123,15 +123,18 @@ class OutInvoiceRefacturarWizard(models.TransientModel):
 
         for line in move_src.invoice_line_ids.filtered(lambda l: not l.display_type):
             # precio: si hay pricelist, recalculo; si no, dejo el de origen
-            if move_src.special_price:
-                price_unit = line.price_unit
-            else:
-                price_unit = pricelist.price_get(
-                    line.product_id.id,
-                    line.quantity or 1.0,
-                )[pricelist.id]
-                if not price_unit:
+            if line.product_id:
+                if move_src.special_price:
                     price_unit = line.price_unit
+                else:
+                    price_unit = pricelist.price_get(
+                        line.product_id.id,
+                        line.quantity or 1.0,
+                    )[pricelist.id]
+                    if not price_unit:
+                        price_unit = line.price_unit
+            else:
+                price_unit = line.price_unit
 
             # impuestos: mapear por compañía y aplicar FP
             mapped_taxes = self._map_taxes_to_company(line.tax_ids, company, fp, move_src.invoice_date)
@@ -141,14 +144,16 @@ class OutInvoiceRefacturarWizard(models.TransientModel):
                 mapped_taxes = fp.map_tax(prod_taxes) if fp and prod_taxes else prod_taxes
 
             vals['invoice_line_ids'].append((0, 0, {
-                'product_id': line.product_id.id,
+                'product_id': line.product_id.id if line.product_id else False,
                 'name': line.name,
                 'quantity': line.quantity,
-                'product_uom_id': line.product_uom_id.id,
+                'product_uom_id': line.product_uom_id.id if line.product_uom_id else False,
                 'price_unit': price_unit,
                 'discount': self.descuento_porcentaje if self.accion_descuento else line.discount,
                 'tax_ids': [(6, 0, mapped_taxes.ids)],
-                'sale_line_ids': [(6, 0, line.sale_line_ids.ids)],
+                'sale_line_ids': [(6, 0, line.sale_line_ids.ids if line.sale_line_ids else False)],
+                #enlazar con la transferencia copya de stock
+                'move_line_ids': [(6, 0, line.move_line_ids.ids if line.move_line_ids else False)],
             }))
 
         return vals
