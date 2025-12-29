@@ -194,6 +194,12 @@ class AccountImportAfipFacprovWizard(models.TransientModel):
             # VALIDACIONES
             if not tipo_comprobante:
                 raise ValidationError(_("Fila %s: tipo de comprobante inválido o no soportado: '%s'.") % (r, str(tipo)))
+            #INFORMACION DE LA FACTURA
+            move_type = 'in_invoice'
+            print(f"tipo_comprobante nombre:{tipo_comprobante.name}, tipo interno:{tipo_comprobante.internal_type}")
+            if tipo_comprobante.internal_type == 'credit_note':
+                move_type = 'in_refund'
+
             if company_nif and company_actual and self._norm_cuit(company_nif) != self._norm_cuit(company_actual):
                 raise ValidationError("Esta intentando verificar facturas que no corresponden a la compañía actual.")
             # Buscar proveedor
@@ -211,7 +217,7 @@ class AccountImportAfipFacprovWizard(models.TransientModel):
             if not partner.cuenta_prov_afip_import_id:
                 fila_no_registrada += f"\n , Fila: {r} - El proveedor {partner.name} no tiene configurada la cuenta para Facturas AFIP Import."
                 continue
-            fac_proveedor = self.env['account.move'].search([('name', 'ilike', num_fac), ('partner_id', '=', partner.id), ('company_id', '=', company_id.id)], limit=1)         
+            fac_proveedor = self.env['account.move'].search([('name', 'ilike', num_fac), ('partner_id', '=', partner.id), ('company_id', '=', company_id.id), ('move_type', '=', move_type)], limit=1)         
             if fac_proveedor:
                 continue
             
@@ -236,12 +242,6 @@ class AccountImportAfipFacprovWizard(models.TransientModel):
                 currency = self.env['res.currency'].search([('symbol', '=', moneda_symbol)], limit=1)
                 if not currency:
                     raise ValidationError(_("Fila %s: no se encontró la moneda con símbolo '%s'.") % (r, ws.cell(r, c_moneda).value or ''))
-
-            #INFORMACION DE LA FACTURA
-            move_type = 'in_invoice'
-            print(f"tipo_comprobante nombre:{tipo_comprobante.name}, tipo interno:{tipo_comprobante.internal_type}")
-            if tipo_comprobante.internal_type == 'credit_note':
-                move_type = 'in_refund'
                 
             # tipo comprobante B no registra factura
             if tipo_comprobante.l10n_ar_letter == 'B':
