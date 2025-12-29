@@ -239,6 +239,7 @@ class AccountImportAfipFacprovWizard(models.TransientModel):
 
             #INFORMACION DE LA FACTURA
             move_type = 'in_invoice'
+            print(f"tipo_comprobante nombre:{tipo_comprobante.name}, tipo interno:{tipo_comprobante.internal_type}")
             if tipo_comprobante.internal_type == 'credit_note':
                 move_type = 'in_refund'
                 
