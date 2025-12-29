@@ -198,9 +198,6 @@ class AccountImportAfipFacprovWizard(models.TransientModel):
                 raise ValidationError(_("Fila %s: tipo de comprobante inválido o no soportado: '%s'.") % (r, str(tipo)))
             #INFORMACION DE LA FACTURA
             move_type = 'in_invoice'
-            _logger.info(f"==========================================")
-            _logger.info(f"tipo_comprobante nombre:{tipo_comprobante.name}, tipo interno:{tipo_comprobante.internal_type}")
-            _logger.info(f"==========================================")
             if tipo_comprobante.internal_type == 'credit_note':
                 move_type = 'in_refund'
 
@@ -223,9 +220,6 @@ class AccountImportAfipFacprovWizard(models.TransientModel):
                 continue
             fac_proveedor = self.env['account.move'].search([('name', 'ilike', num_fac), ('partner_id', '=', partner.id), ('company_id', '=', company_id.id), ('move_type', '=', move_type)], limit=1)                     
             if fac_proveedor:
-                _logger.info(f"==========================================")
-                _logger.info(f"FACTURA PROVEEDOR:{fac_proveedor.name}, compañia:{fac_proveedor.company_id.name}")
-                _logger.info(f"==========================================")
                 continue
             
             if partner.diario_prov_afip_import_id == 'lavalle':
