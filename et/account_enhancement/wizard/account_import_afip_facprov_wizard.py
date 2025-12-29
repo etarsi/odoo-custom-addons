@@ -221,8 +221,11 @@ class AccountImportAfipFacprovWizard(models.TransientModel):
             if not partner.cuenta_prov_afip_import_id:
                 fila_no_registrada += f"\n , Fila: {r} - El proveedor {partner.name} no tiene configurada la cuenta para Facturas AFIP Import."
                 continue
-            fac_proveedor = self.env['account.move'].search([('name', 'ilike', num_fac), ('partner_id', '=', partner.id), ('company_id', '=', company_id.id), ('move_type', '=', move_type)], limit=1)         
+            fac_proveedor = self.env['account.move'].search([('name', 'ilike', num_fac), ('partner_id', '=', partner.id), ('company_id', '=', company_id.id), ('move_type', '=', move_type)], limit=1)                     
             if fac_proveedor:
+                _logger.info(f"==========================================")
+                _logger.info(f"FACTURA PROVEEDOR:{fac_proveedor.name}, compañia:{fac_proveedor.company_id.name}")
+                _logger.info(f"==========================================")
                 continue
             
             if partner.diario_prov_afip_import_id == 'lavalle':
