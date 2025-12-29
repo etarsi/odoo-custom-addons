@@ -41,6 +41,7 @@
         'views/mail_template_invoice_facture_client.xml',
         'views/account_payment_group_suprimir_wizard_views.xml',
         'views/account_import_afip_facprov_wizard_views.xml',
+        'views/import_afip_impuesto_bruto_wizard_views.xml',
         'data/action_payment_group.xml',
         #Reportes
         'wizard/generar_factura_wizard_views.xml',

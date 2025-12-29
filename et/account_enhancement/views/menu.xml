@@ -40,4 +40,12 @@
         sequence="2"
         parent="account_enhancement.menu_account_report_factura_general"
         action="action_reporte_pagos_fuera_fecha"/>
+
+    <!-- SUBMENU DE IMPUESTOS BRUTOS -->
+    <menuitem
+        id="account_enhancement.menu_account_import_afip_impuesto_bruto_wizard"
+        name="Importar Impuestos Brutos AFIP"
+        parent="l10n_ar.menu_afip_config"
+        action="action_import_afip_impuesto_bruto_wizard"
+        sequence="70"/>
 </odoo>

@@ -1,0 +1,26 @@
+<odoo>
+    <record id="view_import_afip_impuesto_bruto_wizard_form" model="ir.ui.view">
+        <field name="name">import.afip.impuesto.bruto.wizard.form</field>
+        <field name="model">import.afip.impuesto.bruto.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Importar AFIP, Impuestos Brutos">
+                <group>
+                    <field name="file"/>
+                    <field name="month"/>
+                    <field name="year"/>
+                </group>
+                <footer>
+                    <button string="Importar" type="object" name="import_data" class="btn-primary"/>
+                    <button string="Cancelar" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_import_afip_impuesto_bruto_wizard" model="ir.actions.act_window">
+    <field name="name">Importar AFIP Impuestos Brutos</field>
+    <field name="res_model">import.afip.impuesto.bruto.wizard</field>
+    <field name="view_mode">form</field>
+    <field name="target">new</field>
+    </record>
+</odoo>

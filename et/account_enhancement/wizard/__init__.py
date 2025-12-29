@@ -5,3 +5,4 @@ from . import out_invoice_refacturar_wizard
 from . import sale_refacturar_account_wizard
 from . import account_payment_group_suprimir_wizard
 from . import account_import_afip_facprov_wizard
+from . import import_afip_impuesto_bruto_wizard
