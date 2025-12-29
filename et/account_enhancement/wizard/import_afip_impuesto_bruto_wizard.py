@@ -5,7 +5,6 @@ import base64
 import re
 from io import BytesIO
 from datetime import datetime, date, timedelta
-from openpyxl import load_workbook
 import logging
 _logger = logging.getLogger(__name__)
 
