@@ -113,7 +113,7 @@ class ImportAfipImpuestoBrutoWizard(models.TransientModel):
                     'to_date': (datetime(self.year, int(self.month) % 12 + 1, 1) - timedelta(days=1)).date(),
                 }
                 
-                ali_cuota = self.env['res.partner.arba.alicuot'].search([
+                ali_cuota = self.env['res.partner.arba_alicuot'].search([
                     ('partner_id', '=', partner_id),
                     ('tag_id', '=', self.tag_id),
                     ('company_id', '=', company_id),
@@ -127,7 +127,7 @@ class ImportAfipImpuestoBrutoWizard(models.TransientModel):
                         'alicuota_retencion': vals['alicuota_retencion'],
                     })
                 else:
-                    self.env['res.partner.arba.alicuot'].create(vals)
+                    self.env['res.partner.arba_alicuot'].create(vals)
 
         # 5) Mostrar resultado (líneas)
         response = {
