@@ -60,12 +60,15 @@ class ImportAfipImpuestoBrutoWizard(models.TransientModel):
         self.ensure_one()
         if not self.file:
             raise UserError(_("Debe adjuntar el TXT de AFIP."))
-
+        
+        #validar año valido
+        if self.year < 2000 or self.year > 2100:
+            raise UserError(_("El año ingresado no es válido."))
+        
         m = int(self.month)
         y = int(self.year)
         from_date = date(y, m, 1)
         to_date = date(y, m, monthrange(y, m)[1])  # FIX diciembre
-
         raw = base64.b64decode(self.file)
 
         # 1) CUIT -> partner_id en O(1)
@@ -79,21 +82,16 @@ class ImportAfipImpuestoBrutoWizard(models.TransientModel):
             if c:
                 partner_by_cuit[c] = r['id']
 
-        _logger.info("Partners con CUIT indexados: %s", len(partner_by_cuit))
-
         # 2) Parse streaming y quedarnos con el último valor por partner
         delim = self.delimiter or ';'
         cuit_i = int(self.cuit_index)
         perc_i = int(self.percepcion_index)
         ret_i = int(self.retencion_index)
         max_idx = max(cuit_i, perc_i, ret_i)
-
-        rates_by_partner = {}  # partner_id -> (perc, ret)
-        log_each = 200000
-
+        rates_by_partner = {}
         f = io.TextIOWrapper(io.BytesIO(raw), encoding='latin-1', errors='replace', newline='')
+
         #notificar cuando habre el archivo
-        _logger.info("Iniciando parseo del archivo...")
         for i, line in enumerate(f, start=1):
             _logger.info("Procesando linea: %s", i)
             if not line:
@@ -101,19 +99,13 @@ class ImportAfipImpuestoBrutoWizard(models.TransientModel):
             parts = line.strip().split(delim)
             if len(parts) <= max_idx:
                 continue
-
             cuit = self._norm_cuit(parts[cuit_i])
             if not cuit:
                 continue
-
             pid = partner_by_cuit.get(cuit)
             if not pid:
                 continue
-
             rates_by_partner[pid] = (self._to_float(parts[perc_i]), self._to_float(parts[ret_i]))
-
-            if i % log_each == 0:
-                _logger.info("Lineas: %s | Matcheados: %s", i, len(rates_by_partner))
         f.close()
 
         if not rates_by_partner:
