@@ -111,9 +111,9 @@ class HrReportAttendanceWizard(models.TransientModel):
             emp_id = att.employee_id.id
             if emp_id not in totales_por_emp:
                 totales_por_emp[emp_id] = {'wh': 0.0, 'ot': 0.0, 'hh': 0.0}
-            totales_por_emp[emp_id]['wh'] += excel.float_to_hhmmss(att.worked_hours or 0.0)
-            totales_por_emp[emp_id]['ot'] += excel.float_to_hhmmss(att.overtime or 0.0)
-            totales_por_emp[emp_id]['hh'] += excel.float_to_hhmmss(att.holiday_hours or 0.0)
+            totales_por_emp[emp_id]['wh'] += (att.worked_hours or 0.0)
+            totales_por_emp[emp_id]['ot'] += (att.overtime or 0.0)
+            totales_por_emp[emp_id]['hh'] += (att.holiday_hours or 0.0)
 
         for attendance in attendances:
             emp = attendance.employee_id
@@ -122,9 +122,9 @@ class HrReportAttendanceWizard(models.TransientModel):
             if current_emp_id and emp.id != current_emp_id:
                 tot_prev = totales_por_emp[current_emp_id]
                 worksheet.merge_range(row, 0, row, 4, " ", fmt_total)
-                worksheet.write(row, 5, tot_prev['wh'], fmt_total)
-                worksheet.write(row, 6, tot_prev['ot'], fmt_total)
-                worksheet.write(row, 7, tot_prev['hh'], fmt_total)
+                worksheet.write(row, 5, excel.float_to_hhmmss(tot_prev['wh']), fmt_total)
+                worksheet.write(row, 6, excel.float_to_hhmmss(tot_prev['ot']), fmt_total)
+                worksheet.write(row, 7, excel.float_to_hhmmss(tot_prev['hh']), fmt_total)
                 worksheet.merge_range(row, 8, row, 9, " ", fmt_total)
                 row += 1  # línea en blanco después del total
                 # encabezado del nuevo empleado
@@ -169,9 +169,9 @@ class HrReportAttendanceWizard(models.TransientModel):
         if current_emp_id:
             tot_prev = totales_por_emp[current_emp_id]
             worksheet.merge_range(row, 0, row, 4, " ", fmt_total)
-            worksheet.write(row, 5, tot_prev['wh'], fmt_total)
-            worksheet.write(row, 6, tot_prev['ot'], fmt_total)
-            worksheet.write(row, 7, tot_prev['hh'], fmt_total)
+            worksheet.write(row, 5, excel.float_to_hhmmss(tot_prev['wh']), fmt_total)
+            worksheet.write(row, 6, excel.float_to_hhmmss(tot_prev['ot']), fmt_total)
+            worksheet.write(row, 7, excel.float_to_hhmmss(tot_prev['hh']), fmt_total)
             worksheet.merge_range(row, 8, row, 9, " ", fmt_total)
             row += 1
         
