@@ -153,6 +153,18 @@ class StockPickingInherit(models.Model):
         for lot in new_lots:
             if lot.company_id.id == move.company_id.id:
                 return lot
+            
+    def action_correction_product_code_nine(self):
+        for record in self:
+            for move in record.move_ids_without_package:
+                default_code = move.product_id.default_code
+                if default_code and default_code.startswith('9'):
+                    new_code = default_code[1:]
+                    product = self.env['product.product'].search([('default_code', '=', new_code)], limit=1)
+                    if product:
+                        move.product_id = product.id
+                    else:
+                        raise UserError(f'No se encontró el producto con código {new_code} para el movimiento {move.id}')
 
     ## RE DO
     def check_product_lot(self, product_id):
