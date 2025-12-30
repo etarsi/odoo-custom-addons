@@ -128,39 +128,89 @@ class ImportAfipImpuestoBrutoWizard(models.TransientModel):
                 }
             }
 
-        # 4) Update/Create
-        rows = []
-        now = Datetime.now()
+        # 4) Update/Create masivo usando temp table
+        now = fields.Datetime.now()
         uid = self.env.uid
-
+        rows = []
         for pid, (perc, ret) in rates_by_partner.items():
             for company_id in COMPANY_IDS:
                 rows.append((pid, self.tag_id, company_id, from_date, to_date, perc, ret, uid, now, uid, now))
 
-        sql = """
-        INSERT INTO res_partner_arba_alicuot
-        (partner_id, tag_id, company_id, from_date, to_date,
-        alicuota_percepcion, alicuota_retencion,
-        create_uid, create_date, write_uid, write_date)
-        VALUES %s
-        ON CONFLICT (partner_id, tag_id, company_id, from_date, to_date)
-        DO UPDATE SET
-        alicuota_percepcion = EXCLUDED.alicuota_percepcion,
-        alicuota_retencion  = EXCLUDED.alicuota_retencion,
-        write_uid = EXCLUDED.write_uid,
-        write_date = EXCLUDED.write_date
-        """
-        execute_values(self.env.cr, sql, rows, page_size=10000)
+        cr = self.env.cr
 
+        # 1) Crear temp table (se borra al commit)
+        cr.execute("""
+            CREATE TEMP TABLE tmp_agip_alicuot (
+                partner_id integer,
+                tag_id integer,
+                company_id integer,
+                from_date date,
+                to_date date,
+                alicuota_percepcion numeric,
+                alicuota_retencion numeric,
+                create_uid integer,
+                create_date timestamp,
+                write_uid integer,
+                write_date timestamp
+            ) ON COMMIT DROP
+        """)
+
+        # 2) Cargar temp table en bulk
+        execute_values(cr, """
+            INSERT INTO tmp_agip_alicuot
+            (partner_id, tag_id, company_id, from_date, to_date,
+            alicuota_percepcion, alicuota_retencion,
+            create_uid, create_date, write_uid, write_date)
+            VALUES %s
+        """, rows, page_size=10000)
+
+        # 3) UPDATE masivo: actualiza todos los existentes (si hay duplicados, actualiza todos)
+        cr.execute("""
+            UPDATE res_partner_arba_alicuot t
+            SET
+                alicuota_percepcion = s.alicuota_percepcion,
+                alicuota_retencion  = s.alicuota_retencion,
+                write_uid = s.write_uid,
+                write_date = s.write_date
+            FROM tmp_agip_alicuot s
+            WHERE t.partner_id = s.partner_id
+            AND t.tag_id = s.tag_id
+            AND t.company_id = s.company_id
+            AND t.from_date = s.from_date
+            AND t.to_date = s.to_date
+        """)
+
+        # 4) INSERT masivo: inserta solo los que no existen
+        cr.execute("""
+            INSERT INTO res_partner_arba_alicuot
+            (partner_id, tag_id, company_id, from_date, to_date,
+            alicuota_percepcion, alicuota_retencion,
+            create_uid, create_date, write_uid, write_date)
+            SELECT
+                s.partner_id, s.tag_id, s.company_id, s.from_date, s.to_date,
+                s.alicuota_percepcion, s.alicuota_retencion,
+                s.create_uid, s.create_date, s.write_uid, s.write_date
+            FROM tmp_agip_alicuot s
+            WHERE NOT EXISTS (
+                SELECT 1
+                FROM res_partner_arba_alicuot t
+                WHERE t.partner_id = s.partner_id
+                AND t.tag_id = s.tag_id
+                AND t.company_id = s.company_id
+                AND t.from_date = s.from_date
+                AND t.to_date = s.to_date
+            )
+        """)
+        
         return {
             'type': 'ir.actions.client',
             'tag': 'display_notification',
             'params': {
-                'title': 'Importación Completa',
-                'message': 'Contactos actualizados: %s' % len(rates_by_partner),
-                'type': 'info',
+                'title': 'Importación completada',
+                'message': 'Se importaron las alícuotas de impuestos brutos correctamente.',
+                'type': 'success',
                 'sticky': False,
-                'timeout': 20000,
+                'timeout': 12000,
                 'next': {'type': 'ir.actions.act_window_close'}
             }
         }
