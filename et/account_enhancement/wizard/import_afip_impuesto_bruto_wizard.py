@@ -8,7 +8,6 @@ import logging
 from datetime import date
 from calendar import monthrange
 from psycopg2.extras import execute_values
-from odoo.fields import Datetime
 _logger = logging.getLogger(__name__)
 
 COMPANY_IDS = [2, 3, 4]
@@ -131,6 +130,7 @@ class ImportAfipImpuestoBrutoWizard(models.TransientModel):
         # 1) Crear temp table
         cr = self.env.cr
         cr.execute("""
+            DROP TABLE IF EXISTS tmp_agip_alicuot;
             CREATE TEMP TABLE tmp_agip_alicuot (
                 partner_id integer,
                 tag_id integer,
