@@ -56,13 +56,16 @@ class ImportAfipImpuestoBrutoWizard(models.TransientModel):
 
     def import_data(self):
         self.ensure_one()
+        # VALIDACIONES
         if not self.file:
             raise UserError(_("Debe adjuntar el TXT de AFIP."))
-        
         #validar año valido
         if self.year < 2000 or self.year > 2100:
             raise UserError(_("El año ingresado no es válido."))
-        
+        #si añaden letra en el year
+        if not isinstance(self.year, int):
+            raise UserError(_("El año ingresado no es válido."))
+
         m = int(self.month)
         y = int(self.year)
         from_date = date(y, m, 1)
