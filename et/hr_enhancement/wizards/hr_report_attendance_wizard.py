@@ -111,9 +111,9 @@ class HrReportAttendanceWizard(models.TransientModel):
             emp_id = att.employee_id.id
             if emp_id not in totales_por_emp:
                 totales_por_emp[emp_id] = {'wh': 0.0, 'ot': 0.0, 'hh': 0.0}
-            totales_por_emp[emp_id]['wh'] += att.worked_hours or 0.0
-            totales_por_emp[emp_id]['ot'] += att.overtime or 0.0
-            totales_por_emp[emp_id]['hh'] += att.holiday_hours or 0.0
+            totales_por_emp[emp_id]['wh'] += excel.float_to_hhmmss(att.worked_hours or 0.0)
+            totales_por_emp[emp_id]['ot'] += excel.float_to_hhmmss(att.overtime or 0.0)
+            totales_por_emp[emp_id]['hh'] += excel.float_to_hhmmss(att.holiday_hours or 0.0)
 
         for attendance in attendances:
             emp = attendance.employee_id
@@ -149,15 +149,19 @@ class HrReportAttendanceWizard(models.TransientModel):
             salida  = co_local.strftime('%H:%M:%S') if co_local else ''
             tipo_empleado = 'Empleado' if attendance.employee_type == 'employee' else 'Eventual' if attendance.employee_type == 'eventual' else ''
             turno_asignado = 'Día' if attendance.employee_type_shift == 'day' else 'Noche' if attendance.employee_type_shift == 'night' else ''
+            #formatear attendance.worked_hours  a hh:mm:ss
+            worked_hours = excel.float_to_hhmmss(attendance.worked_hours or 0.0)
+            overtime = excel.float_to_hhmmss(attendance.overtime or 0.0)
+            holiday_hours = excel.float_to_hhmmss(attendance.holiday_hours or 0.0)
             #como colocar una linea separacion entre empleados
             worksheet.write(row, 0, attendance.employee_id.name, formato_celdas_izquierda)
             worksheet.write(row, 1, weekday_label, formato_celdas_izquierda)
             worksheet.write(row, 2, fecha, formato_celdas_derecha)
             worksheet.write(row, 3, ingreso, formato_celdas_derecha)
             worksheet.write(row, 4, salida, formato_celdas_derecha)
-            worksheet.write(row, 5, attendance.worked_hours or 0, formato_celdas_derecha)
-            worksheet.write(row, 6, attendance.overtime or 0, formato_celdas_derecha)
-            worksheet.write(row, 7, attendance.holiday_hours or 0, formato_celdas_derecha)
+            worksheet.write(row, 5, worked_hours, formato_celdas_derecha)
+            worksheet.write(row, 6, overtime, formato_celdas_derecha)
+            worksheet.write(row, 7, holiday_hours, formato_celdas_derecha)
             worksheet.write(row, 8, tipo_empleado, formato_celdas_izquierda)
             worksheet.write(row, 9, turno_asignado, formato_celdas_izquierda)
             row += 1
