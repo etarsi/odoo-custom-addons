@@ -92,6 +92,8 @@ class ImportAfipImpuestoBrutoWizard(models.TransientModel):
         log_each = 200000
 
         f = io.TextIOWrapper(io.BytesIO(raw), encoding='latin-1', errors='replace', newline='')
+        #notificar cuando habre el archivo
+        _logger.info("Iniciando parseo del archivo...")
         for i, line in enumerate(f, start=1):
             _logger.info("Procesando linea: %s", i)
             if not line:
@@ -122,7 +124,7 @@ class ImportAfipImpuestoBrutoWizard(models.TransientModel):
                     'title': 'Sin coincidencias',
                     'message': 'No se encontraron CUIT del padrón en contactos.',
                     'type': 'warning',
-                    'sticky': False,
+                    'sticky': True,
                     'timeout': 12000,
                     'next': {'type': 'ir.actions.act_window_close'}
                 }
