@@ -1,55 +1,53 @@
 # -*- coding: utf-8 -*-
 from odoo import api, fields, models, _
-from odoo.exceptions import UserError, ValidationError
+from odoo.exceptions import UserError
 import base64
+import io
 import re
-from io import BytesIO
-from datetime import datetime, date, timedelta
 import logging
+from datetime import date
+from calendar import monthrange
+from psycopg2.extras import execute_values
+from odoo.fields import Datetime
 _logger = logging.getLogger(__name__)
 
-COMPANY_IDS = [2, 3, 4]  # IDs de compañías donde se aplicará la alícuota
+COMPANY_IDS = [2, 3, 4]
 
 class ImportAfipImpuestoBrutoWizard(models.TransientModel):
     _name = 'import.afip.impuesto.bruto.wizard'
     _description = 'Wizard: Importar AFIP (Impuestos Brutos)'
 
-    file = fields.Binary('Archivo', required=True)
+    file = fields.Binary('Archivo', required=True, attachment=True)
     month = fields.Selection(
         selection=[(str(i), date(1900, i, 1).strftime('%B')) for i in range(1, 13)],
-        string='Mes',
-        required=True,
-        default=lambda self: str(datetime.now().month),
+        string='Mes', required=True,
+        default=lambda self: str(fields.Date.today().month),
     )
     year = fields.Integer(
-        string='Año',   
-        required=True,
-        default=lambda self: datetime.now().year,
+        string='Año', required=True,
+        default=lambda self: fields.Date.today().year,
     )
-    #PARAMETROS SETEADOS
+
     delimiter = fields.Char(string='Separador', default=';')
     cuit_index = fields.Integer(string='Indice CUIT', default=3)
     percepcion_index = fields.Integer(string='Indice Percepcion', default=7)
     retencion_index = fields.Integer(string='Indice Retencion', default=8)
     tag_id = fields.Integer(string='ID de Tag', default=19)
 
-    # ----------------- HELPERS -----------------
+    # Compilar regex una vez (más rápido)
+    _re_digits = re.compile(r"\D+")
+
     def _norm_cuit(self, v):
-        # Igual idea que ya usás :contentReference[oaicite:5]{index=5}
         if not v:
             return False
-        digits = re.sub(r"\D", "", str(v))
-        return digits or False
+        return self._re_digits.sub("", str(v)) or False
 
     def _to_float(self, v):
-        # Similar al helper que ya tenés :contentReference[oaicite:6]{index=6}
         if v in (None, '', False):
             return 0.0
         try:
-            if isinstance(v, (int, float)):
-                return float(v)
             s = str(v).strip()
-            # Normalización común: "1.234,56" -> "1234.56"
+            # "1.234,56" -> "1234.56"
             if s.count(',') == 1:
                 s = s.replace('.', '').replace(',', '.')
             else:
@@ -58,88 +56,111 @@ class ImportAfipImpuestoBrutoWizard(models.TransientModel):
         except Exception:
             return 0.0
 
-    def _decode_text(self, raw):
-        # AGIP suele venir latin-1; fallback por las dudas
-        try:
-            return raw.decode('latin-1')
-        except Exception:
-            return raw.decode('utf-8', errors='replace')
-
-    # ---------------- IMPORT PRINCIPAL ----------------
     def import_data(self):
         self.ensure_one()
-
         if not self.file:
             raise UserError(_("Debe adjuntar el TXT de AFIP."))
 
+        m = int(self.month)
+        y = int(self.year)
+        from_date = date(y, m, 1)
+        to_date = date(y, m, monthrange(y, m)[1])  # FIX diciembre
+
         raw = base64.b64decode(self.file)
-        text = self._decode_text(raw)
 
-        # 1) Armar un mapa CUIT -> partner_id de manera eficiente (sin loop por fila)
-        partners = self.env['res.partner'].search([('vat', '!=', False)])
-        _logger.info(f"Contactos con CUIT en Odoo: {len(partners)}")
+        # 1) CUIT -> partner_id en O(1)
+        rows = self.env['res.partner'].with_context(active_test=False).search_read(
+            [('vat', '!=', False)],
+            ['id', 'vat']
+        )
+        partner_by_cuit = {}
+        for r in rows:
+            c = self._norm_cuit(r.get('vat'))
+            if c:
+                partner_by_cuit[c] = r['id']
 
-        # 2) Parsear TXT y quedarnos solo con coincidencias
+        _logger.info("Partners con CUIT indexados: %s", len(partner_by_cuit))
+
+        # 2) Parse streaming y quedarnos con el último valor por partner
         delim = self.delimiter or ';'
-        vals = {}
-        for i, line in enumerate(text.splitlines()):
-            _logger.info(f"Procesando línea {i+1}")
+        cuit_i = int(self.cuit_index)
+        perc_i = int(self.percepcion_index)
+        ret_i = int(self.retencion_index)
+        max_idx = max(cuit_i, perc_i, ret_i)
+
+        rates_by_partner = {}  # partner_id -> (perc, ret)
+        log_each = 200000
+
+        f = io.TextIOWrapper(io.BytesIO(raw), encoding='latin-1', errors='replace', newline='')
+        for i, line in enumerate(f, start=1):
+            _logger.info("Procesando linea: %s", i)
             if not line:
                 continue
             parts = line.strip().split(delim)
-            max_idx = max(self.cuit_index, self.percepcion_index, self.retencion_index)
             if len(parts) <= max_idx:
                 continue
-            cuit = self._norm_cuit(parts[self.cuit_index])
+
+            cuit = self._norm_cuit(parts[cuit_i])
             if not cuit:
                 continue
-            partner_id = None  
-            for p in partners:
-                if self._norm_cuit(p.vat) == cuit:
-                    partner_id = p.id
-                    break
-            if not partner_id:
-                continue
-            # 3) Preparar valores para inserción/actualización
-            for company_id in COMPANY_IDS:
-                vals = {
-                    'partner_id': partner_id,
-                    'tag_id': self.tag_id,
-                    'company_id': company_id,  # Asumimos la primera compañía; ajustar si es necesario
-                    'alicuota_percepcion': self._to_float(parts[self.percepcion_index]),
-                    'alicuota_retencion': self._to_float(parts[self.retencion_index]),
-                    #from_date y to_date para el mes/año seleccionado solo debe ser Fecha
-                    'from_date': datetime(self.year, int(self.month), 1).date(),
-                    'to_date': (datetime(self.year, int(self.month) % 12 + 1, 1) - timedelta(days=1)).date(),
-                }
-                
-                ali_cuota = self.env['res.partner.arba_alicuot'].search([
-                    ('partner_id', '=', partner_id),
-                    ('tag_id', '=', self.tag_id),
-                    ('company_id', '=', company_id),
-                    ('from_date', '=', vals['from_date']),
-                    ('to_date', '=', vals['to_date']),
-                ], limit=1)
-    
-                if ali_cuota:
-                    ali_cuota.write({
-                        'alicuota_percepcion': vals['alicuota_percepcion'],
-                        'alicuota_retencion': vals['alicuota_retencion'],
-                    })
-                else:
-                    self.env['res.partner.arba_alicuot'].create(vals)
 
-        # 5) Mostrar resultado (líneas)
-        response = {
+            pid = partner_by_cuit.get(cuit)
+            if not pid:
+                continue
+
+            rates_by_partner[pid] = (self._to_float(parts[perc_i]), self._to_float(parts[ret_i]))
+
+            if i % log_each == 0:
+                _logger.info("Lineas: %s | Matcheados: %s", i, len(rates_by_partner))
+        f.close()
+
+        if not rates_by_partner:
+            return {
+                'type': 'ir.actions.client',
+                'tag': 'display_notification',
+                'params': {
+                    'title': 'Sin coincidencias',
+                    'message': 'No se encontraron CUIT del padrón en contactos.',
+                    'type': 'warning',
+                    'sticky': False,
+                    'timeout': 12000,
+                    'next': {'type': 'ir.actions.act_window_close'}
+                }
+            }
+
+        # 4) Update/Create
+        rows = []
+        now = Datetime.now()
+        uid = self.env.uid
+
+        for pid, (perc, ret) in rates_by_partner.items():
+            for company_id in COMPANY_IDS:
+                rows.append((pid, self.tag_id, company_id, from_date, to_date, perc, ret, uid, now, uid, now))
+
+        sql = """
+        INSERT INTO res_partner_arba_alicuot
+        (partner_id, tag_id, company_id, from_date, to_date,
+        alicuota_percepcion, alicuota_retencion,
+        create_uid, create_date, write_uid, write_date)
+        VALUES %s
+        ON CONFLICT (partner_id, tag_id, company_id, from_date, to_date)
+        DO UPDATE SET
+        alicuota_percepcion = EXCLUDED.alicuota_percepcion,
+        alicuota_retencion  = EXCLUDED.alicuota_retencion,
+        write_uid = EXCLUDED.write_uid,
+        write_date = EXCLUDED.write_date
+        """
+        execute_values(self.env.cr, sql, rows, page_size=10000)
+
+        return {
             'type': 'ir.actions.client',
             'tag': 'display_notification',
             'params': {
                 'title': 'Importación Completa',
-                'message': 'La importación se realizó correctamente.',
+                'message': 'Contactos actualizados: %s' % len(rates_by_partner),
                 'type': 'info',
                 'sticky': False,
                 'timeout': 20000,
-                'next': {'type': 'ir.actions.act_window_close' }
+                'next': {'type': 'ir.actions.act_window_close'}
             }
         }
-        return response
