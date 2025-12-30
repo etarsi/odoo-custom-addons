@@ -33,7 +33,6 @@ class ImportAfipImpuestoBrutoWizard(models.TransientModel):
     percepcion_index = fields.Integer(string='Indice Percepcion', default=7)
     retencion_index = fields.Integer(string='Indice Retencion', default=8)
     tag_id = fields.Integer(string='ID de Tag', default=19)
-
     # Compilar regex una vez (más rápido)
     _re_digits = re.compile(r"\D+")
 
@@ -93,7 +92,6 @@ class ImportAfipImpuestoBrutoWizard(models.TransientModel):
 
         #notificar cuando habre el archivo
         for i, line in enumerate(f, start=1):
-            _logger.info("Procesando linea: %s", i)
             if not line:
                 continue
             parts = line.strip().split(delim)
@@ -130,9 +128,8 @@ class ImportAfipImpuestoBrutoWizard(models.TransientModel):
             for company_id in COMPANY_IDS:
                 rows.append((pid, self.tag_id, company_id, from_date, to_date, perc, ret, uid, now, uid, now))
 
+        # 1) Crear temp table
         cr = self.env.cr
-
-        # 1) Crear temp table (se borra al commit)
         cr.execute("""
             CREATE TEMP TABLE tmp_agip_alicuot (
                 partner_id integer,
@@ -158,7 +155,7 @@ class ImportAfipImpuestoBrutoWizard(models.TransientModel):
             VALUES %s
         """, rows, page_size=10000)
 
-        # 3) UPDATE masivo: actualiza todos los existentes (si hay duplicados, actualiza todos)
+        # 3) UPDATE masivo: actualiza todos los existentes
         cr.execute("""
             UPDATE res_partner_arba_alicuot t
             SET
