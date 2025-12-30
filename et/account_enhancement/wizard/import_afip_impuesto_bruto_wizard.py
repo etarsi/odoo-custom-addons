@@ -209,7 +209,7 @@ class ImportAfipImpuestoBrutoWizard(models.TransientModel):
                 'title': 'Importación completada',
                 'message': 'Se importaron las alícuotas de impuestos brutos correctamente.',
                 'type': 'success',
-                'sticky': False,
+                'sticky': True,
                 'timeout': 12000,
                 'next': {'type': 'ir.actions.act_window_close'}
             }
