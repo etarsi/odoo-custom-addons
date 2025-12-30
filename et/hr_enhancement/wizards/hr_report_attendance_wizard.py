@@ -60,7 +60,7 @@ class HrReportAttendanceWizard(models.TransientModel):
         formato_celdas_derecha = excel.formato_celda_derecha(workbook)
         formato_celdas_decimal = excel.formato_celda_decimal(workbook)
         fmt_emp = workbook.add_format({'bold': True, 'bg_color': "#5384AF", 'border': 1, 'align': 'left'})
-        fmt_total = workbook.add_format({'bold': True, 'bg_color': '#DDEBF7', 'border': 1, 'align': 'ringht'})
+        fmt_total = workbook.add_format({'bold': True, 'bg_color': '#DDEBF7', 'border': 1, 'align': 'left'})
             
         # Escribir datos
         rango_start = self.date_start.strftime('%d/%m/%Y')
