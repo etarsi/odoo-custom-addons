@@ -70,8 +70,11 @@ class ImportAfipImpuestoBrutoWizard(models.TransientModel):
         y = int(self.year)
         from_date = date(y, m, 1)
         to_date = date(y, m, monthrange(y, m)[1])  # FIX diciembre
-        raw = base64.b64decode(self.file)
-
+        attachment = self.env['ir.attachment'].sudo()
+        att = attachment.search([('res_model', '=', self._name), ('res_id', '=', self.id), ('res_field', '=', 'file')], limit=1)
+        if not att:
+            raise UserError(_("No se encontró el archivo adjunto."))
+        path = att._full_path(attachment.store_fname)
         # 1) CUIT -> partner_id en O(1)
         rows = self.env['res.partner'].with_context(active_test=False).search_read(
             [('vat', '!=', False)],
@@ -90,22 +93,22 @@ class ImportAfipImpuestoBrutoWizard(models.TransientModel):
         ret_i = int(self.retencion_index)
         max_idx = max(cuit_i, perc_i, ret_i)
         rates_by_partner = {}
-        f = io.TextIOWrapper(io.BytesIO(raw), encoding='latin-1', errors='replace', newline='')
-
         #notificar cuando habre el archivo
-        for i, line in enumerate(f, start=1):
-            if not line:
-                continue
-            parts = line.strip().split(delim)
-            if len(parts) <= max_idx:
-                continue
-            cuit = self._norm_cuit(parts[cuit_i])
-            if not cuit:
-                continue
-            pid = partner_by_cuit.get(cuit)
-            if not pid:
-                continue
-            rates_by_partner[pid] = (self._to_float(parts[perc_i]), self._to_float(parts[ret_i]))
+        with open(path, 'rb') as fb:
+            f = io.TextIOWrapper(fb, encoding='latin-1', errors='replace', newline='')
+            for i, line in enumerate(f, start=1):
+                if not line:
+                    continue
+                parts = line.strip().split(delim)
+                if len(parts) <= max_idx:
+                    continue
+                cuit = self._norm_cuit(parts[cuit_i])
+                if not cuit:
+                    continue
+                pid = partner_by_cuit.get(cuit)
+                if not pid:
+                    continue
+                rates_by_partner[pid] = (self._to_float(parts[perc_i]), self._to_float(parts[ret_i]))
         f.close()
 
         if not rates_by_partner:
@@ -132,8 +135,8 @@ class ImportAfipImpuestoBrutoWizard(models.TransientModel):
 
         # 1) Crear temp table
         cr = self.env.cr
+        cr.execute("""DROP TABLE IF EXISTS tmp_agip_alicuot""")
         cr.execute("""
-            DROP TABLE IF EXISTS tmp_agip_alicuot;
             CREATE TEMP TABLE tmp_agip_alicuot (
                 partner_id integer,
                 tag_id integer,
