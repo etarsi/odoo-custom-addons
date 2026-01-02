@@ -71,7 +71,7 @@ class ImportAfipImpuestoBrutoWizard(models.TransientModel):
         from_date = date(y, m, 1)
         to_date = date(y, m, monthrange(y, m)[1])  # FIX diciembre
         attachment = self.env['ir.attachment'].sudo()
-        att = attachment.search([('res_model', '=', self._name), ('res_id', '=', self.id), ('res_field', '=', 'file')], limit=1)
+        att = attachment.search([('res_model', '=', self._name), ('res_id', '=', self.id), ('res_field', '=', 'file')], order='id desc', limit=1)
         if not att:
             raise UserError(_("No se encontró el archivo adjunto."))
         path = att._full_path(att.store_fname)
