@@ -6,6 +6,7 @@
             <form string="Importar AFIP, Impuestos Brutos">
                 <group>
                     <field name="file"/>
+                    <field name="filename" invisible="1"/>
                     <field name="month"/>
                     <field name="year"/>
                 </group>
