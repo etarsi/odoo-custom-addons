@@ -74,7 +74,7 @@ class ImportAfipImpuestoBrutoWizard(models.TransientModel):
         att = attachment.search([('res_model', '=', self._name), ('res_id', '=', self.id), ('res_field', '=', 'file')], limit=1)
         if not att:
             raise UserError(_("No se encontró el archivo adjunto."))
-        path = att._full_path(attachment.store_fname)
+        path = att._full_path(att.store_fname)
         # 1) CUIT -> partner_id en O(1)
         rows = self.env['res.partner'].with_context(active_test=False).search_read(
             [('vat', '!=', False)],
