@@ -265,7 +265,11 @@ class ReportResumenStockWizard(models.TransientModel):
         # RESUMEN DE STOCK
         for data in resumen_data.values():
             _logger.info(f"Resumen Data: {data}")
-            rotacion = data['unidad_salida'] / data['unidad_entrada'] * 100.0 
+            if data['unidad_entrada'] == 0 or data['unidad_salida'] == 0:
+                rotacion = 0.0
+            else:
+                rotacion = data['unidad_salida'] / data['unidad_entrada'] * 100.0 
+
             worksheet_resumen.write(row_resumen, 0, data['product_code'], fmt_text2)
             worksheet_resumen.write(row_resumen, 1, data['product_name'], fmt_text)
             #SALIDA DE STOCK
