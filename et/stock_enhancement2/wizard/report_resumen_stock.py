@@ -142,7 +142,7 @@ class ReportResumenStockWizard(models.TransientModel):
             domain += [('picking_id.create_date', '>=', date(2025, 3, 1)), ('picking_id.create_date', '<=', date(2025, 8, 31))]
         elif self.temporada == 't_nav_2025':
             domain += [('picking_id.create_date', '>=', date(2025, 9, 1)), ('picking_id.create_date', '<=', date(2026, 2, 28))]
-        domain += [('picking_type_id.code', '=', 'incoming')]
+        domain += [('picking_type_id.code', '=', 'order')]
         stock_moves = self.env['stock.move'].search(domain)
         if not stock_moves:
             raise ValidationError("No se encontraron albaranes para los criterios seleccionados.")
