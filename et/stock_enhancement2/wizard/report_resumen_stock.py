@@ -227,7 +227,7 @@ class ReportResumenStockWizard(models.TransientModel):
                         'unidad_entrada': 0.0,
                     }
                 unidades = move.quantity_send or 0.0
-                uxb = move.uxb or 0.0
+                uxb = move.uxb or None
                 bultos = (unidades / uxb) if uxb else 0.0
                 resumen_data[key]['bultos_entrada'] += bultos
                 resumen_data[key]['uxb_entrada'] = uxb  # assuming UxB is consistent per product
