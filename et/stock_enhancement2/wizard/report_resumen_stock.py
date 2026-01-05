@@ -137,7 +137,7 @@ class ReportResumenStockWizard(models.TransientModel):
         # =========================
         # DOMAIN
         # =========================
-        domain = [('state', '=', 'done'), ('picking_type_id.code', '=', 'order')]
+        domain = [('state', '=', 'done'), ('picking_type_id.code', '=', 'outgoing')]
         if self.temporada == 't_nino_2025':
             domain += [('create_date', '>=', date(2025, 3, 1)), ('create_date', '<=', date(2025, 8, 31))]
         elif self.temporada == 't_nav_2025':
