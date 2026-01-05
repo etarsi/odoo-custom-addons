@@ -48,6 +48,5 @@ class AccountDebitNote(models.TransientModel):
             vals.update({
                 "l10n_latam_document_number": False,
                 "l10n_latam_manual_document_number": False,
-                "l10n_latam_document_sequence_id": False,
             })
         return vals
