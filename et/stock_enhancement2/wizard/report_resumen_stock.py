@@ -116,7 +116,7 @@ class ReportResumenStockWizard(models.TransientModel):
         # =========================
         worksheet_resumen.merge_range(0, 0, 0, 6, ('REPORTE RESUMEN DE STOCK').upper(), fmt_title)
         worksheet_resumen.set_column(0, 0, 20)      # Codigo
-        worksheet_resumen.set_column(1, 1, 20)      # Descroipción
+        worksheet_resumen.set_column(1, 1, 20)      # Descripción
         worksheet_resumen.set_column(2, 2, 60)      # Bulto 
         worksheet_resumen.set_column(3, 3, 15)      # UxB
         worksheet_resumen.set_column(4, 4, 10)      # Unidad
