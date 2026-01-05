@@ -229,9 +229,9 @@ class ReportResumenStockWizard(models.TransientModel):
                 unidades = move.quantity_send or 0.0
                 uxb = move.uxb or 0.0
                 bultos = (unidades / uxb) if uxb else 0.0
-                resumen_data[key]['bultos'] += bultos
-                resumen_data[key]['uxb'] = uxb  # assuming UxB is consistent per product
-                resumen_data[key]['unidad'] += unidades
+                resumen_data[key]['bultos_entrada'] += bultos
+                resumen_data[key]['uxb_entrada'] = uxb  # assuming UxB is consistent per product
+                resumen_data[key]['unidad_entrada'] += unidades
                 
                 date_done = container.eta.strftime('%d/%m/%Y') if container.eta else ''
                 worksheet_entrada.write(row_entrada, 0, date_done, fmt_text2)
