@@ -67,7 +67,7 @@ class ReportResumenStockWizard(models.TransientModel):
         # =========================
         # HOJA ENTRADA DE STOCK
         # =========================
-        worksheet_entrada.merge_range(0, 0, 0, 11, ('REPORTE DE ENTRADA DE STOCK'), fmt_title)
+        worksheet_entrada.merge_range(0, 0, 0, 7, ('REPORTE DE ENTRADA DE STOCK'), fmt_title)
         worksheet_entrada.set_column(0, 0, 20)      # Fecha
         worksheet_entrada.set_column(1, 1, 20)      # Codigo
         worksheet_entrada.set_column(2, 2, 70)      # Producto
@@ -90,16 +90,16 @@ class ReportResumenStockWizard(models.TransientModel):
         # =========================
         # HOJA SALIDA DE STOCK
         # =========================
-        worksheet_salida.merge_range(0, 0, 0, 6, ('REPORTE DE SALIDA DE STOCK').upper(), fmt_title)
+        worksheet_salida.merge_range(0, 0, 0, 10, ('REPORTE DE SALIDA DE STOCK').upper(), fmt_title)
         worksheet_salida.set_column(0, 0, 20)      # Fecha
         worksheet_salida.set_column(1, 1, 20)      # Codigo
         worksheet_salida.set_column(2, 2, 70)      # Producto
         worksheet_salida.set_column(3, 3, 15)      # bulto
         worksheet_salida.set_column(4, 4, 10)      # UxB
         worksheet_salida.set_column(5, 5, 15)      # unidad
-        worksheet_salida.set_column(6, 6, 30)      # Rubro
-        worksheet_salida.set_column(7, 7, 30)      # Cliente
-        worksheet_salida.set_column(8, 8, 30)      # Transferencia
+        worksheet_salida.set_column(6, 6, 20)      # Rubro
+        worksheet_salida.set_column(7, 7, 40)      # Cliente
+        worksheet_salida.set_column(8, 8, 60)      # Transferencia
         worksheet_salida.set_column(9, 9, 15)      # Codigo WMS
         worksheet_salida.set_column(10, 10, 30)    # Compañia
         # Alto de filas de título/encabezado
@@ -115,16 +115,16 @@ class ReportResumenStockWizard(models.TransientModel):
         # =========================
         # HOJA RESUMEN DE STOCK
         # =========================
-        worksheet_resumen.merge_range(0, 0, 0, 6, ('REPORTE RESUMEN DE STOCK').upper(), fmt_title)
+        worksheet_resumen.merge_range(0, 0, 0, 8, ('REPORTE RESUMEN DE STOCK').upper(), fmt_title)
         worksheet_resumen.set_column(0, 0, 20)      # Codigo
-        worksheet_resumen.set_column(1, 1, 20)      # Descripción
-        worksheet_resumen.set_column(2, 2, 60)      # Bulto 
+        worksheet_resumen.set_column(1, 1, 70)      # Descripción
+        worksheet_resumen.set_column(2, 2, 15)      # Bulto 
         worksheet_resumen.set_column(3, 3, 15)      # UxB
-        worksheet_resumen.set_column(4, 4, 10)      # Unidad
-        worksheet_resumen.set_column(2, 2, 60)      # Bulto 
-        worksheet_resumen.set_column(3, 3, 15)      # UxB
-        worksheet_resumen.set_column(5, 5, 15)      # unidad
-        worksheet_resumen.set_column(6, 6, 30)      # Rotacion
+        worksheet_resumen.set_column(4, 4, 15)      # Unidad
+        worksheet_resumen.set_column(5, 5, 15)      # Bulto 
+        worksheet_resumen.set_column(6, 6, 15)      # UxB
+        worksheet_resumen.set_column(7, 7, 15)      # unidad
+        worksheet_resumen.set_column(8, 8, 15)      # Rotacion
         # Alto de filas de título/encabezado
         worksheet_resumen.set_row(0, 20)
         worksheet_resumen.set_row(1, 18)
