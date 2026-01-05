@@ -139,12 +139,12 @@ class ReportResumenStockWizard(models.TransientModel):
         # =========================
         domain = [('state', '=', 'done')]
         if self.temporada == 't_nino_2025':
-            domain += [('picking_id.create_date', '>=', date(2025, 3, 1)), ('picking_id.create_date', '<=', date(2025, 8, 31))]
+            domain += [('create_date', '>=', date(2025, 3, 1)), ('create_date', '<=', date(2025, 8, 31))]
         elif self.temporada == 't_nav_2025':
-            domain += [('picking_id.create_date', '>=', date(2025, 9, 1)), ('picking_id.create_date', '<=', date(2026, 2, 28))]
-        domain += [('picking_id.picking_type_id.code', '=', 'order')]
-        stock_moves = self.env['stock.move'].search(domain)
-        if not stock_moves:
+            domain += [('create_date', '>=', date(2025, 9, 1)), ('create_date', '<=', date(2026, 2, 28))]
+        domain += [('picking_type_id.code', '=', 'order')]
+        stock_pickings = self.env['stock.picking'].search(domain)
+        if not stock_pickings:
             raise ValidationError("No se encontraron albaranes para los criterios seleccionados.")
         
         domain_container = [('state', '=', 'confirmed')]
@@ -162,53 +162,54 @@ class ReportResumenStockWizard(models.TransientModel):
         row_resumen = 2
         resumen_data = {}
         # SALIDA DE STOCK
-        for stock_move in stock_moves:
-            date_done = stock_move.picking_id.date_done.strftime('%d/%m/%Y') if stock_move.picking_id.date_done else ''
-            rubros = set()
-            rubros_str = ''
-            if not stock_move.product_id:
-                continue
-            key = stock_move.product_id.id
-            if key not in resumen_data:
-                resumen_data[key] = {
-                    'product_code': stock_move.product_id.default_code or '', 
-                    'product_name': stock_move.product_id.name or '',
-                    'bultos_salida': 0.0,
-                    'uxb_salida': 0.0,
-                    'unidad_salida': 0.0,
-                }
-            unidades = stock_move.product_uom_qty or 0.0
-            uxb = 0.0
-            if stock_move.product_packaging_id and hasattr(stock_move.product_packaging_id, 'qty'):
-                uxb = stock_move.product_packaging_id.qty or 0.0
-            bultos = (unidades / uxb) if uxb else 0.0
-            resumen_data[key]['bultos_salida'] += bultos
-            resumen_data[key]['uxb_salida'] = uxb  # assuming UxB is consistent per product
-            resumen_data[key]['unidad_salida'] += unidades
-            if stock_move.product_packaging_id and hasattr(stock_move.product_packaging_id, 'qty'):
-                 stock_move.product_packaging_qty
-            #separar rubros por JUGUETES/ROPA/OTROS
-            if stock_move.product_id.categ_id.parent_id:
-                rubros.add(stock_move.product_id.categ_id.parent_id.name)
-                rubros_str = '/'.join(rubros)   
-            unidades = stock_move.product_uom_qty or 0.0
-            # UxB numérico: suele estar en el packaging.qty
-            uxb = 0.0
-            if stock_move.product_packaging_id and hasattr(stock_move.product_packaging_id, 'qty'):
-                uxb = stock_move.product_packaging_id.qty or 0.0
-            # BULTOS = unidades / UxB (como tu imagen)
-            bultos = (unidades / uxb) if uxb else 0.0
-            worksheet_salida.write(row_salida, 0, stock_move.product_id.default_code or '', fmt_text2)
-            worksheet_salida.write(row_salida, 1, stock_move.product_id.name or '', fmt_text)
-            worksheet_salida.write_number(row_salida, 2, unidades, fmt_int)
-            worksheet_salida.write_number(row_salida, 3, uxb, fmt_int)
-            worksheet_salida.write_number(row_salida, 4, bultos, fmt_dec2)
-            worksheet_salida.write(row_salida, 5, rubros_str or '', fmt_text2)
-            worksheet_salida.write(row_salida, 6, stock_move.picking_id.partner_id.name or '', fmt_text)
-            worksheet_salida.write(row_salida, 6, stock_move.picking_id.name, fmt_text)
-            worksheet_salida.write(row_salida, 7, stock_move.picking_id.codigo_wms or '', fmt_text)
-            worksheet_salida.write(row_salida, 8, stock_move.picking_id.company_id.name, fmt_text2)
-            row_salida += 1
+        for stock_picking in stock_pickings:
+            for stock_move in stock_picking.move_lines:
+                date_done = stock_move.picking_id.date_done.strftime('%d/%m/%Y') if stock_move.picking_id.date_done else ''
+                rubros = set()
+                rubros_str = ''
+                if not stock_move.product_id:
+                    continue
+                key = stock_move.product_id.id
+                if key not in resumen_data:
+                    resumen_data[key] = {
+                        'product_code': stock_move.product_id.default_code or '', 
+                        'product_name': stock_move.product_id.name or '',
+                        'bultos_salida': 0.0,
+                        'uxb_salida': 0.0,
+                        'unidad_salida': 0.0,
+                    }
+                unidades = stock_move.product_uom_qty or 0.0
+                uxb = 0.0
+                if stock_move.product_packaging_id and hasattr(stock_move.product_packaging_id, 'qty'):
+                    uxb = stock_move.product_packaging_id.qty or 0.0
+                bultos = (unidades / uxb) if uxb else 0.0
+                resumen_data[key]['bultos_salida'] += bultos
+                resumen_data[key]['uxb_salida'] = uxb  # assuming UxB is consistent per product
+                resumen_data[key]['unidad_salida'] += unidades
+                if stock_move.product_packaging_id and hasattr(stock_move.product_packaging_id, 'qty'):
+                    stock_move.product_packaging_qty
+                #separar rubros por JUGUETES/ROPA/OTROS
+                if stock_move.product_id.categ_id.parent_id:
+                    rubros.add(stock_move.product_id.categ_id.parent_id.name)
+                    rubros_str = '/'.join(rubros)   
+                unidades = stock_move.product_uom_qty or 0.0
+                # UxB numérico: suele estar en el packaging.qty
+                uxb = 0.0
+                if stock_move.product_packaging_id and hasattr(stock_move.product_packaging_id, 'qty'):
+                    uxb = stock_move.product_packaging_id.qty or 0.0
+                # BULTOS = unidades / UxB (como tu imagen)
+                bultos = (unidades / uxb) if uxb else 0.0
+                worksheet_salida.write(row_salida, 0, stock_move.product_id.default_code or '', fmt_text2)
+                worksheet_salida.write(row_salida, 1, stock_move.product_id.name or '', fmt_text)
+                worksheet_salida.write_number(row_salida, 2, unidades, fmt_int)
+                worksheet_salida.write_number(row_salida, 3, uxb, fmt_int)
+                worksheet_salida.write_number(row_salida, 4, bultos, fmt_dec2)
+                worksheet_salida.write(row_salida, 5, rubros_str or '', fmt_text2)
+                worksheet_salida.write(row_salida, 6, stock_move.picking_id.partner_id.name or '', fmt_text)
+                worksheet_salida.write(row_salida, 6, stock_move.picking_id.name, fmt_text)
+                worksheet_salida.write(row_salida, 7, stock_move.picking_id.codigo_wms or '', fmt_text)
+                worksheet_salida.write(row_salida, 8, stock_move.picking_id.company_id.name, fmt_text2)
+                row_salida += 1
         
         #Entrada de STOCK
         for container in containers:
