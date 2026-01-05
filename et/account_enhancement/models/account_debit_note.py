@@ -7,15 +7,34 @@ class AccountDebitNote(models.TransientModel):
     
     def _prepare_default_values(self, move):
         vals = super()._prepare_default_values(move)
-        # Solo si estoy copiando líneas y el origen es Nota de Crédito de Cliente
+
+        # 1) SIEMPRE que el origen sea NC de cliente, arreglar tipo de documento y numeración
+        if move.move_type == "out_refund":
+            dt = self.env.ref(
+                "l10n_ar_debit_note.l10n_latam_document_type_ar_debit_note",
+                raise_if_not_found=False
+            )
+            vals.update({
+                # Si existe, fuerzo ND; si no, lo limpio para que lo determine la config
+                "l10n_latam_document_type_id": dt.id if dt else False,
+
+                # Limpieza numeración / secuencia (evita copiar datos del comprobante origen)
+                "l10n_latam_document_number": False,
+                "l10n_latam_manual_document_number": False,
+            })
+
+        # 2) Si además estás copiando líneas desde la NC cliente, forzar montos positivos
         if self.copy_lines and move.move_type == "out_refund":
             new_invoice_lines = []
-
             for line in move.invoice_line_ids:
                 lvals = line.copy_data()[0]
 
-                # Limpieza de campos que NO conviene clonar tal cual
-                # (reconciliaciones / importes contables ya calculados)
+                # No tocar líneas sección/nota
+                if lvals.get("display_type"):
+                    new_invoice_lines.append((0, 0, lvals))
+                    continue
+
+                # Limpieza campos contables que no conviene clonar
                 for k in (
                     "id", "move_id",
                     "debit", "credit", "balance", "amount_currency",
@@ -24,7 +43,7 @@ class AccountDebitNote(models.TransientModel):
                 ):
                     lvals.pop(k, None)
 
-                # Forzar positivo (por si el crédito quedó con qty o price negativos)
+                # Forzar positivo
                 if lvals.get("quantity") is not None:
                     lvals["quantity"] = abs(lvals["quantity"])
                 if lvals.get("price_unit") is not None:
@@ -32,21 +51,8 @@ class AccountDebitNote(models.TransientModel):
 
                 new_invoice_lines.append((0, 0, lvals))
 
-            # IMPORTANTÍSIMO:
-            # Evita que se copien los line_ids (apuntes) del crédito con su signo.
+            # Evita copiar apuntes contables ya firmados del crédito
             vals["line_ids"] = [(5, 0, 0)]
-            # Y en su lugar, creamos líneas de factura “limpias” y positivas.
             vals["invoice_line_ids"] = new_invoice_lines
-            dt = self.env.ref(
-                "l10n_ar_debit_note.l10n_latam_document_type_ar_debit_note",
-                raise_if_not_found=False
-            )
-            # Si existe, lo seteo; si no, lo limpio para que Odoo lo determine por journal/config
-            vals["l10n_latam_document_type_id"] = dt.id if dt else False
 
-            # Recomendado: limpiar numeración/secuencia para no copiar la del crédito
-            vals.update({
-                "l10n_latam_document_number": False,
-                "l10n_latam_manual_document_number": False,
-            })
         return vals
