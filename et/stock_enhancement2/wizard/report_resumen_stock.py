@@ -178,6 +178,9 @@ class ReportResumenStockWizard(models.TransientModel):
                         'bultos_salida': 0.0,
                         'uxb_salida': 0.0,
                         'unidad_salida': 0.0,
+                        'bultos_entrada': 0.0,
+                        'uxb_entrada': 0.0,
+                        'unidad_entrada': 0.0,
                     }
                 unidades = stock_move.product_uom_qty or 0.0
                 uxb = 0.0
@@ -222,6 +225,9 @@ class ReportResumenStockWizard(models.TransientModel):
                     resumen_data[key] = {
                         'product_code': move.product_id.default_code or '',
                         'product_name': move.product_id.name or '',
+                        'bultos_salida': 0.0,
+                        'uxb_salida': 0.0,
+                        'unidad_salida': 0.0,
                         'bultos_entrada': 0.0,
                         'uxb_entrada': 0.0,
                         'unidad_entrada': 0.0,
