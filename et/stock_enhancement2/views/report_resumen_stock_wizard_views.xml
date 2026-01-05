@@ -18,19 +18,19 @@
         </field>
     </record>
 
-    <record id="action_report_stock_picking_factura_wizard" model="ir.actions.act_window">
-        <field name="name">Reporte de Transferencias y Facturas</field>
-        <field name="res_model">report.stock.picking.factura.wizard</field>
+    <record id="action_report_resumen_stock_wizard" model="ir.actions.act_window">
+        <field name="name">Reporte Resumen de Stock</field>
+        <field name="res_model">report.resumen.stock.wizard</field>
         <field name="view_mode">form</field>
-        <field name="view_id" ref="view_report_stock_picking_factura_wizard_form"/>
+        <field name="view_id" ref="view_report_resumen_stock_wizard_form"/>
         <field name="target">new</field>
     </record>
 
     <!-- Menu de inventario / informes  -->
-    <menuitem id="menu_report_stock_picking_factura_wizard"
-              name="Reporte de Transferencias y Facturas"
+    <menuitem id="menu_report_resumen_stock_wizard"
+              name="Reporte Resumen de Stock"
               parent="stock.menu_warehouse_report"
-              action="action_report_stock_picking_factura_wizard"
-              sequence="160"/>
+              action="action_report_resumen_stock_wizard"
+              sequence="180"/>
     
 </odoo>
