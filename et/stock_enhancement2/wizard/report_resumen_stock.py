@@ -137,12 +137,11 @@ class ReportResumenStockWizard(models.TransientModel):
         # =========================
         # DOMAIN
         # =========================
-        domain = [('state', '=', 'done')]
+        domain = [('state', '=', 'done'), ('picking_type_id.code', '=', 'order')]
         if self.temporada == 't_nino_2025':
             domain += [('create_date', '>=', date(2025, 3, 1)), ('create_date', '<=', date(2025, 8, 31))]
         elif self.temporada == 't_nav_2025':
             domain += [('create_date', '>=', date(2025, 9, 1)), ('create_date', '<=', date(2026, 2, 28))]
-        domain += [('picking_type_id.code', '=', 'order')]
         _logger.info(f"Domain para busqueda de albaranes: {domain}")
         stock_pickings = self.env['stock.picking'].search(domain)
         _logger.info(f"Stock Pickings encontrados: {stock_pickings}")
