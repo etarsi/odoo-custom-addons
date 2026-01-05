@@ -279,11 +279,11 @@ class ReportResumenStockWizard(models.TransientModel):
             worksheet_resumen.write_number(row_resumen, 3, data['uxb_salida'], fmt_int)
             worksheet_resumen.write_number(row_resumen, 4, data['unidad_salida'], fmt_int)
             # ENTRADA DE STOCK
-            worksheet_resumen.write_number(row_resumen, 2, data['bultos_entrada'], fmt_dec2)
-            worksheet_resumen.write_number(row_resumen, 3, data['uxb_entrada'], fmt_int)
-            worksheet_resumen.write_number(row_resumen, 4, data['unidad_entrada'], fmt_int) 
+            worksheet_resumen.write_number(row_resumen, 5, data['bultos_entrada'], fmt_dec2)
+            worksheet_resumen.write_number(row_resumen, 6, data['uxb_entrada'], fmt_int)
+            worksheet_resumen.write_number(row_resumen, 7, data['unidad_entrada'], fmt_int) 
             # Placeholder for rotation calculation
-            worksheet_resumen.write_number(row_resumen, 5, rotacion, fmt_dec2)
+            worksheet_resumen.write_number(row_resumen, 8, rotacion, fmt_dec2)
             row_resumen += 1
         workbook.close()
         output.seek(0)
