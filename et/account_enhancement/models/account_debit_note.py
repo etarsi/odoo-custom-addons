@@ -37,4 +37,17 @@ class AccountDebitNote(models.TransientModel):
             vals["line_ids"] = [(5, 0, 0)]
             # Y en su lugar, creamos líneas de factura “limpias” y positivas.
             vals["invoice_line_ids"] = new_invoice_lines
+            dt = self.env.ref(
+                "l10n_ar_debit_note.l10n_latam_document_type_ar_debit_note",
+                raise_if_not_found=False
+            )
+            # Si existe, lo seteo; si no, lo limpio para que Odoo lo determine por journal/config
+            vals["l10n_latam_document_type_id"] = dt.id if dt else False
+
+            # Recomendado: limpiar numeración/secuencia para no copiar la del crédito
+            vals.update({
+                "l10n_latam_document_number": False,
+                "l10n_latam_manual_document_number": False,
+                "l10n_latam_document_sequence_id": False,
+            })
         return vals
