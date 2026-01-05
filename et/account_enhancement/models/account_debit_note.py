@@ -84,10 +84,6 @@ class AccountDebitNote(models.TransientModel):
                         line.quantity = abs(line.quantity)
                     if line.price_unit < 0:
                         line.price_unit = abs(line.price_unit)
-
-                # Recalcular impuestos / totales
-                new_move._recompute_dynamic_lines(recompute_all_taxes=True)
-
             new_moves |= new_move
 
         action = {
