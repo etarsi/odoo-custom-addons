@@ -111,29 +111,41 @@ class ReportResumenStockWizard(models.TransientModel):
         headers_salida = ['FECHA', 'CODIGO', 'DESCRIPCIÓN', 'BULTO', 'UxB', 'UNIDAD', 'RUBRO', 'CLIENTE', 'TRANSFERENCIA', 'CÓDIGO WMS', 'COMPAÑIA']
         for col, h in enumerate(headers_salida):
             worksheet_salida.write(1, col, h, fmt_header)
-            
+        
         # =========================
         # HOJA RESUMEN DE STOCK
         # =========================
-        worksheet_resumen.merge_range(0, 0, 0, 8, ('REPORTE RESUMEN DE STOCK').upper(), fmt_title)
-        worksheet_resumen.set_column(0, 0, 20)      # Codigo
-        worksheet_resumen.set_column(1, 1, 70)      # Descripción
-        worksheet_resumen.set_column(2, 2, 15)      # Bulto 
-        worksheet_resumen.set_column(3, 3, 15)      # UxB
-        worksheet_resumen.set_column(4, 4, 15)      # Unidad
-        worksheet_resumen.set_column(5, 5, 15)      # Bulto 
-        worksheet_resumen.set_column(6, 6, 15)      # UxB
-        worksheet_resumen.set_column(7, 7, 15)      # unidad
-        worksheet_resumen.set_column(8, 8, 15)      # Rotacion
-        # Alto de filas de título/encabezado
-        worksheet_resumen.set_row(0, 20)
-        worksheet_resumen.set_row(1, 18)
-        # =========================
-        # ENCABEZADOS
-        # =========================
-        headers_resumen = ['CODIGO', 'DESCRIPCIÓN', 'BULTO', 'UxB', 'UNIDAD', 'BULTO', 'UxB', 'UNIDAD', 'ROTACIÓN']
-        for col, h in enumerate(headers_resumen):
-            worksheet_resumen.write(1, col, h, fmt_header)
+        # ====== TITULO ======
+        worksheet_salida.merge_range(0, 0, 0, 8, 'REPORTE DE SALIDA DE STOCK', fmt_title)
+        worksheet_salida.set_row(0, 20)
+
+        # ====== ANCHO DE COLUMNAS ======
+        worksheet_salida.set_column(0, 0, 20)  # CODIGO
+        worksheet_salida.set_column(1, 1, 70)  # PRODUCTO
+        worksheet_salida.set_column(2, 7, 15)  # columnas numéricas
+        worksheet_salida.set_column(8, 8, 40)  # ROTACIÓN
+
+        # ====== ENCABEZADOS (2 filas) ======
+        worksheet_salida.set_row(1, 18)
+        worksheet_salida.set_row(2, 18)
+
+        # Bloques verticales (2 filas)
+        worksheet_salida.merge_range(1, 0, 2, 0, 'CODIGO', fmt_header)
+        worksheet_salida.merge_range(1, 1, 2, 1, 'PRODUCTO', fmt_header)
+        worksheet_salida.merge_range(1, 8, 2, 8, 'ROTACIÓN', fmt_header)
+
+        # Bloques horizontales (1ra fila de header)
+        worksheet_salida.merge_range(1, 2, 1, 4, 'ENTRADAS', fmt_header)
+        worksheet_salida.merge_range(1, 5, 1, 7, 'SALIDAS', fmt_header)
+
+        # Sub-headers (2da fila de header)
+        worksheet_salida.write(2, 2, 'BULTOS', fmt_header)
+        worksheet_salida.write(2, 3, 'UxB', fmt_header)
+        worksheet_salida.write(2, 4, 'UNIDAD', fmt_header)
+
+        worksheet_salida.write(2, 5, 'BULTOS', fmt_header)
+        worksheet_salida.write(2, 6, 'UxB', fmt_header)
+        worksheet_salida.write(2, 7, 'UNIDAD', fmt_header)
 
         # =========================
         # DOMAIN
@@ -161,7 +173,7 @@ class ReportResumenStockWizard(models.TransientModel):
         # =========================
         row_entrada = 2
         row_salida = 2
-        row_resumen = 2
+        row_resumen = 3
         resumen_data = {}
         # SALIDA DE STOCK
         for stock_picking in stock_pickings:
@@ -207,9 +219,9 @@ class ReportResumenStockWizard(models.TransientModel):
                 worksheet_salida.write(row_salida, 0, date_done, fmt_text2)
                 worksheet_salida.write(row_salida, 1, stock_move.product_id.default_code or '', fmt_text2)
                 worksheet_salida.write(row_salida, 2, stock_move.product_id.name or '', fmt_text)
-                worksheet_salida.write_number(row_salida, 3, unidades, fmt_int)
+                worksheet_salida.write_number(row_salida, 3, bultos, fmt_dec2)
                 worksheet_salida.write_number(row_salida, 4, uxb, fmt_int)
-                worksheet_salida.write_number(row_salida, 5, bultos, fmt_dec2)
+                worksheet_salida.write_number(row_salida, 5, unidades, fmt_int)
                 worksheet_salida.write(row_salida, 6, rubros_str or '', fmt_text2)
                 worksheet_salida.write(row_salida, 7, stock_move.picking_id.partner_id.name or '', fmt_text)
                 worksheet_salida.write(row_salida, 8, stock_move.picking_id.name, fmt_text)
