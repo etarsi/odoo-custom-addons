@@ -162,7 +162,7 @@ class ReportResumenStockWizard(models.TransientModel):
         row_resumen = 2
         resumen_data = {}
         # SALIDA DE STOCK
-        for stock_move in stock_moves.mapped('picking_id'):
+        for stock_move in stock_moves:
             date_done = stock_move.picking_id.date_done.strftime('%d/%m/%Y') if stock_move.picking_id.date_done else ''
             rubros = set()
             rubros_str = ''
