@@ -206,7 +206,7 @@ class ReportResumenStockWizard(models.TransientModel):
             worksheet_salida.write_number(row_salida, 4, bultos, fmt_dec2)
             worksheet_salida.write(row_salida, 5, rubros_str or '', fmt_text2)
             worksheet_salida.write(row_salida, 6, stock_move.picking_id.partner_id.name or '', fmt_text)
-            worksheet_salida.write(row_salida, 6, stock_move.stock_picking_id.name, fmt_text)
+            worksheet_salida.write(row_salida, 6, stock_move.picking_id.name, fmt_text)
             worksheet_salida.write(row_salida, 7, stock_move.picking_id.codigo_wms or '', fmt_text)
             worksheet_salida.write(row_salida, 8, stock_move.picking_id.company_id.name, fmt_text2)
             row_salida += 1
