@@ -116,36 +116,30 @@ class ReportResumenStockWizard(models.TransientModel):
         # HOJA RESUMEN DE STOCK
         # =========================
         # ====== TITULO ======
-        worksheet_salida.merge_range(0, 0, 0, 8, 'REPORTE DE SALIDA DE STOCK', fmt_title)
-        worksheet_salida.set_row(0, 20)
-
+        worksheet_resumen.merge_range(0, 0, 0, 8, 'REPORTE DE SALIDA DE STOCK', fmt_title)
+        worksheet_resumen.set_row(0, 20)
         # ====== ANCHO DE COLUMNAS ======
-        worksheet_salida.set_column(0, 0, 20)  # CODIGO
-        worksheet_salida.set_column(1, 1, 70)  # PRODUCTO
-        worksheet_salida.set_column(2, 7, 15)  # columnas numéricas
-        worksheet_salida.set_column(8, 8, 40)  # ROTACIÓN
-
+        worksheet_resumen.set_column(0, 0, 20)  # CODIGO
+        worksheet_resumen.set_column(1, 1, 70)  # PRODUCTO
+        worksheet_resumen.set_column(2, 7, 15)  # columnas numéricas
+        worksheet_resumen.set_column(8, 8, 40)  # ROTACIÓN
         # ====== ENCABEZADOS (2 filas) ======
-        worksheet_salida.set_row(1, 18)
-        worksheet_salida.set_row(2, 18)
-
+        worksheet_resumen.set_row(1, 18)
+        worksheet_resumen.set_row(2, 18)
         # Bloques verticales (2 filas)
-        worksheet_salida.merge_range(1, 0, 2, 0, 'CODIGO', fmt_header)
-        worksheet_salida.merge_range(1, 1, 2, 1, 'PRODUCTO', fmt_header)
-        worksheet_salida.merge_range(1, 8, 2, 8, 'ROTACIÓN', fmt_header)
-
+        worksheet_resumen.merge_range(1, 0, 2, 0, 'CODIGO', fmt_header)
+        worksheet_resumen.merge_range(1, 1, 2, 1, 'PRODUCTO', fmt_header)
+        worksheet_resumen.merge_range(1, 8, 2, 8, 'ROTACIÓN', fmt_header)
         # Bloques horizontales (1ra fila de header)
-        worksheet_salida.merge_range(1, 2, 1, 4, 'ENTRADAS', fmt_header)
-        worksheet_salida.merge_range(1, 5, 1, 7, 'SALIDAS', fmt_header)
-
+        worksheet_resumen.merge_range(1, 2, 1, 4, 'ENTRADAS', fmt_header)
+        worksheet_resumen.merge_range(1, 5, 1, 7, 'SALIDAS', fmt_header)
         # Sub-headers (2da fila de header)
-        worksheet_salida.write(2, 2, 'BULTOS', fmt_header)
-        worksheet_salida.write(2, 3, 'UxB', fmt_header)
-        worksheet_salida.write(2, 4, 'UNIDAD', fmt_header)
-
-        worksheet_salida.write(2, 5, 'BULTOS', fmt_header)
-        worksheet_salida.write(2, 6, 'UxB', fmt_header)
-        worksheet_salida.write(2, 7, 'UNIDAD', fmt_header)
+        worksheet_resumen.write(2, 2, 'BULTOS', fmt_header)
+        worksheet_resumen.write(2, 3, 'UxB', fmt_header)
+        worksheet_resumen.write(2, 4, 'UNIDAD', fmt_header)
+        worksheet_resumen.write(2, 5, 'BULTOS', fmt_header)
+        worksheet_resumen.write(2, 6, 'UxB', fmt_header)
+        worksheet_resumen.write(2, 7, 'UNIDAD', fmt_header)
 
         # =========================
         # DOMAIN
