@@ -176,7 +176,6 @@ class ReportResumenStockWizard(models.TransientModel):
                     'bultos_salida': 0.0,
                     'uxb_salida': 0.0,
                     'unidad_salida': 0.0,
-                    'rotacion': 0.0,
                 }
             unidades = stock_move.product_uom_qty or 0.0
             uxb = 0.0
@@ -224,7 +223,6 @@ class ReportResumenStockWizard(models.TransientModel):
                         'bultos_entrada': 0.0,
                         'uxb_entrada': 0.0,
                         'unidad_entrada': 0.0,
-                        'rotacion': 0.0,
                     }
                 unidades = move.quantity_send or 0.0
                 uxb = move.uxb or 0.0
@@ -256,6 +254,7 @@ class ReportResumenStockWizard(models.TransientModel):
                 entrada_counters[key] += unidades
         # RESUMEN DE STOCK
         for data in resumen_data.values():
+            _logger.info(f"Resumen Data: {data}")
             rotacion = data['unidad_salida'] / data['unidad_entrada'] * 100.0 
             worksheet_resumen.write(row_resumen, 0, data['product_code'], fmt_text2)
             worksheet_resumen.write(row_resumen, 1, data['product_name'], fmt_text)
