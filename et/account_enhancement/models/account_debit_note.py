@@ -18,7 +18,6 @@ class AccountDebitNote(models.TransientModel):
                 "l10n_latam_document_type_id": dt.id if dt else False,
                 "l10n_latam_document_number": False,
                 "l10n_latam_manual_document_number": False,
-                "l10n_latam_document_sequence_id": False,
             })
 
         # Si copio líneas desde NC cliente, recreo líneas en positivo PERO manteniendo links de pedido/compra
