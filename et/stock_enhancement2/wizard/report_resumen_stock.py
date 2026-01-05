@@ -30,9 +30,10 @@ class ReportResumenStockWizard(models.TransientModel):
     def action_generar_excel(self):
         output = io.BytesIO()
         workbook = xlsxwriter.Workbook(output, {'in_memory': True})
+        worksheet_resumen = workbook.add_worksheet('RESUMEN DE STOCK')
         worksheet_entrada = workbook.add_worksheet('ENTRADA DE STOCK')
         worksheet_salida = workbook.add_worksheet('SALIDA DE STOCK')
-        worksheet_resumen = workbook.add_worksheet('RESUMEN DE STOCK')
+
 
         # =========================
         # FORMATOS
@@ -69,7 +70,7 @@ class ReportResumenStockWizard(models.TransientModel):
         worksheet_entrada.merge_range(0, 0, 0, 11, ('REPORTE DE ENTRADA DE STOCK'), fmt_title)
         worksheet_entrada.set_column(0, 0, 20)      # Fecha
         worksheet_entrada.set_column(1, 1, 20)      # Codigo
-        worksheet_entrada.set_column(2, 2, 60)      # Producto
+        worksheet_entrada.set_column(2, 2, 70)      # Producto
         worksheet_entrada.set_column(3, 3, 15)      # bulto
         worksheet_entrada.set_column(4, 4, 10)      # UxB
         worksheet_entrada.set_column(5, 5, 15)      # unidad
@@ -92,7 +93,7 @@ class ReportResumenStockWizard(models.TransientModel):
         worksheet_salida.merge_range(0, 0, 0, 6, ('REPORTE DE SALIDA DE STOCK').upper(), fmt_title)
         worksheet_salida.set_column(0, 0, 20)      # Fecha
         worksheet_salida.set_column(1, 1, 20)      # Codigo
-        worksheet_salida.set_column(2, 2, 60)      # Producto
+        worksheet_salida.set_column(2, 2, 70)      # Producto
         worksheet_salida.set_column(3, 3, 15)      # bulto
         worksheet_salida.set_column(4, 4, 10)      # UxB
         worksheet_salida.set_column(5, 5, 15)      # unidad
@@ -165,7 +166,7 @@ class ReportResumenStockWizard(models.TransientModel):
         # SALIDA DE STOCK
         for stock_picking in stock_pickings:
             for stock_move in stock_picking.move_lines:
-                date_done = stock_move.picking_id.date_done.strftime('%d/%m/%Y') if stock_move.picking_id.date_done else ''
+                date_done = stock_picking.date_done.strftime('%d/%m/%Y') if stock_picking.date_done else ''
                 rubros = set()
                 rubros_str = ''
                 if not stock_move.product_id:
@@ -203,16 +204,17 @@ class ReportResumenStockWizard(models.TransientModel):
                     uxb = stock_move.product_packaging_id.qty or 0.0
                 # BULTOS = unidades / UxB (como tu imagen)
                 bultos = (unidades / uxb) if uxb else 0.0
-                worksheet_salida.write(row_salida, 0, stock_move.product_id.default_code or '', fmt_text2)
-                worksheet_salida.write(row_salida, 1, stock_move.product_id.name or '', fmt_text)
-                worksheet_salida.write_number(row_salida, 2, unidades, fmt_int)
-                worksheet_salida.write_number(row_salida, 3, uxb, fmt_int)
-                worksheet_salida.write_number(row_salida, 4, bultos, fmt_dec2)
-                worksheet_salida.write(row_salida, 5, rubros_str or '', fmt_text2)
-                worksheet_salida.write(row_salida, 6, stock_move.picking_id.partner_id.name or '', fmt_text)
-                worksheet_salida.write(row_salida, 6, stock_move.picking_id.name, fmt_text)
-                worksheet_salida.write(row_salida, 7, stock_move.picking_id.codigo_wms or '', fmt_text)
-                worksheet_salida.write(row_salida, 8, stock_move.picking_id.company_id.name, fmt_text2)
+                worksheet_salida.write(row_salida, 0, date_done, fmt_text2)
+                worksheet_salida.write(row_salida, 1, stock_move.product_id.default_code or '', fmt_text2)
+                worksheet_salida.write(row_salida, 2, stock_move.product_id.name or '', fmt_text)
+                worksheet_salida.write_number(row_salida, 3, unidades, fmt_int)
+                worksheet_salida.write_number(row_salida, 4, uxb, fmt_int)
+                worksheet_salida.write_number(row_salida, 5, bultos, fmt_dec2)
+                worksheet_salida.write(row_salida, 6, rubros_str or '', fmt_text2)
+                worksheet_salida.write(row_salida, 7, stock_move.picking_id.partner_id.name or '', fmt_text)
+                worksheet_salida.write(row_salida, 8, stock_move.picking_id.name, fmt_text)
+                worksheet_salida.write(row_salida, 9, stock_move.picking_id.codigo_wms or '', fmt_text)
+                worksheet_salida.write(row_salida, 10, stock_move.picking_id.company_id.name, fmt_text2)
                 row_salida += 1
         
         #Entrada de STOCK
