@@ -30,8 +30,9 @@ class ReportResumenStockWizard(models.TransientModel):
     def action_generar_excel(self):
         output = io.BytesIO()
         workbook = xlsxwriter.Workbook(output, {'in_memory': True})
-        worksheet = workbook.add_worksheet('REPORTE ENTREGA')
-        worksheet2 = workbook.add_worksheet('BASE DE DATOS')
+        worksheet_entrada = workbook.add_worksheet('ENTRADA DE STOCK')
+        worksheet_salida = workbook.add_worksheet('SALIDA DE STOCK')
+        worksheet_resumen = workbook.add_worksheet('RESUMEN DE STOCK')
 
         # =========================
         # FORMATOS
@@ -63,171 +64,220 @@ class ReportResumenStockWizard(models.TransientModel):
 
 
         # =========================
-        # TITULO
+        # HOJA ENTRADA DE STOCK
         # =========================
-        worksheet.merge_range(0, 0, 0, 11, ('REPORTE DE TRANSFERENCIAS-FACTURAS REALIZADAS'), fmt_title)
-        # =========================
-        # COLUMNAS DE LA HOJA REPORTE DE ENTREGA
-        # =========================
-        worksheet.set_column(0, 0, 15)      # Fecha
-        worksheet.set_column(1, 1, 30)      # Doc. Origen
-        worksheet.set_column(2, 2, 60)      # Cliente
-        worksheet.set_column(3, 3, 15)      # Cantidad de Bultos
-        worksheet.set_column(4, 4, 20)      # Total Facturado
-        worksheet.set_column(5, 5, 20)      # Total N. Credito en Negativo
-        worksheet.set_column(6, 6, 30)      # RUBROS (/)
-        worksheet.set_column(7, 7, 20)      # COMPAÑIA
-        worksheet.set_column(8, 8, 55)      # Transferencia
-        worksheet.set_column(9, 9, 15)      # Código WMS
-        worksheet.set_column(10, 10, 30)     # Facturas (/)
-        worksheet.set_column(11, 11, 15)    # Cant. LINEA DE PEDIDOS
+        worksheet_entrada.merge_range(0, 0, 0, 11, ('REPORTE DE ENTRADA DE STOCK'), fmt_title)
+        worksheet_entrada.set_column(0, 0, 20)      # Fecha
+        worksheet_entrada.set_column(1, 1, 20)      # Codigo
+        worksheet_entrada.set_column(2, 2, 60)      # Producto
+        worksheet_entrada.set_column(3, 3, 15)      # bulto
+        worksheet_entrada.set_column(4, 4, 10)      # UxB
+        worksheet_entrada.set_column(5, 5, 15)      # unidad
+        worksheet_entrada.set_column(6, 6, 30)      # contenedor
+        worksheet_entrada.set_column(7, 7, 30)      # Licencia
         # Alto de filas de título/encabezado
-        worksheet.set_row(0, 20)
-        worksheet.set_row(1, 18)
+        worksheet_entrada.set_row(0, 20)
+        worksheet_entrada.set_row(1, 18)
         # =========================
         # ENCABEZADOS
         # =========================
-        headers = ['FECHA', 'DOC. ORIGEN', 'CLIENTE', 'CANT. BULTOS', 'T. FACTURADO', 'T. N. CRÉDITO', 'RUBROS', 'COMPAÑÍA', 'TRANSFERENCIA', 'CÓDIGO WMS', 'FACTURAS', 'L. PEDIDOS']
+        headers = ['FECHA', 'CODIGO', 'DESCRIPCIÓN', 'BULTO', 'UxB', 'UNIDAD', 'CONTENEDOR', 'LICENCIA']
         for col, h in enumerate(headers):
-            worksheet.write(1, col, h, fmt_header)
+            worksheet_entrada.write(1, col, h, fmt_header)
 
 
         # =========================
-        # TITULO
+        # HOJA SALIDA DE STOCK
         # =========================
-        worksheet2.merge_range(0, 0, 0, 6, ('BASE DE DATOS').upper(), fmt_title)
-        # =========================
-        # COLUMNAS DE LA BASE DE DATOS
-        # =========================
-        worksheet2.set_column(0, 0, 12)  # CODIGO
-        worksheet2.set_column(1, 1, 60)  # DESCRIPCION
-        worksheet2.set_column(2, 2, 12)  # UNIDADES
-        worksheet2.set_column(3, 3, 10)  # UxB
-        worksheet2.set_column(4, 4, 12)  # BULTOS
-        worksheet2.set_column(5, 5, 28)  # RUBRO
-        worksheet2.set_column(6, 6, 60)  # Transferencia
+        worksheet_salida.merge_range(0, 0, 0, 6, ('REPORTE DE SALIDA DE STOCK').upper(), fmt_title)
+        worksheet_salida.set_column(0, 0, 20)      # Fecha
+        worksheet_salida.set_column(1, 1, 20)      # Codigo
+        worksheet_salida.set_column(2, 2, 60)      # Producto
+        worksheet_salida.set_column(3, 3, 15)      # bulto
+        worksheet_salida.set_column(4, 4, 10)      # UxB
+        worksheet_salida.set_column(5, 5, 15)      # unidad
+        worksheet_salida.set_column(6, 6, 30)      # Rubro
+        worksheet_salida.set_column(7, 7, 30)      # Cliente
+        worksheet_salida.set_column(8, 8, 30)      # Transferencia
+        worksheet_salida.set_column(9, 9, 15)      # Codigo WMS
+        worksheet_salida.set_column(10, 10, 30)    # Compañia
         # Alto de filas de título/encabezado
-        worksheet2.set_row(0, 20)
-        worksheet2.set_row(1, 18)
+        worksheet_salida.set_row(0, 20)
+        worksheet_salida.set_row(1, 18)
         # =========================
         # ENCABEZADOS
         # =========================
-        headers2 = ['CODIGO', 'DESCRIPCION', 'UNIDADES', 'UxB', 'BULTOS', 'RUBRO', 'TRANSFERENCIA']
-        for col, h in enumerate(headers2):
-            worksheet2.write(1, col, h, fmt_header)
+        headers_salida = ['FECHA', 'CODIGO', 'DESCRIPCIÓN', 'BULTO', 'UxB', 'UNIDAD', 'RUBRO', 'CLIENTE', 'TRANSFERENCIA', 'CÓDIGO WMS', 'COMPAÑIA']
+        for col, h in enumerate(headers_salida):
+            worksheet_salida.write(1, col, h, fmt_header)
             
-            
-            
+        # =========================
+        # HOJA RESUMEN DE STOCK
+        # =========================
+        worksheet_resumen.merge_range(0, 0, 0, 6, ('REPORTE RESUMEN DE STOCK').upper(), fmt_title)
+        worksheet_resumen.set_column(0, 0, 20)      # Codigo
+        worksheet_resumen.set_column(1, 1, 20)      # Descroipción
+        worksheet_resumen.set_column(2, 2, 60)      # Bulto 
+        worksheet_resumen.set_column(3, 3, 15)      # UxB
+        worksheet_resumen.set_column(4, 4, 10)      # Unidad
+        worksheet_resumen.set_column(2, 2, 60)      # Bulto 
+        worksheet_resumen.set_column(3, 3, 15)      # UxB
+        worksheet_resumen.set_column(5, 5, 15)      # unidad
+        worksheet_resumen.set_column(6, 6, 30)      # Rotacion
+        # Alto de filas de título/encabezado
+        worksheet_resumen.set_row(0, 20)
+        worksheet_resumen.set_row(1, 18)
+        # =========================
+        # ENCABEZADOS
+        # =========================
+        headers_resumen = ['CODIGO', 'DESCRIPCIÓN', 'BULTO', 'UxB', 'UNIDAD', 'BULTO', 'UxB', 'UNIDAD', 'ROTACIÓN']
+        for col, h in enumerate(headers_resumen):
+            worksheet_resumen.write(1, col, h, fmt_header)
+
         # =========================
         # DOMAIN
         # =========================
         domain = [('state', '=', 'done')]
-        if self.temporada != 't_all':
-            if self.temporada == 't_nino_2025':
-                domain += [('create_date', '>=', date(2025, 3, 1)), ('create_date', '<=', date(2025, 8, 31))]
-            elif self.temporada == 't_nav_2025':
-                domain += [('create_date', '>=', date(2025, 9, 1)), ('create_date', '<=', date(2026, 2, 28))]
-        
-        if self.partner_ids:
-            domain += [('partner_id', 'in', self.partner_ids.ids)]
-        if self.type_picking == 'inputs':
-            domain += [('picking_type_id.code', '=', 'incoming')]
-        elif self.type_picking == 'order':
-            domain += [('picking_type_id.code', '=', 'outgoing')]
-
-        stocks_pickings = self.env['stock.picking'].search(domain)
-        if not stocks_pickings:
+        if self.temporada == 't_nino_2025':
+            domain += [('picking_id.create_date', '>=', date(2025, 3, 1)), ('picking_id.create_date', '<=', date(2025, 8, 31))]
+        elif self.temporada == 't_nav_2025':
+            domain += [('picking_id.create_date', '>=', date(2025, 9, 1)), ('picking_id.create_date', '<=', date(2026, 2, 28))]
+        domain += [('picking_type_id.code', '=', 'incoming')]
+        stock_moves = self.env['stock.move'].search(domain)
+        if not stock_moves:
             raise ValidationError("No se encontraron albaranes para los criterios seleccionados.")
+        
+        domain_container = [('state', '=', 'confirmed')]
+        if self.temporada == 't_nino_2025':
+            domain_container += [('eta', '>=', date(2025, 3, 1)), ('eta', '<=', date(2025, 8, 31))]
+        elif self.temporada == 't_nav_2025':
+            domain_container += [('eta', '>=', date(2025, 9, 1)), ('eta', '<=', date(2026, 2, 28))] 
 
+        containers = self.env['container'].search(domain_container)
         # =========================
         # DATA
         # =========================
-        row = 2  # empezamos justo debajo de headers
-        row2 = 2  # empezamos justo debajo de headers de hoja BASE DE DATOS
-        if self.category_ids:
-            #filtrar por las category_ids seleccionadas
-            stocks_pickings = stocks_pickings.filtered(lambda sp: not sp.move_ids_without_package.filtered(lambda m: m.product_id.categ_id.parent_id not in self.category_ids))
-        for stock_picking in stocks_pickings:
-            date_done = stock_picking.date_done.strftime('%d/%m/%Y') if stock_picking.date_done else ''
-            t_facturado = 0.0
-            t_ncredito = 0.0
-            t_cant_bultos = 0.0
+        row_entrada = 2
+        row_salida = 2
+        row_resumen = 2
+        resumen_data = {}
+        # SALIDA DE STOCK
+        for stock_move in stock_moves.mapped('picking_id'):
+            date_done = stock_move.picking_id.date_done.strftime('%d/%m/%Y') if stock_move.picking_id.date_done else ''
             rubros = set()
-            facturas = set()
             rubros_str = ''
-            facturas_str = ''
-            t_cant_lineas = len(stock_picking.move_lines)
-            
-            invoice_ids = stock_picking.invoice_ids.filtered(lambda inv: inv.state != 'cancel')
-            if invoice_ids:
-                for invoice in invoice_ids:
-                    if invoice.move_type == 'out_invoice':
-                        facturas.add(invoice.name)
-                        t_facturado += invoice.amount_total
-                    elif invoice.move_type == 'out_refund':
-                        facturas.add(invoice.name)
-                        t_ncredito += invoice.amount_total            
-                #t_ncredito sea negativo
-                facturas_str = '/'.join(facturas)
-                if t_ncredito > 0:
-                    t_ncredito = -abs(t_ncredito)
-            for move in stock_picking.move_ids_without_package:
+            if not stock_move.product_id:
+                continue
+            key = stock_move.product_id.id
+            if key not in resumen_data:
+                resumen_data[key] = {
+                    'product_code': stock_move.product_id.default_code or '', 
+                    'product_name': stock_move.product_id.name or '',
+                    'bultos_salida': 0.0,
+                    'uxb_salida': 0.0,
+                    'unidad_salida': 0.0,
+                    'rotacion': 0.0,
+                }
+            unidades = stock_move.product_uom_qty or 0.0
+            uxb = 0.0
+            if stock_move.product_packaging_id and hasattr(stock_move.product_packaging_id, 'qty'):
+                uxb = stock_move.product_packaging_id.qty or 0.0
+            bultos = (unidades / uxb) if uxb else 0.0
+            resumen_data[key]['bultos_salida'] += bultos
+            resumen_data[key]['uxb_salida'] = uxb  # assuming UxB is consistent per product
+            resumen_data[key]['unidad_salida'] += unidades
+            if stock_move.product_packaging_id and hasattr(stock_move.product_packaging_id, 'qty'):
+                 stock_move.product_packaging_qty
+            #separar rubros por JUGUETES/ROPA/OTROS
+            if stock_move.product_id.categ_id.parent_id:
+                rubros.add(stock_move.product_id.categ_id.parent_id.name)
+                rubros_str = '/'.join(rubros)   
+            unidades = stock_move.product_uom_qty or 0.0
+            # UxB numérico: suele estar en el packaging.qty
+            uxb = 0.0
+            if stock_move.product_packaging_id and hasattr(stock_move.product_packaging_id, 'qty'):
+                uxb = stock_move.product_packaging_id.qty or 0.0
+            # BULTOS = unidades / UxB (como tu imagen)
+            bultos = (unidades / uxb) if uxb else 0.0
+            worksheet_salida.write(row_salida, 0, stock_move.product_id.default_code or '', fmt_text2)
+            worksheet_salida.write(row_salida, 1, stock_move.product_id.name or '', fmt_text)
+            worksheet_salida.write_number(row_salida, 2, unidades, fmt_int)
+            worksheet_salida.write_number(row_salida, 3, uxb, fmt_int)
+            worksheet_salida.write_number(row_salida, 4, bultos, fmt_dec2)
+            worksheet_salida.write(row_salida, 5, rubros_str or '', fmt_text2)
+            worksheet_salida.write(row_salida, 6, stock_move.picking_id.partner_id.name or '', fmt_text)
+            worksheet_salida.write(row_salida, 6, stock_move.stock_picking_id.name, fmt_text)
+            worksheet_salida.write(row_salida, 7, stock_move.picking_id.codigo_wms or '', fmt_text)
+            worksheet_salida.write(row_salida, 8, stock_move.picking_id.company_id.name, fmt_text2)
+            row_salida += 1
+        
+        #Entrada de STOCK
+        for container in containers:
+            for move in container.lines:
                 if not move.product_id:
                     continue
-                t_cant_bultos += move.product_packaging_qty
-                unidades = move.product_uom_qty or 0.0
-                # UxB numérico: suele estar en el packaging.qty
-                uxb = 0.0
-                if move.product_packaging_id and hasattr(move.product_packaging_id, 'qty'):
-                    t_cant_bultos += move.product_packaging_qty
-                #separar rubros por JUGUETES/ROPA/OTROS
-                if move.product_id.categ_id.parent_id:
-                    rubros.add(move.product_id.categ_id.parent_id.name)
-                    rubros_str = '/'.join(rubros)   
-                # BULTOS = unidades / UxB (como tu imagen)
+                key = move.product_id.id
+                if key not in resumen_data:
+                    resumen_data[key] = {
+                        'product_code': move.product_id.default_code or '',
+                        'product_name': move.product_id.name or '',
+                        'bultos_entrada': 0.0,
+                        'uxb_entrada': 0.0,
+                        'unidad_entrada': 0.0,
+                        'rotacion': 0.0,
+                    }
+                unidades = move.quantity_send or 0.0
+                uxb = move.uxb or 0.0
                 bultos = (unidades / uxb) if uxb else 0.0
-                unidades = move.product_uom_qty or 0.0
-                # UxB numérico: suele estar en el packaging.qty
-                uxb = 0.0
-                if move.product_packaging_id and hasattr(move.product_packaging_id, 'qty'):
-                    uxb = move.product_packaging_id.qty or 0.0
-                # BULTOS = unidades / UxB (como tu imagen)
-                bultos = (unidades / uxb) if uxb else 0.0
-                worksheet2.write(row2, 0, move.product_id.default_code or '', fmt_text2)
-                worksheet2.write(row2, 1, move.product_id.name or '', fmt_text)
-                worksheet2.write_number(row2, 2, unidades, fmt_int)
-                worksheet2.write_number(row2, 3, uxb, fmt_int)
-                worksheet2.write_number(row2, 4, bultos, fmt_dec2)
-                worksheet2.write(row2, 5, rubros_str or '', fmt_text2)
-                worksheet2.write(row2, 6, stock_picking.name, fmt_text)
-                row2 += 1
-            
-            t_cant_bultos = float_round(t_cant_bultos, 2)
-            #Sacar el nombre del cliente si tiene 
-            partner_name = (stock_picking.partner_id.parent_id.name) + ' / ' + stock_picking.partner_id.name if stock_picking.partner_id.company_type== 'person' else stock_picking.partner_id.name if stock_picking.partner_id else ''
-            #DATOS DE LAS FILAS DE REPORTE ENTREGA
-            worksheet.write(row, 0, date_done, fmt_text2)
-            worksheet.write(row, 1, stock_picking.origin, fmt_text)
-            worksheet.write(row, 2, partner_name or '', fmt_text)
-            worksheet.write(row, 3, t_cant_bultos, fmt_text2)
-            worksheet.write(row, 4, t_facturado, fmt_moneda)
-            worksheet.write(row, 5, t_ncredito, fmt_moneda)
-            worksheet.write(row, 6, rubros_str, fmt_text2)
-            worksheet.write(row, 7, stock_picking.company_id.name, fmt_text2)
-            worksheet.write(row, 8, stock_picking.name, fmt_text)
-            worksheet.write(row, 9, stock_picking.codigo_wms, fmt_text)
-            worksheet.write(row, 10, facturas_str, fmt_text2)
-            worksheet.write(row, 11, t_cant_lineas, fmt_int)
-            row += 1
+                resumen_data[key]['bultos'] += bultos
+                resumen_data[key]['uxb'] = uxb  # assuming UxB is consistent per product
+                resumen_data[key]['unidad'] += unidades
+                
+                date_done = container.eta.strftime('%d/%m/%Y') if container.eta else ''
+                worksheet_entrada.write(row_entrada, 0, date_done, fmt_text2)
+                worksheet_entrada.write(row_entrada, 1, move.product_id.default_code or '', fmt_text2)
+                worksheet_entrada.write(row_entrada, 2, move.product_id.name or '', fmt_text)
+                worksheet_entrada.write_number(row_entrada, 3, move.bultos or 0.0,  fmt_dec2)
+                worksheet_entrada.write_number(row_entrada, 4, move.uxb, fmt_int)
+                worksheet_entrada.write_number(row_entrada, 5, move.quantity_send or 0.0, fmt_int)
+                worksheet_entrada.write(row_entrada, 6, container.name or '', fmt_text)
+                worksheet_entrada.write(row_entrada, 7, container.license or '', fmt_text)
+                row_entrada += 1
+                
+        entrada_counters = {}
+        for container in containers:
+            for move in container.lines:
+                if not move.product_id:
+                    continue
+                key = move.product_id.id
+                if key not in entrada_counters:
+                    entrada_counters[key] = 0.0
+                unidades = move.quantity_send or 0.0
+                entrada_counters[key] += unidades
+        # RESUMEN DE STOCK
+        for data in resumen_data.values():
+            rotacion = data['unidad_salida'] / data['unidad_entrada'] * 100.0 
+            worksheet_resumen.write(row_resumen, 0, data['product_code'], fmt_text2)
+            worksheet_resumen.write(row_resumen, 1, data['product_name'], fmt_text)
+            #SALIDA DE STOCK
+            worksheet_resumen.write_number(row_resumen, 2, data['bultos_salida'], fmt_dec2)
+            worksheet_resumen.write_number(row_resumen, 3, data['uxb_salida'], fmt_int)
+            worksheet_resumen.write_number(row_resumen, 4, data['unidad_salida'], fmt_int)
+            # ENTRADA DE STOCK
+            worksheet_resumen.write_number(row_resumen, 2, data['bultos_entrada'], fmt_dec2)
+            worksheet_resumen.write_number(row_resumen, 3, data['uxb_entrada'], fmt_int)
+            worksheet_resumen.write_number(row_resumen, 4, data['unidad_entrada'], fmt_int) 
+            # Placeholder for rotation calculation
+            worksheet_resumen.write_number(row_resumen, 5, rotacion, fmt_dec2)
+            row_resumen += 1
         workbook.close()
         output.seek(0)
-
         archivo_excel = base64.b64encode(output.read())
         attachment = self.env['ir.attachment'].create({
-            'name': f'Reporte Transferencias/Factura - {fields.Date.today()}.xlsx',
+            'name': f'Reporte Resumen de Stock - {fields.Date.today()}.xlsx',
             'type': 'binary',
             'datas': archivo_excel,
-            'store_fname': f'Reporte Transferencias/Factura - {fields.Date.today()}.xlsx',
+            'store_fname': f'Reporte Resumen de Stock - {fields.Date.today()}.xlsx',
             'mimetype': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
         })
 

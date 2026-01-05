@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_report_resumen_stock_wizard_form" model="ir.ui.view">
+        <field name="name">report.resumen.stock.wizard.form</field>
+        <field name="model">report.resumen.stock.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Reporte Resumen de Stock" create="false" edit="false">
+                <group name="resumen_stock" string="Reporte de Resumen de Stock">
+                    <group>
+                        <field name="temporada"/>
+                    </group> 
+                </group>
+                <footer>
+                    <button name="action_generar_excel" type="object" string="Generar Excel" class="btn-primary"/>
+                    <button string="Cancelar" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_report_stock_picking_factura_wizard" model="ir.actions.act_window">
+        <field name="name">Reporte de Transferencias y Facturas</field>
+        <field name="res_model">report.stock.picking.factura.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="view_id" ref="view_report_stock_picking_factura_wizard_form"/>
+        <field name="target">new</field>
+    </record>
+
+    <!-- Menu de inventario / informes  -->
+    <menuitem id="menu_report_stock_picking_factura_wizard"
+              name="Reporte de Transferencias y Facturas"
+              parent="stock.menu_warehouse_report"
+              action="action_report_stock_picking_factura_wizard"
+              sequence="160"/>
+    
+</odoo>

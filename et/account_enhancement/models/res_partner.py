@@ -15,6 +15,7 @@ class ResPartnerInherit(models.Model):
     diario_prov_afip_import_id = fields.Selection(string='Diario Proveedor', selection=[
         ('lavalle', 'FACTURAS PROVEEDORES LAVALLE'),
         ('deposito', 'FACTURAS PROVEEDORES DEPOSITO'),
+        ('smile', 'FACTURAS PROVEEDORES SMILES'),
     ], help='Seleccionar el diario para facturas de proveedor AFIP Import', default = 'lavalle')
     cuenta_prov_afip_import_id = fields.Many2one('account.account', string='Cuenta Proveedor', help='Seleccionar la cuenta para facturas de proveedor AFIP Import')
 

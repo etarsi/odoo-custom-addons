@@ -224,6 +224,8 @@ class AccountImportAfipFacprovWizard(models.TransientModel):
             
             if partner.diario_prov_afip_import_id == 'lavalle':
                 diario_name = 'FACTURAS PROVEEDORES LAVALLE'
+            elif partner.diario_prov_afip_import_id == 'smile':
+                diario_name = 'FACTURAS PROVEEDORES SMILES'
             else:
                 diario_name = 'FACTURAS PROVEEDORES DEPOSITO'
             journal_id = self.env['account.journal'].search([('name', '=', diario_name), ('company_id', '=', company_id.id)], limit=1)
