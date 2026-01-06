@@ -20,4 +20,5 @@ class AccountDebitNote(models.TransientModel):
                 line_ids.append((0, 0, line_data))
             default_values['line_ids'] = line_ids
             _logger.info("Copied product lines for debit note from move %s", move.name)
+            _logger.info("Default values: %s", default_values)
         return default_values
