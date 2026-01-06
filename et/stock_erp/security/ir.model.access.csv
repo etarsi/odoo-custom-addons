@@ -1,4 +1,3 @@
 id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
-access_stock_erp_stock_erp,stock_erp.stock_erp,model_stock_erp_stock_erp,base.group_user,1,1,1,1
 access_stock_season,stock_erp.stock_season,model_stock_season,base.group_user,1,1,1,1
 access_stock_season_line,stock_erp.stock_season_line,model_stock_season_line,base.group_user,1,1,1,1
