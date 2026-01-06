@@ -240,7 +240,7 @@ class HrEmployee(models.Model):
         
     def action_horario_laboral_administrativo(self):
         self.ensure_one()
-        self.work_schedule_id = self.env.ref('hr_enhancement.work_schedule_administrativo').id
+        self.work_schedule_id = 2 # Asignar el horario laboral Administrativo (ID 2)
         return {
             'type': 'ir.actions.client',
             'tag': 'display_notification',
@@ -254,7 +254,7 @@ class HrEmployee(models.Model):
     
     def action_horario_laboral_operativo(self):
         self.ensure_one()
-        self.work_schedule_id = self.env.ref('hr_enhancement.work_schedule_operativo').id
+        self.work_schedule_id = 3 # Asignar el horario laboral por defecto (ID 3)
         return {
             'type': 'ir.actions.client',
             'tag': 'display_notification',
@@ -270,7 +270,7 @@ class HrEmployee(models.Model):
         employees = self.search([('employee_type', '=', 'employee'), ('state', '!=', 'inactive')]) # Obtener todos los empleados
         for emp in employees:
             if emp.employee_type == 'employee' and not emp.work_schedule_id:
-                emp.work_schedule_id = self.env.ref('hr_enhancement.work_schedule_operativo').id
+                emp.work_schedule_id = 3 # Asignar el horario laboral por defecto (ID 3)
 
         return {
             'type': 'ir.actions.client',
