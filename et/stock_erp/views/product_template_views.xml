@@ -15,6 +15,7 @@
                     <field name="unidades_sueltas"/>
                   </tree>
                 </field>
+              </page>
             </xpath>
         </field>
     </record>
