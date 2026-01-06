@@ -237,3 +237,48 @@ class HrEmployee(models.Model):
             'domain': [('employee_id', '=', self.id)],
             'context': {'default_employee_id': self.id},
         }
+        
+    def action_horario_laboral_administrativo(self):
+        self.ensure_one()
+        self.work_schedule_id = self.env.ref('hr_enhancement.work_schedule_administrativo').id
+        return {
+            'type': 'ir.actions.client',
+            'tag': 'display_notification',
+            'params': {
+                'title': 'Horario Laboral Asignado',
+                'message': 'Se ha asignado el horario laboral Administrativo.',
+                'type': 'success',
+                'sticky': False,
+            }
+        }
+    
+    def action_horario_laboral_operativo(self):
+        self.ensure_one()
+        self.work_schedule_id = self.env.ref('hr_enhancement.work_schedule_operativo').id
+        return {
+            'type': 'ir.actions.client',
+            'tag': 'display_notification',
+            'params': {
+                'title': 'Horario Laboral Asignado',
+                'message': 'Se ha asignado el horario laboral Operativo.',
+                'type': 'success',
+                'sticky': False,
+            }
+        }
+    
+    def action_horario_laboral_defecto_all(self):   
+        employees = self.search([('employee_type', '=', 'employee'), ('state', '!=', 'inactive')]) # Obtener todos los empleados
+        for emp in employees:
+            if emp.employee_type == 'employee' and not emp.work_schedule_id:
+                emp.work_schedule_id = self.env.ref('hr_enhancement.work_schedule_operativo').id
+
+        return {
+            'type': 'ir.actions.client',
+            'tag': 'display_notification',
+            'params': {
+                'title': 'Horarios Laborales Asignados',
+                'message': 'Se han asignado los horarios laborales por defecto.',
+                'type': 'success',
+                'sticky': False,
+            }
+        }
