@@ -57,8 +57,8 @@ class StockSeasonLine(models.Model):
 class ProductTemplate(models.Model):
     _inherit = "product.template"
 
-    season_opening_line_ids = fields.One2many(
-        "stock.season.opening.line",
+    season_line_ids = fields.One2many(
+        "stock.season.line",
         "product_tmpl_id",
         string="Stocks iniciales por temporada",
     )
