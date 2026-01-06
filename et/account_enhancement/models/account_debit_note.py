@@ -54,8 +54,7 @@ class AccountDebitNote(models.TransientModel):
         # Importante:
         # - Si copy_lines = False, vaciamos líneas (comportamiento estándar)
         # - Si viene de refund y copy_lines = True, NO vaciamos line_ids (si no, perdés sale_line_ids)
-        if not self.copy_lines:
-            vals["line_ids"] = [(5, 0, 0)]
+        vals["line_ids"] = [(5, 0, 0)]
 
         # Si el origen es una NC (cliente o proveedor), corregimos tipo doc y numeración
         if move.move_type in ("out_refund", "in_refund"):
