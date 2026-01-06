@@ -192,7 +192,7 @@ class AccountImportAfipFacprovWizard(models.TransientModel):
             currency = False
             account_id = False
             moneda_symbol = ws.cell(r, c_moneda).value
-            numero_documento = f"{int(p_venta):04d}-{int(num_fac):08d}"
+            numero_factura = f"{int(p_venta):04d}-{int(num_fac):08d}"
             # VALIDACIONES
             if not tipo_comprobante:
                 raise ValidationError(_("Fila %s: tipo de comprobante inválido o no soportado: '%s'.") % (r, str(tipo)))
@@ -218,12 +218,12 @@ class AccountImportAfipFacprovWizard(models.TransientModel):
             if not partner.cuenta_prov_afip_import_id:
                 fila_no_registrada += f"\n , Fila: {r} - El proveedor {partner.name} no tiene configurada la cuenta para Facturas AFIP Import."
                 continue
-            _logger.info("Importando factura proveedor: %s - %s", numero_documento, partner.name)
+            _logger.info("Importando factura proveedor: %s - %s", numero_factura, partner.name)
             _logger.info("Tipo comprobante: %s", tipo_comprobante.name)
             _logger.info("Fecha: %s", fecha)
             _logger.info("Tipo cambio: %s", tipo_cambio)
             _logger.info("Moneda: %s", moneda_symbol or 'ARS')
-            fac_proveedor = self.env['account.move'].search([('name', 'ilike', num_fac), ('partner_id', '=', partner.id), ('company_id', '=', company_id.id), ('move_type', '=', move_type)], limit=1)                     
+            fac_proveedor = self.env['account.move'].search([('name', 'ilike', numero_factura), ('partner_id', '=', partner.id), ('company_id', '=', company_id.id), ('move_type', '=', move_type)], limit=1)                     
             if fac_proveedor:
                 _logger.info("La factura ya existe en el sistema: %s", fac_proveedor.name)
                 _logger.info("Se omite la importación de esta fila.")
@@ -354,7 +354,7 @@ class AccountImportAfipFacprovWizard(models.TransientModel):
                 'invoice_line_ids': lines,
                 'computed_currency_rate': tipo_cambio,
                 'l10n_ar_currency_rate': tipo_cambio,
-                'l10n_latam_document_number': numero_documento,
+                'l10n_latam_document_number': numero_factura,
             }
 
             move = Move.create(vals)
