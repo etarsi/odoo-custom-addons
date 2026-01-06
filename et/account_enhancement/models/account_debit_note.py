@@ -24,26 +24,35 @@ class AccountDebitNote(models.TransientModel):
         return default_values
     
     def create_debit(self):
-        res = super().create_debit()
+        self.ensure_one()
+        new_moves = self.env["account.move"]
 
-        Move = self.env["account.move"]
-        new_moves = Move.browse()
+        for move in self.move_ids.with_context(include_business_fields=True):
+            default_values = self._prepare_default_values(move)
 
-        # Caso 1: se creó 1
-        if res.get("res_id"):
-            new_moves = Move.browse(res["res_id"])
+            # Crear sin validación intermedia, luego recomputamos y queda balanceado
+            new_move = move.with_context(check_move_validity=False).copy(default=default_values)
 
-        # Caso 2: se crearon varios -> viene domain [('id','in',[...])]
+            # Si el origen es NC y el usuario quiere copiar líneas, recreamos invoice_line_ids POSITIVAS
+            # (preservando sale_line_ids) y recomputamos impuestos + cuenta a cobrar/pagar.
+            if self.copy_lines and move.move_type in ("out_refund", "in_refund"):
+                cmds = self._build_positive_invoice_line_cmds(move)
+                new_move.with_context(check_move_validity=False).write({"invoice_line_ids": cmds})
+
+                new_move.with_context(check_move_validity=False)._recompute_dynamic_lines(
+                    recompute_all_taxes=True
+                )
+
+            new_moves |= new_move
+
+        action = {
+            "name": _("Debit Notes"),
+            "type": "ir.actions.act_window",
+            "res_model": "account.move",
+            "context": {"default_move_type": new_moves[:1].move_type if new_moves else "out_invoice"},
+        }
+        if len(new_moves) == 1:
+            action.update({"view_mode": "form", "res_id": new_moves.id})
         else:
-            for d in (res.get("domain") or []):
-                if isinstance(d, (list, tuple)) and len(d) == 3 and d[0] == "id" and d[1] == "in":
-                    new_moves = Move.browse(d[2])
-                    break
-        _logger.info("New debit note moves created: %s", new_moves.mapped("name"))
-        _logger.info("Recomputing latam document types for debit notes")
-        # Recomputar tipo de doc + onchange para todos
-        for m in new_moves:
-            m._compute_l10n_latam_document_type()
-            m._onchange_l10n_latam_document_type_id()
-
-        return res
+            action.update({"view_mode": "list,form", "domain": [("id", "in", new_moves.ids)]})
+        return action
