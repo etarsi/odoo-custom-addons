@@ -18,8 +18,8 @@ class StockSeason(models.Model):
     )
 
 
-class StockSeasonOpeningLine(models.Model):
-    _name = "stock.season.opening.line"
+class StockSeasonLine(models.Model):
+    _name = "stock.season.line"
     _description = "Stock Inicial por Temporada"
     _order = "season_id desc, product_tmpl_id"
 
