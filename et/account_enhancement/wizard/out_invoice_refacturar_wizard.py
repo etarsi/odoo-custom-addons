@@ -233,6 +233,10 @@ class OutInvoiceRefacturarWizard(models.TransientModel):
                 draft_credits = credit_notes.filtered(lambda m: m.state == 'draft')
                 if draft_credits:
                     for draft_credit in draft_credits:
+                         # Validar que el tipo de comprobante sea Nota de Crédito
+                        if draft_credit.l10n_latam_document_type_id.internal_type != 'credit_note':
+                            internal_type = draft_credit.l10n_latam_document_type_id.internal_type or 'No está definido'
+                            raise ValidationError(_("Se esperaba una Nota de Crédito, pero el tipo comprobante es: %s.") % internal_type)
                         #Validar lineas de NC quitar IIBB
                         invoice_date = draft_credit.invoice_date
                         # rango de fecha cambiar a periodo ejemplo solo se puede quitar las perceppcion_iibb si estamos en el mismo mes
@@ -242,10 +246,6 @@ class OutInvoiceRefacturarWizard(models.TransientModel):
                             self._delete_impuestos_perceppcion_iibb(draft_credit)
                             draft_credit.update_taxes()
                             draft_credit._compute_amount()
-                         # Validar que el tipo de comprobante sea Nota de Crédito
-                        if draft_credit.l10n_latam_document_type_id.internal_type != 'credit_note':
-                            internal_type = draft_credit.l10n_latam_document_type_id.internal_type or 'No está definido'
-                            raise ValidationError(_("Se esperaba una Nota de Crédito, pero el tipo comprobante es: %s.") % internal_type)
                     draft_credits.action_post()
                 credit_notes |= draft_credits
                 # 2) Nueva factura en la compañía destino
