@@ -7,59 +7,90 @@ _logger = logging.getLogger(__name__)
 class AccountDebitNote(models.TransientModel):
     _inherit = 'account.debit.note'
 
+    def _get_new_moves_from_action(self, action):
+        Move = self.env["account.move"]
+        if action.get("res_id"):
+            return Move.browse(action["res_id"])
+        for d in (action.get("domain") or []):
+            if isinstance(d, (list, tuple)) and len(d) == 3 and d[0] == "id" and d[1] == "in":
+                return Move.browse(d[2])
+        return Move.browse()
+
+    def _build_invoice_line_cmds_from_source(self, src_move):
+        """Crea comandos para invoice_line_ids en positivo, preservando sale_line_ids."""
+        cmds = [(5, 0, 0)]
+        for line in src_move.invoice_line_ids.with_context(include_business_fields=True):
+            lvals = line.copy_data()[0]
+
+            # Preservar vínculos a pedidos (por seguridad)
+            if line.sale_line_ids:
+                lvals["sale_line_ids"] = [(6, 0, line.sale_line_ids.ids)]
+            if getattr(line, "purchase_line_id", False) and line.purchase_line_id:
+                lvals["purchase_line_id"] = line.purchase_line_id.id
+
+            # Secciones / notas: no tocar signos
+            if not lvals.get("display_type"):
+                if lvals.get("quantity") is not None:
+                    lvals["quantity"] = abs(lvals["quantity"])
+                if lvals.get("price_unit") is not None:
+                    lvals["price_unit"] = abs(lvals["price_unit"])
+
+            # Limpieza defensiva: NO arrastrar campos contables ya calculados
+            for k in (
+                "move_id",
+                "debit", "credit", "balance", "amount_currency",
+                "tax_line_id",
+                "matched_debit_ids", "matched_credit_ids",
+                "full_reconcile_id",
+            ):
+                lvals.pop(k, None)
+
+            cmds.append((0, 0, lvals))
+        return cmds
+
     def create_debit(self):
-        """Recalcula el tipo de documento LATAM y (si aplica) copia líneas desde una NC de cliente."""
-        res = super().create_debit()
-        _logger.info("AccountDebitNote.create_debit ejecutado. Resultado de la acción: %s", res)
+        """
+        1) Crea la ND con super()
+        2) Si el origen es NC cliente (out_refund) y copy_lines=True:
+           - borra líneas del nuevo move
+           - agrega invoice_line_ids desde el origen en positivo
+           - recomputa impuestos + cuenta a cobrar/pagar (balance)
+           - recomputa tipo doc LATAM y ejecuta onchange
+        """
+        self.ensure_one()
 
-        new_move_id = res.get('res_id')
+        # Crear sin validar a mitad de proceso (luego queda balanceado al recomputar)
+        action = super(AccountDebitNote, self.with_context(check_move_validity=False)).create_debit()
+        new_moves = self._get_new_moves_from_action(action)
 
-        # Validaciones defensivas
         if not self.move_ids:
-            _logger.warning("No hay comprobantes seleccionados (move_ids vacío). No se realizan ajustes.")
-            return res
+            _logger.warning("No hay comprobantes seleccionados (move_ids vacío).")
+            return action
 
-        move_origen = self.move_ids[0]
+        src_move = self.move_ids[0].with_context(include_business_fields=True)
 
-        # Solo aplica si el origen es una Nota de Crédito de Cliente y el usuario marcó 'Copiar líneas'
-        if move_origen.move_type == 'out_refund' and self.copy_lines:
-            _logger.info("Se detectó Nota de Crédito de Cliente (out_refund) con 'Copiar líneas' activado.")
+        # Solo tu caso objetivo
+        if src_move.move_type == "out_refund" and self.copy_lines:
+            _logger.info("Post-proceso: agregando líneas luego de crear la ND (origen: NC de cliente).")
 
-            if not new_move_id:
-                _logger.warning(
-                    "No se encontró 'res_id' en la acción (posible creación múltiple). "
-                    "No se pudieron aplicar ajustes posteriores por ID."
-                )
-                return res
+            cmds = self._build_invoice_line_cmds_from_source(src_move)
 
-            new_move = self.env['account.move'].browse(new_move_id)
-            _logger.info("Nota de débito creada con ID: %s", new_move_id)
+            for new_move in new_moves.with_context(check_move_validity=False):
+                _logger.info("Ajustando ND ID=%s: se reemplazan líneas y se recomputa contabilidad.", new_move.id)
 
-            # Agregar líneas de la factura/NC original a la nota de débito
-            _logger.info("Copiando %s líneas del comprobante origen a la nota de débito...", len(move_origen.invoice_line_ids))
-            for line in move_origen.invoice_line_ids:
-                new_move.invoice_line_ids += line.copy({
-                    'move_id': new_move.id,
-                })
+                # 1) Borrar TODAS las líneas existentes para evitar mezcla/duplicado
+                new_move.write({"line_ids": [(5, 0, 0)]})
 
-            _logger.info(
-                "Líneas agregadas a la nota de débito. Cantidad total de líneas ahora: %s",
-                len(new_move.invoice_line_ids)
-            )
+                # 2) Agregar líneas comerciales (invoice_line_ids) desde el origen (en positivo)
+                new_move.write({"invoice_line_ids": cmds})
 
-            # Recalcular tipo de documento LATAM y disparar onchange
-            _logger.info("Recalculando tipo de documento LATAM para la nota de débito ID: %s", new_move_id)
-            new_move._compute_l10n_latam_document_type()
+                # 3) Recalcular dinámicos: impuestos + cuenta a cobrar/pagar => balancea el asiento
+                new_move._recompute_dynamic_lines(recompute_all_taxes=True)
 
-            _logger.info("Ejecutando onchange de tipo de documento LATAM para la nota de débito ID: %s", new_move_id)
-            new_move._onchange_l10n_latam_document_type_id()
+                # 4) Recalcular tipo de documento LATAM y aplicar onchange (como el módulo que viste)
+                if hasattr(new_move, "_compute_l10n_latam_document_type"):
+                    new_move._compute_l10n_latam_document_type()
+                if hasattr(new_move, "_onchange_l10n_latam_document_type_id"):
+                    new_move._onchange_l10n_latam_document_type_id()
 
-            _logger.info("Proceso finalizado correctamente para la nota de débito ID: %s", new_move_id)
-
-        else:
-            _logger.info(
-                "No se aplican ajustes: move_type origen=%s, copy_lines=%s",
-                move_origen.move_type, self.copy_lines
-            )
-
-        return res
+        return action
