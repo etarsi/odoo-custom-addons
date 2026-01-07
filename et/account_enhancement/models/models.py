@@ -624,4 +624,3 @@ class AccountMovelLineInherit(models.Model):
     _inherit = 'account.move.line'
 
     lot_id = fields.Many2one('stock.production.lot', string='Nro Lote')
-    

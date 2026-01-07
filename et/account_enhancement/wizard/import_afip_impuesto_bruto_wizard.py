@@ -131,7 +131,7 @@ class ImportAfipImpuestoBrutoWizard(models.TransientModel):
 
         # 1) CUIT -> partner_id (O(1))
         partner_rows = self.env['res.partner'].with_context(active_test=False).search_read(
-            [('vat', '!=', False)],
+            [('vat', '!=', False), ('type', '=', 'contact')],
             ['id', 'vat']
         )
         partner_by_cuit = {}
