@@ -10,7 +10,7 @@ class AccountDebitNote(models.TransientModel):
         res = super().create_debit()
         _logger.info("AccountDebitNote.create_debit called, result: %s", res)0
         new_move_id = res.get('res_id')
-        if self.move_ids[0].move_type == 'out_refund':
+        if self.move_ids[0].move_type == 'out_refund' and self.copy_lines:
             _logger.info("Creating debit note for customer refund.")
             if new_move_id:
                 new_move = self.env['account.move'].browse(new_move_id)
