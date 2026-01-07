@@ -49,44 +49,24 @@ class AccountDebitNote(models.TransientModel):
         return cmds
 
     def create_debit(self):
-        """
-        1) Crea la ND con super()
-        2) Si el origen es NC cliente (out_refund) y copy_lines=True:
-           - borra líneas del nuevo move
-           - agrega invoice_line_ids desde el origen en positivo
-           - recomputa impuestos + cuenta a cobrar/pagar (balance)
-           - recomputa tipo doc LATAM y ejecuta onchange
-        """
         self.ensure_one()
-
         # Crear sin validar a mitad de proceso (luego queda balanceado al recomputar)
         action = super(AccountDebitNote, self.with_context(check_move_validity=False)).create_debit()
         new_moves = self._get_new_moves_from_action(action)
 
         if not self.move_ids:
-            _logger.warning("No hay comprobantes seleccionados (move_ids vacío).")
             return action
-
         src_move = self.move_ids[0].with_context(include_business_fields=True)
-
         # Solo tu caso objetivo
         if src_move.move_type == "out_refund" and self.copy_lines:
-            _logger.info("Post-proceso: agregando líneas luego de crear la ND (origen: NC de cliente).")
-
             cmds = self._build_invoice_line_cmds_from_source(src_move)
-
             for new_move in new_moves.with_context(check_move_validity=False):
-                _logger.info("Ajustando ND ID=%s: se reemplazan líneas y se recomputa contabilidad.", new_move.id)
-
                 # 1) Borrar TODAS las líneas existentes para evitar mezcla/duplicado
                 new_move.write({"line_ids": [(5, 0, 0)]})
-
                 # 2) Agregar líneas comerciales (invoice_line_ids) desde el origen (en positivo)
                 new_move.write({"invoice_line_ids": cmds})
-
                 # 3) Recalcular dinámicos: impuestos + cuenta a cobrar/pagar => balancea el asiento
                 new_move._recompute_dynamic_lines(recompute_all_taxes=True)
-
                 # 4) Recalcular tipo de documento LATAM y aplicar onchange (como el módulo que viste)
                 if hasattr(new_move, "_compute_l10n_latam_document_type"):
                     new_move._compute_l10n_latam_document_type()
