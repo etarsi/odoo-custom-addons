@@ -8,7 +8,7 @@ class AccountDebitNote(models.TransientModel):
     def create_debit(self):
         """ Properly compute the latam document type of type debit note. """
         res = super().create_debit()
-        _logger.info("AccountDebitNote.create_debit called, result: %s", res)0
+        _logger.info("AccountDebitNote.create_debit called, result: %s", res)
         new_move_id = res.get('res_id')
         if self.move_ids[0].move_type == 'out_refund' and self.copy_lines:
             _logger.info("Creating debit note for customer refund.")
