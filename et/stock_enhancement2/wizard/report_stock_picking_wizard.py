@@ -69,13 +69,19 @@ class ReportStockPickingWizard(models.TransientModel):
         # =========================
         # COLUMNAS
         # =========================
-        worksheet.set_column(0, 0, 15)  # CODIGO
-        worksheet.set_column(1, 1, 55)  # DESCRIPCION
-        worksheet.set_column(2, 2, 12)  # UNIDADES
-        worksheet.set_column(3, 3, 10)  # UxB
-        worksheet.set_column(4, 4, 12)  # BULTOS
-        worksheet.set_column(5, 5, 28)  # RUBRO
-        worksheet.set_column(6, 6, 22)  # ESTADO
+        worksheet.set_column(0, 0, 15)  # FECHA
+        worksheet.set_column(1, 1, 60)  # CLIENTE
+        worksheet.set_column(2, 2, 15)  # PEDIDO VENTA
+        worksheet.set_column(3, 3, 15)  # CODIGO
+        worksheet.set_column(4, 4, 60)  # DESCRIPCION
+        worksheet.set_column(5, 5, 12)  # UNIDADES
+        worksheet.set_column(6, 6, 10)  # UxB
+        worksheet.set_column(7, 7, 12)  # BULTOS
+        worksheet.set_column(8, 8, 28)  # RUBRO
+        worksheet.set_column(9, 9, 20)  # ESTADO
+        worksheet.set_column(10, 10, 60)  # Nro TRANSFERENCIA
+        worksheet.set_column(11, 11, 20)  # COMPAÑIA
+        
 
         # Alto de filas de título/encabezado
         worksheet.set_row(0, 20)
@@ -84,7 +90,7 @@ class ReportStockPickingWizard(models.TransientModel):
         # =========================
         # TITULO
         # =========================
-        worksheet.merge_range(0, 0, 0, 6, (self.partner_id.name or 'TODOS LOS CLIENTES').upper(), fmt_title)
+        worksheet.merge_range(0, 0, 0, 11, (self.partner_id.name or 'TODOS LOS CLIENTES').upper(), fmt_title)
 
         # =========================
         # ENCABEZADOS
@@ -129,7 +135,7 @@ class ReportStockPickingWizard(models.TransientModel):
                 
             if not pickings_moves:
                 continue
-
+            
             # Estado WMS -> texto
             def _get_estado(p):
                 if p.state_wms == 'closed' and p.state not in ['done', 'cancel']:
@@ -139,7 +145,20 @@ class ReportStockPickingWizard(models.TransientModel):
                 elif p.state_wms == 'done':
                     return 'EN PREPARACION'
                 return ''
-
+            
+            # Fecha de creación del albarán
+            picking_date = move.picking_id.create_date.strftime('%d/%m/%Y') if move.picking_id.create_date else ''
+            #Sacar el nombre del cliente si tiene 
+            partner = stock_picking.partner_id
+            if partner:
+                parent_name = partner.parent_id.name or ""
+                child_name = partner.name or ""
+                if partner.company_type == "person" and parent_name:
+                    partner_name = f"{parent_name} / {child_name}"
+                else:
+                    partner_name = child_name
+            else:
+                partner_name = ""
             estado_txt = _get_estado(stock_picking)
 
             for move in pickings_moves:
@@ -155,13 +174,18 @@ class ReportStockPickingWizard(models.TransientModel):
                 # BULTOS = unidades / UxB (como tu imagen)
                 bultos = (unidades / uxb) if uxb else 0.0
 
-                worksheet.write(row, 0, move.product_id.default_code or '', fmt_text2)
-                worksheet.write(row, 1, move.product_id.name or '', fmt_text)
-                worksheet.write_number(row, 2, unidades, fmt_int)
-                worksheet.write_number(row, 3, uxb, fmt_int)
-                worksheet.write_number(row, 4, bultos, fmt_dec2)
-                worksheet.write(row, 5, move.product_id.categ_id.parent_id.name or '', fmt_text)
-                worksheet.write(row, 6, estado_txt, fmt_text)
+                worksheet.write(row, 0, picking_date, fmt_text2)
+                worksheet.write(row, 1, partner_name, fmt_text)
+                worksheet.write(row, 2, stock_picking.sale_id.name if stock_picking.sale_id else '', fmt_text2)
+                worksheet.write(row, 3, move.product_id.default_code or '', fmt_text2)
+                worksheet.write(row, 4, move.product_id.name or '', fmt_text)
+                worksheet.write_number(row, 5, unidades, fmt_int)
+                worksheet.write_number(row, 6, uxb, fmt_int)
+                worksheet.write_number(row, 7, bultos, fmt_dec2)
+                worksheet.write(row, 8, move.product_id.categ_id.parent_id.name or '', fmt_text)
+                worksheet.write(row, 9, estado_txt, fmt_text)
+                worksheet.write(row, 10, stock_picking.name, fmt_text)
+                worksheet.write(row, 11, stock_picking.company_id.name, fmt_text2)
                 row += 1
         workbook.close()
         output.seek(0)
