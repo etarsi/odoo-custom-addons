@@ -4,6 +4,5 @@
         <xpath expr="//t[@t-call='account_financial_report.report_buttons']" position="replace">
             <t t-call="account_enhancement.report_buttons_custom"/>
         </xpath>
-
     </template>
 </odoo>
