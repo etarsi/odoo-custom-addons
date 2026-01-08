@@ -147,7 +147,7 @@ class ReportStockPickingWizard(models.TransientModel):
                 return ''
             
             # Fecha de creación del albarán
-            picking_date = move.picking_id.create_date.strftime('%d/%m/%Y') if move.picking_id.create_date else ''
+            picking_date = stock_picking.create_date.strftime('%d/%m/%Y') if stock_picking.create_date else ''
             #Sacar el nombre del cliente si tiene 
             partner = stock_picking.partner_id
             if partner:
