@@ -102,7 +102,7 @@ class ReportStockPickingWizard(models.TransientModel):
         # =========================
         # DOMAIN
         # =========================
-        domain = [('state', '!=', 'cancel')]
+        domain = [('state', '!=', 'cancel'), ('picking_type_id.code', '=', 'outgoing')]
         clientes_ids = []
 
         if self.temporada == 't_nino_2025':
