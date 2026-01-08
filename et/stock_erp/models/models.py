@@ -22,6 +22,7 @@ class StockERP(models.Model):
     product_id = fields.Many2one('product.product', string='Producto', required=True)
     product_code = fields.Char(string="Código", compute="_compute_product_info", store=True)
     product_name = fields.Char(string='Producto', compute="_compute_product_info", store=True)
+    product_brand_id = fields.Many2one('product.brand', string='Marca', related='product_id.brand_id', store=True)
     product_category = fields.Many2one('product.category', string="Categoría", compute="_compute_category_id", store=True)
     uxb = fields.Integer('UxB', default=0)
 

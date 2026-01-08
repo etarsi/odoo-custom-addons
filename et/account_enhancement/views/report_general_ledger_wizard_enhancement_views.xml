@@ -114,9 +114,7 @@
                     <group />
                 </div>
                 <footer>
-                    <div
-                        attrs="{'invisible': [('not_only_one_unaffected_earnings_account', '=', True)]}"
-                    >
+                    <div attrs="{'invisible': [('not_only_one_unaffected_earnings_account', '=', True)]}">
                         <button
                             name="button_export_html"
                             string="View"
@@ -139,9 +137,7 @@
                         or
                         <button string="Cancel" class="oe_link" special="cancel" />
                     </div>
-                    <div
-                        attrs="{'invisible': [('not_only_one_unaffected_earnings_account', '=', False)]}"
-                    >
+                    <div attrs="{'invisible': [('not_only_one_unaffected_earnings_account', '=', False)]}">
                         <button string="Cancel" class="oe_link" special="cancel" />
                     </div>
                 </footer>
