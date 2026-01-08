@@ -95,7 +95,7 @@ class ReportStockPickingWizard(models.TransientModel):
         # =========================
         # ENCABEZADOS
         # =========================
-        headers = ['CODIGO', 'DESCRIPCION', 'UNIDADES', 'UxB', 'BULTOS', 'RUBRO', 'ESTADO']
+        headers = ['FECHA', 'CLIENTE', 'Nro PEDIDO', 'CODIGO', 'DESCRIPCION', 'UNIDADES', 'UxB', 'BULTOS', 'RUBRO', 'ESTADO', 'Nro TRANSFERENCIA', 'COMPAÑIA']
         for col, h in enumerate(headers):
             worksheet.write(1, col, h, fmt_header)
 
