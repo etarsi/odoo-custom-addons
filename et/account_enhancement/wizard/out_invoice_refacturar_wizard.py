@@ -238,7 +238,7 @@ class OutInvoiceRefacturarWizard(models.TransientModel):
                             internal_type = draft_credit.l10n_latam_document_type_id.internal_type or 'No está definido'
                             raise ValidationError(_("Se esperaba una Nota de Crédito, pero el tipo comprobante es: %s.") % internal_type)
                         #Validar lineas de NC quitar IIBB
-                        invoice_date = draft_credit.invoice_date
+                        invoice_date = move.invoice_date
                         # rango de fecha cambiar a periodo ejemplo solo se puede quitar las perceppcion_iibb si estamos en el mismo mes
                         periodo_actual = today.month
                         periodo_factura = invoice_date.month
