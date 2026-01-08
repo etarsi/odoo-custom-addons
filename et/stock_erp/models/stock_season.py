@@ -28,7 +28,6 @@ class StockSeasonLine(models.Model):
     uxb = fields.Float(string="UXB (Unidades x Bulto)", default=0.0)
     bultos = fields.Float(string="Bultos", default=0.0)
     unidades_sueltas = fields.Float(string="Unidades sueltas", default=0.0)
-
     unidades_iniciales = fields.Float(
         string="Unidades iniciales",
         compute="_compute_unidades_iniciales",
