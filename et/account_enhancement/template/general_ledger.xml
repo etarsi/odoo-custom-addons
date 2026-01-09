@@ -3,13 +3,13 @@
     <template id="general_ledger">
         <t t-call="web.html_container">
             <t t-foreach="docs" t-as="o">
-                <t t-call="account_financial_report.internal_layout">
-                    <t t-call="account_financial_report.report_general_ledger_base" />
+                <t t-call="account_enhancement.internal_layout">
+                    <t t-call="account_enhancement.report_general_ledger_base" />
                 </t>
             </t>
         </t>
     </template>
-    <template id="report_general_ledger_base">
+    <template id="account_enhancement.report_general_ledger_base">
         <!-- Saved flag fields into variables, used to define columns display -->
         <t t-set="foreign_currency" t-value="foreign_currency" />
         <t t-set="filter_partner_ids" t-value="filter_partner_ids" />
@@ -29,7 +29,7 @@
                 />
             </div>
             <!-- Display filters -->
-            <t t-call="account_financial_report.report_general_ledger_filters" />
+            <t t-call="account_enhancement.report_general_ledger_filters" />
             <t t-foreach="general_ledger" t-as="account">
                 <div class="page_break">
                     <!-- Display account header -->
@@ -43,13 +43,13 @@
                         <!-- Display account move lines without partner regroup -->
                         <t t-set="type" t-value='"account_type"' />
                         <t
-                            t-call="account_financial_report.report_general_ledger_lines"
+                            t-call="account_enhancement.report_general_ledger_lines"
                         >
                             <t t-set="account_or_group_item_object" t-value="account" />
                         </t>
                         <!-- Display account footer -->
                         <t
-                            t-call="account_financial_report.report_general_ledger_ending_cumul"
+                            t-call="account_enhancement.report_general_ledger_ending_cumul"
                         >
                             <t t-set="account_or_group_item_object" t-value="account" />
                             <t t-set="type" t-value='"account_type"' />
@@ -66,7 +66,7 @@
                                 </div>
                                 <!-- Display partner move lines -->
                                 <t
-                                    t-call="account_financial_report.report_general_ledger_lines"
+                                    t-call="account_enhancement.report_general_ledger_lines"
                                 >
                                     <t
                                         t-set="account_or_group_item_object"
@@ -75,7 +75,7 @@
                                 </t>
                                 <!-- Display partner footer -->
                                 <t
-                                    t-call="account_financial_report.report_general_ledger_ending_cumul"
+                                    t-call="account_enhancement.report_general_ledger_ending_cumul"
                                 >
                                     <t
                                         t-set="account_or_group_item_object"
@@ -88,7 +88,7 @@
                         <!-- Display account footer -->
                         <t t-if="not filter_partner_ids">
                             <t
-                                t-call="account_financial_report.report_general_ledger_ending_cumul"
+                                t-call="account_enhancement.report_general_ledger_ending_cumul"
                             >
                                 <t
                                     t-set="account_or_group_item_object"
@@ -102,7 +102,7 @@
             </t>
         </div>
     </template>
-    <template id="account_financial_report.report_general_ledger_filters">
+    <template id="account_enhancement.report_general_ledger_filters">
         <div class="act_as_table data_table" style="width: 100%;">
             <div class="act_as_row labels">
                 <div class="act_as_cell">Date range filter</div>
@@ -137,7 +137,7 @@
             </div>
         </div>
     </template>
-    <template id="account_financial_report.report_general_ledger_lines">
+    <template id="account_enhancement.report_general_ledger_lines">
         <div class="act_as_table data_table" style="width: 100%;">
             <!-- Display table headers for lines -->
             <div class="act_as_thead">
@@ -630,7 +630,7 @@
             </t>
         </div>
     </template>
-    <template id="account_financial_report.report_general_ledger_ending_cumul">
+    <template id="account_enhancement.report_general_ledger_ending_cumul">
         <!-- Display ending balance line for account or partner -->
         <div class="act_as_table list_table" style="width: 100%;">
             <div class="act_as_row labels" style="font-weight: bold;">
