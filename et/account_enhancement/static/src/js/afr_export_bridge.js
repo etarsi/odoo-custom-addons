@@ -1,6 +1,7 @@
 odoo.define("account_enhancement.afr_export_bridge", function (require) {
     "use strict";
-
+    
+    const actionManager = require("web.action_manager");
     console.log("[CP XLSX] cargado");
 
     $(document).on("click", ".o_report_export_excel", function (ev) {
@@ -23,7 +24,6 @@ odoo.define("account_enhancement.afr_export_bridge", function (require) {
             report_name: "account_financial_reporting.report_general_ledger_xlsx",
             data: {},
         };
-        // Ejecutar la accion
-        this.do_action(xlsxAction);
+        actionManager.doAction(xlsxAction);
     });
 });
