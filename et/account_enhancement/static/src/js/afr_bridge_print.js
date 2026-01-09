@@ -1,26 +1,33 @@
 odoo.define("account_enhancement.afr_bridge_print", function (require) {
     "use strict";
-
-    console.log("[CP DO PRINT] cargado");
+    console.log("[CP XLSX] cargado");
 
     $(document).on("click", ".o_report_export_excel", function (ev) {
         ev.preventDefault();
 
-        // 1) Si estás en el Libro Mayor, existe el botón Imprimir del AFR:
-        const $print = $(".o_control_panel .o_cp_buttons .o_report_buttons .o_report_print:visible");
-        if ($print.length) {
-            $print.trigger("click");   // imprime "de una"
+        // Botones del reporte que el AFR mete en el control panel
+        const $reportButtons = $(".o_control_panel .o_cp_buttons .o_report_buttons:visible").first();
+
+        // Verifica que estes en un reporte AFR (porque existe el print del AFR)
+        if (!$reportButtons.length || !$reportButtons.find(".o_report_print").length) {
+            alert("Este boton solo funciona dentro del Libro Mayor.");
             return;
         }
 
-        // 2) Si preferís exportar, y existe Exportar:
-        const $export = $(".o_control_panel .o_cp_buttons .o_report_buttons .o_report_export:visible");
-        if ($export.length) {
-            $export.trigger("click");  // exporta "de una"
-            return;
+        // Si el boton export NO existe, lo inyectamos oculto.
+        // Si el JS del AFR tiene el handler delegado (.on('click', '.o_report_export', ...)),
+        // este boton nuevo lo va a tomar automaticamente.
+        if (!$reportButtons.find(".o_report_export").length) {
+            $("<button/>", {
+                type: "button",
+                class: "btn btn-secondary o_report_export",
+                title: "Exportar Excel",
+                text: "Exportar",
+                css: { display: "none" }, // oculto (no ensucia UI)
+            }).appendTo($reportButtons);
         }
 
-        // 3) Si no estás en el reporte, avisar
-        alert("Este botón solo funciona dentro del reporte (Libro Mayor).");
+        // Disparar export XLSX
+        $reportButtons.find(".o_report_export").trigger("click");
     });
 });
