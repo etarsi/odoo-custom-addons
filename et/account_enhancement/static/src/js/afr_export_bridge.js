@@ -9,7 +9,7 @@ odoo.define("account_enhancement.afr_export_bridge", function (require) {
         ev.preventDefault();
 
         const afr = window.__activeAFR;
-
+        console.log("[AFR BRIDGE AM] Click en export xlsx button", afr);
         console.log("[AFR BRIDGE AM] export xlsx via do_action");
         console.log("[AFR BRIDGE AM] this:", this);
         // Si NO existe on_click_export, forzamos el XLSX via do_action
