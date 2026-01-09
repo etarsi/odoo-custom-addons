@@ -11,5 +11,10 @@ class GeneralLedgerReportWizard(models.TransientModel):
 
     _inherit = "general.ledger.report.wizard"
 
-    def report_new(self):
-        return False
+    def buton_view_report_html_enhancement(self):
+        """Genera el reporte en HTML del Libro Mayor."""
+        self.ensure_one()
+        data = self._prepare_report_general_ledger()
+        return self.env.ref(
+            "account_enhancement.action_print_report_general_ledger_html"
+        ).report_action(self, data=data)

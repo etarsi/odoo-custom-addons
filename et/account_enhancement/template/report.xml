@@ -1,0 +1,10 @@
+<?xml version='1.0' encoding='utf-8'?>
+<odoo>
+    <record id="action_print_report_general_ledger_html" model="ir.actions.report">
+        <field name="name">Libro Mayor</field>
+        <field name="model">general.ledger.report.wizard</field>
+        <field name="report_type">qweb-html</field>
+        <field name="report_name">account_enhancement.general_ledger</field>
+        <field name="report_file">account_enhancement.general_ledger</field>
+    </record>
+</odoo>    
