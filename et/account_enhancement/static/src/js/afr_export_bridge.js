@@ -10,11 +10,6 @@ odoo.define("account_enhancement.afr_export_bridge", function (require) {
 
         const afr = window.__activeAFR;
 
-        // Si tu AFR YA tiene on_click_export, usalo
-        if (typeof afr.on_click_export === "function") {
-            return afr.on_click_export();
-        }
-
         console.log("[AFR BRIDGE AM] export xlsx via do_action");
         console.log("[AFR BRIDGE AM] this:", this);
         // Si NO existe on_click_export, forzamos el XLSX via do_action
