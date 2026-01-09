@@ -5,7 +5,7 @@
        t-inherit="web.Legacy.ControlPanel"
        t-inherit-mode="extension"
        owl="1">
-        <xpath expr="//div[hasclass('o_cp_pager')]" position="before">
+        <xpath expr="//div[hasclass('o_cp_bottom_left')]" position="inside">
             <div class="ms-2" role="search">
                 <button type="button"
                         class="btn btn-secondary o_cp_my_button"
