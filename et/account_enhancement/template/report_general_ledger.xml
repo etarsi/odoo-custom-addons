@@ -1,8 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<odoo>
-    <template id="report_general_ledger_custom_buttons" inherit_id="account_financial_report.report_general_ledger">
-        <xpath expr="//t[@t-call='account_financial_report.report_buttons']" position="replace">
-            <t t-call="account_enhancement.report_buttons_custom"/>
-        </xpath>
-    </template>
-</odoo>
