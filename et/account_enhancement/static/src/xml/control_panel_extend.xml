@@ -8,9 +8,9 @@
         <xpath expr="//div[hasclass('o_cp_bottom_left')]" position="inside">
             <div class="ms-2" role="search">
                 <button type="button"
-                        class="btn btn-secondary o_cp_my_button"
-                        title="Mi botón">
-                    Mi botón
+                        class="btn btn-secondary btn-sm o_report_export"
+                        title="Exportar Excel">
+                    Exportar Excel
                 </button>
             </div>
         </xpath>
