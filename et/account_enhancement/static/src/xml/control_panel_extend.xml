@@ -6,8 +6,12 @@
        t-inherit-mode="extension"
        owl="1">
         <xpath expr="//div[hasclass('o_cp_pager')]" position="before">
-            <div class="oe_cp_refresher" role="search" t-ref="refresher">
-                <Refresher t-props="props.pager"/>
+            <div class="ms-2" role="search">
+                <button type="button"
+                        class="btn btn-secondary o_cp_my_button"
+                        title="Mi botón">
+                    Mi botón
+                </button>
             </div>
         </xpath>
     </t>
