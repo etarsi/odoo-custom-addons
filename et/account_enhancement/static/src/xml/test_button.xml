@@ -1,13 +1,16 @@
 <?xml version='1.0' encoding='utf-8'?>
 <odoo>
-    <!-- Template to add Export button in Account Financial Report -->
-    <template id="afr_add_export_button"
-            inherit_id="account_financial_report.client_action.ControlButtons">
-        <xpath expr="//div[contains(@class,'o_report_buttons')]" position="inside">
-            <button type="button"
-                    class="btn btn-secondary o_report_export"
-                    title="Exportar">Exportar</button>
-        </xpath>
-    </template>
+    <templates xml:space="preserve">
+        <t t-inherit="account_financial_report.client_action.ControlButtons"
+            t-inherit-mode="extension">
+
+            <!-- Agregar el botón Exportar después del Imprimir -->
+            <t t-jquery="button.o_report_print" t-operation="after">
+                <button type="button" class="btn btn-secondary o_report_export" title="Exportar">
+                    Exportar
+                </button>
+            </t>
+        </t>
+    </templates>
 </odoo>
 
