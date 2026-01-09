@@ -1,27 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<templates xml:space="preserve" owl="1">
+<templates xml:space="preserve">
 
-    <!-- Heredamos el template que ya extendió el Legacy.ControlPanel -->
-    <t t-inherit="web_refresher.ControlPanel" t-inherit-mode="extension">
-
-        <!-- Opción A: poner el botón inmediatamente después del refresher -->
-        <xpath expr="//div[hasclass('oe_cp_refresher')]" position="after">
-            <div class="o_cp_my_extra ms-2" role="search">
-                <button type="button"
-                        class="btn btn-secondary o_cp_my_button"
-                        title="Mi botón">
-                    Mi botón
-                </button>
+    <t t-name="web_refresher.ControlPanel"
+       t-inherit="web.Legacy.ControlPanel"
+       t-inherit-mode="extension"
+       owl="1">
+        <xpath expr="//div[hasclass('o_cp_pager')]" position="before">
+            <div class="oe_cp_refresher" role="search" t-ref="refresher">
+                <Refresher t-props="props.pager"/>
             </div>
         </xpath>
-
-        <!--
-        Opción B (alternativa): ponerlo antes del pager
-        <xpath expr="//div[hasclass('o_cp_pager')]" position="before">
-            <button type="button" class="btn btn-secondary o_cp_my_button">Mi botón</button>
-        </xpath>
-        -->
-
     </t>
 
 </templates>
