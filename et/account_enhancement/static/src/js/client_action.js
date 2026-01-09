@@ -55,7 +55,7 @@ odoo.define("account_enhancement.client_action_enhancement", function (require) 
         },
     });
 
-    core.action_registry.add("account_financial_report.client_action", AFRReportAction);
+    core.action_registry.add("account_enhancement.client_action_enhancement", AFRReportAction);
 
     return AFRReportAction;
 });
