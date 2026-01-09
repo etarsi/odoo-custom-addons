@@ -171,6 +171,17 @@ class ReportResumenStockWizard(models.TransientModel):
         resumen_data = {}
         # SALIDA DE STOCK
         for stock_picking in stock_pickings:
+            #Sacar el nombre del cliente si tiene 
+            partner = stock_picking.partner_id
+            if partner:
+                parent_name = partner.parent_id.name or ""
+                child_name = partner.name or ""
+                if partner.company_type == "person" and parent_name:
+                    partner_name = f"{parent_name} / {child_name}"
+                else:
+                    partner_name = child_name
+            else:
+                partner_name = ""
             for stock_move in stock_picking.move_lines:
                 date_done = stock_picking.date_done.strftime('%d/%m/%Y') if stock_picking.date_done else ''
                 rubros = set()
@@ -217,7 +228,7 @@ class ReportResumenStockWizard(models.TransientModel):
                 worksheet_salida.write_number(row_salida, 4, uxb, fmt_int)
                 worksheet_salida.write_number(row_salida, 5, unidades, fmt_int)
                 worksheet_salida.write(row_salida, 6, rubros_str or '', fmt_text2)
-                worksheet_salida.write(row_salida, 7, stock_move.picking_id.partner_id.name or '', fmt_text)
+                worksheet_salida.write(row_salida, 7, partner_name or '', fmt_text)
                 worksheet_salida.write(row_salida, 8, stock_move.picking_id.name, fmt_text)
                 worksheet_salida.write(row_salida, 9, stock_move.picking_id.codigo_wms or '', fmt_text)
                 worksheet_salida.write(row_salida, 10, stock_move.picking_id.company_id.name, fmt_text2)
