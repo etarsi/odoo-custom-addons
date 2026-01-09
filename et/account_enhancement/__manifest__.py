@@ -26,6 +26,7 @@
             'account_enhancement/static/src/js/account_move.js',
             'account_enhancement/static/src/js/list_row_number.js',
             #XML
+            'account_enhancement/static/src/xml/test_button.xml',
             'account_enhancement/static/src/xml/field_row_number.xml',
         ],
     },
