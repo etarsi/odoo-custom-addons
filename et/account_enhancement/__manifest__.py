@@ -23,7 +23,7 @@
     'assets': {
         'web.assets_backend': [
             #JS
-            'account_enhancement/static/src/js/afr_export_bridge_action_manager.js',
+            'account_enhancement/static/src/js/afr_export_bridge.js',
             'account_enhancement/static/src/js/account_move.js',
             'account_enhancement/static/src/js/list_row_number.js',
         ],
