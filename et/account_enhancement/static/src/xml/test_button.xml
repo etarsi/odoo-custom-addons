@@ -1,8 +1,7 @@
 <?xml version='1.0' encoding='utf-8'?>
 <odoo>
     <templates xml:space="preserve">
-        <t t-inherit="account_financial_report.client_action.ControlButtons"
-            t-inherit-mode="extension">
+        <t t-inherit="account_financial_report.client_action.ControlButtons" t-inherit-mode="extension">
 
             <!-- Agregar el botón Exportar después del Imprimir -->
             <t t-jquery="button.o_report_print" t-operation="after">
