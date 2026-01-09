@@ -1,4 +1,4 @@
-odoo.define("account_enhancement.client_action", function (require) {
+odoo.define("account_enhancement.client_action_enhancement", function (require) {
     "use strict";
 
     var ReportAction = require("report.client_action");
