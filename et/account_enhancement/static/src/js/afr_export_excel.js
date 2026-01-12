@@ -1,23 +1,15 @@
 odoo.define("account_enhancement.afr_export_xlsx", function (require) {
     "use strict";
 
-    const AFRAction = require("account_financial_report.client_action"); // OJO: puede variar
-    const _ = require("underscore");
+    console.log("[XLSX] afr_export_xlsx cargado");
+
+    const AFRAction = require("account_financial_report.client_action"); // tu require actual
 
     AFRAction.include({
-        start: function () {
-            const res = this._super.apply(this, arguments);
-
-            return Promise.resolve(res).then(() => {
-                if (!this.$buttons) {
-                    console.warn("[XLSX] this.$buttons no existe, no puedo bindear el click.");
-                    return;
-                }
-
-                this.$buttons.off("click", ".o_report_export_excel");
-                this.$buttons.on("click", ".o_report_export_excel", this._onExportExcel.bind(this));
-            });
-        },
+        // en vez de _.extend(...)
+        events: Object.assign({}, AFRAction.prototype.events, {
+            "click .o_report_export_excel": "_onExportExcel",
+        }),
 
         _onExportExcel: function (ev) {
             ev.preventDefault();
