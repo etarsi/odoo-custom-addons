@@ -7,9 +7,9 @@ class StockSeason(models.Model):
     _description = "Temporada de Stock"
     _order = "date_start desc, name"
 
-    name = fields.Char(required=True)
-    date_start = fields.Date(required=True)
-    date_end = fields.Date()
+    name = fields.Char(string="Descripción", required=True)
+    date_start = fields.Date(string="Fecha Inicio", required=True)
+    date_end = fields.Date(string="Fecha Fin", required=True)
     state = fields.Selection(
         [("draft", "Borrador"), ("done", "Activo"), ("closed", "Cerrado")],
         string="Estado",
@@ -23,15 +23,11 @@ class StockSeasonLine(models.Model):
     _description = "Stock Inicial por Temporada"
     _order = "season_id desc, product_id"
 
-    season_id = fields.Many2one("stock.season", required=True, index=True, ondelete="cascade")
-    product_id = fields.Many2one("product.template", required=True, index=True, ondelete="cascade")
+    season_id = fields.Many2one("stock.season", string="Temporada", required=True, index=True, ondelete="cascade")
+    product_id = fields.Many2one("product.template", string="Producto", required=True, index=True, ondelete="cascade")
     bultos_inicial = fields.Float(string="Bultos", default=0.0)
     uxb = fields.Float(string="UXB (Unidades x Bulto)", default=0.0)
-    unidades_inicial = fields.Float(
-        string="Unidades",
-        compute="_compute_unidades_iniciales",
-        store=True,
-    )
+    unidades_inicial = fields.Float(string="Unidades", store=True, required=True)
 
     @api.depends("uxb", "bultos_inicial")
     def _compute_unidades_inicial(self):
