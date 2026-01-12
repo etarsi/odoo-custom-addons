@@ -24,8 +24,8 @@
         'web.assets_backend': [
             #JS
             'account_enhancement/static/src/js/afr_export_excel.js',
-            'account_enhancement/static/src/js/account_move.js',
-            'account_enhancement/static/src/js/list_row_number.js',
+            #'account_enhancement/static/src/js/account_move.js',
+            #'account_enhancement/static/src/js/list_row_number.js',
         ],
         'web.assets_qweb': [
             'account_enhancement/static/src/xml/**/*',
