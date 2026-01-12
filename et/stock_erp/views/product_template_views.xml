@@ -11,9 +11,9 @@
                 <field name="season_line_ids" widget="one2many">
                   <tree string="Temporadas">
                     <field name="season_id"/>
+                    <field name="bultos_inicial"/>
                     <field name="uxb"/>
-                    <field name="bultos"/>
-                    <field name="unidades_sueltas"/>
+                    <field name="unidades_inicial"/>
                   </tree>
                 </field>
               </page>
