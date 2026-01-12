@@ -15,7 +15,7 @@
         <t t-set="filter_partner_ids" t-value="filter_partner_ids" />
         <!-- Defines global variables used by internal layout -->
         <t t-set="title">
-            General Ledger SEBIGUS-
+            General Ledger -
             <t t-raw="company_name" />
             -
             <t t-raw="currency_name" />
