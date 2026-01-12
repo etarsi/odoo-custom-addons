@@ -55,7 +55,7 @@ odoo.define("account_enhancement.report_client_action_export_xlsx", function (re
                     const action = {
                         type: "ir.actions.report",
                         report_type: "xlsx",
-                        report_name: "a_f_r_report_general_ledger_xlsx",
+                        report_name: "a_f_r.report_general_ledger_xlsx",
                         data: this.data,        // acá ya venía wizard_id
                         context: this.context,  // acá venían active_ids
                         display_name: "Libro mayor XLSX",
