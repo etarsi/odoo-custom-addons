@@ -1,15 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <odoo>
-  <template id="afr_report_buttons_inherit"
-            inherit_id="account_financial_report.report_buttons">
-    <xpath expr="//div[contains(@class,'o_report_buttons')]" position="inside">
-      <button type="button"
-              class="btn btn-secondary o_report_export_excel"
-              title="Exportar Excel">
-        Exportar Excel
-      </button>
-    </xpath>
-  </template>
+    <template id="afr_report_buttons_inherit" inherit_id="account_financial_report.report_buttons">
+        <xpath expr="//div[contains(@class,'o_report_buttons')]" position="inside">
+            <button type="button"
+                    class="btn btn-secondary o_report_export_excel"
+                    title="Exportar Excel">
+            Exportar Excel
+            </button>
+        </xpath>
+    </template>
 </odoo>
 
 <!-- 
