@@ -49,6 +49,6 @@ class ProductTemplate(models.Model):
 
     season_line_ids = fields.One2many(
         "stock.season.line",
-        "product_tmpl_id",
+        "product_id",
         string="Stocks iniciales por temporada",
     )
