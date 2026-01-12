@@ -1,7 +1,7 @@
 odoo.define("account_financial_report.client_action", function (require) {
     "use strict";
 
-    var $ = require("jquery");
+    var $ = require("web.jquery");
     var ReportAction = require("report.client_action");
     var core = require("web.core");
 
