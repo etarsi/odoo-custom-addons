@@ -41,13 +41,6 @@
         parent="account_enhancement.menu_account_report_factura_general"
         action="action_reporte_pagos_fuera_fecha"/>
 
-    <menuitem
-        id="account_enhancement.menu_account_report_libro_mayor_enhancement_action"
-        name="Libro Mayor Enhancement"
-        sequence="3"
-        parent="account_enhancement.menu_account_report_factura_general"
-        action="action_general_ledger_enhancement_wizard"/>
-
     <!-- SUBMENU DE IMPUESTOS BRUTOS -->
     <menuitem
         id="account_enhancement.menu_account_import_afip_impuesto_bruto_wizard"
