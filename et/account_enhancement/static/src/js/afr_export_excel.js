@@ -94,8 +94,8 @@ odoo.define("account_enhancement.report_client_action_export_xlsx", function (re
                     const action = {
                         type: "ir.actions.report",
                         report_type: "xlsx",
-                        report_name: "a_f_r_report_general_ledger_xlsx",
-                        report_file: "a_f_r_report_general_ledger_xlsx",
+                        report_name: "a_f_r.report_general_ledger_xlsx",
+                        report_file: "a_f_r.report_general_ledger_xlsx",
                         data: this.data || {},
                         context: ctx,
                         display_name: "Libro mayor XLSX",
