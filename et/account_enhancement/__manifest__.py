@@ -21,15 +21,16 @@
     
     # assets are loaded in the backend
     'assets': {
+        'web.assets_qweb': [
+            'account_enhancement/static/src/xml/control_panel_extend.xml',
+            'account_enhancement/static/src/xml/field_row_number.xml',
+        ],  
         'web.assets_backend': [
             #JS
             'account_enhancement/static/src/js/afr_export_excel.js',
-            #'account_enhancement/static/src/js/account_move.js',
-            #'account_enhancement/static/src/js/list_row_number.js',
+            'account_enhancement/static/src/js/account_move.js',
+            'account_enhancement/static/src/js/list_row_number.js',
         ],
-        'web.assets_qweb': [
-            'account_enhancement/static/src/xml/**/*',
-        ],  
     },
     # any module necessary for this one to work correctly
     'depends': ['web', 'base', 'account', 'web_refresher', 'account_check_printing', 'account_payment_group', 'l10n_latam_check', 'l10n_ar', 'l10n_ar_reports','l10n_ar_afipws_fe', 'mail', 'sale', 'product', 'sale_enhancement', 'l10n_ar_ux', 'account_financial_report'],
