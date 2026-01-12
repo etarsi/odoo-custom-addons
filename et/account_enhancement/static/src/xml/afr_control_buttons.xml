@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+  <templates xml:space="preserve">
+    <!-- Extiende los botones del Control Panel del AFR -->
+    <t t-extend="account_financial_report.client_action.ControlButtons">
+      <t t-jquery="div.o_report_buttons" t-operation="append">
+        <button type="button"
+                class="btn btn-secondary o_report_export_excel"
+                title="Exportar Excel">
+          Exportar Excel
+        </button>
+      </t>
+    </t>
+  </templates>
+</odoo>
