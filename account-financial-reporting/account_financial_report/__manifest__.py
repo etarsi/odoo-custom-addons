@@ -44,7 +44,7 @@
     "assets": {
         "web.assets_backend": [
             "account_financial_report/static/src/js/action_manager_report.js",
-            #"account_financial_report/static/src/js/client_action.js",
+            "account_financial_report/static/src/js/client_action.js",
         ],
         "web.report_assets_common": [
             "account_financial_report/static/src/js/report.js"

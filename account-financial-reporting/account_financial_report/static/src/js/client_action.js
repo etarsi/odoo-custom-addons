@@ -6,6 +6,9 @@ odoo.define("account_financial_report.client_action", function (require) {
 
     var QWeb = core.qweb;
 
+    console.log("### AFR CLIENT_ACTION MODIFICADO ###", new Date().toISOString());
+    window.__afr_test = (window.__afr_test || 0) + 1;
+
     const AFRReportAction = ReportAction.extend({
         start: function () {
             return this._super.apply(this, arguments).then(() => {
