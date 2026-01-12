@@ -53,11 +53,7 @@
         #Reportes
         'wizard/generar_factura_wizard_views.xml',
         #Templates
-        'template/report_button_custom_imprimir.xml',
-        'template/report_general_ledger.xml',
         'template/report_payment_group_document_views.xml',
-        'template/general_ledger.xml',
-        'template/report.xml',
         #permissions
         'permissions/res_group.xml',
         'views/views.xml',
