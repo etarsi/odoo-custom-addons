@@ -26,7 +26,7 @@
     },
 
     # any module necessary for this one to work correctly
-    'depends': ['stock', 'delivery', 'stock-packaging', 'sale', 'stock_picking_invoicing', 'merge_deliveries_bs', 'contacts', 'stock_voucher', 'tms_service'],
+    'depends': ['stock', 'delivery', 'stock-packaging', 'sale', 'stock_picking_invoicing', 'merge_deliveries_bs', 'contacts', 'stock_voucher', 'tms_service', 'stock_erp'],
 
     # always loaded
     'data': [

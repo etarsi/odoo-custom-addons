@@ -35,7 +35,7 @@
 
     <!-- Acción para abrir la vista tree -->
     <record id="action_stock_season" model="ir.actions.act_window">
-      <field name="name">Stock Season</field>
+      <field name="name">Temporadas</field>
       <field name="res_model">stock.season</field>
       <field name="view_mode">tree,form</field>
     </record>
@@ -78,7 +78,7 @@
 
     <!-- Acción para abrir la vista tree de stock.season.line -->
     <record id="action_stock_season_line" model="ir.actions.act_window">
-      <field name="name">Stock Season Lines</field>
+      <field name="name">Stock Inicial de Temporada</field>
       <field name="res_model">stock.season.line</field>
       <field name="view_mode">tree,form</field>
     </record>

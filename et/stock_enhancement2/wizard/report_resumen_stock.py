@@ -121,18 +121,21 @@ class ReportResumenStockWizard(models.TransientModel):
         # ====== ANCHO DE COLUMNAS ======
         worksheet_resumen.set_column(0, 0, 20)  # CODIGO
         worksheet_resumen.set_column(1, 1, 70)  # PRODUCTO
-        worksheet_resumen.set_column(2, 7, 15)  # columnas numéricas
-        worksheet_resumen.set_column(8, 8, 40)  # ROTACIÓN
+        worksheet_resumen.set_column(2, 10, 15)  # columnas numéricas
+        worksheet_resumen.set_column(11, 11, 40)  # ROTACIÓN REMANENTE
+        worksheet_resumen.set_column(12, 12, 40)  # ROTACIÓN GENERAL
         # ====== ENCABEZADOS (2 filas) ======
         worksheet_resumen.set_row(1, 18)
         worksheet_resumen.set_row(2, 18)
         # Bloques verticales (2 filas)
         worksheet_resumen.merge_range(1, 0, 2, 0, 'CODIGO', fmt_header)
         worksheet_resumen.merge_range(1, 1, 2, 1, 'PRODUCTO', fmt_header)
-        worksheet_resumen.merge_range(1, 8, 2, 8, 'ROTACIÓN', fmt_header)
+        worksheet_resumen.merge_range(1, 11, 2, 11, 'ROTACIÓN REMANENTE', fmt_header)
+        worksheet_resumen.merge_range(1, 12, 2, 12, 'ROTACIÓN GENERAL', fmt_header)
         # Bloques horizontales (1ra fila de header)
-        worksheet_resumen.merge_range(1, 2, 1, 4, 'ENTRADAS', fmt_header)
-        worksheet_resumen.merge_range(1, 5, 1, 7, 'SALIDAS', fmt_header)
+        worksheet_resumen.merge_range(1, 2, 1, 4, 'STOCK INICIAL', fmt_header)
+        worksheet_resumen.merge_range(1, 5, 1, 7, 'ENTRADAS', fmt_header)
+        worksheet_resumen.merge_range(1, 8, 1, 10, 'SALIDAS', fmt_header)
         # Sub-headers (2da fila de header)
         worksheet_resumen.write(2, 2, 'BULTOS', fmt_header)
         worksheet_resumen.write(2, 3, 'UxB', fmt_header)
@@ -140,6 +143,9 @@ class ReportResumenStockWizard(models.TransientModel):
         worksheet_resumen.write(2, 5, 'BULTOS', fmt_header)
         worksheet_resumen.write(2, 6, 'UxB', fmt_header)
         worksheet_resumen.write(2, 7, 'UNIDAD', fmt_header)
+        worksheet_resumen.write(2, 8, 'BULTOS', fmt_header)
+        worksheet_resumen.write(2, 9, 'UxB', fmt_header)
+        worksheet_resumen.write(2, 10, 'UNIDAD', fmt_header)
 
         # =========================
         # DOMAIN
@@ -193,6 +199,9 @@ class ReportResumenStockWizard(models.TransientModel):
                     resumen_data[key] = {
                         'product_code': stock_move.product_id.default_code or '', 
                         'product_name': stock_move.product_id.name or '',
+                        'bultos_inicial': 0.0,
+                        'uxb_inicial': 0.0,
+                        'unidad_inicial': 0.0,
                         'bultos_salida': 0.0,
                         'uxb_salida': 0.0,
                         'unidad_salida': 0.0,
@@ -244,6 +253,9 @@ class ReportResumenStockWizard(models.TransientModel):
                     resumen_data[key] = {
                         'product_code': move.product_id.default_code or '',
                         'product_name': move.product_id.name or '',
+                        'bultos_inicial': 0.0,
+                        'uxb_inicial': 0.0,
+                        'unidad_inicial': 0.0,
                         'bultos_salida': 0.0,
                         'uxb_salida': 0.0,
                         'unidad_salida': 0.0,
@@ -281,27 +293,64 @@ class ReportResumenStockWizard(models.TransientModel):
                     entrada_counters[key] = 0.0
                 unidades = move.quantity_send or 0.0
                 entrada_counters[key] += unidades
+                
+        # ============ STOCK INICIAL ============
+        for season_line in self.env['stock.season.line'].search([]):
+            product_id = season_line.product_id
+            if not product_id:
+                continue
+            key = product_id.id
+            if key not in resumen_data:
+                resumen_data[key] = {
+                    'product_code': product_id.default_code or '',
+                    'product_name': product_id.name or '',
+                    'bultos_inicial': 0.0,
+                    'uxb_inicial': 0.0,
+                    'unidad_inicial': 0.0,
+                    'bultos_salida': 0.0,
+                    'uxb_salida': 0.0,
+                    'unidad_salida': 0.0,
+                    'bultos_entrada': 0.0,
+                    'uxb_entrada': 0.0,
+                    'unidad_entrada': 0.0,
+                }
+            resumen_data[key]['bultos_inicial'] += season_line.bultos_inicial
+            resumen_data[key]['uxb_inicial'] = season_line.uxb
+            resumen_data[key]['unidad_inicial'] += season_line.unidades_inicial                
+
         # RESUMEN DE STOCK
         for data in resumen_data.values():
-            _logger.info(f"Resumen Data: {data}")
+            #ROTACION GENERAL
             if data['unidad_entrada'] == 0 or data['unidad_salida'] == 0:
-                rotacion = 0.0
+                rotacion_general = 0.0
             else:
-                rotacion = data['unidad_salida'] / data['unidad_entrada']
-                rotacion = float_round(rotacion, 2)
+                unidad_entrarda = data['unidad_inicial'] + data['unidad_entrada']
+                if unidad_entrarda == 0:
+                    rotacion_general = 0.0
+                rotacion_general = data['unidad_salida'] / unidad_entrarda 
+                rotacion_general = float_round(rotacion_general, 2)
+                
+            #ROTACION REMANENTE
+            if data['unidad_salida'] == 0 or data['unidad_inicial'] ==    
+
 
             worksheet_resumen.write(row_resumen, 0, data['product_code'], fmt_text2)
             worksheet_resumen.write(row_resumen, 1, data['product_name'], fmt_text)
+            # STOCK INICIAL
+            worksheet_resumen.write_number(row_resumen, 2, data['bultos_inicial'], fmt_dec2)
+            worksheet_resumen.write_number(row_resumen, 3, data['uxb_inicial'], fmt_int)
+            worksheet_resumen.write_number(row_resumen, 4, data['unidad_inicial'], fmt_int)
             #SALIDA DE STOCK
-            worksheet_resumen.write_number(row_resumen, 2, data['bultos_entrada'], fmt_dec2)
-            worksheet_resumen.write_number(row_resumen, 3, data['uxb_entrada'], fmt_int)
-            worksheet_resumen.write_number(row_resumen, 4, data['unidad_entrada'], fmt_int)
+            worksheet_resumen.write_number(row_resumen, 5, data['bultos_entrada'], fmt_dec2)
+            worksheet_resumen.write_number(row_resumen, 6, data['uxb_entrada'], fmt_int)
+            worksheet_resumen.write_number(row_resumen, 7, data['unidad_entrada'], fmt_int)
             # ENTRADA DE STOCK
-            worksheet_resumen.write_number(row_resumen, 5, data['bultos_salida'], fmt_dec2)
-            worksheet_resumen.write_number(row_resumen, 6, data['uxb_salida'], fmt_int)
-            worksheet_resumen.write_number(row_resumen, 7, data['unidad_salida'], fmt_int) 
-            # Placeholder for rotation calculation
-            worksheet_resumen.write_number(row_resumen, 8, rotacion, fmt_dec2)
+            worksheet_resumen.write_number(row_resumen, 8, data['bultos_salida'], fmt_dec2)
+            worksheet_resumen.write_number(row_resumen, 9, data['uxb_salida'], fmt_int)
+            worksheet_resumen.write_number(row_resumen, 10, data['unidad_salida'], fmt_int) 
+            # ROTACIÓN
+            worksheet_resumen.write_number(row_resumen, 11, rotacion_general, fmt_dec2)
+            worksheet_resumen.write_number(row_resumen, 12, rotacion_general, fmt_dec2)
             row_resumen += 1
         workbook.close()
         output.seek(0)
