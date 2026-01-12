@@ -21,7 +21,7 @@ class StockSeason(models.Model):
 class StockSeasonLine(models.Model):
     _name = "stock.season.line"
     _description = "Stock Inicial por Temporada"
-    _order = "season_id desc, product_tmpl_id"
+    _order = "season_id desc, product_id"
 
     season_id = fields.Many2one("stock.season", required=True, index=True, ondelete="cascade")
     product_id = fields.Many2one("product.template", required=True, index=True, ondelete="cascade")
