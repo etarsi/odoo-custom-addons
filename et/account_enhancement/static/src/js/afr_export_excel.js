@@ -26,9 +26,9 @@ odoo.define("account_enhancement.report_client_action_export_xlsx", function (re
                 }
 
                 // Agrego botón al lado de Imprimir
-                const $container = this.$buttons.find(".o_report_print");
+                const $container = this.$buttons.find("div.o_report_buttons");
                 if (!$container.length) {
-                    console.warn("[PATCH] No encontré .o_report_print para agregar botón XLSX");
+                    console.warn("[PATCH] No encontré div.o_report_buttons para agregar botón XLSX");
                     return;
                 }
 
@@ -44,24 +44,29 @@ odoo.define("account_enhancement.report_client_action_export_xlsx", function (re
                 this.$buttons.off("click", ".o_report_export_excel");
                 this.$buttons.on("click", ".o_report_export_excel", (ev) => {
                     ev.preventDefault();
+                    ev.stopPropagation();
+                    ev.stopImmediatePropagation();
 
-                    console.log("[PATCH] CLICK Exportar Excel", {
-                        report_name: this.report_name,
-                        data: this.data,
-                        context: this.context,
+                    const wizardId =
+                        (this.data && this.data.wizard_id) ||
+                        (this.context && this.context.active_ids && this.context.active_ids[0]);
+
+                    const ctx = Object.assign({}, this.context || {}, {
+                        active_id: wizardId,
+                        active_ids: wizardId ? [wizardId] : [],
                     });
 
-                    // En tu BD el template XLSX se llama así (según tu captura de Informes)
                     const action = {
                         type: "ir.actions.report",
                         report_type: "xlsx",
-                        report_name: "a_f_r.report_general_ledger_xlsx",
-                        data: this.data,        // acá ya venía wizard_id
-                        context: this.context,  // acá venían active_ids
+                        report_name: "a_f_r_report_general_ledger_xlsx",
+                        report_file: "a_f_r_report_general_ledger_xlsx",
+                        data: this.data || {},
+                        context: ctx,
                         display_name: "Libro mayor XLSX",
                     };
 
-                    console.log("[PATCH] do_action XLSX:", action);
+                    console.log("[PATCH] XLSX ACTION", action);
                     return this.do_action(action);
                 });
 
