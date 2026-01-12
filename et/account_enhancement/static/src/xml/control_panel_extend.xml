@@ -1,17 +1,32 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<templates xml:space="preserve">
-    <t t-name="web_refresher.ControlPanel"
-       t-inherit="web.Legacy.ControlPanel"
-       t-inherit-mode="extension"
-       owl="1">
-        <xpath expr="//div[hasclass('o_cp_bottom_left')]" position="inside">
-            <div class="ms-2" role="search">
-                <button type="button"
-                        class="btn btn-secondary o_report_export_excel"
-                        title="Exportar Excel">
-                    Exportar Excel
-                </button>
-            </div>
-        </xpath>
-    </t>
-</templates>
+<odoo>
+  <template id="afr_report_buttons_inherit"
+            inherit_id="account_financial_report.report_buttons">
+    <xpath expr="//div[contains(@class,'o_report_buttons')]" position="inside">
+      <button type="button"
+              class="btn btn-secondary o_report_export_excel"
+              title="Exportar Excel">
+        Exportar Excel
+      </button>
+    </xpath>
+  </template>
+</odoo>
+
+<!-- 
+    <templates xml:space="preserve">
+        <t t-name="web_refresher.ControlPanel"
+        t-inherit="web.Legacy.ControlPanel"
+        t-inherit-mode="extension"
+        owl="1">
+            <xpath expr="//div[hasclass('o_cp_bottom_left')]" position="inside">
+                <div class="ms-2" role="search">
+                    <button type="button"
+                            class="btn btn-secondary o_report_export_excel"
+                            title="Exportar Excel">
+                        Exportar Excel
+                    </button>
+                </div>
+            </xpath>
+        </t>
+    </templates>
+-->
