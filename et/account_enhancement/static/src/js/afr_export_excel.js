@@ -26,9 +26,9 @@ odoo.define("account_enhancement.report_client_action_export_xlsx", function (re
                 }
 
                 // Agrego botón al lado de Imprimir
-                const $container = this.$buttons.find(".o_report_buttons");
+                const $container = this.$buttons.find(".o_report_print");
                 if (!$container.length) {
-                    console.warn("[PATCH] No encontré .o_report_buttons");
+                    console.warn("[PATCH] No encontré .o_report_print para agregar botón XLSX");
                     return;
                 }
 
