@@ -6,7 +6,7 @@
                 type="button"
                 class="btn btn-primary o_report_print"
                 title="Print"
-            >Print</button>
+            >Print 123123</button>
             <button
                 type="button"
                 class="btn btn-secondary o_report_export"
