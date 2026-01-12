@@ -331,9 +331,12 @@ class ReportResumenStockWizard(models.TransientModel):
                 rotacion_general = float_round(rotacion_general, 2)
                 
             #ROTACION REMANENTE
-            if data['unidad_salida'] == 0 or data['unidad_inicial'] ==    
-
-
+            if data['unidad_salida'] == 0 or data['unidad_inicial'] == 0:
+                rotacion_remanente = 0.0
+            else:
+                rotacion_remanente = data['unidad_salida'] / data['unidad_inicial'] 
+                rotacion_remanente = float_round(rotacion_remanente, 2)
+            # PRODUCTO
             worksheet_resumen.write(row_resumen, 0, data['product_code'], fmt_text2)
             worksheet_resumen.write(row_resumen, 1, data['product_name'], fmt_text)
             # STOCK INICIAL
