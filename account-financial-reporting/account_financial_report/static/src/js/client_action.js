@@ -18,7 +18,17 @@ odoo.define("account_financial_report.client_action", function (require) {
                         {}
                     )
                 );
-                this.$buttons.on("click", ".o_report_print", this.on_click_print);
+                this.$buttons.on("click", ".o_report_print", (ev) => {
+                    console.log("[AFR] CLICK IMPRIMIR", {
+                        href: window.location.href,
+                        report_name: this.report_name,
+                        report_file: this.report_file,
+                        title: this.title,
+                        data: this.data,
+                        context: this.context,
+                    });
+                    return this.on_click_print(ev);
+                });
                 this.$buttons.on("click", ".o_report_export", this.on_click_export);
                 console.log("AFRReportAction start - buttons added");
                 console.log(this.$buttons);
