@@ -50,6 +50,7 @@
                 <field name="price_subtotal"/>
                 <field name="state" widget="badge" decoration-success="state == 'posted'" decoration-info="state == 'draft'" decoration-danger="state == 'cancel'"/>
             </tree>
+        </field>
     </record>
 
     <!-- FILTRAR VISTA DE FACTURAS/NC -->
