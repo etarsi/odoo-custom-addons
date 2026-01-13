@@ -51,6 +51,7 @@
                 <field name="parent_state" widget="badge" decoration-success="parent_state == 'posted'" decoration-info="parent_state == 'draft'" decoration-danger="parent_state == 'cancel'" optional="true"/>
                 <field name="currency_id" optional="hide"/>
                 <field name="company_id" optional="hide"/>
+                <field name="product_uom_category_id" optional="hide"/>
             </tree>
         </field>
     </record>
