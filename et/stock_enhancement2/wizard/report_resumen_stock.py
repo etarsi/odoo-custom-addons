@@ -324,10 +324,10 @@ class ReportResumenStockWizard(models.TransientModel):
             if data['unidad_entrada'] == 0 or data['unidad_salida'] == 0:
                 rotacion_general = 0.0
             else:
-                unidad_entrarda = data['unidad_inicial'] + data['unidad_entrada']
-                if unidad_entrarda == 0:
+                unidad_entrada = data['unidad_inicial'] + data['unidad_entrada']
+                if unidad_entrada == 0:
                     rotacion_general = 0.0
-                rotacion_general = data['unidad_salida'] / unidad_entrarda 
+                rotacion_general = data['unidad_salida'] / unidad_entrada 
                 rotacion_general = float_round(rotacion_general, 2)
                 
             #ROTACION REMANENTE
