@@ -35,7 +35,7 @@
         <field name="name">account.move.line.factura.cliente.tree</field>
         <field name="model">account.move.line</field>
         <field name="arch" type="xml">
-            <tree string="Lineas de Facturación" editable="false" create="false" delete="false">
+            <tree string="Lineas de Facturación" edit="false" create="false" delete="false">
                 <field name="date" optional="true"/>
                 <field name="move_id" optional="true"/>
                 <field name="partner_id" optional="true"/>
