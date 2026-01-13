@@ -116,7 +116,7 @@ class ReportResumenStockWizard(models.TransientModel):
         # HOJA RESUMEN DE STOCK
         # =========================
         # ====== TITULO ======
-        worksheet_resumen.merge_range(0, 0, 0, 8, 'RESUMEN DE STOCK', fmt_title)
+        worksheet_resumen.merge_range(0, 0, 0, 12, 'RESUMEN DE STOCK', fmt_title)
         worksheet_resumen.set_row(0, 20)
         # ====== ANCHO DE COLUMNAS ======
         worksheet_resumen.set_column(0, 0, 20)  # CODIGO
