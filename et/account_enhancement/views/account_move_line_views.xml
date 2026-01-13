@@ -1,6 +1,6 @@
 <?xml version='1.0' encoding='utf-8'?>
 <odoo>
-    <!-- SEARCH NUEVO PARA EVENTUALES -->
+    <!-- FILTRO PARA LINEAS DE ASIENTO CONTABLE -->
     <record id="account_move_line_filter_enhancement" model="ir.ui.view">
         <field name="name">account.move.line.filter.enhancement</field>
         <field name="model">account.move.line</field>
@@ -28,5 +28,58 @@
                 <attribute name="default_order">l10n_ar_amount_company_currency_signed asc</attribute>
             </xpath>
         </field>
+    </record>
+
+    <!-- CREAR UNA VISTA TREE DE ACCOUNT_MOVE_LINE -->
+    <record id="account_move_line_factura_cliente_tree" model="ir.ui.view">
+        <field name="name">account.move.line.factura.cliente.tree</field>
+        <field name="model">account.move.line</field>
+        <field name="arch" type="xml">
+            <tree string="Lineas de Facturación" editable="false" create="false" delete="false">
+                <field name="date"/>
+                <field name="move_id"/>
+                <field name="partner_id"/>
+                <field name="product_id"/>
+                <field name="name"/>
+                <field name="account_id"/>
+                <field name="quantity"/>
+                <field name="product_uom_id"/>
+                <field name="price_unit"/>
+                <field name="discount"/>
+                <field name="tax_ids"/>
+                <field name="price_subtotal"/>
+                <field name="state" widget="badge" decoration-success="state == 'posted'" decoration-info="state == 'draft'" decoration-danger="state == 'cancel'"/>
+            </tree>
+    </record>
+
+    <!-- FILTRAR VISTA DE FACTURAS/NC -->
+    <record id="account_move_line_filter_factura_cliente" model="ir.ui.view">
+        <field name="name">account.move.line.filter.factura.cliente</field>
+        <field name="model">account.move.line</field>
+        <field name="arch" type="xml">
+            <search string="Lineas de Facturacion">
+                <field name="move_id"/>
+                <field name="name"/>
+                <field name="account_id"/>
+                <field name="product_id"/>
+                <field name="partner_id"/>
+                <separator/>
+                <group expand="0" string="Agrupar Por">
+                    <filter string="Facturas/NC" name="account_move_id" context="{'group_by': 'move_id'}"/>
+                    <filter string="Producto" name="product_id" context="{'group_by': 'product_id'}"/>
+                    <filter string="Cliente" name="partner_id" context="{'group_by': 'partner_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- ACCION PARA VER LAS LINEAS DE FACTURACION DE CLIENTES -->
+    <record id="action_account_move_line_factura_cliente" model="ir.actions.act_window">
+        <field name="name">Lineas de Facturación Cliente</field>
+        <field name="res_model">account.move.line</field>
+        <field name="view_mode">tree</field>
+        <field name="view_id" ref="account_move_line_factura_cliente_tree"/>
+        <field name="search_view_id" ref="account_move_line_filter_factura_cliente"/>   
+        <field name="domain">[('move_id.move_type', 'in', ('out_invoice', 'out_refund'))]</field>
     </record>
 </odoo>
