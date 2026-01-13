@@ -48,7 +48,7 @@
                 <field name="discount"/>
                 <field name="tax_ids"/>
                 <field name="price_subtotal"/>
-                <field name="state" widget="badge" decoration-success="state == 'posted'" decoration-info="state == 'draft'" decoration-danger="state == 'cancel'"/>
+                <field name="parent_state" widget="badge" decoration-success="parent_state == 'posted'" decoration-info="parent_state == 'draft'" decoration-danger="parent_state == 'cancel'"/>
             </tree>
         </field>
     </record>
