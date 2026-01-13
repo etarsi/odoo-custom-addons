@@ -175,6 +175,29 @@ class ReportResumenStockWizard(models.TransientModel):
         row_salida = 2
         row_resumen = 3
         resumen_data = {}
+        # ============ STOCK INICIAL ============
+        season_lines = self.env['stock.season.line'].search([])
+        for season_line in season_lines:
+            if not season_line.product_id:
+                continue
+            key = season_line.product_id.default_code
+            if key not in resumen_data:
+                resumen_data[key] = {
+                    'product_code': season_line.product_id.default_code or '',
+                    'product_name': season_line.product_id.name or '',
+                    'bultos_inicial': 0.0,
+                    'uxb_inicial': 0.0,
+                    'unidad_inicial': 0.0,
+                    'bultos_salida': 0.0,
+                    'uxb_salida': 0.0,
+                    'unidad_salida': 0.0,
+                    'bultos_entrada': 0.0,
+                    'uxb_entrada': 0.0,
+                    'unidad_entrada': 0.0,
+                }
+            resumen_data[key]['bultos_inicial'] += season_line.bultos_inicial
+            resumen_data[key]['uxb_inicial'] = season_line.uxb
+            resumen_data[key]['unidad_inicial'] += season_line.unidades_inicial     
         # SALIDA DE STOCK
         for stock_picking in stock_pickings:
             #Sacar el nombre del cliente si tiene 
@@ -194,7 +217,7 @@ class ReportResumenStockWizard(models.TransientModel):
                 rubros_str = ''
                 if not stock_move.product_id:
                     continue
-                key = stock_move.product_id.id
+                key = stock_move.product_id.default_code
                 if key not in resumen_data:
                     resumen_data[key] = {
                         'product_code': stock_move.product_id.default_code or '', 
@@ -248,7 +271,7 @@ class ReportResumenStockWizard(models.TransientModel):
             for move in container.lines:
                 if not move.product_id:
                     continue
-                key = move.product_id.id
+                key = move.product_id.default_code
                 if key not in resumen_data:
                     resumen_data[key] = {
                         'product_code': move.product_id.default_code or '',
@@ -281,42 +304,7 @@ class ReportResumenStockWizard(models.TransientModel):
                 worksheet_entrada.write_number(row_entrada, 5, move.quantity_send or 0.0, fmt_int)
                 worksheet_entrada.write(row_entrada, 6, container.name or '', fmt_text)
                 worksheet_entrada.write(row_entrada, 7, container.license or '', fmt_text)
-                row_entrada += 1
-                
-        entrada_counters = {}
-        for container in containers:
-            for move in container.lines:
-                if not move.product_id:
-                    continue
-                key = move.product_id.id
-                if key not in entrada_counters:
-                    entrada_counters[key] = 0.0
-                unidades = move.quantity_send or 0.0
-                entrada_counters[key] += unidades
-                
-        # ============ STOCK INICIAL ============
-        for season_line in self.env['stock.season.line'].search([]):
-            product_id = season_line.product_id
-            if not product_id:
-                continue
-            key = product_id.id
-            if key not in resumen_data:
-                resumen_data[key] = {
-                    'product_code': product_id.default_code or '',
-                    'product_name': product_id.name or '',
-                    'bultos_inicial': 0.0,
-                    'uxb_inicial': 0.0,
-                    'unidad_inicial': 0.0,
-                    'bultos_salida': 0.0,
-                    'uxb_salida': 0.0,
-                    'unidad_salida': 0.0,
-                    'bultos_entrada': 0.0,
-                    'uxb_entrada': 0.0,
-                    'unidad_entrada': 0.0,
-                }
-            resumen_data[key]['bultos_inicial'] += season_line.bultos_inicial
-            resumen_data[key]['uxb_inicial'] = season_line.uxb
-            resumen_data[key]['unidad_inicial'] += season_line.unidades_inicial                
+                row_entrada += 1     
 
         # RESUMEN DE STOCK
         for data in resumen_data.values():
@@ -328,7 +316,6 @@ class ReportResumenStockWizard(models.TransientModel):
                 if unidad_entrada == 0:
                     rotacion_general = 0.0
                 rotacion_general = data['unidad_salida'] / unidad_entrada 
-                rotacion_general = float_round(rotacion_general, 2)
                 
             #ROTACION REMANENTE
             if data['unidad_salida'] == 0 or data['unidad_inicial'] == 0:
@@ -336,7 +323,6 @@ class ReportResumenStockWizard(models.TransientModel):
             else:
                 unidad_entrada = data['unidad_salida'] - data['unidad_inicial']
                 rotacion_remanente = unidad_entrada / data['unidad_salida']
-                rotacion_remanente = float_round(rotacion_remanente, 2)
             # PRODUCTO
             worksheet_resumen.write(row_resumen, 0, data['product_code'], fmt_text2)
             worksheet_resumen.write(row_resumen, 1, data['product_name'], fmt_text)
