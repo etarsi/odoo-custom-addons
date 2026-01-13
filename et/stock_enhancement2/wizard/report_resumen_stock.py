@@ -352,7 +352,7 @@ class ReportResumenStockWizard(models.TransientModel):
             worksheet_resumen.write_number(row_resumen, 9, data['uxb_salida'], fmt_int)
             worksheet_resumen.write_number(row_resumen, 10, data['unidad_salida'], fmt_int) 
             # ROTACIÓN
-            worksheet_resumen.write_number(row_resumen, 11, rotacion_general, fmt_dec2)
+            worksheet_resumen.write_number(row_resumen, 11, rotacion_remanente, fmt_dec2)
             worksheet_resumen.write_number(row_resumen, 12, rotacion_general, fmt_dec2)
             row_resumen += 1
         workbook.close()
