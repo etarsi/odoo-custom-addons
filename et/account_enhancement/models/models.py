@@ -629,6 +629,10 @@ class AccountMovelLineInherit(models.Model):
     def _forzar_reemplazo_product_id_con_nueve(self):
         for line in self:
             if line.product_id and line.product_id.default_code:
+                #Agrego el caracter '9' en una variable
+                nueve = line.product_id.default_code[0]
+                if nueve == '9':
+                    continue
                 search_code = f'9{line.product_id.default_code}'
                 product_replace = self.env['product.product'].search([('default_code', '=', search_code)], limit=1)
                 if product_replace:
@@ -649,6 +653,10 @@ class AccountMovelLineInherit(models.Model):
     def _forzar_reemplazo_product_id_sin_nueve(self):
         for line in self:
             if line.product_id and line.product_id.default_code:
+                #Quito el primer caracter '9' en una variable
+                nueve = line.product_id.default_code[0]
+                if nueve != '9':
+                    continue
                 search_code = line.product_id.default_code[1:]  # Quito el primer caracter
                 product_replace = self.env['product.product'].search([('default_code', '=', search_code)], limit=1)
                 if product_replace:
