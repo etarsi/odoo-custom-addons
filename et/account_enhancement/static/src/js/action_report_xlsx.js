@@ -8,12 +8,6 @@ odoo.define("account_enhancement.report_client_action_export_xlsx", function (re
 
     ReportAction.include({
         start: function () {
-            console.log("[PATCH] report.client_action start ENTER", {
-                href: window.location.href,
-                report_name: this.report_name,
-                report_type: this.report_type,
-            });
-
             return this._super.apply(this, arguments).then(() => {
                 // Sólo para el Libro Mayor de AFR (ajustá si querés)
                 if (this.report_name !== "account_financial_report.general_ledger") {
@@ -49,8 +43,6 @@ odoo.define("account_enhancement.report_client_action_export_xlsx", function (re
                         }
                     }
                 }
-
-                console.log("[PATCH] Contenedor botones OK:", $container[0].outerHTML);
 
                 // Evitar duplicados
                 $container.find(".o_report_export_excel").remove();
@@ -115,12 +107,9 @@ odoo.define("account_enhancement.report_client_action_export_xlsx", function (re
                         context: ctx,
                         display_name: "Libro mayor XLSX",
                     };
-
-                    console.log("[PATCH] XLSX ACTION", action);
                     return this.do_action(action);
                 });
 
-                // evento reabrir wizard libro mayor
                 // evento reabrir wizard libro mayor
                 this.$buttons.off("click", ".o_wizard_general_ledger");
                 this.$buttons.on("click", ".o_wizard_general_ledger", (ev) => {
@@ -154,19 +143,12 @@ odoo.define("account_enhancement.report_client_action_export_xlsx", function (re
                         target: "new",
                         context: ctx,
                     };
-
-                    console.log("[PATCH] Abrir WIZARD Libro Mayor (mismo res_id)", action);
                     return this.do_action(action);
                 });
-
-
-
 
                 // Reinyecto botones al control panel
                 this.controlPanelProps.cp_content = { $buttons: this.$buttons };
                 this._controlPanelWrapper.update(this.controlPanelProps);
-
-                console.log("[PATCH] Botón XLSX agregado al control panel");
             });
         },
     });
