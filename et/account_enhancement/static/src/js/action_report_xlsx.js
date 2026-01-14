@@ -126,7 +126,28 @@ odoo.define("account_enhancement.report_client_action_export_xlsx", function (re
                     ev.preventDefault();
                     ev.stopPropagation();
                     ev.stopImmediatePropagation();
-                    this.do_action("account_financial_report.action_general_ledger_wizard");
+
+                    const wizardId =
+                        (this.data && this.data.wizard_id) ||
+                        (this.context && this.context.active_ids && this.context.active_ids[0]);
+
+                    const ctx = Object.assign({}, this.context || {}, {
+                        active_id: wizardId,
+                        active_ids: wizardId ? [wizardId] : [],
+                    });
+
+                    const action = {
+                        type: "ir.actions.act_window",
+                        name: "Libro Mayor - Configuración",
+                        res_model: "account.financial.report.general.ledger.wizard",
+                        view_mode: "form",
+                        views: [[false, "form"]],
+                        data: this.data || {},
+                        context: ctx,
+                        target: "new",
+                    };
+                    console.log("[PATCH] Abrir WIZARD Libro Mayor", action);
+                    this.do_action(action);
                 });
 
 
