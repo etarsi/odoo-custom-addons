@@ -43,6 +43,8 @@ class AccountMoveInherit(models.Model):
     category_ids = fields.Many2many('product.category', string="Categoría", compute="_compute_category_ids")
     pricelist_id = fields.Many2one('product.pricelist', string="Lista de Precios")
     special_price = fields.Boolean(string="Precio Especial", default=False)
+    #Diferencia entre debit - credit 
+    balance_diff = fields.Float(string="Diferencia Debe - Haber", compute="_compute_balance_diff")
     
     # ENVIO DE CORREO---------------------------------------------------------
     def _get_default_invoice_mail_template(self):
@@ -86,6 +88,15 @@ class AccountMoveInherit(models.Model):
             "res_model": "account.move",
             "res_id": self.id,
         })
+        
+    #metodo de balance diff
+    def _compute_balance_diff(self):
+        for record in self:
+            if record.move_type == 'entry' and record.line_ids:
+                record.balance_diff = abs(sum(record.line_ids.mapped('debit'))) - abs(sum(record.line_ids.mapped('credit')))
+            else:
+                record.balance_diff = 0.0
+            
    
     def action_mail_invoice_partner_send(self):
         """

@@ -27,11 +27,13 @@
                             ]
                         }"/>
             </xpath>
-            <!-- 
             <xpath expr="//field[@name='line_ids']" position="after">
-                <field name="diff_balance" widget="monetary" readonly="1" class="o_account_move_footer_balance"/>
+                <div class="mt8"
+                    attrs="{'invisible': ['|', ('move_type', '!=', 'entry'), ('balance_diff', '=', 0)]}">
+                    <strong>Balance:</strong>
+                    <field name="balance_diff" readonly="1" class="oe_inline"/>
+                </div>
             </xpath>
-            -->
         </field>
     </record>
 
