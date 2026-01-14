@@ -125,7 +125,7 @@ odoo.define("account_enhancement.report_client_action_export_xlsx", function (re
                     ev.preventDefault();
                     ev.stopPropagation();
                     ev.stopImmediatePropagation();
-                    this.do_action("account_financial_report.action_account_financial_report_general_ledger_wizard");
+                    this.do_action("account_financial_report.action_general_ledger_wizard");
                 });
 
 
