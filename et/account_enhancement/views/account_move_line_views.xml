@@ -36,19 +36,19 @@
         <field name="model">account.move.line</field>
         <field name="arch" type="xml">
             <tree string="Lineas de Facturación" edit="false" create="false" delete="false" default_order="date desc">
-                <field name="date" optional="true"/>
-                <field name="move_id" string="Factura/NC" optional="true"/>
-                <field name="partner_id" string="Cliente" optional="true"/>
-                <field name="product_id" optional="true"/>
-                <field name="name" optional="true"/>
-                <field name="account_id" optional="true"/>
-                <field name="quantity" optional="true"/>
-                <field name="product_uom_id" optional="true"/>
-                <field name="price_unit" optional="true"/>
-                <field name="discount" optional="true"/>
-                <field name="tax_ids" optional="true" widget="many2many_tags"/>
-                <field name="price_subtotal" optional="true"/>
-                <field name="parent_state" widget="badge" decoration-success="parent_state == 'posted'" decoration-info="parent_state == 'draft'" decoration-danger="parent_state == 'cancel'" optional="true"/>
+                <field name="date" optional="show"/>
+                <field name="move_id" string="Factura/NC" optional="show"/>
+                <field name="partner_id" string="Cliente" optional="show"/>
+                <field name="product_id" optional="show"/>
+                <field name="name" optional="show"/>
+                <field name="account_id" optional="show"/>
+                <field name="quantity" optional="show"/>
+                <field name="product_uom_id" optional="show"/>
+                <field name="price_unit" optional="show"/>
+                <field name="discount" optional="show"/>
+                <field name="tax_ids" optional="show" widget="many2many_tags"/>
+                <field name="price_subtotal" optional="show"/>
+                <field name="parent_state" widget="badge" decoration-success="parent_state == 'posted'" decoration-info="parent_state == 'draft'" decoration-danger="parent_state == 'cancel'" optional="show"/>
                 <field name="currency_id" optional="hide"/>
                 <field name="company_id" optional="hide"/>
                 <field name="product_uom_category_id" optional="hide"/>
