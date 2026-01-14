@@ -27,8 +27,8 @@
                             ]
                         }"/>
             </xpath>
-            <xpath expr="//field[@name='line_ids']/tree" position="attributes">
-                <attribute name="class" add="o_show_balance_diff" separator=" "/>
+            <xpath expr="//field[@name='line_ids']" position="after">
+                <field name="diff_balance" widget="monetary" readonly="1" class="o_account_move_footer_balance"/>
             </xpath>
         </field>
     </record>

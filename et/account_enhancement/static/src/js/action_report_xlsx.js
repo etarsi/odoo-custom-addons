@@ -54,6 +54,7 @@ odoo.define("account_enhancement.report_client_action_export_xlsx", function (re
 
                 // Evitar duplicados
                 $container.find(".o_report_export_excel").remove();
+                $container.find(".o_wizard_general_ledger").remove();
 
                 // Insertar como HERMANO del botón imprimir (no adentro)
                 const $print = $container.find(".o_report_print").first();
@@ -61,6 +62,12 @@ odoo.define("account_enhancement.report_client_action_export_xlsx", function (re
                     $print.after(`
                         <button type="button"
                                 class="btn btn-secondary o_report_export_excel"
+                                title="Exportar Excel">
+                            Exportar Excel
+                        </button>
+
+                        <button type="button"
+                                class="btn btn-secondary o_wizard_general_ledger"
                                 title="Exportar Excel">
                             Exportar Excel
                         </button>
@@ -73,9 +80,16 @@ odoo.define("account_enhancement.report_client_action_export_xlsx", function (re
                                 title="Exportar Excel">
                             Exportar Excel
                         </button>
+                        <button type="button"
+                                class="btn btn-secondary o_wizard_general_ledger"
+                                title="Exportar Excel">
+                            Exportar Excel
+                        </button>
                     `);
                 }
-
+                
+                // Asignar evento al botón
+                // evento imprimir XLSX
                 this.$buttons.off("click", ".o_report_export_excel");
                 this.$buttons.on("click", ".o_report_export_excel", (ev) => {
                     ev.preventDefault();
@@ -104,6 +118,17 @@ odoo.define("account_enhancement.report_client_action_export_xlsx", function (re
                     console.log("[PATCH] XLSX ACTION", action);
                     return this.do_action(action);
                 });
+
+                // evento reabrir wizard libro mayor
+                this.$buttons.off("click", ".o_wizard_general_ledger");
+                this.$buttons.on("click", ".o_wizard_general_ledger", (ev) => {
+                    ev.preventDefault();
+                    ev.stopPropagation();
+                    ev.stopImmediatePropagation();
+                    this.do_action("account_financial_report.action_account_financial_report_general_ledger_wizard");
+                });
+
+
 
                 // Reinyecto botones al control panel
                 this.controlPanelProps.cp_content = { $buttons: this.$buttons };
