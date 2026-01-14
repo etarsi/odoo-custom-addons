@@ -630,7 +630,8 @@ class AccountMovelLineInherit(models.Model):
     @api.onchange('debit2')
     def onchange_debit2(self):
         for record in self:
-            raise UserError('Sí se activa la función')
+            if record.debit2:
+                raise UserError(f'Valor actual: {record.debit2}')
     
     def _forzar_reemplazo_product_id_con_nueve(self):
         for line in self:
