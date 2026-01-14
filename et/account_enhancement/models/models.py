@@ -626,8 +626,25 @@ class AccountMovelLineInherit(models.Model):
     lot_id = fields.Many2one('stock.production.lot', string='Nro Lote')
     
     
-    def _replace_product_id_9(self):
-        return False
+    def _forzar_remplazo_produc_id(self):
+        for line in self:
+            if line.product_id and line.product_id.default_code:
+                search_code = f'9{line.product_id.default_code}'
+                product_replace = self.env['product.product'].search([('default_code', '=', search_code)], limit=1)
+                if product_replace:
+                    name_product = f'[{product_replace.default_code}] {product_replace.name}'
+                    #ahora actualizo apuntes contable que tenga el mismo producto de la factura
+                    sql_move = "UPDATE account_move_line SET name = %s WHERE move_id = %s AND name = %s" # apuntes contables
+                    self.env.cr.execute(sql_move, (name_product, line.move_id.id, line.name))
+                    #actualizo el product_id
+                    sql = "UPDATE account_move_line SET product_id = %s WHERE id = %s"
+                    self.env.cr.execute(sql, (product_replace.id, line.id))
+                    # actualizo el sale_order_line si existe
+                    sql_sol = "UPDATE sale_order_line SET product_id = %s WHERE id = %s"
+                    self.env.cr.execute(sql_sol, (product_replace.id, line.sale_line_ids.id))
+                else:
+                    raise UserError(f'No se encontró producto de reemplazo con código {search_code} para el producto {line.product_id.default_code}')
+
     
     
 #SOLO DEBERIA ESTAR ACTIVO PARA EL SERVIDOR DE TEST PARA HACER PRUEBAS CON AFIP
