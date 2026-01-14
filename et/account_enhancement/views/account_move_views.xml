@@ -27,6 +27,9 @@
                             ]
                         }"/>
             </xpath>
+            <xpath expr="//field[@name='line_ids']/tree" position="attributes">
+                <attribute name="class" add="o_show_balance_diff" separator=" "/>
+            </xpath>
         </field>
     </record>
 
