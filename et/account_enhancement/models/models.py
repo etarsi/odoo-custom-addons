@@ -626,6 +626,10 @@ class AccountMovelLineInherit(models.Model):
     lot_id = fields.Many2one('stock.production.lot', string='Nro Lote')
     
     
+    def _replace_product_id_9(self):
+        return False
+    
+    
 #SOLO DEBERIA ESTAR ACTIVO PARA EL SERVIDOR DE TEST PARA HACER PRUEBAS CON AFIP
 #class AccountJournalInherit(models.Model):
 #    _inherit = 'account.journal'

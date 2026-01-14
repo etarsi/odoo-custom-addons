@@ -35,10 +35,10 @@
         <field name="name">account.move.line.factura.cliente.tree</field>
         <field name="model">account.move.line</field>
         <field name="arch" type="xml">
-            <tree string="Lineas de Facturación" edit="false" create="false" delete="false">
+            <tree string="Lineas de Facturación" edit="false" create="false" delete="false" default_order="date desc">
                 <field name="date" optional="true"/>
-                <field name="move_id" optional="true"/>
-                <field name="partner_id" optional="true"/>
+                <field name="move_id" string="Factura/NC" optional="true"/>
+                <field name="partner_id" string="Cliente" optional="true"/>
                 <field name="product_id" optional="true"/>
                 <field name="name" optional="true"/>
                 <field name="account_id" optional="true"/>
@@ -62,11 +62,11 @@
         <field name="model">account.move.line</field>
         <field name="arch" type="xml">
             <search string="Lineas de Facturacion">
-                <field name="move_id"/>
-                <field name="name"/>
-                <field name="account_id"/>
-                <field name="product_id"/>
-                <field name="partner_id"/>
+                <field name="move_id" string="Factura/NC"/>
+                <field name="name" string="Etiqueta"/>
+                <field name="account_id" string="Cuenta"/>
+                <field name="product_id" string="Producto"/>
+                <field name="partner_id" string="Cliente"/>
                 <separator/>
                 <group expand="0" string="Agrupar Por">
                     <filter string="Facturas/NC" name="account_move_id" context="{'group_by': 'move_id'}"/>
