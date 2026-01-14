@@ -143,6 +143,7 @@ odoo.define("account_enhancement.report_client_action_export_xlsx", function (re
                         view_mode: "form",
                         views: [[false, "form"]],
                         data: this.data || {},
+                        domain: ["id", "=", wizardId],
                         context: ctx,
                         target: "new",
                     };
