@@ -65,7 +65,7 @@
                 <field name="move_id" string="Factura/NC"/>
                 <field name="name" string="Etiqueta"/>
                 <field name="account_id" string="Cuenta"/>
-                <field name="product_id" string="Product" filter_domain="['|', '|', '|', ('product_id.default_code', 'ilike', self), ('product_id.default_code', 'ilike', self),('product_id.name', 'ilike', self), ('product_id.barcode', 'ilike', self)]"/>
+                <field name="product_id" string="Product" filter_domain="['|', ('product_id.default_code', 'ilike', self), ('product_id.name', 'ilike', self)]"/>
                 <field name="partner_id" string="Cliente"/>
                 <separator/>
                 <group expand="0" string="Agrupar Por">
