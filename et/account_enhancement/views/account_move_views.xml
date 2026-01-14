@@ -27,7 +27,7 @@
                             ]
                         }"/>
             </xpath>
-            <xpath expr="//field[@name='line_ids']" position="after">
+            <xpath expr="//field[@name='line_ids']" position="before">
                 <div class="mt8 alert alert-danger" attrs="{'invisible': ['|', ('move_type', '!=', 'entry'), ('balance_diff', '=', 0)]}">
                     <strong>ASIENTO NO BALANCEADO, DIFERENCIAS DÉBITO - CRÉDITO:</strong>
                     <field name="balance_diff" readonly="1" class="oe_inline"/>
