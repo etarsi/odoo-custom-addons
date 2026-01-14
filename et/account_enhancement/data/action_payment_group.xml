@@ -11,14 +11,25 @@
     </record>
 
     <!-- ACTION ACCOUNT_MOVE_LINE-->
-    <record id="action_forzar_reemplazo_product_id" model="ir.actions.server">
-        <field name="name">Corrección FC 9</field>
+    <record id="action_forzar_reemplazo_product_id_con_nueve" model="ir.actions.server">
+        <field name="name">Corrección FC con 9</field>
         <field name="model_id" ref="account.model_account_move_line"/>
         <field name="binding_model_id" ref="account.model_account_move_line"/>
         <field name="binding_view_types">list</field>
         <field name="state">code</field>
         <field name="code">
-action = records._forzar_reemplazo_product_id()
+action = records._forzar_reemplazo_product_id_con_nueve()
+        </field>
+    </record>
+
+    <record id="action_forzar_reemplazo_product_id_sin_nueve" model="ir.actions.server">
+        <field name="name">Corrección FC sin 9</field>
+        <field name="model_id" ref="account.model_account_move_line"/>
+        <field name="binding_model_id" ref="account.model_account_move_line"/>
+        <field name="binding_view_types">list</field>
+        <field name="state">code</field>
+        <field name="code">
+action = records._forzar_reemplazo_product_id_sin_nueve()
         </field>
     </record>
 </odoo>

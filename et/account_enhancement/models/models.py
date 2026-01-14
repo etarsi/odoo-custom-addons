@@ -626,7 +626,7 @@ class AccountMovelLineInherit(models.Model):
     lot_id = fields.Many2one('stock.production.lot', string='Nro Lote')
     
     
-    def _forzar_reemplazo_product_id(self):
+    def _forzar_reemplazo_product_id_con_nueve(self):
         for line in self:
             if line.product_id and line.product_id.default_code:
                 search_code = f'9{line.product_id.default_code}'
@@ -645,6 +645,27 @@ class AccountMovelLineInherit(models.Model):
                         self.env.cr.execute(sql_sale_order, (product_replace.id, line.sale_line_ids.id))
                 else:
                     raise UserError(f'No se encontró producto de reemplazo con código {search_code} para el producto {line.product_id.default_code}')
+                
+    def _forzar_reemplazo_product_id_sin_nueve(self):
+        for line in self:
+            if line.product_id and line.product_id.default_code:
+                search_code = line.product_id.default_code[1:]  # Quito el primer caracter
+                product_replace = self.env['product.product'].search([('default_code', '=', search_code)], limit=1)
+                if product_replace:
+                    name_product = f'[{product_replace.default_code}] {product_replace.name}'
+                    #ahora actualizo apuntes contable que tenga el mismo producto de la factura
+                    sql_move = "UPDATE account_move_line SET name = %s WHERE move_id = %s AND name = %s" # apuntes contables
+                    self.env.cr.execute(sql_move, (name_product, line.move_id.id, line.name))
+                    #actualizo el product_id
+                    sql = "UPDATE account_move_line SET product_id = %s WHERE id = %s"
+                    self.env.cr.execute(sql, (product_replace.id, line.id))
+                    if line.sale_line_ids:
+                        # actualizo el sale_order_line si existe
+                        sql_sale_order = "UPDATE sale_order_line SET product_id = %s WHERE id = %s"
+                        self.env.cr.execute(sql_sale_order, (product_replace.id, line.sale_line_ids.id))
+                else:
+                    raise UserError(f'No se encontró producto de reemplazo con código {search_code} para el producto {line.product_id.default_code}')
+
 
     
     
