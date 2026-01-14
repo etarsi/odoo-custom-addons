@@ -626,7 +626,7 @@ class AccountMovelLineInherit(models.Model):
     lot_id = fields.Many2one('stock.production.lot', string='Nro Lote')
     
     
-    def _forzar_remplazo_produc_id(self):
+    def _forzar_reemplazo_product_id(self):
         for line in self:
             if line.product_id and line.product_id.default_code:
                 search_code = f'9{line.product_id.default_code}'
