@@ -90,6 +90,7 @@ class AccountMoveInherit(models.Model):
         })
         
     #metodo de balance diff
+    @api.depends('line_ids.debit', 'line_ids.credit', 'move_type')
     def _compute_balance_diff(self):
         for record in self:
             if record.move_type == 'entry' and record.line_ids:
