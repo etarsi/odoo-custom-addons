@@ -639,9 +639,10 @@ class AccountMovelLineInherit(models.Model):
                     #actualizo el product_id
                     sql = "UPDATE account_move_line SET product_id = %s WHERE id = %s"
                     self.env.cr.execute(sql, (product_replace.id, line.id))
-                    # actualizo el sale_order_line si existe
-                    sql_sol = "UPDATE sale_order_line SET product_id = %s WHERE id = %s"
-                    self.env.cr.execute(sql_sol, (product_replace.id, line.sale_line_ids.id))
+                    if line.sale_line_ids:
+                        # actualizo el sale_order_line si existe
+                        sql_sale_order = "UPDATE sale_order_line SET product_id = %s WHERE id = %s"
+                        self.env.cr.execute(sql_sale_order, (product_replace.id, line.sale_line_ids.id))
                 else:
                     raise UserError(f'No se encontró producto de reemplazo con código {search_code} para el producto {line.product_id.default_code}')
 
