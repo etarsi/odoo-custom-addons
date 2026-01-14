@@ -68,8 +68,8 @@ odoo.define("account_enhancement.report_client_action_export_xlsx", function (re
 
                         <button type="button"
                                 class="btn btn-secondary o_wizard_general_ledger"
-                                title="Exportar Excel">
-                            Exportar Excel
+                                title="Libro Mayor Wizard">
+                            Libro Mayor Wizard
                         </button>
                     `);
                 } else {
@@ -80,10 +80,11 @@ odoo.define("account_enhancement.report_client_action_export_xlsx", function (re
                                 title="Exportar Excel">
                             Exportar Excel
                         </button>
+
                         <button type="button"
                                 class="btn btn-secondary o_wizard_general_ledger"
-                                title="Exportar Excel">
-                            Exportar Excel
+                                title="Libro Mayor Wizard">
+                            Libro Mayor Wizard
                         </button>
                     `);
                 }
