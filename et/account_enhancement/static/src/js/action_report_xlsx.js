@@ -139,7 +139,7 @@ odoo.define("account_enhancement.report_client_action_export_xlsx", function (re
                     const action = {
                         type: "ir.actions.act_window",
                         name: "Libro Mayor - Configuración",
-                        res_model: "account.financial.report.general.ledger.wizard",
+                        res_model: "general.ledger.report.wizard",
                         view_mode: "form",
                         views: [[false, "form"]],
                         data: this.data || {},
