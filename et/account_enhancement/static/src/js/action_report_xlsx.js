@@ -121,6 +121,7 @@ odoo.define("account_enhancement.report_client_action_export_xlsx", function (re
                 });
 
                 // evento reabrir wizard libro mayor
+                // evento reabrir wizard libro mayor
                 this.$buttons.off("click", ".o_wizard_general_ledger");
                 this.$buttons.on("click", ".o_wizard_general_ledger", (ev) => {
                     ev.preventDefault();
@@ -129,11 +130,18 @@ odoo.define("account_enhancement.report_client_action_export_xlsx", function (re
 
                     const wizardId =
                         (this.data && this.data.wizard_id) ||
-                        (this.context && this.context.active_ids && this.context.active_ids[0]);
+                        (this.context && this.context.active_ids && this.context.active_ids[0]) ||
+                        (this.context && this.context.active_id);
+
+                    if (!wizardId) {
+                        this.do_warn("Atención", "No se encontró el wizard_id para reabrir la configuración.");
+                        return;
+                    }
 
                     const ctx = Object.assign({}, this.context || {}, {
+                        active_model: "general.ledger.report.wizard",
                         active_id: wizardId,
-                        active_ids: wizardId ? [wizardId] : [],
+                        active_ids: [wizardId],
                     });
 
                     const action = {
@@ -142,14 +150,15 @@ odoo.define("account_enhancement.report_client_action_export_xlsx", function (re
                         res_model: "general.ledger.report.wizard",
                         view_mode: "form",
                         views: [[false, "form"]],
-                        data: this.data || {},
-                        domain: ["id", "=", wizardId],
-                        context: ctx,
+                        res_id: wizardId,     // <-- clave: abre el MISMO wizard con los mismos datos
                         target: "new",
+                        context: ctx,
                     };
-                    console.log("[PATCH] Abrir WIZARD Libro Mayor", action);
-                    this.do_action(action);
+
+                    console.log("[PATCH] Abrir WIZARD Libro Mayor (mismo res_id)", action);
+                    return this.do_action(action);
                 });
+
 
 
 
