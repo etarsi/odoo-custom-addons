@@ -624,7 +624,13 @@ class AccountMovelLineInherit(models.Model):
     _inherit = 'account.move.line'
 
     lot_id = fields.Many2one('stock.production.lot', string='Nro Lote')
+    debit2 = fields.Float(string="Debe")
     
+
+    @api.onchange('debit2')
+    def onchange_debit2(self):
+        for record in self:
+            raise UserError('Sí se activa la función')
     
     def _forzar_reemplazo_product_id_con_nueve(self):
         for line in self:
