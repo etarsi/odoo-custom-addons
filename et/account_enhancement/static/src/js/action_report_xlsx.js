@@ -2,7 +2,7 @@ odoo.define("account_enhancement.report_client_action_export_xlsx", function (re
     "use strict";
 
     const ReportAction = require("report.client_action");
-
+    const actionManager = require("web.action_manager");
     // Tomo jQuery como global (en tu runtime no existe require('jquery') ni require('web.jquery'))
     const $ = window.jQuery || window.$;
 
@@ -162,22 +162,25 @@ odoo.define("account_enhancement.report_client_action_export_xlsx", function (re
                     ev.preventDefault();
                     ev.stopPropagation();
                     ev.stopImmediatePropagation();
-                    console.log("Recargando reporte de libro mayor...");
-                    // 1) Si existe reload() (muchos report.client_action lo traen)
-                    if (typeof this.reload === "function") {
-                        console.log("[REFRESH] usando this.reload()");
-                        return this.reload();
+
+                    console.log("[REFRESH] solicitado");
+
+                    const ctrl = actionManager.getCurrentController && actionManager.getCurrentController();
+                    const currentAction = ctrl && ctrl.action;
+
+                    console.log("[REFRESH] currentAction:", currentAction);
+
+                    if (currentAction) {
+                        return actionManager.doAction(currentAction, {
+                            clear_breadcrumbs: false,
+                            replace_last_action: true,
+                        });
                     }
 
-                    // 2) Si existe _reload() (algunos módulos usan método interno)
-                    if (typeof this._reload === "function") {
-                        console.log("[REFRESH] usando this._reload()");
-                        return this._reload();
-                    }
-                    console.log("reload:", typeof this.reload, "_reload:", typeof this._reload, "action:", this.action);
+                    // fallback duro
+                    window.location.reload();
 
 
-                    console.log("Recarga solicitada.");
                 });
 
                 // Reinyecto botones al control panel

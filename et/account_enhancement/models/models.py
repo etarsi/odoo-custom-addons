@@ -6,6 +6,7 @@ from odoo.exceptions import AccessError, UserError, ValidationError
 import logging, json
 from datetime import date, datetime
 from odoo.tools.misc import format_date, format_amount
+from odoo.tools.float_utils import float_round, float_is_zero
 import base64
 _logger = logging.getLogger(__name__)
 
@@ -94,10 +95,17 @@ class AccountMoveInherit(models.Model):
     def _compute_balance_diff(self):
         for record in self:
             if record.move_type == 'entry' and record.line_ids:
-                record.balance_diff = abs(sum(record.line_ids.mapped('debit'))) - abs(sum(record.line_ids.mapped('credit')))
+                total_debit = sum(record.line_ids.mapped("debit"))
+                total_credit = sum(record.line_ids.mapped("credit"))
+                diff = total_debit - total_credit
+                rounding = record.company_id.currency_id.rounding
+                diff = float_round(diff, precision_rounding=rounding)
+                # evitar -0.00
+                if float_is_zero(diff, precision_rounding=rounding):
+                    diff = 0.00
+                record.balance_diff = diff
             else:
-                record.balance_diff = 0.0
-            
+                record.balance_diff = 0.00
    
     def action_mail_invoice_partner_send(self):
         """
