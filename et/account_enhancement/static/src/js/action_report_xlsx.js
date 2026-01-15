@@ -81,7 +81,7 @@ odoo.define("account_enhancement.report_client_action_export_xlsx", function (re
                             Libro Mayor Wizard
                         </button>
 
-                        <button aria-label="Refresh" title="Actualizar" tabindex="-1" class="fa fa-refresh btn btn-icon o_refresh_general_ledger"></button>
+                        <button type="button" title="Actualizar" class="fa fa-refresh btn btn-icon o_refresh_general_ledger"></button>
                     `);
                 }
                 
@@ -156,7 +156,9 @@ odoo.define("account_enhancement.report_client_action_export_xlsx", function (re
                     ev.preventDefault();
                     ev.stopPropagation();
                     ev.stopImmediatePropagation();
-                    this.reload();
+                    console.log("Recargando reporte de libro mayor...");
+                    location.reload();
+                    console.log("Recarga solicitada.");
                 });
 
                 // Reinyecto botones al control panel
