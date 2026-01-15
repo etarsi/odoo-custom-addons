@@ -173,7 +173,7 @@ odoo.define("account_enhancement.report_client_action_export_xlsx", function (re
 
                     const action = {
                         type: "ir.actions.report",
-                        report_type: "html",
+                        report_type: "qweb-html",
                         report_name: "account_financial_report.general_ledger",
                         report_file: "account_financial_report.general_ledger",
                         data: this.data || {},
