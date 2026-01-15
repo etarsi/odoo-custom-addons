@@ -164,13 +164,13 @@ odoo.define("account_enhancement.report_client_action_export_xlsx", function (re
 
                     console.log("[REFRESH] solicitado");
 
-                    const ctrl = this.action_manage.getCurrentController && this.action_manage.getCurrentController();
-                    const currentAction = ctrl && ctrl.action;
+                    const ctrl = this.getParent();  // obtengo el controlador padre (ActionManager)
+                    const currentAction = ctrl && ctrl.action; // obtengo la acción actual
 
                     console.log("[REFRESH] currentAction:", currentAction);
 
-                    if (currentAction) {
-                        return this.action_manage.doAction(currentAction, {
+                    if (currentAction) {                                        // si existe la acción actual
+                        return this.doAction(currentAction, {  // la recargo via action manager
                             clear_breadcrumbs: false,
                             replace_last_action: true,
                         });
