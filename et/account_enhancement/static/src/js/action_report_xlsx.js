@@ -162,24 +162,25 @@ odoo.define("account_enhancement.report_client_action_export_xlsx", function (re
                     ev.stopPropagation();
                     ev.stopImmediatePropagation();
 
-                    console.log("[REFRESH] solicitado");
+                    const wizardId =
+                        (this.data && this.data.wizard_id) ||
+                        (this.context && this.context.active_ids && this.context.active_ids[0]);
 
-                    const ctrl = this.getParent();  // obtengo el controlador padre (ActionManager)
-                    const currentAction = ctrl && ctrl.action; // obtengo la acción actual
+                    const ctx = Object.assign({}, this.context || {}, {
+                        active_id: wizardId,
+                        active_ids: wizardId ? [wizardId] : [],
+                    });
 
-                    console.log("[REFRESH] currentAction:", currentAction);
-
-                    if (currentAction) {                                        // si existe la acción actual
-                        return this.doAction(currentAction, {  // la recargo via action manager
-                            clear_breadcrumbs: false,
-                            replace_last_action: true,
-                        });
-                    }
-
-                    // fallback duro
-                    window.location.reload();
-
-
+                    const action = {
+                        type: "ir.actions.report",
+                        report_type: "html",
+                        report_name: "account_financial_report.general_ledger",
+                        report_file: "account_financial_report.general_ledger",
+                        data: this.data || {},
+                        context: ctx,
+                        display_name: "Libro mayor HTML",
+                    };
+                    return this.do_action(action);
                 });
 
                 // Reinyecto botones al control panel
