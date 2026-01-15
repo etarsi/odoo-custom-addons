@@ -65,6 +65,8 @@ odoo.define("account_enhancement.report_client_action_export_xlsx", function (re
                                 title="Libro Mayor Wizard">
                             Libro Mayor Wizard
                         </button>
+
+                        <button type="button" title="Actualizar" class="fa fa-refresh btn btn-icon o_refresh_general_ledger"/>
                     `);
                 } else {
                     // si no hay print por alguna razón, lo agrego al final
@@ -80,12 +82,8 @@ odoo.define("account_enhancement.report_client_action_export_xlsx", function (re
                                 title="Libro Mayor Wizard">
                             Libro Mayor Wizard
                         </button>
-                        
-                        <button type="button"
-                                class="btn btn-secondary o_refresh_general_ledger icon-refresh"
-                                title="Refrescar Libro Mayor">
-                            Refrescar Libro Mayor
-                        </button>
+
+                        <button type="button" title="Actualizar" class="fa fa-refresh btn btn-icon o_refresh_general_ledger"></button>
                     `);
                 }
                 
@@ -161,7 +159,9 @@ odoo.define("account_enhancement.report_client_action_export_xlsx", function (re
                     ev.stopPropagation();
                     ev.stopImmediatePropagation();
                     console.log("Recargando reporte de libro mayor...");
-                    location.reload();
+                    this.trigger_up("reload");
+                    
+
                     console.log("Recarga solicitada.");
                 });
 
