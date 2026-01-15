@@ -11,6 +11,7 @@ odoo.define("account_enhancement.report_client_action_export_xlsx", function (re
             return this._super.apply(this, arguments).then(() => {
                 // Sólo para el Libro Mayor de AFR (ajustá si querés)
                 if (this.report_name !== "account_financial_report.general_ledger") {
+                    console.warn("[PATCH] No es libro mayor, saliendo.");
                     return;
                 }
 
@@ -78,6 +79,8 @@ odoo.define("account_enhancement.report_client_action_export_xlsx", function (re
                                 title="Libro Mayor Wizard">
                             Libro Mayor Wizard
                         </button>
+
+                        <button aria-label="Refresh" title="Actualizar" tabindex="-1" class="fa fa-refresh btn btn-icon o_refresh_general_ledger"></button>
                     `);
                 }
                 
@@ -146,6 +149,15 @@ odoo.define("account_enhancement.report_client_action_export_xlsx", function (re
                     return this.do_action(action);
                 });
 
+                // evento refresh libro mayor
+                this.$buttons.off("click", ".o_refresh_general_ledger");
+                this.$buttons.on("click", ".o_refresh_general_ledger", (ev) => {
+                    ev.preventDefault();
+                    ev.stopPropagation();
+                    ev.stopImmediatePropagation();
+                    this.reload();
+                });
+                
                 // Reinyecto botones al control panel
                 this.controlPanelProps.cp_content = { $buttons: this.$buttons };
                 this._controlPanelWrapper.update(this.controlPanelProps);

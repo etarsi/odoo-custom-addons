@@ -5,15 +5,17 @@
         <field name="model">account.move</field>
         <field name="inherit_id" ref="account.view_move_form"/>
         <field name="arch" type="xml">
+            <!-- Incluir campo date_paid en facturas de proveedor -->
             <xpath expr="//field[@name='partner_bank_id']" position="after">
                 <field name="date_paid" attrs="{'invisible': [('move_type', '!=', 'in_invoice')]}" />
             </xpath>
+            <!-- Reemplazar el journal por uno sin creación y solo editable en borrador -->
             <xpath expr="//div[@name='journal_div']" position="replace">
                 <div name="journal_div" class="d-flex">
                     <field name="journal_id" options="{'no_create': True}" attrs="{'readonly': [('state', '!=', 'draft')]}" />
                 </div>
             </xpath>
-            <!-- Lo insertamos dentro del <header> del formulario -->
+            <!-- Lo insertamos dentro del <header> del formulario para enviar factura por correo -->
             <xpath expr="//header//button[@name='action_invoice_sent']" position="replace">
                 <button name="action_mail_invoice_partner_send"
                         type="object"
@@ -27,6 +29,7 @@
                             ]
                         }"/>
             </xpath>
+            <!-- Mostrar diferencia de balance en asientos contables -->
             <xpath expr="//field[@name='line_ids']" position="after">
                 <div class="mt8 alert alert-danger" style="text-align: right;" attrs="{'invisible': ['|', ('move_type', '!=', 'entry'), ('balance_diff', '=', 0)]}">
                     <strong>ASIENTO NO BALANCEADO: </strong>
