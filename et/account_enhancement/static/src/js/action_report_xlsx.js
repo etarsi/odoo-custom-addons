@@ -163,7 +163,17 @@ odoo.define("account_enhancement.report_client_action_export_xlsx", function (re
                     ev.stopPropagation();
                     ev.stopImmediatePropagation();
                     console.log("Recargando reporte de libro mayor...");
-                    this.trigger_up("reload");
+                    // 1) Si existe reload() (muchos report.client_action lo traen)
+                    if (typeof this.reload === "function") {
+                        console.log("[REFRESH] usando this.reload()");
+                        return this.reload();
+                    }
+
+                    // 2) Si existe _reload() (algunos módulos usan método interno)
+                    if (typeof this._reload === "function") {
+                        console.log("[REFRESH] usando this._reload()");
+                        return this._reload();
+                    }
 
 
                     console.log("Recarga solicitada.");
