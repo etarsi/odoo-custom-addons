@@ -174,6 +174,7 @@ odoo.define("account_enhancement.report_client_action_export_xlsx", function (re
                         console.log("[REFRESH] usando this._reload()");
                         return this._reload();
                     }
+                    console.log("reload:", typeof this.reload, "_reload:", typeof this._reload, "action:", this.action);
 
 
                     console.log("Recarga solicitada.");
