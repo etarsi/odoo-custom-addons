@@ -80,8 +80,12 @@ odoo.define("account_enhancement.report_client_action_export_xlsx", function (re
                                 title="Libro Mayor Wizard">
                             Libro Mayor Wizard
                         </button>
-
-                        <button type="button" title="Actualizar" class="fa fa-refresh btn btn-icon o_refresh_general_ledger"></button>
+                        
+                        <button type="button"
+                                class="btn btn-secondary o_refresh_general_ledger icon-refresh"
+                                title="Refrescar Libro Mayor">
+                            Refrescar Libro Mayor
+                        </button>
                     `);
                 }
                 
