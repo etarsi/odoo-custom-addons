@@ -36,6 +36,15 @@
                     <field name="balance_diff" readonly="1" class="oe_inline" style="font-size: 14px; font-weight: bold;"/>
                 </div>
             </xpath>
+            <!-- Para asientos (line_ids) -->
+            <xpath expr="//field[@name='line_ids']/tree//field[@name='debit']" position="attributes">
+                <attribute name="widget">monetary_expr</attribute>
+            </xpath>
+
+            <!-- Opcional: también credit -->
+            <xpath expr="//field[@name='line_ids']/tree//field[@name='credit']" position="attributes">
+                <attribute name="widget">monetary_expr</attribute>
+            </xpath>
         </field>
     </record>
 

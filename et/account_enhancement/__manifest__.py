@@ -27,6 +27,7 @@
             'account_enhancement/static/src/js/account_move.js',
             'account_enhancement/static/src/js/list_row_number.js',
             'account_enhancement/static/src/js/move_line_footer_balance.js',
+            'account_enhancement/static/src/js/monetary_expr.js',
         ],
         'web.assets_qweb': [
             'account_enhancement/static/src/xml/**/*',
