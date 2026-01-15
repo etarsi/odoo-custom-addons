@@ -2,7 +2,6 @@ odoo.define("account_enhancement.report_client_action_export_xlsx", function (re
     "use strict";
 
     const ReportAction = require("report.client_action");
-    const actionManager = require("web.action_manager");
     // Tomo jQuery como global (en tu runtime no existe require('jquery') ni require('web.jquery'))
     const $ = window.jQuery || window.$;
 
@@ -165,13 +164,13 @@ odoo.define("account_enhancement.report_client_action_export_xlsx", function (re
 
                     console.log("[REFRESH] solicitado");
 
-                    const ctrl = actionManager.getCurrentController && actionManager.getCurrentController();
+                    const ctrl = this.action_manage.getCurrentController && this.action_manage.getCurrentController();
                     const currentAction = ctrl && ctrl.action;
 
                     console.log("[REFRESH] currentAction:", currentAction);
 
                     if (currentAction) {
-                        return actionManager.doAction(currentAction, {
+                        return this.action_manage.doAction(currentAction, {
                             clear_breadcrumbs: false,
                             replace_last_action: true,
                         });
