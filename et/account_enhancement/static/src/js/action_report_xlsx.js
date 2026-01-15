@@ -180,7 +180,10 @@ odoo.define("account_enhancement.report_client_action_export_xlsx", function (re
                         context: ctx,
                         display_name: "Libro mayor HTML",
                     };
-                    return this.do_action(action);
+                    return this.do_action(action, {
+                        replace_last_action: true,
+                        clear_breadcrumbs: true, // opcional que no guarde en breadcrumbs
+                    });
                 });
 
                 // Reinyecto botones al control panel
