@@ -48,6 +48,7 @@ odoo.define("account_enhancement.report_client_action_export_xlsx", function (re
                 // Evitar duplicados
                 $container.find(".o_report_export_excel").remove();
                 $container.find(".o_wizard_general_ledger").remove();
+                $container.find(".o_refresh_general_ledger").remove();
 
                 // Insertar como HERMANO del botón imprimir (no adentro)
                 const $print = $container.find(".o_report_print").first();
@@ -157,7 +158,7 @@ odoo.define("account_enhancement.report_client_action_export_xlsx", function (re
                     ev.stopImmediatePropagation();
                     this.reload();
                 });
-                
+
                 // Reinyecto botones al control panel
                 this.controlPanelProps.cp_content = { $buttons: this.$buttons };
                 this._controlPanelWrapper.update(this.controlPanelProps);
