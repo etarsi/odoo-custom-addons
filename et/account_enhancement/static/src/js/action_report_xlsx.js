@@ -178,7 +178,7 @@ odoo.define("account_enhancement.report_client_action_export_xlsx", function (re
                         report_file: "account_financial_report.general_ledger",
                         data: this.data || {},
                         context: ctx,
-                        display_name: "Libro mayor HTML",
+                        display_name: "Libro mayor",
                     };
                     return this.do_action(action, {
                         replace_last_action: true,
