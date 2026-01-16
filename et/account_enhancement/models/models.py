@@ -504,6 +504,7 @@ class AccountMoveInherit(models.Model):
                             line.tax_ids = [(4, tax_exento.id)]
                     #recalcular impuestos
                     record._recompute_tax_lines()
+                    record.update_taxes()
                     record._compute_amount()
                     record._compute_tax_totals_json()
                     
