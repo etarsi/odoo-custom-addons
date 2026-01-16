@@ -483,6 +483,32 @@ class AccountMoveInherit(models.Model):
                     "date_deadline": target,
                 })
 
+    @api.onchange('journal_id', 'move_type')
+    def _journal_id_system_pdv_afip(self):
+        for record in self:
+            if record.move_type == 'in_invoice' and record.journal_id:
+                if record.journal_id.l10n_ar_afip_pos_systeam == 'FEEWSPDV': #Sistema de Punto de Venta AFIP
+                    #BORRAR DE LAS LINEAS EL IVA 21% Y COLOCAR EL IVA EXENTO
+                    tax_exento = self.env['account.tax'].search([
+                        ('type_tax_use', '=', 'sale'),
+                        ('company_id', '=', record.company_id.id)
+                        ('tax_group_id.l10n_ar_vat_afip_code', '=', '2')
+                    ], limit=1)
+                    for line in record.invoice_line_ids:
+                        #quitamos el iva 21%
+                        taxes_21 = line.tax_ids.filtered(lambda t: t.tax_group_id.l10n_ar_vat_afip_code == '5')
+                        if taxes_21:
+                            line.tax_ids = [(3, tax.id) for tax in taxes_21]
+                        #agregamos el iva exento
+                        if tax_exento and tax_exento not in line.tax_ids:
+                            line.tax_ids = [(4, tax_exento.id)]
+                    #recalcular impuestos
+                    record._recompute_tax_lines()
+                    record._compute_amount()
+                    record._compute_tax_totals_json()
+                    
+                        
+
 
 
 class SaleOrderInherit(models.Model):
