@@ -486,7 +486,7 @@ class AccountMoveInherit(models.Model):
     @api.onchange('journal_id', 'move_type')
     def _journal_id_system_pdv_afip(self):
         for record in self:
-            if record.move_type == 'in_invoice' and record.journal_id:
+            if record.move_type == 'out_invoice' and record.journal_id:
                 if record.journal_id.l10n_ar_afip_pos_systeam == 'FEEWSPDV': #Sistema de Punto de Venta AFIP
                     #BORRAR DE LAS LINEAS EL IVA 21% Y COLOCAR EL IVA EXENTO
                     tax_exento = self.env['account.tax'].search([
