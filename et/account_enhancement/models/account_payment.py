@@ -162,7 +162,7 @@ class AccountPaymentInherit(models.Model):
         for record in self:
             if record.check_number and record.journal_id.code in ('CSH3', 'CSH4', 'ECHEQ'):
                 if len(record.check_number) > 8:
-                    raise ValidationError(_('El número de cheque debe tener entre 8 dígitos como máximo.'))
+                    raise ValidationError(_('El Número de cheque debe tener 8 dígitos como máximo.'))
 
     def write(self, vals):
         res = super(AccountPaymentInherit, self).write(vals)

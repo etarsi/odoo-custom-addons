@@ -655,55 +655,40 @@ class AccountMovelLineInherit(models.Model):
     
     def _forzar_reemplazo_product_id_con_nueve(self):
         for line in self:
-            if line.product_id and line.product_id.default_code:
-                #Agrego el caracter '9' en una variable
-                nueve = line.product_id.default_code[0]
-                if nueve == '9':
-                    continue
-                search_code = f'9{line.product_id.default_code}'
-                product_replace = self.env['product.product'].search([('default_code', '=', search_code)], limit=1)
-                if product_replace:
-                    name_product = f'[{product_replace.default_code}] {product_replace.name}'
-                    #ahora actualizo apuntes contable que tenga el mismo producto de la factura
-                    sql_move = "UPDATE account_move_line SET name = %s WHERE move_id = %s AND name = %s" # apuntes contables
-                    self.env.cr.execute(sql_move, (name_product, line.move_id.id, line.name))
-                    #actualizo el product_id
-                    sql = "UPDATE account_move_line SET product_id = %s WHERE id = %s"
-                    self.env.cr.execute(sql, (product_replace.id, line.id))
-                    if line.sale_line_ids:
-                        # actualizo el sale_order_line si existe
-                        sql_sale_order = "UPDATE sale_order_line SET product_id = %s WHERE id = %s"
-                        self.env.cr.execute(sql_sale_order, (product_replace.id, line.sale_line_ids.id))
-                else:
-                    raise UserError(f'No se encontró producto de reemplazo con código {search_code} para el producto {line.product_id.default_code}')
+            line._forzar_reemplazo_product_id(nueve=True)
                 
     def _forzar_reemplazo_product_id_sin_nueve(self):
         for line in self:
-            if line.product_id and line.product_id.default_code:
-                #Quito el primer caracter '9' en una variable
-                nueve = line.product_id.default_code[0]
-                if nueve != '9':
-                    continue
-                search_code = line.product_id.default_code[1:]  # Quito el primer caracter
-                product_replace = self.env['product.product'].search([('default_code', '=', search_code)], limit=1)
-                if product_replace:
-                    name_product = f'[{product_replace.default_code}] {product_replace.name}'
-                    #ahora actualizo apuntes contable que tenga el mismo producto de la factura
-                    sql_move = "UPDATE account_move_line SET name = %s WHERE move_id = %s AND name = %s" # apuntes contables
-                    self.env.cr.execute(sql_move, (name_product, line.move_id.id, line.name))
-                    #actualizo el product_id
-                    sql = "UPDATE account_move_line SET product_id = %s WHERE id = %s"
-                    self.env.cr.execute(sql, (product_replace.id, line.id))
-                    if line.sale_line_ids:
-                        # actualizo el sale_order_line si existe
-                        sql_sale_order = "UPDATE sale_order_line SET product_id = %s WHERE id = %s"
-                        self.env.cr.execute(sql_sale_order, (product_replace.id, line.sale_line_ids.id))
-                else:
-                    raise UserError(f'No se encontró producto de reemplazo con código {search_code} para el producto {line.product_id.default_code}')
+            line._forzar_reemplazo_product_id(nueve=False)
 
+    def _forzar_reemplazo_product_id(self, nueve=False):
+        self.ensure_one()
+        if self.product_id and self.product_id.default_code:
+            if nueve:        
+                if self.product_id.default_code[0] == '9':
+                    return False
+                search_code = f'9{self.product_id.default_code}'
+            else:
+                if self.product_id.default_code[0] != '9':
+                    return False
+                search_code = self.product_id.default_code[1:]
+            product_replace = self.env['product.product'].search([('default_code', '=', search_code)], limit=1)
+            if product_replace:
+                name_product = f'[{product_replace.default_code}] {product_replace.name}'
+                #ahora actualizo apuntes contable que tenga el mismo producto de la factura
+                sql_move = "UPDATE account_move_line SET name = %s WHERE move_id = %s AND name = %s" # apuntes contables
+                self.env.cr.execute(sql_move, (name_product, self.move_id.id, self.name))
+                #actualizo el product_id
+                sql = "UPDATE account_move_line SET product_id = %s WHERE id = %s"
+                self.env.cr.execute(sql, (product_replace.id, self.id))
+                if self.sale_line_ids:
+                    # actualizo el sale_order_line si existe
+                    sql_sale_order = "UPDATE sale_order_line SET product_id = %s, name = %s WHERE id = %s"
+                    self.env.cr.execute(sql_sale_order, (product_replace.id, name_product, self.sale_line_ids.id))
+            else:
+                raise ValidationError(f'No se encontró producto de reemplazo con código {search_code} para el producto {self.product_id.default_code}')            
+        
 
-    
-    
 #SOLO DEBERIA ESTAR ACTIVO PARA EL SERVIDOR DE TEST PARA HACER PRUEBAS CON AFIP
 #class AccountJournalInherit(models.Model):
 #    _inherit = 'account.journal'
