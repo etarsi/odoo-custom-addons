@@ -53,8 +53,11 @@
         <field name="inherit_id" ref="account_payment_group.view_account_payment_group_search"/>
         <field name="arch" type="xml">
             <xpath expr="//search" position="inside">
-                <filter name="archived" string="Archivados" domain="[('archived','=',True)]"/>
+                <filter name="cancel_archived" string="Cancelados y Archivados" domain="['|', ('state','=', 'cancel'), ('archived','=',True)]"/>      
                 <filter name="not_cancelled_archived" string="No Cancelados y Archivados" domain="[('state','!=','cancelled'),('archived','=',False)]" help="Muestra los grupos de pago que no están cancelados ni archivados."/>
+            </xpath>
+            <xpath expr="//search/field[@name='display_name']" position="after">
+                <field name="payment_ids" filter_domain="[('payment_ids.check_number', '=', self)]" string="Número Cheque"/>
             </xpath>
         </field>
     </record>
@@ -74,9 +77,10 @@
                 <separator/>
                 <field name="partner_id" string="Proveedor"/>
                 <field name="display_name" filter_domain="['|', ('name','ilike',self), ('communication','ilike',self)]" string="OP"/>
+                <field name="payment_ids" filter_domain="[('payment_ids.check_number', '=', self)]" string="Número Cheque"/>
                 <separator/>
                 <filter string="Empresa Activa" name="active_company" domain="[('company_id', '=', allowed_company_ids[0])]"/>
-                <filter name="archived" string="Archivados" domain="[('archived','=',True)]"/>
+                <filter name="cancel_archived" string="Cancelados y Archivados" domain="['|', ('state','=', 'cancel'), ('archived','=',True)]"/>                
                 <separator/>
                 <separator/>
                 <filter string="No cancelado y archivado" name="not_cancelled_archived" domain="[('state', '!=', 'cancelled'),('archived','=',False)]"/>
