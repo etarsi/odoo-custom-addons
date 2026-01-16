@@ -125,7 +125,7 @@ class AccountPaymentInherit(models.Model):
 
                             rec.l10n_latam_check_id.check_state = 'Pendiente'
 
-
+ 
     def action_reject_check(self):
         for rec in self:
             rec.rejected = True
@@ -155,3 +155,18 @@ class AccountPaymentInherit(models.Model):
                 record.hide_issue_date = False
             else:
                 record.hide_issue_date = True
+                
+    #VALIDAR check_number SEA MINIMO Y MAXIMO DE 8 DIGITOS
+    @api.onchange('check_number', 'journal_id')
+    def _constrains_check_number_length(self):
+        for record in self:
+            if record.check_number and record.journal_id.code == 'CSH3':
+                if len(record.check_number) > 8:
+                    raise ValidationError(_('El número de cheque debe tener entre 8 dígitos como máximo.'))
+
+    def write(self, vals):
+        res = super(AccountPaymentInherit, self).write(vals)
+        for payment in self:
+            if payment.journal_id.code == 'CSH3' and payment.check_number:
+                payment._constrains_check_number_length()
+        return res

@@ -3,7 +3,6 @@ odoo.define("account_enhancement.field_monetary_expr", function (require) {
 
     const field_registry = require("web.field_registry");
     const basic_fields = require("web.basic_fields");
-
     const FieldMonetary = basic_fields.FieldMonetary;
 
     function normalizeExpr(raw) {
