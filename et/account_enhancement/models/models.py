@@ -491,7 +491,7 @@ class AccountMoveInherit(models.Model):
                     #BORRAR DE LAS LINEAS EL IVA 21% Y COLOCAR EL IVA EXENTO
                     tax_exento = self.env['account.tax'].search([
                         ('type_tax_use', '=', 'sale'),
-                        ('company_id', '=', record.company_id.id)
+                        ('company_id', '=', record.company_id.id),
                         ('tax_group_id.l10n_ar_vat_afip_code', '=', '2')
                     ], limit=1)
                     for line in record.invoice_line_ids:
