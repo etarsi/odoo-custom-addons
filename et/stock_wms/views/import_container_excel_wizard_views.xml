@@ -32,11 +32,4 @@
         <field name="target">new</field>
     </record>
 
-    <!-- MENU ITEM -->
-    <menuitem
-        id="menu_import_container_excel_wizard"
-        name="Importar Contenedores"
-        parent="wms_enhancement.wms_logo"
-        action="action_view_import_container_excel_wizard_form"
-        sequence="20"/>
 </odoo>

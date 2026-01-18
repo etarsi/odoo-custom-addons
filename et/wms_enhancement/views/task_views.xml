@@ -1,0 +1,10 @@
+<odoo>
+  <data>
+    <menuitem 
+        id="wms_logo" 
+        name="WMS"
+        sequence="5"
+        web_icon="wms_enhancement,static/description/icon.png"
+    />
+  </data>
+</odoo>

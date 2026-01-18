@@ -1,10 +1,8 @@
-# -*- coding: utf-8 -*-
-
-# from odoo import models, fields, api
+from odoo import models, fields, api
 
 
-# class wms_enhancement(models.Model):
-#     _name = 'wms_enhancement.wms_enhancement'
+class WMSTask(models.Model):
+    _name = 'wms.task'
 #     _description = 'wms_enhancement.wms_enhancement'
 
 #     name = fields.Char()
