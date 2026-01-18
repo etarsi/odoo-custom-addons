@@ -6,6 +6,7 @@ from odoo.exceptions import AccessError, UserError, ValidationError
 import logging, json
 from datetime import date, datetime
 from odoo.tools.misc import format_date, format_amount
+from odoo.tools.float_utils import float_round, float_is_zero
 import base64
 _logger = logging.getLogger(__name__)
 
@@ -43,6 +44,8 @@ class AccountMoveInherit(models.Model):
     category_ids = fields.Many2many('product.category', string="Categoría", compute="_compute_category_ids")
     pricelist_id = fields.Many2one('product.pricelist', string="Lista de Precios")
     special_price = fields.Boolean(string="Precio Especial", default=False)
+    #Diferencia entre debit - credit 
+    balance_diff = fields.Float(string="Diferencia Debe - Haber", compute="_compute_balance_diff")
     
     # ENVIO DE CORREO---------------------------------------------------------
     def _get_default_invoice_mail_template(self):
@@ -86,6 +89,23 @@ class AccountMoveInherit(models.Model):
             "res_model": "account.move",
             "res_id": self.id,
         })
+        
+    #metodo de balance diff
+    @api.depends('line_ids.debit', 'line_ids.credit', 'move_type')
+    def _compute_balance_diff(self):
+        for record in self:
+            if record.move_type == 'entry' and record.line_ids:
+                total_debit = sum(record.line_ids.mapped("debit"))
+                total_credit = sum(record.line_ids.mapped("credit"))
+                diff = total_debit - total_credit
+                rounding = record.company_id.currency_id.rounding
+                diff = float_round(diff, precision_rounding=rounding)
+                # evitar -0.00
+                if float_is_zero(diff, precision_rounding=rounding):
+                    diff = 0.00
+                record.balance_diff = diff
+            else:
+                record.balance_diff = 0.00
    
     def action_mail_invoice_partner_send(self):
         """
@@ -463,6 +483,33 @@ class AccountMoveInherit(models.Model):
                     "date_deadline": target,
                 })
 
+    @api.onchange('journal_id', 'move_type')
+    def _journal_id_system_pdv_afip(self):
+        for record in self:
+            if record.move_type == 'out_invoice' and record.journal_id and record.state=='draft':
+                if record.journal_id.l10n_ar_afip_pos_system == 'FEEWS': #Sistema de Punto de Venta AFIP
+                    #BORRAR DE LAS LINEAS EL IVA 21% Y COLOCAR EL IVA EXENTO
+                    tax_exento = self.env['account.tax'].search([
+                        ('type_tax_use', '=', 'sale'),
+                        ('company_id', '=', record.company_id.id),
+                        ('tax_group_id.l10n_ar_vat_afip_code', '=', '2')
+                    ], limit=1)
+                    for line in record.invoice_line_ids:
+                        #quitamos el iva 21%
+                        taxes_21 = line.tax_ids.filtered(lambda t: t.tax_group_id.l10n_ar_vat_afip_code == '5')
+                        if taxes_21:
+                            line.tax_ids = [(3, tax.id) for tax in taxes_21]
+                        #agregamos el iva exento
+                        if tax_exento and tax_exento not in line.tax_ids:
+                            line.tax_ids = [(4, tax_exento.id)]
+                    #recalcular impuestos
+                    record._recompute_tax_lines()
+                    record.update_taxes()
+                    record._compute_amount()
+                    record._compute_tax_totals_json()
+                    
+                        
+
 
 
 class SaleOrderInherit(models.Model):
@@ -635,55 +682,40 @@ class AccountMovelLineInherit(models.Model):
     
     def _forzar_reemplazo_product_id_con_nueve(self):
         for line in self:
-            if line.product_id and line.product_id.default_code:
-                #Agrego el caracter '9' en una variable
-                nueve = line.product_id.default_code[0]
-                if nueve == '9':
-                    continue
-                search_code = f'9{line.product_id.default_code}'
-                product_replace = self.env['product.product'].search([('default_code', '=', search_code)], limit=1)
-                if product_replace:
-                    name_product = f'[{product_replace.default_code}] {product_replace.name}'
-                    #ahora actualizo apuntes contable que tenga el mismo producto de la factura
-                    sql_move = "UPDATE account_move_line SET name = %s WHERE move_id = %s AND name = %s" # apuntes contables
-                    self.env.cr.execute(sql_move, (name_product, line.move_id.id, line.name))
-                    #actualizo el product_id
-                    sql = "UPDATE account_move_line SET product_id = %s WHERE id = %s"
-                    self.env.cr.execute(sql, (product_replace.id, line.id))
-                    if line.sale_line_ids:
-                        # actualizo el sale_order_line si existe
-                        sql_sale_order = "UPDATE sale_order_line SET product_id = %s WHERE id = %s"
-                        self.env.cr.execute(sql_sale_order, (product_replace.id, line.sale_line_ids.id))
-                else:
-                    raise UserError(f'No se encontró producto de reemplazo con código {search_code} para el producto {line.product_id.default_code}')
+            line._forzar_reemplazo_product_id(nueve=True)
                 
     def _forzar_reemplazo_product_id_sin_nueve(self):
         for line in self:
-            if line.product_id and line.product_id.default_code:
-                #Quito el primer caracter '9' en una variable
-                nueve = line.product_id.default_code[0]
-                if nueve != '9':
-                    continue
-                search_code = line.product_id.default_code[1:]  # Quito el primer caracter
-                product_replace = self.env['product.product'].search([('default_code', '=', search_code)], limit=1)
-                if product_replace:
-                    name_product = f'[{product_replace.default_code}] {product_replace.name}'
-                    #ahora actualizo apuntes contable que tenga el mismo producto de la factura
-                    sql_move = "UPDATE account_move_line SET name = %s WHERE move_id = %s AND name = %s" # apuntes contables
-                    self.env.cr.execute(sql_move, (name_product, line.move_id.id, line.name))
-                    #actualizo el product_id
-                    sql = "UPDATE account_move_line SET product_id = %s WHERE id = %s"
-                    self.env.cr.execute(sql, (product_replace.id, line.id))
-                    if line.sale_line_ids:
-                        # actualizo el sale_order_line si existe
-                        sql_sale_order = "UPDATE sale_order_line SET product_id = %s WHERE id = %s"
-                        self.env.cr.execute(sql_sale_order, (product_replace.id, line.sale_line_ids.id))
-                else:
-                    raise UserError(f'No se encontró producto de reemplazo con código {search_code} para el producto {line.product_id.default_code}')
+            line._forzar_reemplazo_product_id(nueve=False)
 
+    def _forzar_reemplazo_product_id(self, nueve=False):
+        self.ensure_one()
+        if self.product_id and self.product_id.default_code:
+            if nueve:        
+                if self.product_id.default_code[0] == '9':
+                    return False
+                search_code = f'9{self.product_id.default_code}'
+            else:
+                if self.product_id.default_code[0] != '9':
+                    return False
+                search_code = self.product_id.default_code[1:]
+            product_replace = self.env['product.product'].search([('default_code', '=', search_code)], limit=1)
+            if product_replace:
+                name_product = f'[{product_replace.default_code}] {product_replace.name}'
+                #ahora actualizo apuntes contable que tenga el mismo producto de la factura
+                sql_move = "UPDATE account_move_line SET name = %s WHERE move_id = %s AND name = %s" # apuntes contables
+                self.env.cr.execute(sql_move, (name_product, self.move_id.id, self.name))
+                #actualizo el product_id
+                sql = "UPDATE account_move_line SET product_id = %s WHERE id = %s"
+                self.env.cr.execute(sql, (product_replace.id, self.id))
+                if self.sale_line_ids:
+                    # actualizo el sale_order_line si existe
+                    sql_sale_order = "UPDATE sale_order_line SET product_id = %s, name = %s WHERE id = %s"
+                    self.env.cr.execute(sql_sale_order, (product_replace.id, name_product, self.sale_line_ids.id))
+            else:
+                raise ValidationError(f'No se encontró producto de reemplazo con código {search_code} para el producto {self.product_id.default_code}')            
+        
 
-    
-    
 #SOLO DEBERIA ESTAR ACTIVO PARA EL SERVIDOR DE TEST PARA HACER PRUEBAS CON AFIP
 #class AccountJournalInherit(models.Model):
 #    _inherit = 'account.journal'

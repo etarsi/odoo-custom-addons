@@ -25,6 +25,7 @@ odoo.define("account_enhancement.move_line_footer_balance", function (require) {
                     debe += d;
                     haber += h;
                 });
+                console.log("Footer balance diff - debe:", debe, "haber:", haber);
 
                 const diff = Math.abs(haber - debe);
                 if (!diff) return $footer;
