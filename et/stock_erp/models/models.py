@@ -55,7 +55,7 @@ class StockERP(models.Model):
     def calculate_stock_value(self):
         for record in self:
             if record.fisico_unidades > 0:
-                pricelist = self.env['product.pricelist.item'].search([('pricelist_id', '=', 45), ('product_id','=', record.product_id.id)], limit=1)
+                pricelist = self.env['product.pricelist.item'].search([('pricelist_id', '=', 45), ('product_tmpl_id','=', record.product_id.product_tmpl_id)], limit=1)
                 
                 if pricelist:
                     record.pdl = pricelist.fixed_price
