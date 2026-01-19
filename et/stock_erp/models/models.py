@@ -49,6 +49,19 @@ class StockERP(models.Model):
     entrante_licencia = fields.Char('Licencia')
     digip_unidades = fields.Integer('Digip Unidades')
 
+    pdl = fields.Float(string="Precio de Lista")
+    valor = fields.Float(string="Valor")
+
+    def calculate_stock_value(self):
+        for record in self:
+            if record.fisico_unidades > 0:
+                pricelist = self.env['product.pricelist.item'].search([('pricelist_id', '=', 45), ('product_id','=', record.product_id.id)], limit=1)
+                
+                if pricelist:
+                    record.pdl = pricelist
+
+                record.valor = pricelist * record.fisico_unidades
+
     def update_cantidad_entregada_line(self):
         for record in self:
             if record.move_lines_reserved:
