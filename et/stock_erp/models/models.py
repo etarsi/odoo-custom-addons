@@ -58,9 +58,9 @@ class StockERP(models.Model):
                 pricelist = self.env['product.pricelist.item'].search([('pricelist_id', '=', 45), ('product_id','=', record.product_id.id)], limit=1)
                 
                 if pricelist:
-                    record.pdl = pricelist
+                    record.pdl = pricelist.fixed_price
 
-                record.valor = pricelist * record.fisico_unidades
+                record.valor = record.pdl * record.fisico_unidades
 
     def update_cantidad_entregada_line(self):
         for record in self:
