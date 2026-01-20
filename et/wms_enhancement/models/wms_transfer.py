@@ -14,7 +14,7 @@ class WMSTransfer(models.Model):
     sale_type = fields.Char(string="TIPO")
     sale_id = fields.Many2one(string="Pedido de Venta", comodel_name="sale.order")
     purchase_id = fields.Many2one(string="Pedido de Compra", comodel_name="purchase.order")
-    invoice_ids = fields.One2many(string="Facturas", comodel_name="account.move", inverse_name="transfer_id")
+    # invoice_ids = fields.One2many(string="Facturas", comodel_name="account.move", inverse_name="transfer_id")
     line_ids = fields.One2many(string="Líneas de  Transferencia", comodel_name="wms.transfer.line", inverse_name="transfer_id")
     task_ids = fields.One2many(string="Tareas", comodel_name="wms.task", inverse_name="transfer_id")
 
