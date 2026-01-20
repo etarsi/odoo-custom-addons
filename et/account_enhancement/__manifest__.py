@@ -34,7 +34,7 @@
         ],  
     },
     # any module necessary for this one to work correctly
-    'depends': ['base', 'web', 'account', 'web_refresher', 'account_check_printing', 'account_payment_group', 'l10n_latam_check', 'l10n_ar', 'l10n_ar_reports','l10n_ar_afipws_fe', 'mail', 'sale', 'product', 'sale_enhancement', 'l10n_ar_ux', 'account_financial_report', 'wms_enhancement'],
+    'depends': ['base', 'web', 'account', 'web_refresher', 'account_check_printing', 'account_payment_group', 'l10n_latam_check', 'l10n_ar', 'l10n_ar_reports','l10n_ar_afipws_fe', 'mail', 'sale', 'product', 'sale_enhancement', 'l10n_ar_ux', 'account_financial_report'],
 
     # always loaded
     'data': [
