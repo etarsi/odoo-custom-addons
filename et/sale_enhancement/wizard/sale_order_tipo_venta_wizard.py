@@ -108,6 +108,7 @@ class SaleOrderTipoVentaWizard(models.TransientModel):
                     'company_id': self.company_id.id,
                     'location_id': warehouse.lot_stock_id.id,
                     'warehouse_id': warehouse.id,
+                    'picking_type_id': warehouse.out_type_id.id,
                 }
                 move.write(vals_move)
             #y los move lines
@@ -144,6 +145,7 @@ class SaleOrderTipoVentaWizard(models.TransientModel):
                             'company_id': self.company_id.id,
                             'location_id': warehouse.lot_stock_id.id,
                             'warehouse_id': warehouse.id,
+                            'picking_type_id': warehouse.out_type_id.id,
                         }
                         move.write(vals_move)
                     #y los move lines
@@ -166,7 +168,14 @@ class SaleOrderTipoVentaWizard(models.TransientModel):
                 invoices = picking.mapped('invoice_ids').filtered(lambda inv: inv.state not in ('posted', 'cancel'))
                 if invoices:
                     for invoice in invoices:
+                        journal_id = self.env['account.journal'].search([
+                            ('type', '=', 'sale'),
+                            ('company_id', '=', self.company_id.id),
+                            ('code', '=', invoice.journal_id.code)], limit=1)
+                        if not journal_id:
+                            raise UserError(_('No se encontró un diario de ventas para la compañía %s. Verifique su configuración de Diarios.') % self.company_id.name)
                         invoice.write({
+                            'journal_id': journal_id.id,
                             'company_id': self.company_id.id,
                         })
                         #recompute taxes
