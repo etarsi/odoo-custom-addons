@@ -8,6 +8,7 @@ class WMSStockLocation(models.Model):
     product_id = fields.Many2one(string="Producto", comodel_name="product.product")
     
     
+    
 #     value2 = fields.Float(compute="_value_pc", store=True)
 #     description = fields.Text()
 #

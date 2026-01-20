@@ -1,11 +1,12 @@
 from odoo import models, fields, api
 
 
-class WMSStockLocation(models.Model):
-    _name = 'wms.stock.location'
+class WMSArea(models.Model):
+    _name = 'wms.area'
 
     name = fields.Char()
     product_id = fields.Many2one(string="Producto", comodel_name="product.product")
+    
     
     
 #     value2 = fields.Float(compute="_value_pc", store=True)

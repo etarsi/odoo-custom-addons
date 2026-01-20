@@ -1,10 +1,144 @@
+<?xml version="1.0" encoding="utf-8"?>
 <odoo>
-  <data>
-    <menuitem 
-        id="wms_logo" 
-        name="WMS"
-        sequence="5"
-        web_icon="wms_enhancement,static/description/icon.png"
-    />
-  </data>
+    <!-- =========================================================
+         TREE VIEW
+    ========================================================== -->
+    <record id="view_wms_transfer_tree" model="ir.ui.view">
+        <field name="name">wms.transfer.tree</field>
+        <field name="model">wms.transfer</field>
+        <field name="arch" type="xml">
+            <tree string="Transferencias WMS">
+                <field name="name"/>
+                <field name="operation_type"/>
+                <field name="partner_id"/>
+                <field name="partner_address_id"/>
+                <field name="sale_type"/>
+                <field name="sale_id"/>
+                <field name="purchase_id"/>
+            </tree>
+        </field>
+    </record>
+
+    <!-- =========================================================
+         FORM VIEW
+    ========================================================== -->
+    <record id="view_wms_transfer_form" model="ir.ui.view">
+        <field name="name">wms.transfer.form</field>
+        <field name="model">wms.transfer</field>
+        <field name="arch" type="xml">
+            <form string="Transferencia WMS">
+                <sheet>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="name" placeholder="TRF/..." />
+                        </h1>
+                    </div>
+
+                    <group>
+                        <group>
+                            <field name="operation_type"/>
+                            <field name="sale_type"/>
+                        </group>
+                        <group>
+                            <field name="partner_id"/>
+                            <field name="partner_address_id"/>
+                        </group>
+                    </group>
+
+                    <group>
+                        <group>
+                            <field name="sale_id"/>
+                        </group>
+                        <group>
+                            <field name="purchase_id"/>
+                        </group>
+                    </group>
+
+                    <notebook>
+                        <page string="Líneas">
+                            <field name="line_ids" context="{'default_transfer_id': active_id}">
+                                <tree editable="bottom">
+                                    <!-- Ajustá estos campos según tu modelo wms.transfer.line -->
+                                    <field name="product_id" optional="show"/>
+                                    <field name="lot_id" optional="show"/>
+                                    <field name="qty" optional="show"/>
+                                    <field name="uom_id" optional="show"/>
+                                </tree>
+                                <form>
+                                    <group>
+                                        <field name="product_id"/>
+                                        <field name="lot_id"/>
+                                        <field name="qty"/>
+                                        <field name="uom_id"/>
+                                    </group>
+                                </form>
+                            </field>
+                        </page>
+
+                        <page string="Tareas">
+                            <field name="task_ids" context="{'default_transfer_id': active_id}">
+                                <tree editable="bottom">
+                                    <!-- Ajustá estos campos según tu modelo wms.task -->
+                                    <field name="name" optional="show"/>
+                                    <field name="state" optional="show"/>
+                                    <field name="user_id" optional="show"/>
+                                </tree>
+                                <form>
+                                    <group>
+                                        <field name="name"/>
+                                        <field name="state"/>
+                                        <field name="user_id"/>
+                                    </group>
+                                </form>
+                            </field>
+                        </page>
+
+                        <page string="Facturas">
+                            <field name="invoice_ids">
+                                <tree>
+                                    <!-- Si invoice_ids es account.move, estos campos existen -->
+                                    <field name="name" optional="show"/>
+                                    <field name="move_type" optional="show"/>
+                                    <field name="invoice_date" optional="show"/>
+                                    <field name="partner_id" optional="show"/>
+                                    <field name="amount_total" optional="show"/>
+                                    <field name="payment_state" optional="show"/>
+                                    <field name="state" optional="show"/>
+                                </tree>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- =========================================================
+         ACTION
+    ========================================================== -->
+    <record id="action_wms_transfer" model="ir.actions.act_window">
+        <field name="name">Transferencias</field>
+        <field name="res_model">wms.transfer</field>
+        <field name="view_mode">tree,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Creá tu primera transferencia WMS
+            </p>
+          </field>
+    </record>
+
+    <!-- =========================================================
+         MENUS
+    ========================================================== -->
+    <!-- Menú raíz del WMS (si ya lo tenés, borrá este bloque y apuntá al tuyo) -->
+    
+    <menuitem id="menu_wms_root"
+              name="WMS"
+              sequence="10"/>
+
+    <menuitem id="menu_wms_transfers"
+              name="Transferencias"
+              parent="menu_wms_root"
+              action="action_wms_transfer"
+              sequence="20"/>
 </odoo>

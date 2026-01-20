@@ -13,6 +13,7 @@ _logger = logging.getLogger(__name__)
 class AccountMoveInherit(models.Model):
     _inherit = 'account.move'
 
+    transfer_id = fields.Many2one(string="Transferencia", comodel_name="wms.transfer")
     wms_code = fields.Char(string="Código WMS")
     executive_id = fields.Many2one(
         'res.users',

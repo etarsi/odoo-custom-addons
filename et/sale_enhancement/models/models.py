@@ -711,6 +711,10 @@ class SaleOrderLineInherit(models.Model):
     stock_erp = fields.Many2one('stock.erp')
     stock_moves_erp = fields.Many2one('stock.moves.erp')
     
+    quantity_delivered = fields.Integer(string="Cantidad Entregada")
+    quantity_invoiced = fields.Integer(string="Cantidad Facturada")
+
+
     def create(self, vals):
         res = super().create(vals)
         for rec in res:
