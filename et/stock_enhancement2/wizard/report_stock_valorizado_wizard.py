@@ -110,8 +110,8 @@ class ReportStockValorizadoWizard(models.TransientModel):
             stock_erp = self.env['stock.erp'].search([('product_id', '=', product.id)], limit=1)
             if not stock_erp:
                 continue
-            
-            valor = self.price_list_id.fixed_price * stock_erp.fisico_unidades
+            pricelist_item = self.env['product.pricelist.item'].search([('pricelist_id', '=', self.price_list_id.id), ('product_tmpl_id', '=', product.id)], limit=1)
+            valor = pricelist_item.fixed_price * stock_erp.fisico_unidades if pricelist_item else 0.0
             bultos = (stock_erp.fisico_unidades / stock_erp.uxb) if stock_erp.uxb else 0.0
 
             worksheet.write(row, 0, product.default_code, fmt_text2)
@@ -121,7 +121,7 @@ class ReportStockValorizadoWizard(models.TransientModel):
             worksheet.write(row, 4, stock_erp.fisico_unidades, fmt_int)
             worksheet.write(row, 5, stock_erp.uxb, fmt_int)
             worksheet.write(row, 6, bultos, fmt_dec2)
-            worksheet.write(row, 7, self.price_list_id.fixed_price, fmt_dec2)
+            worksheet.write(row, 7, pricelist_item.fixed_price if pricelist_item else 0.0, fmt_dec2)
             worksheet.write(row, 8, valor, fmt_dec2)
             row += 1
         workbook.close()
