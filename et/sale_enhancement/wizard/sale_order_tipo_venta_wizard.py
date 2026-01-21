@@ -95,7 +95,10 @@ class SaleOrderTipoVentaWizard(models.TransientModel):
 
         #modificar los stock pickings asociados si no estan done o cancelados
         pickings = sale.mapped('picking_ids').filtered(lambda p: p.state not in ('done', 'cancel'))
-        for picking in pickings:            
+        for picking in pickings:       
+            #nuevo nombre del picking
+            name_parts = picking.name.split('/', 2)
+            new_name = self.name_company(self.company_id.id) + '/' + name_parts[1] + '/' + name_parts[2]     
             rule = self.env['stock.rule'].search([
                 ('warehouse_id', '=', warehouse.id),
                 ('location_src_id', '=', warehouse.lot_stock_id.id),
@@ -119,6 +122,7 @@ class SaleOrderTipoVentaWizard(models.TransientModel):
                 })
             #finalmente el picking
             picking.write({
+                'name': new_name,
                 'company_id': self.company_id.id,
                 'location_id': warehouse.lot_stock_id.id,
             })
@@ -132,6 +136,10 @@ class SaleOrderTipoVentaWizard(models.TransientModel):
         picking_dones = sale.mapped('picking_ids').filtered(lambda p: p.state == 'done')
         if picking_dones:
             for picking in picking_dones:
+                #nuevo nombre del picking
+                name_parts = picking.name.split('/', 2)
+                new_name = self.name_company(self.company_id.id) + '/' + name_parts[1] + '/' + name_parts[2]
+
                 if not picking.invoice_ids:
                     rule = self.env['stock.rule'].search([
                         ('warehouse_id', '=', warehouse.id),
@@ -154,10 +162,6 @@ class SaleOrderTipoVentaWizard(models.TransientModel):
                             'company_id': self.company_id.id,
                             'location_id': warehouse.lot_stock_id.id,
                         })
-                    #nombre de la company
-                    #quiero quitar el texto ejemplo BECHA/OUT/003 y dejar solo /OUT/0003
-                    name_parts = picking.name.split('/', 2)
-                    new_name = self.name_company(self.company_id.id) + '/' + name_parts[1] + '/' + name_parts[2]
                     #finalmente el picking
                     picking.write({
                         'name': new_name,
