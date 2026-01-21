@@ -59,8 +59,13 @@ class ReportStockValorizadoWizard(models.TransientModel):
         fmt_text = workbook.add_format({'border': 1, 'align': 'left', 'valign': 'vcenter'})
         fmt_text2 = workbook.add_format({'border': 1, 'align': 'center', 'valign': 'vcenter'})
         fmt_int = workbook.add_format({'border': 1, 'align': 'center', 'valign': 'vcenter', 'num_format': '0'})
+        fmt_dec = workbook.add_format({'border': 1, 'align': 'center', '', 'valign': 'vcenter', 'num_format': '0.00'})
         fmt_dec2 = workbook.add_format({'border': 1, 'align': 'center', 'valign': 'vcenter', 'num_format': '"$" #,##0.00'})
-        rm_text = workbook.add_format({'align': 'left', 'valign': 'vcenter'})
+        rm_dec2 = workbook.add_format({'align': 'left', 'valign': 'vcenter', 'num_format': '"$" #,##0.00'})
+        rm_text = workbook.add_format({'align': 'left', 'valign': 'vcenter', 'blold': True})
+        #formato contabilidad
+        fcont_dec = workbook.add_format({'border': 1, 'align': 'center', 'valign': 'vcenter', 'num_format': '_($* #,##0.00_);_($* (#,##0.00);_($* "-"??_);_(@_)'})
+        fcont_dec2 = workbook.add_format({'align': 'center', 'valign': 'vcenter', 'num_format': '_($* #,##0.00_);_($* (#,##0.00);_($* "-"??_);_(@_)'})
 
         # =========================
         # COLUMNAS
@@ -141,19 +146,19 @@ class ReportStockValorizadoWizard(models.TransientModel):
         # =========================
         #totales
         worksheet.write(row, 3, 'TOTALS:', fmt_header)
-        worksheet.write(row, 6, total_bultos, fmt_dec2)
-        worksheet.write(row, 7, total_precio_lista, fmt_dec2)
-        worksheet.write(row, 8, total_valorizado, fmt_dec2)
+        worksheet.write(row, 6, total_bultos, fcont_dec)
+        worksheet.write(row, 7, total_precio_lista, fcont_dec)
+        worksheet.write(row, 8, total_valorizado, fcont_dec)
         # =========================
         #DEBAJO DE RESUMEN, ANTES DE DETALLE
         worksheet.write(3, 0, 'TOTAL VALORIZADO:', rm_text)
-        worksheet.write(3, 1, total_valorizado, fmt_dec2)
+        worksheet.write(3, 1, total_valorizado, fcont_dec2)
         worksheet.write(4, 0, 'TOTAL BULTOS:', rm_text)
-        worksheet.write(4, 1, total_bultos, fmt_dec2)
+        worksheet.write(4, 1, total_bultos, fcont_dec2)
         worksheet.write(5, 0, 'TOTAL CONTENEDORES:', rm_text)
-        worksheet.write(5, 1, total_contenedores, fmt_dec2)
+        worksheet.write(5, 1, total_contenedores, fcont_dec2)
         worksheet.write(6, 0, 'CONTENEDORES POR ENTRAR:', rm_text)
-        worksheet.write(6, 1, contenedores_x_entrar, fmt_dec2)
+        worksheet.write(6, 1, contenedores_x_entrar, fcont_dec2)
         
         workbook.close()
         output.seek(0)
