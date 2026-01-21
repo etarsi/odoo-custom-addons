@@ -169,7 +169,7 @@ class SaleOrderTipoVentaWizard(models.TransientModel):
                         'location_id': warehouse.lot_stock_id.id,
                     })
                     # forzar el cambio de nombre en pickings done
-                    self.forzar_name_picking_done(picking, new_name)
+                    #self.forzar_name_picking_done(picking, new_name)
                     # agregar en el chat del picking la modificación realizada y quien la hizo
                     picking.message_post(body=_('Compañía modificada a "%s" por el usuario %s desde el asistente de modificación de tipo de venta del pedido de venta asociado.') % (
                         self.company_id.name,
