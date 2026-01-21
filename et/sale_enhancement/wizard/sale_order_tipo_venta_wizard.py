@@ -134,7 +134,7 @@ class SaleOrderTipoVentaWizard(models.TransientModel):
         picking_dones = sale.mapped('picking_ids').filtered(lambda p: p.state == 'done')
         if picking_dones:
             for picking in picking_dones:
-                if not picking.invoice_ids or (picking.invoice_ids and picking.mapped('invoice_ids').filtered(lambda inv: inv.state not in ('posted', 'cancel'))):
+                if not picking.invoice_ids or (picking.invoice_ids and picking.mapped('invoice_ids').filtered(lambda inv: inv.state == 'draft')):
                     rule = self.env['stock.rule'].search([
                         ('warehouse_id', '=', warehouse.id),
                         ('location_src_id', '=', warehouse.lot_stock_id.id),
