@@ -179,7 +179,8 @@ class SaleOrderTipoVentaWizard(models.TransientModel):
                             'company_id': self.company_id.id,
                         })
                         #recompute taxes
-                        invoice._compute_tax_id()
+                        invoice.update_taxes()
+                        invoice._compute_amount()
                         # agregar en el chat de la factura la modificación realizada y quien la hizo
                         invoice.message_post(body=_('Compañía modificada a "%s" por el usuario %s desde el asistente de modificación de tipo de venta del pedido de venta asociado.') % (
                             self.company_id.name, self.env.user.name,
