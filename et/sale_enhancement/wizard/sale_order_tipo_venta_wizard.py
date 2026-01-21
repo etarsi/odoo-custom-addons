@@ -164,7 +164,6 @@ class SaleOrderTipoVentaWizard(models.TransientModel):
                         })
                     #finalmente el picking
                     picking.write({
-                        'name': new_name,
                         'company_id': self.company_id.id,
                         'location_id': warehouse.lot_stock_id.id,
                     })
@@ -173,6 +172,11 @@ class SaleOrderTipoVentaWizard(models.TransientModel):
                         self.company_id.name,
                         self.env.user.name,
                     ))
+                    # Forzar actualización del nombre mediante SQL para evitar conflictos con secuencias
+                    sql = """
+                        UPDATE stock_picking SET name = %s WHERE id = %s
+                    """ 
+                    self.env.cr.execute(sql, (new_name, picking.id))
                 #ahora las facturas asociadas
                 invoices = picking.mapped('invoice_ids').filtered(lambda inv: inv.state not in ('posted', 'cancel'))
                 if invoices:
