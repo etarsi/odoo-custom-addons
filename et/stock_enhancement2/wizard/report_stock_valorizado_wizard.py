@@ -32,7 +32,7 @@ class ReportStockValorizadoWizard(models.TransientModel):
     def action_generar_excel(self):
         output = io.BytesIO()
         workbook = xlsxwriter.Workbook(output, {'in_memory': True})
-        worksheet = workbook.add_worksheet('Inventario')
+        worksheet = workbook.add_worksheet('Valorización de Stock')
 
         # =========================
         # FORMATOS
@@ -60,6 +60,7 @@ class ReportStockValorizadoWizard(models.TransientModel):
         fmt_text2 = workbook.add_format({'border': 1, 'align': 'center', 'valign': 'vcenter'})
         fmt_int = workbook.add_format({'border': 1, 'align': 'center', 'valign': 'vcenter', 'num_format': '0'})
         fmt_dec2 = workbook.add_format({'border': 1, 'align': 'center', 'valign': 'vcenter', 'num_format': '0.00'})
+        rm_text = workbook.add_format({'align': 'left', 'valign': 'vcenter'})
 
         # =========================
         # COLUMNAS
@@ -71,7 +72,7 @@ class ReportStockValorizadoWizard(models.TransientModel):
         worksheet.set_column(4, 4, 12)  # UNIDADES
         worksheet.set_column(5, 5, 12)  # UxB
         worksheet.set_column(6, 6, 12)  # BULTOS
-        worksheet.set_column(7, 7, 12)  # PRECIO DE LISTA
+        worksheet.set_column(7, 7, 20)  # PRECIO DE LISTA
         worksheet.set_column(8, 8, 20)  # VALOR
         
 
@@ -106,13 +107,18 @@ class ReportStockValorizadoWizard(models.TransientModel):
         # DATA
         # =========================
         row = 9  # empezamos justo debajo de headers
+        total_valorizado = 0.0
+        total_bultos = 0.0
+        total_precio_lista = 0.0
+        total_contenedores = 0.0
+        contenedores_x_entrar = 0.0
         for product in products:
             #marketing exclusion
             parent_id = self.env['product.category'].search([('name', 'in', ['MARKETING', 'INSUMOS'])], limit=1)
             if parent_id and product.categ_id.parent_id and product.categ_id.parent_id.id == parent_id.id:
                 continue
             stock_erp = self.env['stock.erp'].search([('product_id', '=', product.id)], limit=1)
-            if not stock_erp:
+            if not stock_erp or stock_erp.fisico_unidades <= 0:
                 continue
             pricelist_item = self.env['product.pricelist.item'].search([('pricelist_id', '=', self.price_list_id.id), ('product_tmpl_id', '=', product.id)], limit=1)
             valor = pricelist_item.fixed_price * stock_erp.fisico_unidades if pricelist_item else 0.0
@@ -128,6 +134,26 @@ class ReportStockValorizadoWizard(models.TransientModel):
             worksheet.write(row, 7, pricelist_item.fixed_price if pricelist_item else 0.0, fmt_dec2)
             worksheet.write(row, 8, valor, fmt_dec2)
             row += 1
+            total_valorizado += valor
+            total_bultos += bultos
+            total_precio_lista += pricelist_item.fixed_price if pricelist_item else 0.0
+        # =========================
+        #totales
+        worksheet.write(row, 3, 'TOTALS:', fmt_header)
+        worksheet.write(row, 6, total_bultos, fmt_dec2)
+        worksheet.write(row, 7, total_precio_lista, fmt_dec2)
+        worksheet.write(row, 8, total_valorizado, fmt_dec2)
+        # =========================
+        #DEBAJO DE RESUMEN, ANTES DE DETALLE
+        worksheet.write(3, 0, 'TOTAL VALORIZADO:', rm_text)
+        worksheet.write(3, 1, total_valorizado, fmt_dec2)
+        worksheet.write(4, 0, 'TOTAL BULTOS:', rm_text)
+        worksheet.write(4, 1, total_bultos, fmt_dec2)
+        worksheet.write(5, 0, 'TOTAL CONTENEDORES:', rm_text)
+        worksheet.write(5, 1, total_contenedores, fmt_dec2)
+        worksheet.write(6, 0, 'CONTENEDORES POR ENTRAR:', rm_text)
+        worksheet.write(6, 1, contenedores_x_entrar, fmt_dec2)
+        
         workbook.close()
         output.seek(0)
         archivo_excel = base64.b64encode(output.read())
