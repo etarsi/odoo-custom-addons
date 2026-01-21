@@ -154,8 +154,13 @@ class SaleOrderTipoVentaWizard(models.TransientModel):
                             'company_id': self.company_id.id,
                             'location_id': warehouse.lot_stock_id.id,
                         })
+                    #nombre de la company
+                    #quiero quitar el texto ejemplo BECHA/OUT/003 y dejar solo /OUT/0003
+                    name_parts = picking.name.split('/', 2)
+                    new_name = self.name_company(self.company_id.id) + '/' + name_parts[1] + '/' + name_parts[2]
                     #finalmente el picking
                     picking.write({
+                        'name': new_name,
                         'company_id': self.company_id.id,
                         'location_id': warehouse.lot_stock_id.id,
                     })
@@ -186,3 +191,14 @@ class SaleOrderTipoVentaWizard(models.TransientModel):
                             self.company_id.name, self.env.user.name,
                         ))
         return {'type': 'ir.actions.act_window_close'}
+    
+    
+    def name_company(self, company_id):
+        if company_id == 1:
+            return 'PRD'
+        elif company_id == 2:
+            return 'SEBIG'
+        elif company_id == 3:
+            return 'BECHA'
+        elif company_id == 4:
+            return 'FUN T'
