@@ -59,7 +59,7 @@ class ReportStockValorizadoWizard(models.TransientModel):
         fmt_text = workbook.add_format({'border': 1, 'align': 'left', 'valign': 'vcenter'})
         fmt_text2 = workbook.add_format({'border': 1, 'align': 'center', 'valign': 'vcenter'})
         fmt_int = workbook.add_format({'border': 1, 'align': 'center', 'valign': 'vcenter', 'num_format': '0'})
-        fmt_dec2 = workbook.add_format({'border': 1, 'align': 'center', 'valign': 'vcenter', 'num_format': '0.00'})
+        fmt_dec2 = workbook.add_format({'border': 1, 'align': 'center', 'valign': 'vcenter', 'num_format': '"$" #,##0.00'})
         rm_text = workbook.add_format({'align': 'left', 'valign': 'vcenter'})
 
         # =========================
