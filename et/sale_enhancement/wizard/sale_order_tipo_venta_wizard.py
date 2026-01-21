@@ -96,9 +96,6 @@ class SaleOrderTipoVentaWizard(models.TransientModel):
         #modificar los stock pickings asociados si no estan done o cancelados
         pickings = sale.mapped('picking_ids').filtered(lambda p: p.state not in ('done', 'cancel'))
         for picking in pickings:       
-            #nuevo nombre del picking
-            name_parts = picking.name.split('/', 2)
-            new_name = self.name_company(self.company_id.id) + '/' + name_parts[1] + '/' + name_parts[2]     
             rule = self.env['stock.rule'].search([
                 ('warehouse_id', '=', warehouse.id),
                 ('location_src_id', '=', warehouse.lot_stock_id.id),
@@ -137,11 +134,7 @@ class SaleOrderTipoVentaWizard(models.TransientModel):
         picking_dones = sale.mapped('picking_ids').filtered(lambda p: p.state == 'done')
         if picking_dones:
             for picking in picking_dones:
-                #nuevo nombre del picking
-                name_parts = picking.name.split('/', 2)
-                new_name = self.name_company(self.company_id.id) + '/' + name_parts[1] + '/' + name_parts[2]
-
-                if not picking.invoice_ids:
+                if not picking.invoice_ids or (picking.invoice_ids and picking.mapped('invoice_ids').filtered(lambda inv: inv.state not in ('posted', 'cancel'))):
                     rule = self.env['stock.rule'].search([
                         ('warehouse_id', '=', warehouse.id),
                         ('location_src_id', '=', warehouse.lot_stock_id.id),
@@ -175,27 +168,28 @@ class SaleOrderTipoVentaWizard(models.TransientModel):
                         self.company_id.name,
                         self.env.user.name,
                     ))
-                #ahora las facturas asociadas
-                invoices = picking.mapped('invoice_ids').filtered(lambda inv: inv.state not in ('posted', 'cancel'))
-                if invoices:
-                    for invoice in invoices:
-                        journal_id = self.env['account.journal'].search([
-                            ('type', '=', 'sale'),
-                            ('company_id', '=', self.company_id.id),
-                            ('code', '=', invoice.journal_id.code)], limit=1)
-                        if not journal_id:
-                            raise UserError(_('No se encontró un diario de ventas para la compañía %s. Verifique su configuración de Diarios.') % self.company_id.name)
-                        invoice.write({
-                            'journal_id': journal_id.id,
-                            'company_id': self.company_id.id,
-                        })
-                        #recompute taxes
-                        invoice.update_taxes()
-                        invoice._compute_amount()
-                        # agregar en el chat de la factura la modificación realizada y quien la hizo
-                        invoice.message_post(body=_('Compañía modificada a "%s" por el usuario %s desde el asistente de modificación de tipo de venta del pedido de venta asociado.') % (
-                            self.company_id.name, self.env.user.name,
-                        ))
+                    #ahora las facturas asociadas
+                    if picking.invoice_ids:
+                        invoices = picking.invoice_ids.filtered(lambda inv: inv.state not in ('posted', 'cancel'))
+                        if invoices:
+                            for invoice in invoices:
+                                journal_id = self.env['account.journal'].search([
+                                    ('type', '=', 'sale'),
+                                    ('company_id', '=', self.company_id.id),
+                                    ('code', '=', invoice.journal_id.code)], limit=1)
+                                if not journal_id:
+                                    raise UserError(_('No se encontró un diario de ventas para la compañía %s. Verifique su configuración de Diarios.') % self.company_id.name)
+                                invoice.write({
+                                    'journal_id': journal_id.id,
+                                    'company_id': self.company_id.id,
+                                })
+                                #recompute taxes
+                                invoice.update_taxes()
+                                invoice._compute_amount()
+                                # agregar en el chat de la factura la modificación realizada y quien la hizo
+                                invoice.message_post(body=_('Compañía modificada a "%s" por el usuario %s desde el asistente de modificación de tipo de venta del pedido de venta asociado.') % (
+                                    self.company_id.name, self.env.user.name,
+                                ))
         return {'type': 'ir.actions.act_window_close'}
     
     
