@@ -82,13 +82,17 @@ class ReportStockValorizadoWizard(models.TransientModel):
         # TITULO
         # =========================
         worksheet.merge_range(0, 0, 0, 8, 'REPORTE DE VALORIZACIÓN', fmt_title)
+        #RESUMEN
+        worksheet.merge_range(1, 0, 1, 8, 'RESUMEN', fmt_title)
+        #DETALLE
+        worksheet.merge_range(7, 0, 7, 8, 'DETALLE', fmt_title)
 
         # =========================
         # ENCABEZADOS
         # =========================
         headers = ['CODIGO', 'DESCRIPCION', 'MARCA', 'RUBRO', 'UNIDADES', 'UxB', 'BULTOS', 'PRECIO DE LISTA', 'VALOR']
         for col, h in enumerate(headers):
-            worksheet.write(5, col, h, fmt_header)
+            worksheet.write(8, col, h, fmt_header)
 
         # =========================
         # DOMAIN
@@ -101,7 +105,7 @@ class ReportStockValorizadoWizard(models.TransientModel):
         # =========================
         # DATA
         # =========================
-        row = 6  # empezamos justo debajo de headers
+        row = 9  # empezamos justo debajo de headers
         for product in products:
             #marketing exclusion
             parent_id = self.env['product.category'].search([('name', 'in', ['MARKETING', 'INSUMOS'])], limit=1)
