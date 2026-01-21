@@ -36,6 +36,7 @@
         'views/views.xml',
         'views/delivery_carrier_views.xml',
         'views/report_stock_picking_wizard_views.xml',
+        'views/report_stock_valorizado_wizard_views.xml',
         'views/report_stock_picking_factura_wizard_views.xml',
         'views/report_resumen_stock_wizard_views.xml',
         #'views/stock_picking_views.xml',
