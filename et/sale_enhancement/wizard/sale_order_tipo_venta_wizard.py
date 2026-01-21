@@ -122,10 +122,11 @@ class SaleOrderTipoVentaWizard(models.TransientModel):
                 })
             #finalmente el picking
             picking.write({
-                'name': new_name,
                 'company_id': self.company_id.id,
                 'location_id': warehouse.lot_stock_id.id,
             })
+            # forzar el cambio de nombre en pickings done
+            self.forzar_name_picking_done(picking, new_name)
             # agregar en el chat del picking la modificación realizada y quien la hizo
             picking.message_post(body=_('Compañía modificada a "%s" por el usuario %s desde el asistente de modificación de tipo de venta del pedido de venta asociado.') % (
                 self.company_id.name,
@@ -167,16 +168,13 @@ class SaleOrderTipoVentaWizard(models.TransientModel):
                         'company_id': self.company_id.id,
                         'location_id': warehouse.lot_stock_id.id,
                     })
+                    # forzar el cambio de nombre en pickings done
+                    self.forzar_name_picking_done(picking, new_name)
                     # agregar en el chat del picking la modificación realizada y quien la hizo
                     picking.message_post(body=_('Compañía modificada a "%s" por el usuario %s desde el asistente de modificación de tipo de venta del pedido de venta asociado.') % (
                         self.company_id.name,
                         self.env.user.name,
                     ))
-                    ## Forzar actualización del nombre mediante SQL para evitar conflictos con secuencias
-                    #sql = """
-                    #    UPDATE stock_picking SET name = %s WHERE id = %s
-                    #""" 
-                    #self.env.cr.execute(sql, (new_name, picking.id))
                 #ahora las facturas asociadas
                 invoices = picking.mapped('invoice_ids').filtered(lambda inv: inv.state not in ('posted', 'cancel'))
                 if invoices:
@@ -210,3 +208,8 @@ class SaleOrderTipoVentaWizard(models.TransientModel):
             return 'BECHA'
         elif company_id == 4:
             return 'FUN T'
+
+    def forzar_name_picking_done(self, picking, new_name):
+        # forzar el cambio de nombre en pickings done
+        picking_id = picking.id
+        self.env.cr.execute("UPDATE stock_picking SET name=%s WHERE id=%s", (new_name, picking_id))
