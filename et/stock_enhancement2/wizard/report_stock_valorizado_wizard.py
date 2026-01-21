@@ -120,6 +120,7 @@ class ReportStockValorizadoWizard(models.TransientModel):
             stock_erp = self.env['stock.erp'].search([('product_id', '=', product.id)], limit=1)
             if not stock_erp or stock_erp.fisico_unidades <= 0:
                 continue
+            
             pricelist_item = self.env['product.pricelist.item'].search([('pricelist_id', '=', self.price_list_id.id), ('product_tmpl_id', '=', product.id)], limit=1)
             valor = pricelist_item.fixed_price * stock_erp.fisico_unidades if pricelist_item else 0.0
             bultos = (stock_erp.fisico_unidades / stock_erp.uxb) if stock_erp.uxb else 0.0
