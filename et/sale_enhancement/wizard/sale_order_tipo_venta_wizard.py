@@ -142,27 +142,16 @@ class SaleOrderTipoVentaWizard(models.TransientModel):
                     ], limit=1)
                     #ahora los stock moves
                     for move in picking.move_lines:
-                        vals_move = {
-                            'rule_id': rule.id,
-                            'company_id': self.company_id.id,
-                            'location_id': warehouse.lot_stock_id.id,
-                            'warehouse_id': warehouse.id,
-                            'picking_type_id': warehouse.out_type_id.id,
-                        }
-                        move.write(vals_move)
+                        sql = "UPDATE stock_move SET rule_id=%s, company_id=%s, location_id=%s, warehouse_id=%s, picking_type_id=%s WHERE id=%s"
+                        self.env.cr.execute(sql, (rule.id, self.company_id.id, warehouse.lot_stock_id.id, warehouse.id, warehouse.out_type_id.id, move.id))
                     #y los move lines
                     for move_line in picking.move_line_ids:
-                        move_line.write({
-                            'company_id': self.company_id.id,
-                            'location_id': warehouse.lot_stock_id.id,
-                        })
+                        sql = "UPDATE stock_move_line SET company_id=%s, location_id=%s WHERE id=%s"
+                        self.env.cr.execute(sql, (self.company_id.id, warehouse.lot_stock_id.id, move_line.id))
                     #finalmente el picking
-                    picking.write({
-                        'company_id': self.company_id.id,
-                        'location_id': warehouse.lot_stock_id.id,
-                    })
+                    sql = "UPDATE stock_picking SET company_id=%s, location_id=%s WHERE id=%s"
+                    self.env.cr.execute(sql, (self.company_id.id, warehouse.lot_stock_id.id, picking.id))
                     # forzar el cambio de nombre en pickings done
-                    #self.forzar_name_picking_done(picking, new_name)
                     # agregar en el chat del picking la modificación realizada y quien la hizo
                     picking.message_post(body=_('Compañía modificada a "%s" por el usuario %s desde el asistente de modificación de tipo de venta del pedido de venta asociado.') % (
                         self.company_id.name,
