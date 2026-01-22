@@ -101,7 +101,7 @@ class ReportStockValorizadoWizard(models.TransientModel):
         # =========================
         # TITULO
         # =========================
-        worksheet.merge_range(0, 0, 0, 8, 'REPORTE DE VALORIZACIÓN', fmt_title)
+        worksheet.merge_range(0, 0, 0, 8, 'REPORTE DE STOCK VALORIZADO', fmt_title)
         #RESUMEN
         worksheet.merge_range(1, 0, 1, 8, 'RESUMEN', fmt_title)
         #DETALLE
@@ -186,14 +186,16 @@ class ReportStockValorizadoWizard(models.TransientModel):
         worksheet.write(row, 8, total_valorizado, fmt_total_contab)
         # =========================
         #DEBAJO DE RESUMEN, ANTES DE DETALLE
+        total_bultos = float_round(total_bultos, 2)
+        total_contenedores = float_round(total_bultos / 220.0, 2)  #asumiendo contenedor de 220 bultos
         worksheet.merge_range(2, 0, 2, 1, 'TOTAL VALORIZADO:', fmt_text_bold_l)
         worksheet.write(2, 2, total_valorizado, fmt_tr_contab_no_border)
         worksheet.merge_range(3, 0, 3, 1, 'TOTAL BULTOS:', fmt_text_bold_l)
         worksheet.write(3, 2, total_bultos, fmt_tr_int_no_border)
         worksheet.merge_range(4, 0, 4, 1, 'TOTAL CONTENEDORES:', fmt_text_bold_l)
         worksheet.write(4, 2, total_contenedores, fmt_tr_int_no_border)
-        worksheet.merge_range(5, 0, 5, 1, 'CONTENEDORES POR ENTRAR:', fmt_text_bold_l)
-        worksheet.write(5, 2, contenedores_x_entrar, fmt_tr_int_no_border)
+        #worksheet.merge_range(5, 0, 5, 1, 'CONTENEDORES POR ENTRAR:', fmt_text_bold_l)
+        #worksheet.write(5, 2, contenedores_x_entrar, fmt_tr_int_no_border)
         
         workbook.close()
         output.seek(0)
