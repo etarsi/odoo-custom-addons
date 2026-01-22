@@ -7,7 +7,7 @@
         id="wms_logo" 
         name="WMS"
         sequence="5"
-        web_icon="wms_enhancement,static/description/icon.png"
+        web_icon="wms_enhancement,static/description/wms_logo.png"
     />
 
     <!-- =========================
