@@ -1,5 +1,6 @@
 from odoo import models, fields, api
 from odoo.exceptions import ValidationError
+from decimal import Decimal, ROUND_HALF_UP
 from odoo.tools import float_round
 from datetime import date
 import base64
@@ -158,8 +159,12 @@ class ReportStockValorizadoWizard(models.TransientModel):
                 base_price_list = product_price_list_item.base_pricelist_id
                 pricelist_item = self.env['product.pricelist.item'].search([('pricelist_id', '=', base_price_list.id), ('product_tmpl_id', '=', product.id)], limit=1)
                 base_price = pricelist_item.fixed_price if pricelist_item else 0.0
-                #aplicar la formula del item de lista de precios original
-                valor_unitario = self.price_list_id._compute_price_rule(product, base_price, qty=1.0, uom_id=product.uom_id.id)
+                valor_unitario = self.calc_price_from_discount(
+                    base_price,
+                    discount_pct=product_price_list_item.price_discount,
+                    surcharge=0.0,
+                    decimals=2
+                )
                 valor = valor_unitario * stock_erp.fisico_unidades
                 bultos = (stock_erp.fisico_unidades / stock_erp.uxb) if stock_erp.uxb else 0.0
             
@@ -221,3 +226,20 @@ class ReportStockValorizadoWizard(models.TransientModel):
                 }
             }
         }
+        
+    def calc_price_from_discount(base_price, discount_pct=0.0, surcharge=0.0, decimals=2):
+        """
+        base_price: precio base (ej 100)
+        discount_pct: descuento en % tal como lo ves en Odoo (ej -8.81, 10, 0)
+        surcharge: recargo fijo (ej 0.0)
+        decimals: decimales a redondear (2 para moneda)
+        """
+        base = Decimal(str(base_price or 0.0))
+        disc = Decimal(str(discount_pct or 0.0))
+        sur  = Decimal(str(surcharge or 0.0))
+
+        factor = Decimal("1") - (disc / Decimal("100"))
+        price = (base * factor) + sur
+
+        q = Decimal("1").scaleb(-decimals)  # 0.01 si decimals=2
+        return float(price.quantize(q, rounding=ROUND_HALF_UP))
