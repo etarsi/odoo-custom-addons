@@ -56,16 +56,17 @@ class ReportStockValorizadoWizard(models.TransientModel):
             'border': 1,
             'border_color': '#FFFFFF',
         })
-        fmt_text = workbook.add_format({'border': 1, 'align': 'left', 'valign': 'vcenter'})
-        fmt_text2 = workbook.add_format({'border': 1, 'align': 'center', 'valign': 'vcenter'})
+        fmt_text_l = workbook.add_format({'border': 1, 'align': 'left', 'valign': 'vcenter'})
+        fmt_text_c = workbook.add_format({'border': 1, 'align': 'center', 'valign': 'vcenter'})
         fmt_int = workbook.add_format({'border': 1, 'align': 'center', 'valign': 'vcenter', 'num_format': '0'})
-        fmt_dec = workbook.add_format({'border': 1, 'align': 'center', '', 'valign': 'vcenter', 'num_format': '0.00'})
-        fmt_dec2 = workbook.add_format({'border': 1, 'align': 'center', 'valign': 'vcenter', 'num_format': '"$" #,##0.00'})
-        rm_dec2 = workbook.add_format({'align': 'left', 'valign': 'vcenter', 'num_format': '"$" #,##0.00'})
-        rm_text = workbook.add_format({'align': 'left', 'valign': 'vcenter', 'blold': True})
+        fmt_int_no_border = workbook.add_format({'align': 'center', 'valign': 'vcenter', 'num_format': '0'})
+        fmt_dec = workbook.add_format({'border': 1, 'align': 'center', 'valign': 'vcenter', 'num_format': '0.00'})
+        fmt_dec_no_border_c = workbook.add_format({'align': 'center', 'valign': 'vcenter', 'num_format': '0.00'})
+        fmt_dec_no_border_l = workbook.add_format({'align': 'left', 'valign': 'vcenter', 'num_format': '0.00'})
+        fmt_text_bold_l = workbook.add_format({'align': 'left', 'valign': 'vcenter', 'bold': True})
         #formato contabilidad
-        fcont_dec = workbook.add_format({'border': 1, 'align': 'center', 'valign': 'vcenter', 'num_format': '_($* #,##0.00_);_($* (#,##0.00);_($* "-"??_);_(@_)'})
-        fcont_dec2 = workbook.add_format({'align': 'center', 'valign': 'vcenter', 'num_format': '_($* #,##0.00_);_($* (#,##0.00);_($* "-"??_);_(@_)'})
+        fmt_contab = workbook.add_format({'border': 1, 'align': 'center', 'valign': 'vcenter', 'num_format': '_($* #,##0.00_);_($* (#,##0.00);_($* "-"??_);_(@_)'})
+        fmt_contab_no_border = workbook.add_format({'align': 'center', 'valign': 'vcenter', 'num_format': '_($* #,##0.00_);_($* (#,##0.00);_($* "-"??_);_(@_)'})
 
         # =========================
         # COLUMNAS
@@ -130,15 +131,15 @@ class ReportStockValorizadoWizard(models.TransientModel):
             valor = pricelist_item.fixed_price * stock_erp.fisico_unidades if pricelist_item else 0.0
             bultos = (stock_erp.fisico_unidades / stock_erp.uxb) if stock_erp.uxb else 0.0
 
-            worksheet.write(row, 0, product.default_code, fmt_text2)
-            worksheet.write(row, 1, product.name, fmt_text)
-            worksheet.write(row, 2, product.product_brand_id.name if product.product_brand_id else '', fmt_text2)
-            worksheet.write(row, 3, product.categ_id.parent_id.name if product.categ_id.parent_id else '', fmt_text2)
+            worksheet.write(row, 0, product.default_code, fmt_text_c)
+            worksheet.write(row, 1, product.name, fmt_text_l)
+            worksheet.write(row, 2, product.product_brand_id.name if product.product_brand_id else '', fmt_text_c)
+            worksheet.write(row, 3, product.categ_id.parent_id.name if product.categ_id.parent_id else '', fmt_text_c)
             worksheet.write(row, 4, stock_erp.fisico_unidades, fmt_int)
             worksheet.write(row, 5, stock_erp.uxb, fmt_int)
-            worksheet.write(row, 6, bultos, fmt_dec2)
-            worksheet.write(row, 7, pricelist_item.fixed_price if pricelist_item else 0.0, fmt_dec2)
-            worksheet.write(row, 8, valor, fmt_dec2)
+            worksheet.write(row, 6, bultos, fmt_dec)
+            worksheet.write(row, 7, pricelist_item.fixed_price if pricelist_item else 0.0, fmt_contab)
+            worksheet.write(row, 8, valor, fmt_contab)
             row += 1
             total_valorizado += valor
             total_bultos += bultos
@@ -146,19 +147,19 @@ class ReportStockValorizadoWizard(models.TransientModel):
         # =========================
         #totales
         worksheet.write(row, 3, 'TOTALS:', fmt_header)
-        worksheet.write(row, 6, total_bultos, fcont_dec)
-        worksheet.write(row, 7, total_precio_lista, fcont_dec)
-        worksheet.write(row, 8, total_valorizado, fcont_dec)
+        worksheet.write(row, 6, total_bultos, fmt_dec)
+        worksheet.write(row, 7, total_precio_lista, fmt_contab)
+        worksheet.write(row, 8, total_valorizado, fmt_contab)
         # =========================
         #DEBAJO DE RESUMEN, ANTES DE DETALLE
-        worksheet.write(3, 0, 'TOTAL VALORIZADO:', rm_text)
-        worksheet.write(3, 1, total_valorizado, fcont_dec2)
-        worksheet.write(4, 0, 'TOTAL BULTOS:', rm_text)
-        worksheet.write(4, 1, total_bultos, fcont_dec2)
-        worksheet.write(5, 0, 'TOTAL CONTENEDORES:', rm_text)
-        worksheet.write(5, 1, total_contenedores, fcont_dec2)
-        worksheet.write(6, 0, 'CONTENEDORES POR ENTRAR:', rm_text)
-        worksheet.write(6, 1, contenedores_x_entrar, fcont_dec2)
+        worksheet.write(3, 0, 'TOTAL VALORIZADO:', fmt_text_l)
+        worksheet.write(3, 1, total_valorizado, fmt_contab_no_border)
+        worksheet.write(4, 0, 'TOTAL BULTOS:', fmt_text_l)
+        worksheet.write(4, 1, total_bultos, fmt_int_no_border)
+        worksheet.write(5, 0, 'TOTAL CONTENEDORES:', fmt_text_l)
+        worksheet.write(5, 1, total_contenedores, fmt_int_no_border)
+        worksheet.write(6, 0, 'CONTENEDORES POR ENTRAR:', fmt_text_l)
+        worksheet.write(6, 1, contenedores_x_entrar, fmt_int_no_border)
         
         workbook.close()
         output.seek(0)
