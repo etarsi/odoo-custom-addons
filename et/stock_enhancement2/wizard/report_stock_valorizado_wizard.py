@@ -142,6 +142,9 @@ class ReportStockValorizadoWizard(models.TransientModel):
                     product_price_list_item = item
                     formula = True
                     break
+                if item.compute_price == 'fixed':
+                    product_price_list_item = False
+                    break
         for product in products:
             #marketing exclusion
             parent_id = self.env['product.category'].search([('name', 'in', ['MARKETING', 'INSUMOS'])], limit=1)
