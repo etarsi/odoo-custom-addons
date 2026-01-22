@@ -2,7 +2,7 @@ from odoo import models, fields, api, _
 from odoo.exceptions import ValidationError, UserError
 import re
 from decimal import Decimal, InvalidOperation
-from odoo.tools import float_round
+from odoo.tools.float_utils import float_round
 from datetime import date
 import base64
 import io
@@ -155,8 +155,10 @@ class ReportStockValorizadoWizard(models.TransientModel):
             pricelist_item = pricelist_items.filtered(lambda item: item.product_tmpl_id.id == product.product_tmpl_id.id)
             valor_fixed_price = pricelist_item.fixed_price * 1.21 if pricelist_item else 0.0
             valor = valor_fixed_price * stock_erp.fisico_unidades if pricelist_item else 0.0
-            # Redondear el valor y dejar sin decimales
-            valor = float_round(valor, precision_rounding=1.0, rounding_method='HALF_UP')
+            # redondeo a entero, HALF-UP
+            valor = float_round(valor, precision_rounding=1.0, rounding_method='HALF-UP')
+            # si querés eliminar cualquier residuo tipo 101.0
+            valor = float_round(valor, 0, rounding_method='HALF-UP')
             valor = int(valor)
             #calculo bultos
             bultos = (stock_erp.fisico_unidades / stock_erp.uxb) if stock_erp.uxb else 0.0
