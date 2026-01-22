@@ -142,7 +142,6 @@ class ReportStockValorizadoWizard(models.TransientModel):
         total_bultos = 0.0
         total_precio_lista = 0.0
         total_contenedores = 0.0
-        contenedores_x_entrar = 0.0
         for product in products:
             #marketing exclusion
             parent_id = self.env['product.category'].search([('name', 'in', ['MARKETING', 'INSUMOS'])], limit=1)
@@ -157,7 +156,7 @@ class ReportStockValorizadoWizard(models.TransientModel):
             valor_fixed_price = pricelist_item.fixed_price * 1.21 if pricelist_item else 0.0
             valor = valor_fixed_price * stock_erp.fisico_unidades if pricelist_item else 0.0
             # Redondear el valor y dejar sin decimales
-            valor = float_round(valor, 0)
+            valor = float_round(valor, precision_rounding=1.0, rounding_method='HALF_UP')
             bultos = (stock_erp.fisico_unidades / stock_erp.uxb) if stock_erp.uxb else 0.0
             
             #LISTABA DE PRECIOS
@@ -176,7 +175,7 @@ class ReportStockValorizadoWizard(models.TransientModel):
             total_precio_lista += valor_fixed_price
         # =========================
         #totales
-        worksheet.merge_range(row, 0, row, 5, 'TOTALS:', fmt_total)
+        worksheet.merge_range(row, 0, row, 5, 'TOTALES:', fmt_total)
         worksheet.write(row, 6, total_bultos, fmt_total_bultos)
         worksheet.write(row, 7, total_precio_lista, fmt_total_contab)
         worksheet.write(row, 8, total_valorizado, fmt_total_contab)
