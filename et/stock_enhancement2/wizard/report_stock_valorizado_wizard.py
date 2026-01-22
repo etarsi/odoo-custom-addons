@@ -157,6 +157,8 @@ class ReportStockValorizadoWizard(models.TransientModel):
             valor = valor_fixed_price * stock_erp.fisico_unidades if pricelist_item else 0.0
             # Redondear el valor y dejar sin decimales
             valor = float_round(valor, precision_rounding=1.0, rounding_method='HALF_UP')
+            valor = int(valor)
+            #calculo bultos
             bultos = (stock_erp.fisico_unidades / stock_erp.uxb) if stock_erp.uxb else 0.0
             
             #LISTABA DE PRECIOS
