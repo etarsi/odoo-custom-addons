@@ -9,14 +9,14 @@ class WMSTransfer(models.Model):
     partner_address_id = fields.Many2one(string="Dirección de Entrega", comodel_name="res.partner")
     operation_type = fields.Selection(string="Tipo de Operación", selection=[
         ('incoming', 'Ingreso'),
-        ('outgoing', 'Entrega')
+        ('outgoing', 'Entrega'),
     ])
     sale_type = fields.Char(string="TIPO")
     sale_id = fields.Many2one(string="Pedido de Venta", comodel_name="sale.order")
     purchase_id = fields.Many2one(string="Pedido de Compra", comodel_name="purchase.order")
     # invoice_ids = fields.One2many(string="Facturas", comodel_name="account.move", inverse_name="transfer_id")
     line_ids = fields.One2many(string="Líneas de  Transferencia", comodel_name="wms.transfer.line", inverse_name="transfer_id")
-    # task_ids = fields.One2many(string="Tareas", comodel_name="wms.task", inverse_name="transfer_id")
+    task_ids = fields.One2many(string="Tareas", comodel_name="wms.task", inverse_name="transfer_id")
 
 
 
@@ -33,7 +33,7 @@ class WMSTransferLine(models.Model):
     invoice_state = fields.Selection(string="Estado de Facturación", selection=[
         ('no', 'No Facturado'),
         ('partial'), ('Parcial'),
-        ('total', 'Facturado')
+        ('total', 'Facturado'),
     ])
     product_id = fields.Many2one(string="Producto", comodel_name="product.product")
     sale_line_id = fields.Many2one(string="Línea del Pedido de Venta", comodel_name="sale.order.line")
