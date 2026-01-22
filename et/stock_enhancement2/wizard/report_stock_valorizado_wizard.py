@@ -16,8 +16,15 @@ class ReportStockValorizadoWizard(models.TransientModel):
     _description = 'Wizard para Reporte de Stock Valorizado'
     
     #lista de precios
-    price_list_id = fields.Many2one('product.pricelist', string='Lista de Precios', help='Seleccionar una Lista de Precios para valorizar el stock')
+    price_list_id = fields.Many2one('product.pricelist', string='Lista de Precios', help='Seleccionar una Lista de Precios para valorizar el stock', compute='_compute_default_price_list', required=True)
     
+    
+    
+    def _compute_default_price_list(self):
+        default_pricelist = self.env['product.pricelist'].search([('is_default', '=', True)], limit=1)
+        if not default_pricelist:
+            raise ValidationError("No se encontró una lista de precios por defecto. Por favor, configure una lista de precios como predeterminada.")
+        self.price_list_id = default_pricelist
 
 
     @api.onchange('partner_id')
@@ -130,21 +137,6 @@ class ReportStockValorizadoWizard(models.TransientModel):
         total_precio_lista = 0.0
         total_contenedores = 0.0
         contenedores_x_entrar = 0.0
-        formula = False
-        product_price_list_item = False
-        pricelist_items = self.env['product.pricelist.item'].search([('pricelist_id', '=', self.price_list_id.id)])
-        if not pricelist_items:
-            raise ValidationError("No se encontró un ítem de lista de precios para la lista seleccionada.")
-        else:
-            for item in pricelist_items:
-                #validar si es formula o no
-                if item.compute_price == 'formula':
-                    product_price_list_item = item
-                    formula = True
-                    break
-                if item.compute_price == 'fixed':
-                    product_price_list_item = False
-                    break
         for product in products:
             #marketing exclusion
             parent_id = self.env['product.category'].search([('name', 'in', ['MARKETING', 'INSUMOS'])], limit=1)
@@ -154,17 +146,13 @@ class ReportStockValorizadoWizard(models.TransientModel):
             if not stock_erp or stock_erp.fisico_unidades <= 0:
                 continue
 
-            if not formula:
-                pricelist_item = pricelist_items.filtered(lambda item: item.product_tmpl_id.id == product.product_tmpl_id.id)
-                valor = pricelist_item.fixed_price * stock_erp.fisico_unidades if pricelist_item else 0.0
-                bultos = (stock_erp.fisico_unidades / stock_erp.uxb) if stock_erp.uxb else 0.0
-            else:
-                base_price_list = product_price_list_item.base_pricelist_id
-                pricelist_item = self.env['product.pricelist.item'].search([('pricelist_id', '=', base_price_list.id), ('product_tmpl_id', '=', product.product_tmpl_id.id)], limit=1)
-                base_price = pricelist_item.fixed_price if pricelist_item else 0.0
-                valor_unitario = self.calc_price_from_discount(base_price, product_price_list_item.price_discount)
-                valor = valor_unitario * stock_erp.fisico_unidades
-                bultos = (stock_erp.fisico_unidades / stock_erp.uxb) if stock_erp.uxb else 0.0
+            pricelist_items = self.price_list_id.item_ids
+            pricelist_item = pricelist_items.filtered(lambda item: item.product_tmpl_id.id == product.product_tmpl_id.id)
+            valor_fixed_price = pricelist_item.fixed_price * 1.21 if pricelist_item else 0.0
+            valor = valor_fixed_price * stock_erp.fisico_unidades if pricelist_item else 0.0
+            # Redondear el valor y dejar sin decimales
+            valor = float_round(valor, 0)
+            bultos = (stock_erp.fisico_unidades / stock_erp.uxb) if stock_erp.uxb else 0.0
             
             #LISTABA DE PRECIOS
             worksheet.write(row, 0, product.default_code, fmt_text_c)
@@ -174,12 +162,12 @@ class ReportStockValorizadoWizard(models.TransientModel):
             worksheet.write(row, 4, stock_erp.fisico_unidades, fmt_int)
             worksheet.write(row, 5, stock_erp.uxb, fmt_int)
             worksheet.write(row, 6, bultos, fmt_dec)
-            worksheet.write(row, 7, pricelist_item.fixed_price if pricelist_item else 0.0, fmt_contab)
+            worksheet.write(row, 7, valor_fixed_price, fmt_contab)
             worksheet.write(row, 8, valor, fmt_contab)
             row += 1
             total_valorizado += valor
             total_bultos += bultos
-            total_precio_lista += pricelist_item.fixed_price if pricelist_item else 0.0
+            total_precio_lista += valor_fixed_price
         # =========================
         #totales
         worksheet.merge_range(row, 0, row, 5, 'TOTALS:', fmt_total)
