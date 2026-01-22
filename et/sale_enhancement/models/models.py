@@ -57,7 +57,7 @@ class SaleOrderInherit(models.Model):
 
     def action_open_wms_transfer(self):
         self.ensure_one()
-        if not self.wms_transfer_id:
+        if not self.transfer_id:
             return False
 
         return {
