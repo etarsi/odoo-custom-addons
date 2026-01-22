@@ -1,5 +1,4 @@
 <odoo>
-  <data>
 
 
     <!-- MENU ITEMS -->
@@ -11,21 +10,85 @@
         web_icon="wms_enhancement,static/description/icon.png"
     />
 
+    <odoo>
 
+    <!-- =========================================================
+        ROOT MENU (YA EXISTE EN TU MÓDULO)
+        <menuitem id="wms_logo" name="WMS" ... />
+    ========================================================== -->
 
+    <!-- =========================
+        PRINCIPALES
+    ========================== -->
 
+    <!-- Transferencias -->
+    <menuitem id="wms_menu_transfers"
+              name="Transferencias"
+              parent="wms_logo"
+              action="action_wms_transfer"
+              sequence="10"/>
 
+    <!-- Tareas -->
+    <menuitem id="wms_menu_tasks"
+              name="Tareas"
+              parent="wms_logo"
+              sequence="20"
+              action="action_wms_task"/>
 
+    <!-- Stock -->
+    <menuitem id="wms_menu_stock"
+              name="Stock"
+              parent="wms_logo"
+              sequence="30"
+    />
+              <!-- action="action_wms_stock"/> -->
 
+    <!-- Reportes -->
+    <menuitem id="wms_menu_reportes"
+              name="Reportes"
+              parent="wms_logo"
+              sequence="40"
+    />
+              <!-- action="action_wms_reports"/> -->
 
+    <!-- =========================
+        CONFIGURACIÓN
+    ========================== -->
+    <menuitem id="wms_menu_config"
+              name="Configuración"
+              parent="wms_logo"
+              sequence="90"/>
 
+    <!-- Almacenes -->
+    <menuitem id="wms_menu_config_almacenes"
+              name="Almacenes"
+              parent="wms_menu_config"
+              sequence="10"
+    />
+              <!-- action="action_wms_warehouse"/> -->
 
+    <!-- Áreas -->
+    <menuitem id="wms_menu_config_areas"
+              name="Areas"
+              parent="wms_menu_config"
+              sequence="20"
+    />
+              <!-- action="action_wms_area"/> -->
 
+    <!-- Posiciones -->
+    <menuitem id="wms_menu_config_posiciones"
+              name="Posiciones"
+              parent="wms_menu_config"
+              sequence="30"
+    />
+              <!-- action="action_wms_position"/> -->
 
+    <!-- Roles -->
+    <menuitem id="wms_menu_config_roles"
+              name="Roles"
+              parent="wms_menu_config"
+              sequence="40"
+    />
+              <!-- action="action_wms_role"/> -->
 
-
-
-
-
-  </data>
 </odoo>
