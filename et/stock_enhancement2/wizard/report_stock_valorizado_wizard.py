@@ -129,6 +129,18 @@ class ReportStockValorizadoWizard(models.TransientModel):
         total_precio_lista = 0.0
         total_contenedores = 0.0
         contenedores_x_entrar = 0.0
+        formula = False
+        product_price_list_item = False
+        pricelist_items = self.env['product.pricelist.item'].search([('pricelist_id', '=', self.price_list_id.id)])
+        if not pricelist_items:
+            raise ValidationError("No se encontró un ítem de lista de precios para la lista seleccionada.")
+        else:
+            for item in pricelist_items:
+                #validar si es formula o no
+                if item.compute_price == 'formula':
+                    product_price_list_item = item
+                    formula = True
+                    break
         for product in products:
             #marketing exclusion
             parent_id = self.env['product.category'].search([('name', 'in', ['MARKETING', 'INSUMOS'])], limit=1)
@@ -137,11 +149,21 @@ class ReportStockValorizadoWizard(models.TransientModel):
             stock_erp = self.env['stock.erp'].search([('product_id', '=', product.id)], limit=1)
             if not stock_erp or stock_erp.fisico_unidades <= 0:
                 continue
-            
-            pricelist_item = self.env['product.pricelist.item'].search([('pricelist_id', '=', self.price_list_id.id), ('product_tmpl_id', '=', product.id)], limit=1)
-            valor = pricelist_item.fixed_price * stock_erp.fisico_unidades if pricelist_item else 0.0
-            bultos = (stock_erp.fisico_unidades / stock_erp.uxb) if stock_erp.uxb else 0.0
 
+            if not formula:
+                pricelist_item = pricelist_items.filtered(lambda item: item.product_tmpl_id.id == product.id)
+                valor = pricelist_item.fixed_price * stock_erp.fisico_unidades if pricelist_item else 0.0
+                bultos = (stock_erp.fisico_unidades / stock_erp.uxb) if stock_erp.uxb else 0.0
+            else:
+                base_price_list = product_price_list_item.base_pricelist_id
+                pricelist_item = self.env['product.pricelist.item'].search([('pricelist_id', '=', base_price_list.id), ('product_tmpl_id', '=', product.id)], limit=1)
+                base_price = pricelist_item.fixed_price if pricelist_item else 0.0
+                #aplicar la formula del item de lista de precios original
+                valor_unitario = self.price_list_id._compute_price_rule(product, base_price, qty=1.0, uom_id=product.uom_id.id)
+                valor = valor_unitario * stock_erp.fisico_unidades
+                bultos = (stock_erp.fisico_unidades / stock_erp.uxb) if stock_erp.uxb else 0.0
+            
+            #LISTABA DE PRECIOS
             worksheet.write(row, 0, product.default_code, fmt_text_c)
             worksheet.write(row, 1, product.name, fmt_text_l)
             worksheet.write(row, 2, product.product_brand_id.name if product.product_brand_id else '', fmt_text_c)
