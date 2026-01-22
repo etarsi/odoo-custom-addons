@@ -68,7 +68,7 @@ class ReportStockValorizadoWizard(models.TransientModel):
         fmt_text_l = workbook.add_format({'border': 1, 'align': 'left', 'valign': 'vcenter'})
         fmt_text_c = workbook.add_format({'border': 1, 'align': 'center', 'valign': 'vcenter'})
         fmt_int = workbook.add_format({'border': 1, 'align': 'center', 'valign': 'vcenter', 'num_format': '0'})
-        fmt_tr_int_no_border = workbook.add_format({'bold': True, 'align': 'center', 'valign': 'vcenter', 'num_format': '0'})
+        fmt_tr_int_no_border = workbook.add_format({'bold': True, 'align': 'right', 'valign': 'vcenter', 'num_format': '0'})
         fmt_total_bultos = workbook.add_format({'border': 1, 'align': 'center', 'valign': 'vcenter', 'num_format': '0.00', 'bold': True})
         fmt_dec = workbook.add_format({'border': 1, 'align': 'center', 'valign': 'vcenter', 'num_format': '0.00'})
         fmt_dec_no_border_c = workbook.add_format({'align': 'center', 'valign': 'vcenter', 'num_format': '0.00'})
