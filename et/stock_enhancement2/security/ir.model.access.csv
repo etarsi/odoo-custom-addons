@@ -2,3 +2,4 @@ id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
 access_report_stock_picking_wizard,report.stock.picking.wizard,model_report_stock_picking_wizard,,1,1,1,1
 access_report_stock_picking_factura_wizard,report.stock.picking.factura.wizard,model_report_stock_picking_factura_wizard,,1,1,1,1
 access_report_resumen_stock_wizard,report.resumen.stock.wizard,model_report_resumen_stock_wizard,,1,1,1,1
+access_report_stock_valorizado_wizard,report.stock.valorizado.wizard,model_report_stock_valorizado_wizard,,1,1,1,1

@@ -95,7 +95,7 @@ class SaleOrderTipoVentaWizard(models.TransientModel):
 
         #modificar los stock pickings asociados si no estan done o cancelados
         pickings = sale.mapped('picking_ids').filtered(lambda p: p.state not in ('done', 'cancel'))
-        for picking in pickings:            
+        for picking in pickings:       
             rule = self.env['stock.rule'].search([
                 ('warehouse_id', '=', warehouse.id),
                 ('location_src_id', '=', warehouse.lot_stock_id.id),
@@ -108,6 +108,7 @@ class SaleOrderTipoVentaWizard(models.TransientModel):
                     'company_id': self.company_id.id,
                     'location_id': warehouse.lot_stock_id.id,
                     'warehouse_id': warehouse.id,
+                    'picking_type_id': warehouse.out_type_id.id,
                 }
                 move.write(vals_move)
             #y los move lines
@@ -121,6 +122,8 @@ class SaleOrderTipoVentaWizard(models.TransientModel):
                 'company_id': self.company_id.id,
                 'location_id': warehouse.lot_stock_id.id,
             })
+            # forzar el cambio de nombre en pickings done
+            #self.forzar_name_picking_done(picking, new_name)
             # agregar en el chat del picking la modificación realizada y quien la hizo
             picking.message_post(body=_('Compañía modificada a "%s" por el usuario %s desde el asistente de modificación de tipo de venta del pedido de venta asociado.') % (
                 self.company_id.name,
@@ -131,7 +134,7 @@ class SaleOrderTipoVentaWizard(models.TransientModel):
         picking_dones = sale.mapped('picking_ids').filtered(lambda p: p.state == 'done')
         if picking_dones:
             for picking in picking_dones:
-                if not picking.invoice_ids:
+                if not picking.invoice_ids or (picking.invoice_ids and picking.mapped('invoice_ids').filtered(lambda inv: inv.state == 'draft')):
                     rule = self.env['stock.rule'].search([
                         ('warehouse_id', '=', warehouse.id),
                         ('location_src_id', '=', warehouse.lot_stock_id.id),
@@ -139,40 +142,57 @@ class SaleOrderTipoVentaWizard(models.TransientModel):
                     ], limit=1)
                     #ahora los stock moves
                     for move in picking.move_lines:
-                        vals_move = {
-                            'rule_id': rule.id,
-                            'company_id': self.company_id.id,
-                            'location_id': warehouse.lot_stock_id.id,
-                            'warehouse_id': warehouse.id,
-                        }
-                        move.write(vals_move)
+                        sql = "UPDATE stock_move SET rule_id=%s, company_id=%s, location_id=%s, warehouse_id=%s, picking_type_id=%s WHERE id=%s"
+                        self.env.cr.execute(sql, (rule.id, self.company_id.id, warehouse.lot_stock_id.id, warehouse.id, warehouse.out_type_id.id, move.id))
                     #y los move lines
                     for move_line in picking.move_line_ids:
-                        move_line.write({
-                            'company_id': self.company_id.id,
-                            'location_id': warehouse.lot_stock_id.id,
-                        })
+                        sql = "UPDATE stock_move_line SET company_id=%s, location_id=%s WHERE id=%s"
+                        self.env.cr.execute(sql, (self.company_id.id, warehouse.lot_stock_id.id, move_line.id))
                     #finalmente el picking
-                    picking.write({
-                        'company_id': self.company_id.id,
-                        'location_id': warehouse.lot_stock_id.id,
-                    })
+                    sql = "UPDATE stock_picking SET company_id=%s, location_id=%s WHERE id=%s"
+                    self.env.cr.execute(sql, (self.company_id.id, warehouse.lot_stock_id.id, picking.id))
+                    # forzar el cambio de nombre en pickings done
                     # agregar en el chat del picking la modificación realizada y quien la hizo
                     picking.message_post(body=_('Compañía modificada a "%s" por el usuario %s desde el asistente de modificación de tipo de venta del pedido de venta asociado.') % (
                         self.company_id.name,
                         self.env.user.name,
                     ))
-                #ahora las facturas asociadas
-                invoices = picking.mapped('invoice_ids').filtered(lambda inv: inv.state not in ('posted', 'cancel'))
-                if invoices:
-                    for invoice in invoices:
-                        invoice.write({
-                            'company_id': self.company_id.id,
-                        })
-                        #recompute taxes
-                        invoice._compute_tax_id()
-                        # agregar en el chat de la factura la modificación realizada y quien la hizo
-                        invoice.message_post(body=_('Compañía modificada a "%s" por el usuario %s desde el asistente de modificación de tipo de venta del pedido de venta asociado.') % (
-                            self.company_id.name, self.env.user.name,
-                        ))
+                    #ahora las facturas asociadas
+                    if picking.invoice_ids:
+                        invoices = picking.invoice_ids.filtered(lambda inv: inv.state not in ('posted', 'cancel'))
+                        if invoices:
+                            for invoice in invoices:
+                                journal_id = self.env['account.journal'].search([
+                                    ('type', '=', 'sale'),
+                                    ('company_id', '=', self.company_id.id),
+                                    ('code', '=', invoice.journal_id.code)], limit=1)
+                                if not journal_id:
+                                    raise UserError(_('No se encontró un diario de ventas para la compañía %s. Verifique su configuración de Diarios.') % self.company_id.name)
+                                invoice.write({
+                                    'journal_id': journal_id.id,
+                                    'company_id': self.company_id.id,
+                                })
+                                #recompute taxes
+                                invoice.update_taxes()
+                                invoice._compute_amount()
+                                # agregar en el chat de la factura la modificación realizada y quien la hizo
+                                invoice.message_post(body=_('Compañía modificada a "%s" por el usuario %s desde el asistente de modificación de tipo de venta del pedido de venta asociado.') % (
+                                    self.company_id.name, self.env.user.name,
+                                ))
         return {'type': 'ir.actions.act_window_close'}
+    
+    
+    def name_company(self, company_id):
+        if company_id == 1:
+            return 'PRD'
+        elif company_id == 2:
+            return 'SEBIG'
+        elif company_id == 3:
+            return 'BECHA'
+        elif company_id == 4:
+            return 'FUN T'
+
+    def forzar_name_picking_done(self, picking, new_name):
+        # forzar el cambio de nombre en pickings done
+        picking_id = picking.id
+        self.env.cr.execute("UPDATE stock_picking SET name=%s WHERE id=%s", (new_name, picking_id))
