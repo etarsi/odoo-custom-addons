@@ -32,7 +32,7 @@ class WMSTransferLine(models.Model):
     ])
     invoice_state = fields.Selection(string="Estado de Facturación", selection=[
         ('no', 'No Facturado'),
-        ('partial'), ('Parcial'),
+        ('partial', 'Parcial'),
         ('total', 'Facturado'),
     ])
     product_id = fields.Many2one(string="Producto", comodel_name="product.product")

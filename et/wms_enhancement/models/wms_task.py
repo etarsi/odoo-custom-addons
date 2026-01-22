@@ -8,7 +8,9 @@ class WMSTask(models.Model):
     state = fields.Selection(string="Estado", selection=[
         ('draft', 'Borrador'),
         ('pending', 'Pendiente'),
-        ('confirmed', )
+        ('confirmed', 'Confirmado'),
+        ('process', 'En Proceso'),
+        ('done', 'Hecho')
     ])
     type = fields.Selection(string="Tipo", selection=[
         ('reception', 'Recepción'),
@@ -41,7 +43,7 @@ class WMSTask(models.Model):
 
     percent_complete = fields.Float()
 
-    category_ids = fields.One2many()
+    # category_ids = fields.One2many()
 
     bultos_count = fields.Float()
 
