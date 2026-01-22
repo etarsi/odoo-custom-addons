@@ -44,6 +44,13 @@
     />
               <!-- action="action_wms_reports"/> -->
 
+    <!-- Auditoría -->
+    <menuitem id="wms_menu_auditoría"
+              name="Auditoría"
+              parent="wms_logo"
+              sequence="50"
+    />
+
     <!-- =========================
         CONFIGURACIÓN
     ========================== -->

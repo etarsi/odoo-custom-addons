@@ -19,6 +19,14 @@ class WMSTransfer(models.Model):
     task_ids = fields.One2many(string="Tareas", comodel_name="wms.task", inverse_name="transfer_id")
     task_count = fields.Integer(string="Tareas", compute="_compute_task_count", store=True)
 
+
+    @api.model
+    def create(self, vals):
+        if vals.get('name', 'New') in (False, 'New', '/'):
+            vals['name'] = self.env['ir.sequence'].next_by_code('wms.transfer') or 'New'
+        return super().create(vals)
+
+
     @api.depends('task_ids')
     def _compute_task_count(self):
         for rec in self:

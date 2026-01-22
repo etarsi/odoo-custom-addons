@@ -38,6 +38,7 @@
         'views/product_template_views.xml',
         'views/product_pricelist_view.xml',
         'views/sale_order_views_tree.xml',
+        'views/transfer_view.xml',
     ],
     # only loaded in demonstration mode
     'demo': [
