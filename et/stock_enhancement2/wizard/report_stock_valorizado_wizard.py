@@ -75,7 +75,7 @@ class ReportStockValorizadoWizard(models.TransientModel):
         fmt_dec = workbook.add_format({'border': 1, 'align': 'center', 'valign': 'vcenter', 'num_format': '0.00'})
         fmt_dec_no_border_c = workbook.add_format({'align': 'center', 'valign': 'vcenter', 'num_format': '0.00'})
         fmt_dec_no_border_l = workbook.add_format({'align': 'left', 'valign': 'vcenter', 'num_format': '0.00'})
-        fmt_text_bold_l = workbook.add_format({'align': 'left', 'valign': 'vcenter', 'bold': True})
+        fmt_text_bold_l = workbook.add_format({'align': 'right', 'valign': 'vcenter', 'bold': True})
         #formato contabilidad
         fmt_contab = workbook.add_format({'border': 1, 'align': 'center', 'valign': 'vcenter', 'num_format': '_($* #,##0.00_);_($* (#,##0.00);_($* "-"??_);_(@_)'})
         fmt_total_contab = workbook.add_format({'border': 1, 'bold': True, 'align': 'center', 'valign': 'vcenter', 'num_format': '_($* #,##0.00_);_($* (#,##0.00);_($* "-"??_);_(@_)'})
@@ -84,15 +84,15 @@ class ReportStockValorizadoWizard(models.TransientModel):
         # =========================
         # COLUMNAS
         # =========================
-        worksheet.set_column(0, 0, 15)  # CODIGO
+        worksheet.set_column(0, 0, 25)  # CODIGO
         worksheet.set_column(1, 1, 60)  # DESCRIPCION
         worksheet.set_column(2, 2, 25)  # MARCA
         worksheet.set_column(3, 3, 25)  # RUBRO
         worksheet.set_column(4, 4, 12)  # UNIDADES
         worksheet.set_column(5, 5, 12)  # UxB
         worksheet.set_column(6, 6, 12)  # BULTOS
-        worksheet.set_column(7, 7, 20)  # PRECIO DE LISTA
-        worksheet.set_column(8, 8, 20)  # VALOR
+        worksheet.set_column(7, 7, 18)  # PRECIO DE LISTA
+        worksheet.set_column(8, 8, 18)  # VALOR
         
 
         # Alto de filas de título/encabezado
@@ -186,13 +186,13 @@ class ReportStockValorizadoWizard(models.TransientModel):
         worksheet.write(row, 8, total_valorizado, fmt_total_contab)
         # =========================
         #DEBAJO DE RESUMEN, ANTES DE DETALLE
-        worksheet.write(2, 0, 'TOTAL VALORIZADO:', fmt_text_bold_l)
+        worksheet.merge_range(2, 0, 2, 0, 'TOTAL VALORIZADO:', fmt_text_bold_l)
         worksheet.write(2, 1, total_valorizado, fmt_tr_contab_no_border)
-        worksheet.write(3, 0, 'TOTAL BULTOS:', fmt_text_bold_l)
+        worksheet.merge_range(3, 0, 3, 0, 'TOTAL BULTOS:', fmt_text_bold_l)
         worksheet.write(3, 1, total_bultos, fmt_tr_int_no_border)
-        worksheet.write(4, 0, 'TOTAL CONTENEDORES:', fmt_text_bold_l)
+        worksheet.merge_range(4, 0, 4, 0, 'TOTAL CONTENEDORES:', fmt_text_bold_l)
         worksheet.write(4, 1, total_contenedores, fmt_tr_int_no_border)
-        worksheet.write(5, 0, 'CONTENEDORES POR ENTRAR:', fmt_text_bold_l)
+        worksheet.merge_range(5, 0, 5, 0, 'CONTENEDORES POR ENTRAR:', fmt_text_bold_l)
         worksheet.write(5, 1, contenedores_x_entrar, fmt_tr_int_no_border)
         
         workbook.close()
