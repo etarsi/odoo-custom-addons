@@ -186,14 +186,14 @@ class ReportStockValorizadoWizard(models.TransientModel):
         worksheet.write(row, 8, total_valorizado, fmt_total_contab)
         # =========================
         #DEBAJO DE RESUMEN, ANTES DE DETALLE
-        worksheet.merge_range(2, 0, 2, 0, 'TOTAL VALORIZADO:', fmt_text_bold_l)
-        worksheet.write(2, 1, total_valorizado, fmt_tr_contab_no_border)
-        worksheet.merge_range(3, 0, 3, 0, 'TOTAL BULTOS:', fmt_text_bold_l)
-        worksheet.write(3, 1, total_bultos, fmt_tr_int_no_border)
-        worksheet.merge_range(4, 0, 4, 0, 'TOTAL CONTENEDORES:', fmt_text_bold_l)
-        worksheet.write(4, 1, total_contenedores, fmt_tr_int_no_border)
-        worksheet.merge_range(5, 0, 5, 0, 'CONTENEDORES POR ENTRAR:', fmt_text_bold_l)
-        worksheet.write(5, 1, contenedores_x_entrar, fmt_tr_int_no_border)
+        worksheet.merge_range(2, 0, 2, 1, 'TOTAL VALORIZADO:', fmt_text_bold_l)
+        worksheet.write(2, 2, total_valorizado, fmt_tr_contab_no_border)
+        worksheet.merge_range(3, 0, 3, 1, 'TOTAL BULTOS:', fmt_text_bold_l)
+        worksheet.write(3, 2, total_bultos, fmt_tr_int_no_border)
+        worksheet.merge_range(4, 0, 4, 1, 'TOTAL CONTENEDORES:', fmt_text_bold_l)
+        worksheet.write(4, 2, total_contenedores, fmt_tr_int_no_border)
+        worksheet.merge_range(5, 0, 5, 1, 'CONTENEDORES POR ENTRAR:', fmt_text_bold_l)
+        worksheet.write(5, 2, contenedores_x_entrar, fmt_tr_int_no_border)
         
         workbook.close()
         output.seek(0)
