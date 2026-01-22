@@ -1,6 +1,7 @@
-from odoo import models, fields, api
-from odoo.exceptions import ValidationError
-from decimal import Decimal, ROUND_HALF_UP
+from odoo import models, fields, api, _
+from odoo.exceptions import ValidationError, UserError
+import re
+from decimal import Decimal, InvalidOperation
 from odoo.tools import float_round
 from datetime import date
 import base64
@@ -222,19 +223,68 @@ class ReportStockValorizadoWizard(models.TransientModel):
             }
         }
         
-    def calc_price_from_discount(base_price, discount_pct=0.0, surcharge=0.0, decimals=2):
-        """
-        base_price: precio base (ej 100)
-        discount_pct: descuento en % tal como lo ves en Odoo (ej -8.81, 10, 0)
-        surcharge: recargo fijo (ej 0.0)
-        decimals: decimales a redondear (2 para moneda)
-        """
-        base = Decimal(str(base_price or 0.0))
-        disc = Decimal(str(discount_pct or 0.0))
-        sur  = Decimal(str(surcharge or 0.0))
+    def calc_price_from_discount(self, base_price, discount_pct=0.0, surcharge=0.0, currency=None):
+        base = self._to_decimal(base_price, field_name="base_price")
+        disc = self._to_decimal(discount_pct, field_name="discount_pct")
+        sur  = self._to_decimal(surcharge, field_name="surcharge")
 
         factor = Decimal("1") - (disc / Decimal("100"))
         price = (base * factor) + sur
 
-        q = Decimal("1").scaleb(-decimals)  # 0.01 si decimals=2
-        return float(price.quantize(q, rounding=ROUND_HALF_UP))
+        # Redondeo Odoo (si pasás moneda)
+        if currency:
+            return currency.round(float(price))
+        return float(price)
+    
+    def _to_decimal(self, value, field_name="valor"):
+        # None/False
+        if value in (None, False, ''):
+            return Decimal('0')
+
+        # Si viene como (price, rule_id) o [price, ...]
+        if isinstance(value, (list, tuple)) and value:
+            return self._to_decimal(value[0], field_name=field_name)
+
+        # Decimal directo
+        if isinstance(value, Decimal):
+            return value
+
+        # int/float
+        if isinstance(value, (int, float)):
+            return Decimal(str(value))
+
+        # string (con moneda / miles / coma decimal)
+        if isinstance(value, str):
+            s = value.strip()
+
+            # deja sólo dígitos, coma, punto, signo menos
+            s = re.sub(r"[^\d,.\-]", "", s)
+
+            # si tiene ambos, decide separador decimal por el último que aparezca
+            if "," in s and "." in s:
+                if s.rfind(",") > s.rfind("."):
+                    # 1.234,56 -> 1234.56
+                    s = s.replace(".", "").replace(",", ".")
+                else:
+                    # 1,234.56 -> 1234.56
+                    s = s.replace(",", "")
+            elif "," in s:
+                # 1234,56 -> 1234.56 (y si venía 1.234,56, ya sacamos letras, falta sacar miles)
+                s = s.replace(".", "").replace(",", ".")
+            else:
+                # 1,234 -> 1234 (miles)
+                s = s.replace(",", "")
+
+            if s in ("", "-", ".", "-."):
+                return Decimal("0")
+
+            try:
+                return Decimal(s)
+            except InvalidOperation:
+                raise UserError(_("No pude convertir %s a número: %r") % (field_name, value))
+
+        # último intento
+        try:
+            return Decimal(str(value))
+        except Exception:
+            raise UserError(_("No pude convertir %s a número: %r (tipo %s)") % (field_name, value, type(value)))
