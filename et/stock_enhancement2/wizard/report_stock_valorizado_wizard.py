@@ -159,12 +159,7 @@ class ReportStockValorizadoWizard(models.TransientModel):
                 base_price_list = product_price_list_item.base_pricelist_id
                 pricelist_item = self.env['product.pricelist.item'].search([('pricelist_id', '=', base_price_list.id), ('product_tmpl_id', '=', product.id)], limit=1)
                 base_price = pricelist_item.fixed_price if pricelist_item else 0.0
-                valor_unitario = self.calc_price_from_discount(
-                    base_price,
-                    discount_pct=product_price_list_item.price_discount,
-                    surcharge=0.0,
-                    decimals=2
-                )
+                valor_unitario = self.calc_price_from_discount(base_price, discount_pct=product_price_list_item.price_discount, surcharge=0.0)
                 valor = valor_unitario * stock_erp.fisico_unidades
                 bultos = (stock_erp.fisico_unidades / stock_erp.uxb) if stock_erp.uxb else 0.0
             
