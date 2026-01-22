@@ -117,8 +117,7 @@ class ReportStockValorizadoWizard(models.TransientModel):
         # =========================
         # DOMAIN
         # =========================
-        domain = [('sale_ok', '=', True)]
-        products = self.env['product.template'].search(domain)
+        products = self.env['product.product'].search([])
         if not products:
             raise ValidationError("No se encontraron productos.")
 
@@ -153,12 +152,12 @@ class ReportStockValorizadoWizard(models.TransientModel):
                 continue
 
             if not formula:
-                pricelist_item = pricelist_items.filtered(lambda item: item.product_tmpl_id.id == product.id)
+                pricelist_item = pricelist_items.filtered(lambda item: item.product_tmpl_id.id == product.product_tmpl_id.id)
                 valor = pricelist_item.fixed_price * stock_erp.fisico_unidades if pricelist_item else 0.0
                 bultos = (stock_erp.fisico_unidades / stock_erp.uxb) if stock_erp.uxb else 0.0
             else:
                 base_price_list = product_price_list_item.base_pricelist_id
-                pricelist_item = self.env['product.pricelist.item'].search([('pricelist_id', '=', base_price_list.id), ('product_tmpl_id', '=', product.id)], limit=1)
+                pricelist_item = self.env['product.pricelist.item'].search([('pricelist_id', '=', base_price_list.id), ('product_tmpl_id', '=', product.product_tmpl_id.id)], limit=1)
                 base_price = pricelist_item.fixed_price if pricelist_item else 0.0
                 valor_unitario = self.calc_price_from_discount(base_price, product_price_list_item.price_discount)
                 valor = valor_unitario * stock_erp.fisico_unidades
