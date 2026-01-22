@@ -130,6 +130,7 @@ class ReportStockValorizadoWizard(models.TransientModel):
         total_contenedores = 0.0
         contenedores_x_entrar = 0.0
         formula = False
+        product_price_list_item = False
         pricelist_items = self.env['product.pricelist.item'].search([('pricelist_id', '=', self.price_list_id.id)])
         if not pricelist_items:
             raise ValidationError("No se encontró un ítem de lista de precios para la lista seleccionada.")
@@ -137,6 +138,7 @@ class ReportStockValorizadoWizard(models.TransientModel):
             for item in pricelist_items:
                 #validar si es formula o no
                 if item.compute_price == 'formula':
+                    product_price_list_item = item
                     formula = True
                     break
         for product in products:
@@ -153,7 +155,7 @@ class ReportStockValorizadoWizard(models.TransientModel):
                 valor = pricelist_item.fixed_price * stock_erp.fisico_unidades if pricelist_item else 0.0
                 bultos = (stock_erp.fisico_unidades / stock_erp.uxb) if stock_erp.uxb else 0.0
             else:
-                base_price_list = self.price_list_id.base_pricelist_id
+                base_price_list = product_price_list_item.base_pricelist_id
                 pricelist_item = self.env['product.pricelist.item'].search([('pricelist_id', '=', base_price_list.id), ('product_tmpl_id', '=', product.id)], limit=1)
                 base_price = pricelist_item.fixed_price if pricelist_item else 0.0
                 #aplicar la formula del item de lista de precios original
