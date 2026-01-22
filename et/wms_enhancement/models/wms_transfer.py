@@ -17,6 +17,12 @@ class WMSTransfer(models.Model):
     # invoice_ids = fields.One2many(string="Facturas", comodel_name="account.move", inverse_name="transfer_id")
     line_ids = fields.One2many(string="Líneas de  Transferencia", comodel_name="wms.transfer.line", inverse_name="transfer_id")
     task_ids = fields.One2many(string="Tareas", comodel_name="wms.task", inverse_name="transfer_id")
+    task_count = fields.Integer(string="Tareas", compute="_compute_task_count", store=True)
+
+    @api.depends('task_ids')
+    def _compute_task_count(self):
+        for rec in self:
+            rec.task_count = len(rec.task_ids)
 
 
 
