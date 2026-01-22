@@ -10,13 +10,6 @@
         web_icon="wms_enhancement,static/description/icon.png"
     />
 
-    <odoo>
-
-    <!-- =========================================================
-        ROOT MENU (YA EXISTE EN TU MÓDULO)
-        <menuitem id="wms_logo" name="WMS" ... />
-    ========================================================== -->
-
     <!-- =========================
         PRINCIPALES
     ========================== -->
