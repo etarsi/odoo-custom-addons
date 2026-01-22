@@ -8,6 +8,7 @@
         <field name="arch" type="xml">
             <!-- En el button box de Odoo -->
             <xpath expr="//sheet/div[@name='button_box']" position="inside">
+                <field name="transfer_id" invisible="1"/>
 
                 <button type="object"
                         name="action_open_wms_transfer"
