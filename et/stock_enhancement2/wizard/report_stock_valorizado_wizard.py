@@ -18,8 +18,14 @@ class ReportStockValorizadoWizard(models.TransientModel):
     #lista de precios
     price_list_id = fields.Many2one('product.pricelist', string='Lista de Precios', help='Seleccionar una Lista de Precios para valorizar el stock', compute='_compute_default_price_list', required=True)
     
-    
-    
+
+    @api.model
+    def default_get(self, fields_list):
+        res = super().default_get(fields_list)
+        default_pricelist = self.env['product.pricelist'].search([('is_default', '=', True)], limit=1)
+        res['price_list_id'] = default_pricelist.id if default_pricelist else False
+        return res    
+
     def _compute_default_price_list(self):
         default_pricelist = self.env['product.pricelist'].search([('is_default', '=', True)], limit=1)
         if not default_pricelist:
