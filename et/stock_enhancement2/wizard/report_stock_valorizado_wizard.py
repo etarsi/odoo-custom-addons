@@ -155,7 +155,7 @@ class ReportStockValorizadoWizard(models.TransientModel):
         
         # Prearmar mapa de precios por template (lookup O(1))
         items = self.price_list_id.item_ids.filtered(lambda i: i.product_tmpl_id)
-        items = items.sorted(key=lambda i: i.sequence)
+        items = items.sorted(key=lambda i: i.id)
         fixed_price_by_tmpl = {}
         for it in items:
             fixed_price_by_tmpl.setdefault(it.product_tmpl_id.id, it.fixed_price)
