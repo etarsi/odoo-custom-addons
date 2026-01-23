@@ -91,8 +91,8 @@ class ReportStockValorizadoWizard(models.TransientModel):
         fmt_text_bold_l = workbook.add_format({'align': 'right', 'valign': 'vcenter', 'bold': True})
         #formato contabilidad
         fmt_contab = workbook.add_format({'border': 1, 'align': 'center', 'valign': 'vcenter', 'num_format': '_($* #,##0.00_);_($* (#,##0.00);_($* "-"??_);_(@_)'})
-        fmt_total_contab = workbook.add_format({'border': 1, 'bold': True, 'align': 'center', 'valign': 'vcenter', 'num_format': '_($* #,##0.00_);_($* (#,##0.00);_($* "-"??_);_(@_)'})
-        fmt_tr_contab_no_border = workbook.add_format({'bold': True, 'align': 'center', 'valign': 'vcenter', 'num_format': '_($* #,##0.00_);_($* (#,##0.00);_($* "-"??_);_(@_)'})
+        fmt_total_contab = workbook.add_format({'border': 1, 'bold': True, 'align': 'center', 'valign': 'vcenter', 'num_format': '_($* #,##0_);_($* (#,##0);_($* "-"??_);_(@_)'})
+        fmt_tr_contab_no_border = workbook.add_format({'bold': True, 'align': 'center', 'valign': 'vcenter', 'num_format': '_($* #,##0_);_($* (#,##0);_($* "-"??_);_(@_)'})
 
         # =========================
         # COLUMNAS
@@ -142,6 +142,7 @@ class ReportStockValorizadoWizard(models.TransientModel):
         total_bultos = 0.0
         total_precio_lista = 0.0
         total_contenedores = 0.0
+
         for product in products:
             #marketing exclusion
             parent_id = self.env['product.category'].search([('name', 'in', ['MARKETING', 'INSUMOS'])], limit=1)
@@ -153,7 +154,8 @@ class ReportStockValorizadoWizard(models.TransientModel):
 
             pricelist_items = self.price_list_id.item_ids
             pricelist_item = pricelist_items.filtered(lambda item: item.product_tmpl_id.id == product.product_tmpl_id.id)
-            valor_fixed_price = pricelist_item.fixed_price * 1.21 if pricelist_item else 0.0
+            valor_fixed_price = pricelist_item.fixed_price * 1.21
+            valor_fixed_price = round(valor_fixed_price, 0)
             valor = valor_fixed_price * stock_erp.fisico_unidades if pricelist_item else 0.0
             # redondeo a entero, HALF-UP
             valor = float_round(valor, precision_rounding=1.0, rounding_method='HALF-UP')
