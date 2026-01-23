@@ -143,24 +143,42 @@ class ReportStockValorizadoWizard(models.TransientModel):
         total_precio_lista = 0.0
         total_contenedores = 0.0
 
-        for product in products:
-            #marketing exclusion
-            parent_id = self.env['product.category'].search([('name', 'in', ['MARKETING', 'INSUMOS'])], limit=1)
-            if parent_id and product.categ_id.parent_id and product.categ_id.parent_id.id == parent_id.id:
-                continue
-            stock_erp = self.env['stock.erp'].search([('product_id', '=', product.id)], limit=1)
-            if not stock_erp or stock_erp.fisico_unidades <= 0:
+        excluded_product_categorys = set(
+            self.env['product.category'].search([('name', 'in', ['MARKETING', 'INSUMOS', 'REPUESTOS DE BATERIA'])]).ids
+        )
+        stock_erps = self.env['stock.erp'].search([
+            ('fisico_unidades', '>', 0),
+            ('product_id', '!=', False),
+        ])
+        products = stock_erps.mapped('product_id')
+        
+        
+        # Prearmar mapa de precios por template (lookup O(1))
+        items = self.price_list_id.item_ids.filtered(lambda i: i.product_tmpl_id)
+        items = items.sorted(key=lambda i: i.sequence)
+        fixed_price_by_tmpl = {}
+        for it in items:
+            fixed_price_by_tmpl.setdefault(it.product_tmpl_id.id, it.fixed_price)
+
+        for stock_erp in stock_erps:
+            product = stock_erp.product_id
+            if not product:
                 continue
 
-            pricelist_items = self.price_list_id.item_ids
-            pricelist_item = pricelist_items.filtered(lambda item: item.product_tmpl_id.id == product.product_tmpl_id.id)
-            valor_fixed_price = pricelist_item.fixed_price * 1.21
+            parent_categ = product.categ_id.parent_id
+            product_categ = product.categ_id
+            if parent_categ and parent_categ.id in excluded_product_categorys:
+                continue
+            if product_categ and product_categ.id in excluded_product_categorys:
+                continue
+
+            # Precio lista con IVA
+            fixed_price = fixed_price_by_tmpl.get(product.product_tmpl_id.id, 0.0)
+            valor_fixed_price = fixed_price * 1.21 if fixed_price else 0.0
             valor_fixed_price = round(valor_fixed_price, 0)
-            valor = valor_fixed_price * stock_erp.fisico_unidades if pricelist_item else 0.0
+            valor = valor_fixed_price * stock_erp.fisico_unidades if fixed_price else 0.0
             # redondeo a entero, HALF-UP
             valor = float_round(valor, precision_rounding=1.0, rounding_method='HALF-UP')
-            # si querés eliminar cualquier residuo tipo 101.0
-            valor = float_round(valor, 0, rounding_method='HALF-UP')
             valor = int(valor)
             #calculo bultos
             bultos = (stock_erp.fisico_unidades / stock_erp.uxb) if stock_erp.uxb else 0.0
