@@ -90,7 +90,7 @@ class ReportStockValorizadoWizard(models.TransientModel):
         fmt_dec_no_border_l = workbook.add_format({'align': 'left', 'valign': 'vcenter', 'num_format': '0.00'})
         fmt_text_bold_l = workbook.add_format({'align': 'right', 'valign': 'vcenter', 'bold': True})
         #formato contabilidad
-        fmt_contab = workbook.add_format({'border': 1, 'align': 'center', 'valign': 'vcenter', 'num_format': '_($* #,##0.00_);_($* (#,##0.00);_($* "-"??_);_(@_)'})
+        fmt_contab = workbook.add_format({'border': 1, 'align': 'center', 'valign': 'vcenter', 'num_format': '_($* #,##0_);_($* (#,##0);_($* "-"??_);_(@_)'})
         fmt_total_contab = workbook.add_format({'border': 1, 'bold': True, 'align': 'center', 'valign': 'vcenter', 'num_format': '_($* #,##0_);_($* (#,##0);_($* "-"??_);_(@_)'})
         fmt_tr_contab_no_border = workbook.add_format({'bold': True, 'align': 'center', 'valign': 'vcenter', 'num_format': '_($* #,##0_);_($* (#,##0);_($* "-"??_);_(@_)'})
 
