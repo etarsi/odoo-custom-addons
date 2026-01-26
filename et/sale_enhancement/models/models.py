@@ -872,10 +872,6 @@ class SaleOrderLineInherit(models.Model):
                     else:
                         search_code = default_code
 
-                    product_id = self.env['product.product'].search([
-                        ('default_code', '=', default_code)
-                    ], limit=1)
-
                     stock_erp = self.env['stock.erp'].search([
                         ('product_id.default_code', '=', search_code)
                     ], limit=1)
@@ -885,7 +881,7 @@ class SaleOrderLineInherit(models.Model):
                 vals['sale_id'] = record.order_id.id
                 vals['sale_line_id'] = record.id
                 vals['partner_id'] = record.order_id.partner_id.id
-                vals['product_id'] = product_id.id
+                vals['product_id'] = stock_erp.product_id.id
                 vals['quantity'] = record.product_uom_qty
                 vals['uxb'] = record.product_packaging_id.qty or ''
                 vals['bultos'] = record.product_packaging_qty
@@ -908,9 +904,6 @@ class SaleOrderLineInherit(models.Model):
                     else:
                         search_code = default_code
 
-                    product_id = self.env['product.product'].search([
-                        ('default_code', '=', default_code)
-                    ], limit=1)
 
                     stock_erp = self.env['stock.erp'].search([
                         ('product_id.default_code', '=', search_code)
@@ -921,7 +914,7 @@ class SaleOrderLineInherit(models.Model):
                 vals['sale_id'] = record.order_id._origin.id
                 vals['sale_line_id'] = record._origin.id
                 vals['partner_id'] = record.order_id.partner_id.id
-                vals['product_id'] = product_id.id
+                vals['product_id'] = stock_erp.product_id.id
                 vals['quantity'] = record.product_uom_qty
                 vals['uxb'] = record.product_packaging_id.qty or ''
                 vals['bultos'] = record.product_packaging_qty
