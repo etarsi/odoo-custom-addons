@@ -27,6 +27,7 @@ class StockMovesERP(models.Model):
     bultos = fields.Float(compute="_compute_bultos")
     uxb = fields.Integer()
     type = fields.Selection(selection=[('reserve', 'Reserva'), ('delivery', 'Entrega'), ('preparation', 'Preparación')])
+    picking_ids = fields.One2many('stock.picking', 'move_erp_id', string='Transferencias relacionadas')
 
     @api.model
     def create(self, vals):
