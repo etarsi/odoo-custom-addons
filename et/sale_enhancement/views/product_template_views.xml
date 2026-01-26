@@ -8,6 +8,15 @@
             <xpath expr="//field[@name='categ_id']" position="after">
                 <field name="company_ids" widget="many2many_tags"/>
             </xpath>
+            <xpath expr="//page[@name='sales']" position="after">
+                <page name="config_internal" string="Configuración Interna" group="sale_enhancement.group_sale_order_special_permissions">
+                    <group>
+                        <field name="name_alternative"/>
+                        <field name="active_alternative"/>
+                        <field name="excluyent_partner_ids" widget="many2many_tags" options="{'no_create': True}"/>
+                    </group>
+                </page>
+            </xpath>
         </field>
     </record>
 </odoo>

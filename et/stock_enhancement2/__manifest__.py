@@ -26,7 +26,7 @@
     },
 
     # any module necessary for this one to work correctly
-    'depends': ['stock', 'delivery', 'stock-packaging', 'sale', 'stock_picking_invoicing', 'merge_deliveries_bs', 'contacts', 'stock_voucher', 'tms_service'],
+    'depends': ['stock', 'delivery', 'stock-packaging', 'sale', 'stock_picking_invoicing', 'merge_deliveries_bs', 'contacts', 'stock_voucher', 'tms_service', 'sale_enhancement'],
 
     # always loaded
     'data': [
@@ -35,6 +35,7 @@
         #'views/product_website_templates.xml',
         'views/views.xml',
         'views/delivery_carrier_views.xml',
+        'views/product_template_views.xml',
         'views/report_stock_picking_wizard_views.xml',
         'views/report_stock_valorizado_wizard_views.xml',
         'views/report_stock_picking_factura_wizard_views.xml',
