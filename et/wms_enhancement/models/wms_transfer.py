@@ -18,7 +18,6 @@ class WMSTransfer(models.Model):
         ('no', 'No aplica')
         ('pending', 'Pendiente'),
         ('preparation', 'En Preparación'),
-        ('')
     ])
     sale_type = fields.Char(string="TIPO")
     sale_id = fields.Many2one(string="Pedido de Venta", comodel_name="sale.order")
