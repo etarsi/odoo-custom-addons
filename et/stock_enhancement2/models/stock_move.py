@@ -42,3 +42,17 @@ class StockMoveInherit(models.Model):
                 else:
                     raise ValidationError(_("No se encontró un producto con el código %s") % new_code)
         return move
+    #lo mismo en el write
+    def write(self, vals):
+        res = super(StockMoveInherit, self).write(vals)
+        for record in self:
+            if 'product_id' in vals:
+                product = self.env['product.product'].browse(vals['product_id'])
+                if product.default_code and product.default_code[0] == '9':
+                    new_code = product.default_code[1:]
+                    new_product = self.env['product.product'].search([('default_code', '=', new_code)], limit=1)
+                    if new_product:
+                        record.product_id = new_product
+                    else:
+                        raise ValidationError(_("No se encontró un producto con el código %s") % new_code)
+        return res
