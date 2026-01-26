@@ -24,7 +24,6 @@ class WMSTask(models.Model):
         ('pending', 'Pendiente'),
         ('inprocess', 'En Proceso'),
         ('control', 'Control'),
-        ('')
         ('cancel', 'Cancelado'),
     ])
     state_reception = fields.Selection(string="Estado", selection=[
