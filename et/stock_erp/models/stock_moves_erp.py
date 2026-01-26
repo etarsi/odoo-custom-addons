@@ -36,11 +36,6 @@ class StockMovesERP(models.Model):
         store=False,
     )
 
-    transfer_count_total = fields.Integer(
-        compute="_compute_transfers",
-        string="Transferencias",
-        store=True,
-    )
     transfer_quantity_done = fields.Integer(
         compute="_compute_transfers",
         string="Cantidad Hechas",
@@ -49,6 +44,11 @@ class StockMovesERP(models.Model):
     transfer_quantity_cancel = fields.Integer(
         compute="_compute_transfers",
         string="Cantidad Canceladas",
+        store=True,
+    )
+    transfer_quantity_comprometida = fields.Integer(
+        compute="_compute_transfers",
+        string="Cantidad Comprometidas",
         store=True,
     )
 
@@ -81,16 +81,18 @@ class StockMovesERP(models.Model):
                 # sacar del moves las cantidades canceladas y hechas
                 for move in moves:
                     quantity_cancel += move.product_uom_qty if move.picking_id.state == "cancel" else 0
-                    quantity_done += move.quantity_done if move.picking_id.state != "cancel" else 0
+                    quantity_comprometida += move.quantity_done if move.picking_id.state not in ["cancel", "done"] else 0
+                    quantity_done += move.quantity_done if move.picking_id.state == "done" else 0
+                    
 
                 # pickings únicos
                 picking_ids = list(set(moves.mapped("picking_id").ids))
                 pickings = Picking.browse(picking_ids)
 
             rec.transfer_picking_ids = [(6, 0, pickings.ids)]
-            rec.transfer_count_total = len(pickings)
             rec.transfer_quantity_done = quantity_done
             rec.transfer_quantity_cancel = quantity_cancel
+            rec.transfer_quantity_comprometida = quantity_comprometida
 
     def action_view_transfers(self):
         self.ensure_one()
