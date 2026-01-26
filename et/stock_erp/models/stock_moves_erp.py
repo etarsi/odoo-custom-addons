@@ -57,6 +57,7 @@ class StockMovesERP(models.Model):
         "product_id",
         "sale_line_id.move_ids",
         "sale_line_id.move_ids.state",
+        "sale_line_id.move_ids.product_id",
         "sale_line_id.move_ids.picking_id",
         "sale_line_id.move_ids.picking_id.state",
     )
