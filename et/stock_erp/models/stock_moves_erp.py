@@ -27,6 +27,80 @@ class StockMovesERP(models.Model):
     bultos = fields.Float(compute="_compute_bultos")
     uxb = fields.Integer()
     type = fields.Selection(selection=[('reserve', 'Reserva'), ('delivery', 'Entrega'), ('preparation', 'Preparación')])
+    
+    #SOLO PARA SABER QUE TRANSFERENCIAS ESTAN HECHAS O CANCELADAS
+    transfer_picking_ids = fields.Many2many(
+        "stock.picking",
+        compute="_compute_transfers",
+        string="Transferencias (Remitos)",
+        store=False,
+    )
+
+    transfer_count_total = fields.Integer(
+        compute="_compute_transfers",
+        string="Transferencias",
+        store=True,
+    )
+    transfer_quantity_done = fields.Integer(
+        compute="_compute_transfers",
+        string="Cantidad Hechas",
+        store=True,
+    )
+    transfer_quantity_cancel = fields.Integer(
+        compute="_compute_transfers",
+        string="Cantidad Canceladas",
+        store=True,
+    )
+
+    @api.depends(
+        "sale_line_id",
+        "product_id",
+        "sale_line_id.move_ids",
+        "sale_line_id.move_ids.state",
+        "sale_line_id.move_ids.picking_id",
+        "sale_line_id.move_ids.picking_id.state",
+    )
+    def _compute_transfers(self):
+        Picking = self.env["stock.picking"]
+        for rec in self:
+            pickings = Picking.browse()
+            quantity_cancel = 0
+            quantity_done = 0
+            if rec.sale_line_id and rec.type=='reserve':
+                moves = rec.sale_line_id.move_ids
+
+                # asegurar el producto (por si tu modelo permite inconsistencias)
+                if rec.product_id:
+                    moves = moves.filtered(lambda m: m.product_id.id == rec.product_id.id)
+
+                # quedarnos con transferencias reales (y típicamente de salida)
+                moves = moves.filtered(
+                    lambda m: m.picking_id
+                    and m.picking_id.picking_type_id.code == "outgoing"
+                )
+                # sacar del moves las cantidades canceladas y hechas
+                for move in moves:
+                    quantity_cancel += move.product_uom_qty if move.picking_id.state == "cancel" else 0
+                    quantity_done += move.quantity_done if move.picking_id.state != "cancel" else 0
+
+                # pickings únicos
+                picking_ids = list(set(moves.mapped("picking_id").ids))
+                pickings = Picking.browse(picking_ids)
+
+            rec.transfer_picking_ids = [(6, 0, pickings.ids)]
+            rec.transfer_count_total = len(pickings)
+            rec.transfer_quantity_done = quantity_done
+            rec.transfer_quantity_cancel = quantity_cancel
+
+    def action_view_transfers(self):
+        self.ensure_one()
+        return {
+            "name": "Transferencias",
+            "type": "ir.actions.act_window",
+            "res_model": "stock.picking",
+            "view_mode": "tree,form",
+            "domain": [("id", "in", self.transfer_picking_ids.ids)],
+        }
 
     @api.model
     def create(self, vals):
