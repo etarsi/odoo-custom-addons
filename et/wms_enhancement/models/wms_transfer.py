@@ -15,7 +15,7 @@ class WMSTransfer(models.Model):
     ])
     state_general = fields.Char(string="Estado")
     state_incoming = fields.Selection(string="Estado", selection=[
-        ('no', 'No aplica')
+        ('no', 'No aplica'),
         ('pending', 'Pendiente'),
         ('preparation', 'En Preparación'),
     ])
