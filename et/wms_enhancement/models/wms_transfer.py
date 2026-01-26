@@ -75,7 +75,7 @@ class WMSTransfer(models.Model):
     def _onchange_bultos(self):
         for record in self:
             if record.line_ids:
-                record.total_bultos = 
+                record.total_bultos = 0 # ESTABA VACIO -> TITO  
 
 
 
