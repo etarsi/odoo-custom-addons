@@ -42,7 +42,8 @@ class StockMoveInherit(models.Model):
                 else:
                     raise ValidationError(_("No se encontró un producto con el código %s") % new_code)
         return move
-    #lo mismo en el write
+    
+
     def write(self, vals):
         res = super(StockMoveInherit, self).write(vals)
         for record in self:
