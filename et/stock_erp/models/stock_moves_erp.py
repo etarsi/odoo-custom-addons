@@ -82,8 +82,8 @@ class StockMovesERP(models.Model):
                 # sacar del moves las cantidades canceladas y hechas
                 for move in moves:
                     quantity_cancel += move.product_uom_qty if move.picking_id.state == "cancel" else 0
-                    quantity_comprometida += move.quantity_done if move.picking_id.state not in ["cancel", "done"] else 0
-                    quantity_done += move.quantity_done if move.picking_id.state == "done" else 0
+                    quantity_comprometida += move.product_uom_qty if move.picking_id.state not in ["cancel", "done"] else 0
+                    quantity_done += move.product_uom_qty if move.picking_id.state == "done" else 0
                     
 
                 # pickings únicos
