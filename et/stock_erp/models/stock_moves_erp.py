@@ -66,6 +66,7 @@ class StockMovesERP(models.Model):
             pickings = Picking.browse()
             quantity_cancel = 0
             quantity_done = 0
+            quantity_comprometida = 0
             if rec.sale_line_id and rec.type=='reserve':
                 moves = rec.sale_line_id.move_ids
 
