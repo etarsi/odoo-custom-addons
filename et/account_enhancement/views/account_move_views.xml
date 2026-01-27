@@ -48,7 +48,7 @@
 
             <!-- modificar el atributo de product_id en la factura -->
             <xpath expr="//field[@name='invoice_line_ids']/tree//field[@name='product_id']" position="attributes">
-                <attribute name="attrs">{'invisible': [('move_type', 'not in', ('out_invoice', 'out_refund')), ('move_id.state', '!=', 'draft')]}</attribute>
+                <attribute name="attrs">{'invisible': [('move_id.move_type', 'not in', ('out_invoice', 'out_refund')), ('move_id.state', '!=', 'draft')]}</attribute>
             </xpath>
         </field>
     </record>
