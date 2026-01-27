@@ -25,7 +25,7 @@
     # always loaded
     'data': [
         'security/ir.model.access.csv',
-        'reports/report_balance_addition_reports.xml',
+        'report/report_balance_addition_reports.xml',
         'views/report_factura_rubros_temp_views.xml',
         'views/report_factura_rubros_temp_nav_views.xml',
         'wizard/report_balance_addition_wizard_views.xml',
