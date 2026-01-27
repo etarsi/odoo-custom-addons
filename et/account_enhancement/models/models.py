@@ -682,8 +682,6 @@ class AccountMovelLineInherit(models.Model):
             if partner and partner not in self.product_id.excluyent_partner_ids:
                 name = f'[{self.product_id.default_code}] {self.product_id.name_alternative}'    
                 self.name = name
-                return name
-        return self.name
 
     @api.onchange('debit2')
     def onchange_debit2(self):
