@@ -20,11 +20,12 @@
     'version': '0.1',
 
     # any module necessary for this one to work correctly
-    'depends': ['base', 'account_enhancement'],
+    'depends': ['base', 'account_enhancement', 'report_xlsx'],
 
     # always loaded
     'data': [
         'security/ir.model.access.csv',
+        'reports/report_balance_addition_reports.xml',
         'views/report_factura_rubros_temp_views.xml',
         'views/report_factura_rubros_temp_nav_views.xml',
         'wizard/report_balance_addition_wizard_views.xml',

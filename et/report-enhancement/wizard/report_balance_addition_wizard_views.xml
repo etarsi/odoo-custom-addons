@@ -60,7 +60,7 @@
         </field>
     </record>
     <record id="action_report_balance_addition_wizard" model="ir.actions.act_window">
-        <field name="name">Report Balance Addition Wizard</field>
+        <field name="name">Balance de Sumas y Saldo</field>
         <field name="res_model">report.balance.addition.wizard</field>
         <field name="view_mode">form</field>
         <field name="view_id" ref="report_balance_addition_wizard" />
@@ -69,7 +69,7 @@
 
     <!-- MENU ITEM -->
     <menuitem id="menu_report_balance_addition_wizard"
-              name="Trial Balance Enhanced"
+              name="Balance de Suma y Saldo"
               parent="account.menu_finance_reports"
               action="action_report_balance_addition_wizard"
               sequence="40"/>
