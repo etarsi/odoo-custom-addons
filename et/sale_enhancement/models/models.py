@@ -975,23 +975,22 @@ class SaleOrderLineInherit(models.Model):
 
     @api.onchange('product_id')
     def _onchange_product_id(self):
-        for record in self:
-
-            if record.company_id.id == 1:
-                record.write(
-                    {
-                        'tax_id': False,
-                    }
-                )
-                
-
-            record.discount = record.order_id.global_discount
-            packaging_ids = record.product_id.packaging_ids
-            if packaging_ids:
-                record.write(
-                            {
-                                'product_packaging_id': packaging_ids[0],
-                            })
+        super()._onchange_product_id()
+        #ACTUALIZAR NOMBRE ALTERNATIVO EN PEDIDO DE VENTA
+        if self.product_id:
+            if self.order_id.state == 'draft': # ventas y notas de credito en estado borrador
+                if self.product_id and self.product_id.active_alternative:
+                    partner = self.order_id.partner_id
+                    if partner and partner not in self.product_id.excluyent_partner_ids:
+                        name = f'[{self.product_id.default_code}] {self.product_id.name_alternative}'.strip()    
+                        self.name = name        
+        
+        if self.company_id.id == 1:
+            self.write({'tax_id': False})
+        self.discount = self.order_id.global_discount
+        packaging_ids = self.product_id.packaging_ids
+        if packaging_ids:
+            self.write({'product_packaging_id': packaging_ids[0]})
                         
     ## DESHABILITAR ADVERTENCIA DE UNIDAD X BULTO                    
     @api.onchange('product_packaging_id')
