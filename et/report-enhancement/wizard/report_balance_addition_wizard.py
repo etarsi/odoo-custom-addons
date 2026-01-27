@@ -225,3 +225,15 @@ class ReportBalanceAdditionWizard(models.TransientModel):
     def _export(self, report_type):
         """Default export is PDF."""
         return self._print_report(report_type)
+
+    def button_export_html(self):
+        """Export the report in HTML format."""
+        return self._export("html")
+    
+    def button_export_pdf(self):
+        """Export the report in PDF format."""
+        return self._export("pdf")
+    
+    def button_export_xlsx(self):
+        """Export the report in XLSX format."""
+        return self._export("xlsx")

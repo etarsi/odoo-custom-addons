@@ -68,4 +68,11 @@
         <field name="view_id" ref="report_balance_addition_wizard" />
         <field name="target">new</field>
     </record>
+
+    <!-- MENU ITEM -->
+    <menuitem id="menu_report_balance_addition_wizard"
+              name="Trial Balance Enhanced"
+              parent="account.menu_finance_reports"
+              action="action_report_balance_addition_wizard"
+              sequence="40"/>
 </odoo>
