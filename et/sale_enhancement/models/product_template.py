@@ -20,6 +20,17 @@ class ProductTemplateInherit(models.Model):
     _inherit = "product.template"
 
     company_ids = fields.Many2many('res.company', string='Compañias Permitidas', help='Compañias que pueden usar este producto.')
+    name_alternative = fields.Char(string="Nombre Alternativo")
+    active_alternative = fields.Boolean(string="Activo Alternativo", default=False, help="Si está activo, este producto se mostrara con su nombre alternativo.")
+    excluyent_partner_ids = fields.Many2many(
+        'res.partner',
+        'product_template_excluyent_partner_rel',
+        'product_tmpl_id',
+        'partner_id',
+        string='Clientes Excluyentes', 
+        help="Clientes que tendran el nombre original del producto."
+    )    
+
     
     def action_update_company_ids_value(self):
         self.ensure_one()

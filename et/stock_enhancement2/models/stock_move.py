@@ -26,3 +26,34 @@ class StockMoveInherit(models.Model):
         for record in self:
             if record.product_uom_qty > 0:
                 record.product_available_percent = (record.quantity_done * 100) / record.product_uom_qty
+
+    @api.model_create_multi   
+    def create(self, vals):
+        move = super(StockMoveInherit, self).create(vals)
+        #verificar si el product_id viene con el default_code como primer caracter 9
+        if 'product_id' in vals:
+            product = self.env['product.product'].browse(vals['product_id'])
+            if product.default_code and product.default_code[0] == '9':
+                # asigno un product con default_code quitando el 9 y buscar ese codigo
+                new_code = product.default_code[1:]
+                new_product = self.env['product.product'].search([('default_code', '=', new_code)], limit=1)
+                if new_product:
+                    move.product_id = new_product
+                else:
+                    raise ValidationError(_("No se encontró un producto con el código %s") % new_code)
+        return move
+    
+
+    def write(self, vals):
+        res = super(StockMoveInherit, self).write(vals)
+        for record in self:
+            if 'product_id' in vals:
+                product = self.env['product.product'].browse(vals['product_id'])
+                if product.default_code and product.default_code[0] == '9':
+                    new_code = product.default_code[1:]
+                    new_product = self.env['product.product'].search([('default_code', '=', new_code)], limit=1)
+                    if new_product:
+                        record.product_id = new_product
+                    else:
+                        raise ValidationError(_("No se encontró un producto con el código %s") % new_code)
+        return res
