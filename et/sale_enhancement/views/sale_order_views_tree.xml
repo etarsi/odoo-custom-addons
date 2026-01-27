@@ -41,14 +41,7 @@
                     <field name="company_id" string="Compañía" options="{'no_create': True, 'no_create_edit': True}" attrs="{'readonly': [('state', 'in', ['sale', 'done', 'cancel'])]}"/>
                     <field name="is_marketing" string="Venta Marketing" attrs="{'readonly': [('state', 'in', ['sale', 'done', 'cancel'])]}" />
                 </xpath>
-                <!-- Ejemplo: ocultar TODA la columna product_id según condición -->
-                <xpath expr="//field[@name='order_line']/tree//field[@name='product_id']" position="attributes">
-                    <attribute name="attrs">{'column_invisible': [('parent.state', 'in', ('sale','done','cancel'))]}</attribute>
-                </xpath>
-                <!-- Ejemplo: ocultar TODA la columna product_id según condición -->
-                <xpath expr="//field[@name='order_line']/tree//field[@name='product_template_id']" position="attributes">
-                    <attribute name="attrs">{'column_invisible': [('parent.state', 'in', ('sale','done','cancel'))]}</attribute>
-                </xpath>
+
             </field>
         </record>
 
