@@ -975,7 +975,6 @@ class SaleOrderLineInherit(models.Model):
 
     @api.onchange('product_id')
     def _onchange_product_id(self):
-        super()._onchange_product_id()
         #ACTUALIZAR NOMBRE ALTERNATIVO EN PEDIDO DE VENTA
         if self.product_id:
             if self.order_id.state == 'draft': # ventas y notas de credito en estado borrador
