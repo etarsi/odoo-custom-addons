@@ -68,11 +68,11 @@ class ReportBalanceAdditionWizard(models.TransientModel):
         ])[0]}
 
         if report_type == "html":
-            return self.env.ref("account_enhancement.report_balance_addition_html").report_action(self, data=data)
+            return self.env.ref("report_balance_addition_html").report_action(self, data=data)
         if report_type == "pdf":
-            return self.env.ref("account_enhancement.report_balance_addition_pdf").report_action(self, data=data)
+            return self.env.ref("report_balance_addition_pdf").report_action(self, data=data)
         if report_type == "xlsx":
-            return self.env.ref("account_enhancement.report_balance_addition_xlsx").report_action(self, data=data)
+            return self.env.ref("report_balance_addition_xlsx").report_action(self, data=data)
 
         raise ValueError("Unknown report type: %s" % report_type)
 

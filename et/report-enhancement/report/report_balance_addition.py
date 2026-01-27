@@ -2,7 +2,7 @@ from odoo import api, models
 
 
 class ReportBalanceAddition(models.AbstractModel):
-    _name = "report.account_enhancement.report_balance_addition_document"
+    _name = "report.enhancement.report_balance_addition_document"
     _description = "Balance de Sumas y Saldos (HTML/PDF)"
 
     @api.model
