@@ -32,11 +32,11 @@
       <div class="page">
         <h2>Balance de Sumas y Saldos</h2>
         <p>
-          <strong>Compañía:</strong> <span t-esc="company.name"/>
-          &nbsp; | &nbsp;
-          <strong>Desde:</strong> <span t-esc="date_from"/>
-          &nbsp; | &nbsp;
-          <strong>Hasta:</strong> <span t-esc="date_to"/>
+            <strong>Compañía:</strong> <span t-esc="company.name"/>
+            <span> | </span>
+            <strong>Desde:</strong> <span t-esc="date_from"/>
+            <span> | </span>
+            <strong>Hasta:</strong> <span t-esc="date_to"/>
         </p>
 
         <table class="table table-sm o_main_table">
