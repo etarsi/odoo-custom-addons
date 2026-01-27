@@ -52,9 +52,7 @@
                         or
                         <button string="Cancel" class="oe_link" special="cancel" />
                     </div>
-                    <div
-                        attrs="{'invisible': [('not_only_one_unaffected_earnings_account', '=', False)]}"
-                    >
+                    <div>
                         <button string="Cancel" class="oe_link" special="cancel" />
                     </div>
                 </footer>
