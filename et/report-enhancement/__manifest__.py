@@ -31,6 +31,11 @@
         'wizard/report_balance_addition_wizard_views.xml',
         'views/templates.xml',
     ],
+    'assets': {
+        'web.assets_backend': [
+            'report_enhancement/report/report_balance_document.xml',
+        ],
+    },
     # only loaded in demonstration mode
     'demo': [
         'demo/demo.xml',
