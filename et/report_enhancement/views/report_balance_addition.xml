@@ -2,6 +2,13 @@
 <odoo>
     <data>
         <template id="report_balance_addition">
+            <!-- docs es el wizard -->
+            <t t-set="company_id" t-value="docs.company_id"/>
+            <t t-set="date_from" t-value="docs.date_from"/>
+            <t t-set="date_to" t-value="docs.date_to"/>
+            <t t-set="currency" t-value="docs.company_id.currency_id"/>
+
+            <!-- si lines/totals vienen del python, dejalos tal cual; si no, se rompen -->
             <div class="o_account_financial_reports_page">
                 <t t-call="report_enhancement.report_balance_addition_base"/>
             </div>
