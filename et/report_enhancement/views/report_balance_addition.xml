@@ -35,10 +35,9 @@
                 <!-- Display each lines -->
                 <t t-foreach="balance_addition" t-as="balance">
                     <!-- Adapt -->
-                    <t t-set="style" t-value="'font-size:12px;'" />
-                        <!-- Different style for account group -->
-                        <t t-call="report_enhancement.report_balance_addition_line"/>
-                    </t>
+                    <t t-set="style" t-value="'font-size:12px;'"/>
+                    <!-- Different style for account group -->
+                    <t t-call="report_enhancement.report_balance_addition_line"/>
                 </t>
             </div>
         </div>
