@@ -7,7 +7,7 @@
                 <div class="page">
                     <h2>Balance de Sumas y Saldos</h2>
                     <p>
-                        <strong>Compañía:</strong> <span t-esc="company_id.name"/>
+                        <strong>Compañía:</strong> <span t-esc="company.name"/>
                         <span> | </span>
                         <strong>Desde:</strong> <span t-esc="date_from"/>
                         <span> | </span>
