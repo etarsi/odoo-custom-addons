@@ -31,6 +31,7 @@ class ReportBalanceAddition(models.AbstractModel):
 
         lines, totals = wiz._get_lines()
         _logger.info("Report values generated for Balance Addition report wizard ID %s", wiz.id)
+        _logger.info("wiz: %s", wiz)
         _logger.info("Lines: %s", lines)
         return {
             "docs": wiz,
