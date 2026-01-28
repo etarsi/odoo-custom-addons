@@ -64,7 +64,7 @@
                         </t>
                         <t t-else="">
                             <t
-                                t-call="account_financial_report.report_trial_balance_line"
+                                t-call="report_enhancement.report_trial_balance_line"
                             />
                         </t>
                     </t>
@@ -95,7 +95,7 @@
                         <div class="act_as_table data_table" style="width: 100%;">
                             <!-- Display account/partner header -->
                             <t
-                                t-call="account_financial_report.report_trial_balance_lines_header"
+                                t-call="report_enhancement.report_trial_balance_lines_header"
                             />
                             <!-- Adapt style -->
                             <t t-set="padding" t-value="padding+4" />
@@ -108,7 +108,7 @@
                                     <t t-set="type" t-value='"partner_type"' />
                                     <!-- Display partner line -->
                                     <t
-                                        t-call="account_financial_report.report_trial_balance_line"
+                                        t-call="report_enhancement.report_trial_balance_line"
                                     />
                                 </t>
                             </t>
@@ -117,7 +117,7 @@
                         <!-- Display account footer -->
                         <t t-set="type" t-value='"account_type"' />
                         <t
-                            t-call="account_financial_report.report_trial_balance_account_footer"
+                            t-call="report_enhancement.report_trial_balance_account_footer"
                         />
                     </div>
                 </t>
@@ -132,14 +132,14 @@
             </div>
             <div class="act_as_row">
                 <div class="act_as_cell">
-                    From:
+                    Desde:
                     <span t-esc="date_from" t-options="{'widget': 'date'}" />
-                    To
+                    Hasta:
                     <span t-esc="date_to" t-options="{'widget': 'date'}" />
                 </div>
                 <div class="act_as_cell">
-                    <t t-if="hide_account_at_0">Hide</t>
-                    <t t-if="not hide_account_at_0">Show</t>
+                    <t t-if="hide_account_at_0">Ocultar</t>
+                    <t t-if="not hide_account_at_0">Mostrar</t>
                 </div>
             </div>
         </div>
@@ -149,26 +149,24 @@
         <div class="act_as_thead">
             <div class="act_as_row labels">
                 <t t-if="not show_partner_details">
-                    <!--## Code-->
+                    <!--## Código-->
                     <div class="act_as_cell" style="width: 8%;">Código</div>
-                    <!--## Account-->
+                    <!--## Cuenta-->
                     <div class="act_as_cell" style="width: 25%;">Cuenta</div>
                 </t>
                 <t t-if="show_partner_details">
-                    <!--## Partner-->
+                    <!--## Socio-->
                     <div class="act_as_cell" style="width: 33%;">Socio</div>
                 </t>
-                <!--## Initial balance-->
-                <div class="act_as_cell" style="width: 9%;">
-                    Saldo Inicial
-                </div>
-                <!--## Debit-->
+                <!--## Saldo Inicial-->
+                <div class="act_as_cell" style="width: 9%;">Saldo Inicial</div>
+                <!--## Débito-->
                 <div class="act_as_cell" style="width: 9%;">Débito</div>
-                <!--## Credit-->
+                <!--## Crédito-->
                 <div class="act_as_cell" style="width: 9%;">Crédito</div>
-                <!--## Period balance-->
+                <!--## Saldo del período-->
                 <div class="act_as_cell" style="width: 9%;">Saldo del período</div>
-                <!--## Ending balance-->
+                <!--## Saldo final-->
                 <div class="act_as_cell" style="width: 9%;">Saldo final</div>
             </div>
         </div>
@@ -177,7 +175,7 @@
         <!-- # line -->
         <div class="act_as_row lines">
             <t t-if="not show_partner_details">
-                <!--## Code-->
+                <!--## Código-->
                 <t t-if="balance['type'] == 'account_type'">
                     <div class="act_as_cell left" t-att-style="style">
                         <span
@@ -188,7 +186,7 @@
                             <t t-esc="balance['code']" />
                         </span>
                     </div>
-                    <!--            ## Account/Partner-->
+                    <!--## Cuenta/Socio-->
                     <div class="act_as_cell left" t-att-style="style">
                         <span
                             t-att-res-id="balance['id']"
@@ -288,7 +286,7 @@
                     </span>
                 </t>
             </div>
-            <!--## Debit-->
+            <!--## Débito-->
             <div class="act_as_cell amount" t-att-style="style">
                 <t t-if="not show_partner_details">
                     <t t-if="balance['type'] == 'account_type'">
@@ -688,69 +686,3 @@
         </div>
     </template>
 </odoo>
-
-
-
-<!--
-    <odoo>
-        <data>
-            <template id="report_balance_addition">
-                <t t-call="web.external_layout">
-                    <t t-set="currency" t-value="docs.company_id.currency_id"/>
-                    <t t-set="lt" t-value="docs._get_lines()"/>
-                    <t t-set="lines" t-value="lt[0]"/>
-                    <t t-set="totals" t-value="lt[1]"/>
-
-                    <div class="page">
-                        <h2>Balance de Sumas y Saldos</h2>
-                        <p>
-                            <strong>Compañía:</strong> <span t-esc="docs.company_id.name"/>
-                            <span> | </span>
-                            <strong>Desde:</strong> <span t-esc="docs.date_from"/>
-                            <span> | </span>
-                            <strong>Hasta:</strong> <span t-esc="docs.date_to"/>
-                        </p>
-                        <table class="table table-sm o_main_table">
-                            <thead>
-                            <tr>
-                                <th>Cta</th>
-                                <th>Nombre</th>
-                                <th class="text-right">Inicial Debe</th>
-                                <th class="text-right">Inicial Haber</th>
-                                <th class="text-right">Mov. Debe</th>
-                                <th class="text-right">Mov. Haber</th>
-                                <th class="text-right">Final Debe</th>
-                                <th class="text-right">Final Haber</th>
-                            </tr>
-                            </thead>
-                            <tbody>
-                            <t t-foreach="lines" t-as="l">
-                                <tr>
-                                <td><span t-esc="l['account_code']"/></td>
-                                <td><span t-esc="l['account_name']"/></td>
-                                <td class="text-right"><span t-esc="formatLang(l['initial_debit'], currency_obj=currency)"/></td>
-                                <td class="text-right"><span t-esc="formatLang(l['initial_credit'], currency_obj=currency)"/></td>
-                                <td class="text-right"><span t-esc="formatLang(l['period_debit'], currency_obj=currency)"/></td>
-                                <td class="text-right"><span t-esc="formatLang(l['period_credit'], currency_obj=currency)"/></td>
-                                <td class="text-right"><span t-esc="formatLang(l['ending_debit'], currency_obj=currency)"/></td>
-                                <td class="text-right"><span t-esc="formatLang(l['ending_credit'], currency_obj=currency)"/></td>
-                                </tr>
-                            </t>
-
-                            <tr class="o_total">
-                                <td colspan="2"><strong>TOTALES</strong></td>
-                                <td class="text-right"><strong t-esc="formatLang(totals['initial_debit'], currency_obj=currency)"/></td>
-                                <td class="text-right"><strong t-esc="formatLang(totals['initial_credit'], currency_obj=currency)"/></td>
-                                <td class="text-right"><strong t-esc="formatLang(totals['period_debit'], currency_obj=currency)"/></td>
-                                <td class="text-right"><strong t-esc="formatLang(totals['period_credit'], currency_obj=currency)"/></td>
-                                <td class="text-right"><strong t-esc="formatLang(totals['ending_debit'], currency_obj=currency)"/></td>
-                                <td class="text-right"><strong t-esc="formatLang(totals['ending_credit'], currency_obj=currency)"/></td>
-                            </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </t>
-            </template>
-        </data>
-    </odoo>
--->
