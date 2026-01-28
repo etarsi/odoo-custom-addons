@@ -1,4 +1,6 @@
 from odoo import api, models
+import logging
+_logger = logging.getLogger(__name__)
 
 
 class ReportBalanceAddition(models.AbstractModel):
@@ -28,6 +30,8 @@ class ReportBalanceAddition(models.AbstractModel):
             })
 
         lines, totals = wiz._get_lines()
+        _logger.info("Report values generated for Balance Addition report wizard ID %s", wiz.id)
+        _logger.info("Lines: %s", lines)
         return {
             "docs": wiz,
             "company_id": wiz.company_id,
