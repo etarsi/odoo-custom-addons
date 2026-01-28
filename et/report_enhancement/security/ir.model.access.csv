@@ -1,0 +1,4 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_report_factura_rubros_temp,access_report_factura_rubros_temp,model_report_factura_rubros_temp,,1,1,1,1
+access_report_factura_rubros_temp_nav,access_report_factura_rubros_temp_nav,model_report_factura_rubros_temp_nav,,1,1,1,1
+access_report_balance_addition_wizard,access_report_balance_addition_wizard,model_report_balance_addition_wizard,,1,1,1,1
