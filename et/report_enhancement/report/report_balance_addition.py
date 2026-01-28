@@ -27,7 +27,7 @@ class ReportBalanceAddition(models.AbstractModel):
         if wiz.journal_ids:
             aml_domain_common.append(("journal_id", "in", wiz.journal_ids.ids))
 
-        # Calcular trial_balance como OCA (saldo firmado)
+        # Calcular balance_addition como OCA (saldo firmado)
         AML = self.env["account.move.line"].with_context(active_test=False)
 
         dom_initial = aml_domain_common + [("date", "<", wiz.date_from)]
@@ -42,7 +42,7 @@ class ReportBalanceAddition(models.AbstractModel):
         account_ids = set(init_map.keys()) | set(per_map.keys())
         accounts = self.env["account.account"].browse(list(account_ids)).sorted(lambda a: (a.code, a.id))
 
-        trial_balance = []
+        balance_addition = []
         for acc in accounts:
             initial_balance = init_map.get(acc.id, 0.0)
             debit = (per_map.get(acc.id, {}) or {}).get("debit", 0.0) or 0.0
@@ -57,7 +57,7 @@ class ReportBalanceAddition(models.AbstractModel):
             ):
                 continue
 
-            trial_balance.append({
+            balance_addition.append({
                 "type": "account_type",
                 "id": acc.id,
                 "code": acc.code,
@@ -77,15 +77,6 @@ class ReportBalanceAddition(models.AbstractModel):
             "date_from": wiz.date_from,
             "date_to": wiz.date_to,
             "hide_account_at_0": wiz.hide_account_at_0,
-
-            "trial_balance": trial_balance,
+            "balance_addition": balance_addition,
             "aml_domain_common": aml_domain_common,
-
-            # Flags que tu QWeb usa en t-if
-            "show_partner_details": False,
-            "foreign_currency": False,
-            "show_hierarchy": False,
-            "limit_hierarchy_level": False,
-            "show_hierarchy_level": 0,
-            "hide_parent_hierarchy_level": False,
         }
