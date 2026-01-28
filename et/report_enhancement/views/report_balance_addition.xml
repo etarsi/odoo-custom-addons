@@ -95,7 +95,7 @@
                         <div class="act_as_table data_table" style="width: 100%;">
                             <!-- Display account/partner header -->
                             <t
-                                t-call="report_enhancement.report_trial_balance_lines_header"
+                                t-call="report_enhancement.report_balance_addition_lines_header"
                             />
                             <!-- Adapt style -->
                             <t t-set="padding" t-value="padding+4" />
@@ -108,7 +108,7 @@
                                     <t t-set="type" t-value='"partner_type"' />
                                     <!-- Display partner line -->
                                     <t
-                                        t-call="report_enhancement.report_trial_balance_line"
+                                        t-call="report_enhancement.report_balance_addition_line"
                                     />
                                 </t>
                             </t>
@@ -117,7 +117,7 @@
                         <!-- Display account footer -->
                         <t t-set="type" t-value='"account_type"' />
                         <t
-                            t-call="report_enhancement.report_trial_balance_account_footer"
+                            t-call="report_enhancement.report_balance_addition_account_footer"
                         />
                     </div>
                 </t>
