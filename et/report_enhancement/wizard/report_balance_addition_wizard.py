@@ -98,79 +98,51 @@ class ReportBalanceAdditionWizard(models.TransientModel):
         return 0.0, -balance
 
     def _get_lines(self):
-        """Devuelve líneas por cuenta con saldo inicial, movimientos y saldo final (debe/haber)."""
         self.ensure_one()
         AML = self.env["account.move.line"].with_context(active_test=False)
 
-        base = self._base_domain()
+        base = self._base_domain()  # ojo: que respete target_move posted/all si lo agregás
         dom_initial = base + [("date", "<", self.date_from)]
-        dom_period = base + [("date", ">=", self.date_from), ("date", "<=", self.date_to)]
+        dom_period  = base + [("date", ">=", self.date_from), ("date", "<=", self.date_to)]
 
-        # read_group por cuenta
-        initial = AML.read_group(dom_initial, ["debit", "credit", "balance"], ["account_id"])
-        period = AML.read_group(dom_period, ["debit", "credit", "balance"], ["account_id"])
+        initial = AML.read_group(dom_initial, ["balance"], ["account_id"])
+        period  = AML.read_group(dom_period,  ["debit", "credit", "balance"], ["account_id"])
 
-        init_map = {
-            x["account_id"][0]: {
-                "debit": x.get("debit", 0.0),
-                "credit": x.get("credit", 0.0),
-                "balance": x.get("balance", 0.0),
-            }
-            for x in initial if x.get("account_id")
-        }
-        per_map = {
-            x["account_id"][0]: {
-                "debit": x.get("debit", 0.0),
-                "credit": x.get("credit", 0.0),
-                "balance": x.get("balance", 0.0),
-            }
-            for x in period if x.get("account_id")
-        }
+        init_map = {x["account_id"][0]: x.get("balance", 0.0) for x in initial if x.get("account_id")}
+        per_map  = {x["account_id"][0]: x for x in period if x.get("account_id")}
 
-        account_ids = set(init_map.keys()) | set(per_map.keys())
+        account_ids = set(init_map) | set(per_map)
         accounts = self.env["account.account"].browse(list(account_ids)).sorted(lambda a: (a.code, a.id))
 
         lines = []
-        totals = {
-            "initial_debit": 0.0, "initial_credit": 0.0,
-            "period_debit": 0.0, "period_credit": 0.0,
-            "ending_debit": 0.0, "ending_credit": 0.0,
-        }
+        totals = {"initial_balance": 0.0, "debit": 0.0, "credit": 0.0, "period_balance": 0.0, "ending_balance": 0.0}
 
         for acc in accounts:
-            ibal = init_map.get(acc.id, {}).get("balance", 0.0)
-            pdebit = per_map.get(acc.id, {}).get("debit", 0.0)
-            pcredit = per_map.get(acc.id, {}).get("credit", 0.0)
-            pbal = per_map.get(acc.id, {}).get("balance", 0.0)
+            initial_balance = init_map.get(acc.id, 0.0)
+            debit = per_map.get(acc.id, {}).get("debit", 0.0) or 0.0
+            credit = per_map.get(acc.id, {}).get("credit", 0.0) or 0.0
+            period_balance = per_map.get(acc.id, {}).get("balance", 0.0) or (debit - credit)
+            ending_balance = initial_balance + period_balance
 
-            initial_debit, initial_credit = self._split_balance(ibal)
-            ending_debit, ending_credit = self._split_balance(ibal + pbal)
+            if self.hide_account_at_0 and (
+                abs(initial_balance) < 1e-9 and abs(debit) < 1e-9 and abs(credit) < 1e-9 and abs(ending_balance) < 1e-9
+            ):
+                continue
 
-            if self.hide_account_at_0:
-                if (
-                    abs(initial_debit) < 1e-9 and abs(initial_credit) < 1e-9 and
-                    abs(pdebit) < 1e-9 and abs(pcredit) < 1e-9 and
-                    abs(ending_debit) < 1e-9 and abs(ending_credit) < 1e-9
-                ):
-                    continue
-
-            line = {
+            lines.append({
                 "account_code": acc.code,
                 "account_name": acc.name,
-                "initial_debit": initial_debit,
-                "initial_credit": initial_credit,
-                "period_debit": pdebit,
-                "period_credit": pcredit,
-                "ending_debit": ending_debit,
-                "ending_credit": ending_credit,
-            }
-            lines.append(line)
+                "initial_balance": initial_balance,
+                "debit": debit,
+                "credit": credit,
+                "period_balance": period_balance,
+                "ending_balance": ending_balance,
+            })
 
-            totals["initial_debit"] += initial_debit
-            totals["initial_credit"] += initial_credit
-            totals["period_debit"] += pdebit
-            totals["period_credit"] += pcredit
-            totals["ending_debit"] += ending_debit
-            totals["ending_credit"] += ending_credit
+            totals["initial_balance"] += initial_balance
+            totals["debit"] += debit
+            totals["credit"] += credit
+            totals["period_balance"] += period_balance
+            totals["ending_balance"] += ending_balance
 
         return lines, totals
