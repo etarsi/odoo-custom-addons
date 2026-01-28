@@ -4,16 +4,20 @@
         <template id="report_balance_addition">
             <!-- si lines/totals vienen del python, dejalos tal cual; si no, se rompen -->
             <t t-call="web.external_layout">
+                <t t-set="currency" t-value="docs.company_id.currency_id"/>
+                <t t-set="lt" t-value="docs._get_lines()"/>
+                <t t-set="lines" t-value="lt[0]"/>
+                <t t-set="totals" t-value="lt[1]"/>
+
                 <div class="page">
                     <h2>Balance de Sumas y Saldos</h2>
                     <p>
-                        <strong>Compañía:</strong> <span t-esc="company.name"/>
+                        <strong>Compañía:</strong> <span t-esc="docs.company_id.name"/>
                         <span> | </span>
-                        <strong>Desde:</strong> <span t-esc="date_from"/>
+                        <strong>Desde:</strong> <span t-esc="docs.date_from"/>
                         <span> | </span>
-                        <strong>Hasta:</strong> <span t-esc="date_to"/>
+                        <strong>Hasta:</strong> <span t-esc="docs.date_to"/>
                     </p>
-
                     <table class="table table-sm o_main_table">
                         <thead>
                         <tr>
