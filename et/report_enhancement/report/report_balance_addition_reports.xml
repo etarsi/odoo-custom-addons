@@ -4,8 +4,8 @@
         <field name="name">Balance de Sumas y Saldos (HTML)</field>
         <field name="model">report.balance.addition.wizard</field>
         <field name="report_type">qweb-html</field>
-        <field name="report_name">report-enhancement.report_balance_addition</field>
-        <field name="report_file">report-enhancement.report_balance_addition</field>
+        <field name="report_name">report_enhancement.report_balance_addition</field>
+        <field name="report_file">report_enhancement.report_balance_addition</field>
     </record>
 
     <!-- PDF -->
@@ -13,8 +13,8 @@
         <field name="name">Balance de Sumas y Saldos (PDF)</field>
         <field name="model">report.balance.addition.wizard</field>
         <field name="report_type">qweb-pdf</field>
-        <field name="report_name">report-enhancement.report_balance_addition</field>
-        <field name="report_file">report-enhancement.report_balance_addition</field>
+        <field name="report_name">report_enhancement.report_balance_addition</field>
+        <field name="report_file">report_enhancement.report_balance_addition</field>
     </record>
 
     <!-- XLSX (requiere report_xlsx) -->
@@ -22,8 +22,8 @@
         <field name="name">Balance de Sumas y Saldos (XLSX)</field>
         <field name="model">report.balance.addition.wizard</field>
         <field name="report_type">xlsx</field>
-        <field name="report_name">report-enhancement.report_balance_addition_xlsx</field>
-        <field name="report_file">report-enhancement.report_balance_addition_xlsx</field>
+        <field name="report_name">report_enhancement.report_balance_addition_xlsx</field>
+        <field name="report_file">report_enhancement.report_balance_addition_xlsx</field>
     </record>
 
 

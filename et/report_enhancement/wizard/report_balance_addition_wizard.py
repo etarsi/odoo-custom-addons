@@ -64,11 +64,11 @@ class ReportBalanceAdditionWizard(models.TransientModel):
         data = {"form": self.read()[0]}
 
         if report_type == "html":
-            return self.env.ref("report-enhancement.report_balance_addition_html").report_action(self, data=data)
+            return self.env.ref("report_enhancement.report_balance_addition_html").report_action(self, data=data)
         if report_type == "pdf":
-            return self.env.ref("report-enhancement.report_balance_addition_pdf").report_action(self, data=data)
+            return self.env.ref("report_enhancement.report_balance_addition_pdf").report_action(self, data=data)
         if report_type == "xlsx":
-            return self.env.ref("report-enhancement.report_balance_addition_xlsx").report_action(self, data=data)
+            return self.env.ref("report_enhancement.report_balance_addition_xlsx").report_action(self, data=data)
 
     # -----------------------------
     # Data builder (sumas y saldos)

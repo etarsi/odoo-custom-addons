@@ -2,7 +2,7 @@ from odoo import models
 
 
 class ReportBalanceAdditionXlsx(models.AbstractModel):
-    _name = "report_balance_addition_xlsx"
+    _name = "report.report_enhancement.report_balance_addition_xlsx"
     _inherit = "report.report_xlsx.abstract"
     _description = "Balance de Sumas y Saldos (XLSX)"
 
