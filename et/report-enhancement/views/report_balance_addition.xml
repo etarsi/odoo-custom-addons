@@ -1,0 +1,8 @@
+<?xml version='1.0' encoding='utf-8'?>
+<odoo>
+    <template id="report_balance_addition">
+        <div class="o_account_financial_reports_page">
+            <t t-call="report_enhancement.report_balance_addition_base"/>
+        </div>
+    </template>
+</odoo>

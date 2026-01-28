@@ -57,3 +57,4 @@ class StockMoveInherit(models.Model):
                     else:
                         raise ValidationError(_("No se encontró un producto con el código %s") % new_code)
         return res
+    

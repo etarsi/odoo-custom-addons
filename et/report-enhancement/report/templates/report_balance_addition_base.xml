@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='utf-8'?>
 <odoo>
     <!-- QWeb template (HTML/PDF comparten) -->
-    <template id="report_balance_addition_document">
+    <template id="report_balance_addition_base">
         <t t-call="web.external_layout">
             <div class="page">
                 <h2>Balance de Sumas y Saldos</h2>

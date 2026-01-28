@@ -26,7 +26,9 @@
     'data': [
         'security/ir.model.access.csv',
         #TEMPLATES
-        'report/templates/report_balance_document.xml',
+        'report/templates/report_balance_addition_base.xml',
+        'views/report_balance_addition.xml',
+        #REPORTS
         'report/report_balance_addition_reports.xml',
         'views/report_factura_rubros_temp_views.xml',
         'views/report_factura_rubros_temp_nav_views.xml',
