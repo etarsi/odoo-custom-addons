@@ -25,17 +25,14 @@
     # always loaded
     'data': [
         'security/ir.model.access.csv',
+        #TEMPLATES
+        'report/templates/report_balance_document.xml',
         'report/report_balance_addition_reports.xml',
         'views/report_factura_rubros_temp_views.xml',
         'views/report_factura_rubros_temp_nav_views.xml',
         'wizard/report_balance_addition_wizard_views.xml',
         'views/templates.xml',
     ],
-    'assets': {
-        'web.assets_backend': [
-            'report_enhancement/report/report_balance_document.xml',
-        ],
-    },
     # only loaded in demonstration mode
     'demo': [
         'demo/demo.xml',
