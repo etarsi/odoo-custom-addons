@@ -64,7 +64,7 @@
                         </t>
                         <t t-else="">
                             <t
-                                t-call="report_enhancement.report_trial_balance_line"
+                                t-call="report_enhancement.report_balance_addition_line"
                             />
                         </t>
                     </t>
