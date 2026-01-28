@@ -61,8 +61,11 @@ class ReportBalanceAdditionWizard(models.TransientModel):
     # -----------------------------
     def _print_report(self, report_type):
         self.ensure_one()
-        data = {"form": self.read()[0]}
-
+        data = {"form": self.read([
+            "company_id","date_from","date_to",
+            "account_ids","partner_ids","journal_ids",
+            "hide_account_at_0"
+        ])[0]}
         if report_type == "html":
             return self.env.ref("report_enhancement.report_balance_addition_html").report_action(self, data=data)
         if report_type == "pdf":
