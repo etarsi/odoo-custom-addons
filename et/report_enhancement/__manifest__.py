@@ -21,7 +21,11 @@
 
     # any module necessary for this one to work correctly
     'depends': ['base', 'account_enhancement', 'report_xlsx'],
-
+    'assets': {
+        'web.assets_backend': [
+            'report_enhancement/static/src/js/action_report_xlsx.js',
+        ],
+    },
     # always loaded
     'data': [
         'security/ir.model.access.csv',
