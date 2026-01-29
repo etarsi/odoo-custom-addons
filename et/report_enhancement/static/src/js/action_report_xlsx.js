@@ -137,7 +137,7 @@ odoo.define("report_enhancement.report_balance_addition_xlsx", function (require
                     }
 
                     const ctx = Object.assign({}, this.context || {}, {
-                        active_model: "report.balance.addition.report.wizard",
+                        active_model: "report.balance.addition.wizard",
                         active_id: wizardId,
                         active_ids: [wizardId],
                     });
@@ -145,7 +145,7 @@ odoo.define("report_enhancement.report_balance_addition_xlsx", function (require
                     const action = {
                         type: "ir.actions.act_window",
                         name: "Libro Mayor - Configuración",
-                        res_model: "report.balance.addition.report.wizard",
+                        res_model: "report.balance.addition.wizard",
                         view_mode: "form",
                         views: [[false, "form"]],
                         res_id: wizardId,     // <-- clave: abre el MISMO wizard con los mismos datos
