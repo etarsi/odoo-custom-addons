@@ -1,16 +1,16 @@
 # -*- coding: utf-8 -*-
 {
-    'name': "sale_enhancement",
+    'name': "report_enhancement",
 
     'summary': """
         Short (1 phrase/line) summary of the module's purpose, used as
         subtitle on modules listing or apps.openerp.com""",
 
     'description': """
-        Long description of module's purpose
+        Detalle de facturación por cliente / comercial y rubro
     """,
 
-    'author': "Ezequiel Tarsitano",
+    'author': "My Company",
     'website': "http://www.yourcompany.com",
 
     # Categories can be used to filter modules in modules listing
@@ -20,28 +20,28 @@
     'version': '0.1',
 
     # any module necessary for this one to work correctly
-    'depends': ['base', 'sale', 'delivery', 'sebigus-split-orders', 'stock_enhancement2', 'product', 'stock', 'contacts', 'wms_enhancement'],
-
+    'depends': ['base', 'account_enhancement', 'report_xlsx'],
+    'assets': {
+        'web.assets_backend': [
+            'report_enhancement/static/src/js/action_report_xlsx.js',
+        ],
+    },
     # always loaded
     'data': [
         'security/ir.model.access.csv',
-        #reports
-        'reports/report_saleorder_document.xml',
-        #wizards
-        'views/sale_order_tipo_venta_wizard.xml',
-        #data
-        'data/groups.xml',
-        'data/actions.xml',
-        #views
+        #TEMPLATES
+        'report/templates/report_balance_addition_base.xml',
+        'views/report_balance_addition.xml',
+        #REPORTS
+        'report/report_balance_addition_reports.xml',
+        'views/report_factura_rubros_temp_views.xml',
+        'views/report_factura_rubros_temp_nav_views.xml',
+        'wizard/report_balance_addition_wizard_views.xml',
         'views/templates.xml',
-        'views/res_partner_views.xml',
-        'views/product_template_views.xml',
-        'views/product_pricelist_view.xml',
-        'views/sale_order_views_tree.xml',
-        #'views/transfer_view.xml',
     ],
     # only loaded in demonstration mode
     'demo': [
         'demo/demo.xml',
     ],
+    'aplication': True,
 }

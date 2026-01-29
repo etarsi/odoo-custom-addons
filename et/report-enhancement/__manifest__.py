@@ -20,13 +20,19 @@
     'version': '0.1',
 
     # any module necessary for this one to work correctly
-    'depends': ['base', 'account_enhancement'],
+    'depends': ['base'],
 
     # always loaded
     'data': [
         'security/ir.model.access.csv',
+        #TEMPLATES
+        'report/templates/report_balance_addition_base.xml',
+        'views/report_balance_addition.xml',
+        #REPORTS
+        'report/report_balance_addition_reports.xml',
         'views/report_factura_rubros_temp_views.xml',
         'views/report_factura_rubros_temp_nav_views.xml',
+        'wizard/report_balance_addition_wizard_views.xml',
         'views/templates.xml',
     ],
     # only loaded in demonstration mode

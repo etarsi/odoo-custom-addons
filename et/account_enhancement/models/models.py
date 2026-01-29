@@ -673,7 +673,16 @@ class AccountMovelLineInherit(models.Model):
 
     lot_id = fields.Many2one('stock.production.lot', string='Nro Lote')
     debit2 = fields.Float(string="Debe")
-    
+
+    @api.onchange('product_id', 'name', 'move_id.partner_id')
+    def _onchange_product_id(self):
+        super()._onchange_product_id()
+        if self.move_id.move_type in ['out_invoice', 'out_refund'] and self.move_id.state == 'draft': # ventas y notas de credito en estado borrador
+            if self.product_id and self.product_id.active_alternative:
+                partner = self.move_id.partner_id
+                if partner and partner not in self.product_id.excluyent_partner_ids:
+                    name = f'[{self.product_id.default_code}] {self.product_id.name_alternative}'.strip()    
+                    self.name = name
 
     @api.onchange('debit2')
     def onchange_debit2(self):

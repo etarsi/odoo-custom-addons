@@ -1,0 +1,14 @@
+.o-check-eff {
+  display: inline-flex;
+  align-items: baseline;
+  gap: .5rem;
+  margin: .5rem 0 1rem;
+  padding: .35rem .6rem;
+  border-radius: .5rem;
+  background: #f5f5f5;
+}
+.o-check-eff__pct { font-size: 22px; font-weight: 800; }
+.o-check-eff__label { font-size: 14px; font-weight: 600; opacity: .85; }
+.o-check-eff--ok { background: #e7f7ec; }     /* verde suave */
+.o-check-eff--warn { background: #fdeaea; }   /* rojo suave */
+.o-check-eff--empty { background: #eee; }

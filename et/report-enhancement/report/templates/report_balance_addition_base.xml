@@ -1,0 +1,59 @@
+<?xml version='1.0' encoding='utf-8'?>
+<odoo>
+    <data>
+        <!-- QWeb template (HTML/PDF comparten) -->
+        <template id="report_balance_addition_base">
+            <t t-call="web.external_layout">
+                <div class="page">
+                    <h2>Balance de Sumas y Saldos</h2>
+                    <p>
+                        <strong>Compañía:</strong> <span t-esc="company.name"/>
+                        <span> | </span>
+                        <strong>Desde:</strong> <span t-esc="date_from"/>
+                        <span> | </span>
+                        <strong>Hasta:</strong> <span t-esc="date_to"/>
+                    </p>
+
+                    <table class="table table-sm o_main_table">
+                        <thead>
+                        <tr>
+                            <th>Cta</th>
+                            <th>Nombre</th>
+                            <th class="text-right">Inicial Debe</th>
+                            <th class="text-right">Inicial Haber</th>
+                            <th class="text-right">Mov. Debe</th>
+                            <th class="text-right">Mov. Haber</th>
+                            <th class="text-right">Final Debe</th>
+                            <th class="text-right">Final Haber</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <t t-foreach="lines" t-as="l">
+                            <tr>
+                            <td><span t-esc="l['account_code']"/></td>
+                            <td><span t-esc="l['account_name']"/></td>
+                            <td class="text-right"><span t-esc="formatLang(l['initial_debit'], currency_obj=currency)"/></td>
+                            <td class="text-right"><span t-esc="formatLang(l['initial_credit'], currency_obj=currency)"/></td>
+                            <td class="text-right"><span t-esc="formatLang(l['period_debit'], currency_obj=currency)"/></td>
+                            <td class="text-right"><span t-esc="formatLang(l['period_credit'], currency_obj=currency)"/></td>
+                            <td class="text-right"><span t-esc="formatLang(l['ending_debit'], currency_obj=currency)"/></td>
+                            <td class="text-right"><span t-esc="formatLang(l['ending_credit'], currency_obj=currency)"/></td>
+                            </tr>
+                        </t>
+
+                        <tr class="o_total">
+                            <td colspan="2"><strong>TOTALES</strong></td>
+                            <td class="text-right"><strong t-esc="formatLang(totals['initial_debit'], currency_obj=currency)"/></td>
+                            <td class="text-right"><strong t-esc="formatLang(totals['initial_credit'], currency_obj=currency)"/></td>
+                            <td class="text-right"><strong t-esc="formatLang(totals['period_debit'], currency_obj=currency)"/></td>
+                            <td class="text-right"><strong t-esc="formatLang(totals['period_credit'], currency_obj=currency)"/></td>
+                            <td class="text-right"><strong t-esc="formatLang(totals['ending_debit'], currency_obj=currency)"/></td>
+                            <td class="text-right"><strong t-esc="formatLang(totals['ending_credit'], currency_obj=currency)"/></td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </t>
+        </template>
+    </data>
+</odoo>

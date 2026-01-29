@@ -60,6 +60,10 @@
                                 <field name="quantity_delivered" string="Cantidad Entregada" sum="Total"/>
                                 <field name="uxb" string="UxB"/>
                                 <field name="bultos" string="Bultos" sum="Total"/>      
+                                <field name="transfer_picking_ids" string="Transferencias" widget="many2many_tags" optional="hide"/>
+                                <field name="transfer_quantity_comprometida" string="Cantidad Comprometida" optional="hide"/>
+                                <field name="transfer_quantity_done" string="Cantidad Hechas" optional="hide"/>
+                                <field name="transfer_quantity_cancel" string="Cantidad Canceladas" optional="hide"/>
                                 <button name="unreserve_stock" type="object" string="Liberar"/>               
                             </tree>
                           </field>

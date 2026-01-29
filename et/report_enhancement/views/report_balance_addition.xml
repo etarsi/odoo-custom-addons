@@ -1,0 +1,235 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+    <template id="report_balance_addition">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="o">
+                <t t-call="account_financial_report.internal_layout">
+                    <t t-call="report_enhancement.report_balance_addition_base" />
+                </t>
+            </t>
+        </t>
+    </template>
+    <template id="report_balance_addition_base">
+        <!-- Defines global variables used by internal layout -->
+        <t t-set="title">
+            Balance de Sumas y Saldos -
+            <t t-esc="o.company_id.name" />
+            -
+            <t t-esc="o.company_id.currency_id.name" />
+        </t>
+        <div class="page">
+            <div class="row">
+                <h4
+                    class="mt0"
+                    t-esc="title or 'Odoo Report'"
+                    style="text-align: center;"
+                />
+            </div>
+            <!-- Display filters -->
+            <t t-call="report_enhancement.report_balance_addition_filters" />
+            <div class="act_as_table list_table" style="margin-top: 10px;" />
+            <!-- Display account lines -->
+            <div class="act_as_table data_table" style="width: 100%;">
+                <!-- Display account header -->
+                <t t-call="report_enhancement.report_balance_addition_lines_header"/>
+                <!-- Display each lines -->
+                <t t-foreach="balance_addition" t-as="balance">
+                    <!-- Adapt -->
+                    <t t-set="style" t-value="'font-size:12px;'"/>
+                    <!-- Different style for account group -->
+                    <t t-call="report_enhancement.report_balance_addition_line"/>
+                </t>
+            </div>
+        </div>
+    </template>
+    <template id="report_enhancement.report_balance_addition_filters">
+        <div class="act_as_table data_table" style="width: 100%;">
+            <div class="act_as_row labels">
+                <div class="act_as_cell">Filtro Periodo</div>
+                <div class="act_as_cell">Filtro de cuentas en 0</div>
+            </div>
+            <div class="act_as_row">
+                <div class="act_as_cell">
+                    Desde:
+                    <span t-esc="date_from" t-options="{'widget': 'date'}" />
+                    Hasta:
+                    <span t-esc="date_to" t-options="{'widget': 'date'}" />
+                </div>
+                <div class="act_as_cell">
+                    <t t-if="hide_account_at_0">Ocultar</t>
+                    <t t-if="not hide_account_at_0">Mostrar</t>
+                </div>
+            </div>
+        </div>
+    </template>
+    <template id="report_enhancement.report_balance_addition_lines_header">
+        <!-- Display table headers for lines -->
+        <div class="act_as_thead">
+            <div class="act_as_row labels">
+                <!--## Código-->
+                <div class="act_as_cell" style="width: 8%;">Código</div>
+                <!--## Cuenta-->
+                <div class="act_as_cell" style="width: 25%;">Cuenta</div>
+                <!--## Saldo Inicial-->
+                <div class="act_as_cell" style="width: 9%;">Saldo Inicial</div>
+                <!--## Débito-->
+                <div class="act_as_cell" style="width: 9%;">Débito</div>
+                <!--## Crédito-->
+                <div class="act_as_cell" style="width: 9%;">Crédito</div>
+                <!--## Saldo del período-->
+                <div class="act_as_cell" style="width: 9%;">Saldo del período</div>
+                <!--## Saldo final-->
+                <div class="act_as_cell" style="width: 9%;">Saldo final</div>
+            </div>
+        </div>
+    </template>
+    <template id="report_enhancement.report_balance_addition_line">
+        <!-- # line -->
+        <div class="act_as_row lines">
+            <!--## Código-->
+            <div class="act_as_cell left" t-att-style="style + 'width:8%;'">
+                <span t-att-res-id="balance['id']" res-model="account.account" view-type="form">
+                    <t t-esc="balance['code']" />
+                </span>
+            </div>
+            <div class="act_as_cell left" t-att-style="style + 'width:25%;'">
+                <span t-att-res-id="balance['id']" res-model="account.account" view-type="form">
+                    <t t-esc="balance['name']" />
+                </span>
+            </div>
+            <!--## Initial balance-->
+            <div class="act_as_cell amount" t-att-style="style + 'width:9%;'">
+                <t t-set="domain" t-value="[('account_id', '=', balance['id']), ('date', '&lt;', date_from)]"/>
+                <span t-att-domain="domain+aml_domain_common" res-model="account.move.line">
+                    <t t-esc="balance['initial_balance']" t-options="{'widget': 'monetary', 'display_currency': res_company.currency_id}"/>
+                </span>
+                <t t-if="type == 'partner_type'">
+                    <t t-set="domain"
+                        t-value="[('account_id', '=', int(account_id)),
+                                 ('partner_id', '=', int(partner_id)),
+                                 ('date', '&lt;', date_from)]"
+                    />
+                    <span t-att-domain="domain+aml_domain_common" res-model="account.move.line">
+                        <t t-raw="total_amount[account_id][partner_id]['initial_balance']" t-options="{'widget': 'monetary', 'display_currency': res_company.currency_id}"/>
+                    </span>
+                </t>
+            </div>
+            <!--## Débito-->
+            <div class="act_as_cell amount" t-att-style="style + 'width:9%;'">
+                <t t-set="domain"
+                    t-value="[('account_id', '=', balance['id']),
+                                    ('date', '&gt;=', date_from),
+                                    ('date', '&lt;=', date_to),
+                                    ('debit', '&lt;&gt;', 0)]"
+                />
+                <span t-att-domain="domain+aml_domain_common" res-model="account.move.line">
+                    <t t-esc="balance['debit']" t-options="{'widget': 'monetary', 'display_currency': res_company.currency_id}"/>
+                </span>
+                <t t-if="type == 'partner_type'">
+                    <t t-set="domain"
+                        t-value="[('account_id', '=', int(account_id)),
+                                 ('partner_id', '=', int(partner_id)),
+                                 ('date', '&gt;=', date_from),
+                                 ('date', '&lt;=', date_to),
+                                 ('debit', '&lt;&gt;', 0)]"
+                    />
+                    <span t-att-domain="domain+aml_domain_common" res-model="account.move.line">
+                        <t t-raw="total_amount[account_id][partner_id]['debit']" t-options="{'widget': 'monetary', 'display_currency': res_company.currency_id}"/>
+                    </span>
+                </t>
+            </div>
+            <div class="act_as_cell amount" t-att-style="style + 'width:9%;'">
+                <t  t-set="domain"
+                    t-value="[('account_id', '=', balance['id']),
+                                    ('date', '&gt;=', date_from),
+                                    ('date', '&lt;=', date_to),
+                                    ('credit', '&lt;&gt;', 0)]"
+                />
+                <span t-att-domain="domain+aml_domain_common" res-model="account.move.line">
+                    <t t-esc="balance['credit']" t-options="{'widget': 'monetary', 'display_currency': res_company.currency_id}"/>
+                </span>
+                <t t-if="type == 'partner_type'">
+                    <t  t-set="domain"
+                        t-value="[('account_id', '=', int(account_id)),
+                                 ('partner_id', '=', int(partner_id)),
+                                 ('date', '&gt;=', date_from),
+                                 ('date', '&lt;=', date_to),
+                                 ('credit', '&lt;&gt;', 0)]"
+                    />
+                    <span t-att-domain="domain+aml_domain_common" res-model="account.move.line">
+                        <t t-raw="total_amount[account_id][partner_id]['credit']" t-options="{'widget': 'monetary', 'display_currency': res_company.currency_id}"/>
+                    </span>
+                </t>
+            </div>
+            <div class="act_as_cell amount" t-att-style="style + 'width:9%;'">
+                <t  t-set="domain"
+                    t-value="[('account_id', '=', balance['id']),
+                            ('date', '&gt;=', date_from),
+                            ('date', '&lt;=', date_to),
+                            ('balance', '&lt;&gt;', 0)]"
+                />
+                <span t-att-domain="domain+aml_domain_common" res-model="account.move.line">
+                    <t t-esc="balance['balance']" t-options="{'widget': 'monetary', 'display_currency': res_company.currency_id}"/>
+                </span>
+                <t t-if="type == 'partner_type'">
+                    <t  t-set="domain"
+                        t-value="[('account_id', '=', int(account_id)),
+                                 ('partner_id', '=', int(partner_id)),
+                                 ('date', '&gt;=', date_from),
+                                 ('date', '&lt;=', date_to),
+                                 ('balance', '&lt;&gt;', 0)]"
+                    />
+                    <span t-att-domain="domain+aml_domain_common" res-model="account.move.line">
+                        <t t-raw="total_amount[account_id][partner_id]['balance']" t-options="{'widget': 'monetary', 'display_currency': res_company.currency_id}"/>
+                    </span>
+                </t>
+            </div>
+            <div class="act_as_cell amount" t-att-style="style + 'width:9%;'">
+                <t t-set="domain" t-value="[('account_id', '=', balance['id']), ('date', '&lt;=', date_to)]"/>
+                <span t-att-domain="domain+aml_domain_common" res-model="account.move.line">
+                    <t t-esc="balance['ending_balance']" t-options="{'widget': 'monetary', 'display_currency': res_company.currency_id}"/>
+                </span>
+                <t t-if="type == 'partner_type'">
+                    <t t-set="domain"
+                        t-value="[('account_id', '=', int(account_id)),
+                                 ('partner_id', '=', int(partner_id)),
+                                 ('date', '&lt;=', date_to)]"/>
+                    <span t-att-domain="domain+aml_domain_common" res-model="account.move.line">
+                        <t t-esc="total_amount[account_id][partner_id]['ending_balance']" t-options="{'widget': 'monetary', 'display_currency': res_company.currency_id}"/>
+                    </span>
+                </t>
+            </div>
+        </div>
+    </template>
+    <template id="report_enhancement.report_balance_addition_account_footer">
+        <!-- Display ending balance line for account or partner -->
+        <div class="act_as_table list_table" style="width: 100%;">
+            <div class="act_as_row labels" style="font-weight: bold;">
+                <!--## date-->
+                <div class="act_as_cell first_column" style="width: 33%;">
+                    <span t-esc="accounts_data[account_id]['code']" /> - <span t-esc="accounts_data[account_id]['name']" />
+                </div>
+                <!--## Initial Balance-->
+                <div class="act_as_cell amount" style="width: 9%;">
+                    <span t-esc="total_amount[account_id]['initial_balance']" t-options="{'widget': 'monetary', 'display_currency': res_company.currency_id}"/>
+                </div>
+                <!--## Debit-->
+                <div class="act_as_cell amount" style="width: 9%;">
+                    <span t-esc="total_amount[account_id]['debit']" t-options="{'widget': 'monetary', 'display_currency': res_company.currency_id}"/>
+                </div>
+                <!--## Credit-->
+                <div class="act_as_cell amount" style="width: 9%;">
+                    <span t-esc="total_amount[account_id]['credit']" t-options="{'widget': 'monetary', 'display_currency': res_company.currency_id}"/>
+                </div>
+                <!--## Period balance-->
+                <div class="act_as_cell amount" style="width: 9%;">
+                    <span t-esc="total_amount[account_id]['period_balance']" t-options="{'widget': 'monetary', 'display_currency': res_company.currency_id}"/>
+                </div>
+                <!--## Ending balance-->
+                <div class="act_as_cell amount" style="width: 9%;">
+                    <span t-esc="total_amount[account_id]['ending_balance']" t-options="{'widget': 'monetary', 'display_currency': res_company.currency_id}"/>
+                </div>
+            </div>
+        </div>
+    </template>
+</odoo>

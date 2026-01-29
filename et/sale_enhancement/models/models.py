@@ -557,26 +557,27 @@ class SaleOrderInherit(models.Model):
                 'sale_id':record.id,
             }
 
-            transfer_id = self.env['wms.transfer'].create(transfer_vals)
+            # COMENTADO PARA QUE NO CAUSE ERROR AL CONFIRMAR PEDIDO SIN WMS (TITO)
 
-            transfer_lines_list = []
-            for line in record.order_line:
-                if line.product_id:
-                    transfer_line = {
-                        'transfer_id': transfer_id.id,
-                        'product_id': line.product_id.id,
-                        'state': 'pending',
-                        'invoice_state': 'no',
-                        'sale_line_id': line.id,
-                        'uxb': line.product_packaging_id.qty or False,
-                        'qty_demand': line.product_uom_qty or 0,
-                    }
+            #transfer_id = self.env['wms.transfer'].create(transfer_vals)
+            #transfer_lines_list = []
+            #for line in record.order_line:
+            #    if line.product_id:
+            #        transfer_line = {
+            #            'transfer_id': transfer_id.id,
+            #            'product_id': line.product_id.id,
+            #            'state': 'pending',
+            #            'invoice_state': 'no',
+            #            'sale_line_id': line.id,
+            #            'uxb': line.product_packaging_id.qty or False,
+            #            'qty_demand': line.product_uom_qty or 0,
+            #        }
 
-                    transfer_lines_list.append(transfer_line)
+            #        transfer_lines_list.append(transfer_line)
             
-            self.env['wms.transfer.line'].create(transfer_lines_list)
+            #self.env['wms.transfer.line'].create(transfer_lines_list)
 
-            record.transfer_id = transfer_id.id
+            #record.transfer_id = transfer_id.id
             
         return res
 
@@ -871,10 +872,6 @@ class SaleOrderLineInherit(models.Model):
                     else:
                         search_code = default_code
 
-                    product_id = self.env['product.product'].search([
-                        ('default_code', '=', default_code)
-                    ], limit=1)
-
                     stock_erp = self.env['stock.erp'].search([
                         ('product_id.default_code', '=', search_code)
                     ], limit=1)
@@ -884,7 +881,7 @@ class SaleOrderLineInherit(models.Model):
                 vals['sale_id'] = record.order_id.id
                 vals['sale_line_id'] = record.id
                 vals['partner_id'] = record.order_id.partner_id.id
-                vals['product_id'] = product_id.id
+                vals['product_id'] = stock_erp.product_id.id
                 vals['quantity'] = record.product_uom_qty
                 vals['uxb'] = record.product_packaging_id.qty or ''
                 vals['bultos'] = record.product_packaging_qty
@@ -907,9 +904,6 @@ class SaleOrderLineInherit(models.Model):
                     else:
                         search_code = default_code
 
-                    product_id = self.env['product.product'].search([
-                        ('default_code', '=', default_code)
-                    ], limit=1)
 
                     stock_erp = self.env['stock.erp'].search([
                         ('product_id.default_code', '=', search_code)
@@ -920,7 +914,7 @@ class SaleOrderLineInherit(models.Model):
                 vals['sale_id'] = record.order_id._origin.id
                 vals['sale_line_id'] = record._origin.id
                 vals['partner_id'] = record.order_id.partner_id.id
-                vals['product_id'] = product_id.id
+                vals['product_id'] = stock_erp.product_id.id
                 vals['quantity'] = record.product_uom_qty
                 vals['uxb'] = record.product_packaging_id.qty or ''
                 vals['bultos'] = record.product_packaging_qty
@@ -981,23 +975,25 @@ class SaleOrderLineInherit(models.Model):
 
     @api.onchange('product_id')
     def _onchange_product_id(self):
-        for record in self:
-
-            if record.company_id.id == 1:
-                record.write(
-                    {
-                        'tax_id': False,
-                    }
-                )
-                
-
-            record.discount = record.order_id.global_discount
-            packaging_ids = record.product_id.packaging_ids
-            if packaging_ids:
-                record.write(
-                            {
-                                'product_packaging_id': packaging_ids[0],
-                            })
+        if self.company_id.id == 1:
+            self.write({'tax_id': False})
+        self.discount = self.order_id.global_discount
+        packaging_ids = self.product_id.packaging_ids
+        if packaging_ids:
+            self.write({'product_packaging_id': packaging_ids[0]})
+    
+    @api.onchange('product_id', 'order_id.partner_id')
+    def product_id_change(self):
+        res = super(SaleOrderLineInherit, self).product_id_change()
+        #ACTUALIZAR NOMBRE ALTERNATIVO EN PEDIDO DE VENTA
+        if self.product_id:
+            if self.order_id.state == 'draft': # ventas y notas de credito en estado borrador
+                if self.product_id and self.product_id.active_alternative:
+                    partner = self.order_id.partner_id
+                    if partner and partner not in self.product_id.excluyent_partner_ids:
+                        name = f'[{self.product_id.default_code}] {self.product_id.name_alternative}'.strip()    
+                        self.name = name  
+        return res      
                         
     ## DESHABILITAR ADVERTENCIA DE UNIDAD X BULTO                    
     @api.onchange('product_packaging_id')
