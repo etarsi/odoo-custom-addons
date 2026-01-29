@@ -87,18 +87,18 @@
         <!-- # line -->
         <div class="act_as_row lines">
             <!--## Código-->
-            <div class="act_as_cell left" t-att-style="style">
+            <div class="act_as_cell left" t-att-style="style + 'width:8%;'">
                 <span t-att-res-id="balance['id']" res-model="account.account" view-type="form">
                     <t t-esc="balance['code']" />
                 </span>
             </div>
-            <div class="act_as_cell left" t-att-style="style">
+            <div class="act_as_cell left" t-att-style="style + 'width:25%;'">
                 <span t-att-res-id="balance['id']" res-model="account.account" view-type="form">
                     <t t-esc="balance['name']" />
                 </span>
             </div>
             <!--## Initial balance-->
-            <div class="act_as_cell amount" t-att-style="style">
+            <div class="act_as_cell amount" t-att-style="style + 'width:9%;'">
                 <t t-set="domain" t-value="[('account_id', '=', balance['id']), ('date', '&lt;', date_from)]"/>
                 <span t-att-domain="domain+aml_domain_common" res-model="account.move.line">
                     <t t-esc="balance['initial_balance']" t-options="{'widget': 'monetary', 'display_currency': res_company.currency_id}"/>
@@ -115,7 +115,7 @@
                 </t>
             </div>
             <!--## Débito-->
-            <div class="act_as_cell amount" t-att-style="style">
+            <div class="act_as_cell amount" t-att-style="style + 'width:9%;'">
                 <t t-set="domain"
                     t-value="[('account_id', '=', balance['id']),
                                     ('date', '&gt;=', date_from),
@@ -138,7 +138,7 @@
                     </span>
                 </t>
             </div>
-            <div class="act_as_cell amount" t-att-style="style">
+            <div class="act_as_cell amount" t-att-style="style + 'width:9%;'">
                 <t  t-set="domain"
                     t-value="[('account_id', '=', balance['id']),
                                     ('date', '&gt;=', date_from),
@@ -161,7 +161,7 @@
                     </span>
                 </t>
             </div>
-            <div class="act_as_cell amount" t-att-style="style">
+            <div class="act_as_cell amount" t-att-style="style + 'width:9%;'">
                 <t  t-set="domain"
                     t-value="[('account_id', '=', balance['id']),
                             ('date', '&gt;=', date_from),
@@ -184,7 +184,7 @@
                     </span>
                 </t>
             </div>
-            <div class="act_as_cell amount" t-att-style="style">
+            <div class="act_as_cell amount" t-att-style="style + 'width:9%;'">
                 <t t-set="domain" t-value="[('account_id', '=', balance['id']), ('date', '&lt;=', date_to)]"/>
                 <span t-att-domain="domain+aml_domain_common" res-model="account.move.line">
                     <t t-esc="balance['ending_balance']" t-options="{'widget': 'monetary', 'display_currency': res_company.currency_id}"/>

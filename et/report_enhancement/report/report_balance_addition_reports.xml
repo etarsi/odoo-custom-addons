@@ -1,7 +1,7 @@
 <odoo>
     <!-- HTML -->
     <record id="report_balance_addition_html" model="ir.actions.report">
-        <field name="name">Balance de Sumas y Saldos (HTML)</field>
+        <field name="name">Balance de Sumas y Saldos</field>
         <field name="model">report.balance.addition.wizard</field>
         <field name="report_type">qweb-html</field>
         <field name="report_name">report_enhancement.report_balance_addition</field>
