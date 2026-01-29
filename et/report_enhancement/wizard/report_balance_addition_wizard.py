@@ -36,8 +36,11 @@ class ReportBalanceAdditionWizard(models.TransientModel):
         self.journal_ids = False
         self.account_ids = False
         #----------------------------- default journals of the company
-        default_journals = self.env['account.journal'].search([('company_id', '=', self.company_id.id)], limit=3)
-        self.journal_ids = default_journals
+        if self.company_id:
+            #que sea domain igual a company_id, sea como un filtro visual
+            return {'domain': {'journal_ids': [('company_id', '=', self.company_id.id)],
+                               'account_ids': [('company_id', '=', self.company_id.id)]}}
+            
 
     def _export(self, report_type):
         """Default export is PDF."""
