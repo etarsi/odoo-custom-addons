@@ -3,9 +3,10 @@ from odoo.exceptions import ValidationError
 from odoo.tools import float_round
 from datetime import date
 import base64
-import io
 import xlsxwriter
 from . import excel
+import os
+import tempfile
 
 MESES_ES = {
     '01': 'Enero',
@@ -53,170 +54,185 @@ class ReporteFacturaWizard(models.TransientModel):
     )
     
     def action_generar_excel(self):
-        # Crear un buffer en memoria
-        output = io.BytesIO()
-        # Crear el archivo Excel
-        workbook = xlsxwriter.Workbook(output, {'in_memory': True})
-        worksheet = workbook.add_worksheet('Facturas')
-        # Agrupados por rangos consecutivos con mismo ancho
-        worksheet.set_column(0, 0, 20)   # DOCUMENTO
-        worksheet.set_column(1, 2, 15)   # FECHA y MES (ambas 15)
-        worksheet.set_column(3, 3, 10)   # AÑO
-        worksheet.set_column(4, 4, 25)   # CLIENTE
-        worksheet.set_column(5, 6, 15)   # ETIQUETA CLIENTE y COMERCIAL (ambas 15)
-        worksheet.set_column(7, 7, 10)   # CÓDIGO
-        worksheet.set_column(8, 8, 45)   # DESCRIPCIÓN (ancha para textos largos)
-        worksheet.set_column(9, 10, 15)  # PRECIO UNITARIO y UNIDADES (ambas 15)
-        worksheet.set_column(11, 12, 10) # UxB y BULTOS (ambas 10)
-        worksheet.set_column(13, 13, 15) # DESCUENTO
-        worksheet.set_column(14, 14, 20) # SUBTOTAL
-        worksheet.set_column(15, 15, 15) # EMPRESA
-        worksheet.set_column(16, 16, 40) # RUBRO
-        worksheet.set_column(17, 18, 25) # CATEGORIA y MARCA (ambas 25)
-        worksheet.set_column(19, 22, 20) # CONTRATO DISNEY hasta PROPIEDAD DISNEY (todas 20)
-        
-        #formato de celdas
-        formato_encabezado = excel.formato_encabezado(workbook)
-        formato_celdas_izquierda = excel.formato_celda_izquierda(workbook)
-        formato_celdas_derecha = excel.formato_celda_derecha(workbook)
-        formato_celdas_decimal = excel.formato_celda_decimal(workbook)
-        # Escribir encabezados
-        worksheet.write(0, 0, 'DOCUMENTO', formato_encabezado)
-        worksheet.write(0, 1, 'FECHA', formato_encabezado)
-        worksheet.write(0, 2, 'MES', formato_encabezado)
-        worksheet.write(0, 3, 'AÑO', formato_encabezado)
-        worksheet.write(0, 4, 'CLIENTE', formato_encabezado)
-        worksheet.write(0, 5, 'ETIQUETA CLIENTE', formato_encabezado)
-        worksheet.write(0, 6, 'COMERCIAL', formato_encabezado)
-        worksheet.write(0, 7, 'CÓDIGO', formato_encabezado)
-        worksheet.write(0, 8, 'DESCRIPCIÓN', formato_encabezado)
-        worksheet.write(0, 9, 'PRECIO UNITARIO', formato_encabezado)
-        worksheet.write(0, 10, 'UNIDADES', formato_encabezado)
-        worksheet.write(0, 11, 'UxB', formato_encabezado)
-        worksheet.write(0, 12, 'BULTOS', formato_encabezado)
-        worksheet.write(0, 13, 'DESCUENTO', formato_encabezado)
-        worksheet.write(0, 14, 'SUBTOTAL', formato_encabezado)
-        worksheet.write(0, 15, 'EMPRESA', formato_encabezado)
-        worksheet.write(0, 16, 'RUBRO', formato_encabezado)
-        worksheet.write(0, 17, 'CATEGORIA', formato_encabezado)
-        worksheet.write(0, 18, 'MARCA', formato_encabezado)
-        worksheet.write(0, 19, 'CONTRATO DISNEY', formato_encabezado)
-        worksheet.write(0, 20, 'SUBCONTRATO DISNEY', formato_encabezado)
-        worksheet.write(0, 21, 'PERSONAJE DISNEY', formato_encabezado)
-        worksheet.write(0, 22, 'PROPIEDAD DISNEY', formato_encabezado)
+        self.ensure_one()
 
-        # Buscar facturas en el rango de fechas
-        domain = [
-            ('invoice_date', '>=', self.date_start),
-            ('invoice_date', '<=', self.date_end),
-        ]
+        # Validaciones
         if not self.date_start or not self.date_end:
             raise ValidationError("La Fecha de Inicio y Final es Requerido")
         if self.date_end < self.date_start:
             raise ValidationError("La Fecha Final del reporte de facturas, no puede ser menor a la Fecha de Inicio")
-        
-        # Recolectar los tipos seleccionados en una lista
+
+        # Tipos seleccionados
         selected_types = []
-        if self.is_out_invoice:
-            selected_types.append('out_invoice')
-        if self.is_out_refund:
-            selected_types.append('out_refund')
-        if self.is_in_invoice:
-            selected_types.append('in_invoice')
-        if self.is_in_refund:
-            selected_types.append('in_refund')
-            
-        # Recolectar los estados seleccionados en una lista
+        if self.is_out_invoice: selected_types.append('out_invoice')
+        if self.is_out_refund:  selected_types.append('out_refund')
+        if self.is_in_invoice:  selected_types.append('in_invoice')
+        if self.is_in_refund:   selected_types.append('in_refund')
+
+        # Estados seleccionados
         selected_states = []
-        if self.is_draft:
-            selected_states.append('draft')
-        if self.is_posted:
-            selected_states.append('posted')
-        if self.is_cancel:
-            selected_states.append('cancel') 
-        if self.partner_ids:
-            domain.append(('partner_id', 'in', self.partner_ids.ids))
+        if self.is_draft:  selected_states.append('draft')
+        if self.is_posted: selected_states.append('posted')
+        if self.is_cancel: selected_states.append('cancel')
+
+        # Dominio sobre account.move.line (más eficiente que traer moves y después lines)
+        line_domain = [
+            ('move_id.invoice_date', '>=', self.date_start),
+            ('move_id.invoice_date', '<=', self.date_end),
+            ('display_type', '=', False),   # fuera secciones/notas
+            ('product_id', '!=', False),    # fuera líneas sin producto
+        ]
         if selected_states:
-            domain.append(('state', 'in', selected_states))
+            line_domain.append(('move_id.state', 'in', selected_states))
         if selected_types:
-            domain.append(('move_type', 'in', selected_types))
+            line_domain.append(('move_id.move_type', 'in', selected_types))
+        if self.partner_ids:
+            line_domain.append(('move_id.partner_id', 'in', self.partner_ids.ids))
         if self.user_ids:
-            domain.append(('invoice_user_id', 'in', self.user_ids.ids))
+            line_domain.append(('move_id.invoice_user_id', 'in', self.user_ids.ids))
         if self.marca_ids:
-            domain.append(('invoice_line_ids.product_id.product_brand_id', 'in', self.marca_ids.ids))
-        facturas = self.env['account.move'].search(domain)
-        # Escribir datos
+            line_domain.append(('product_id.product_brand_id', 'in', self.marca_ids.ids))
+
+        # Archivo temporal (reduce RAM vs BytesIO + in_memory)
+        tmp = tempfile.NamedTemporaryFile(suffix='.xlsx', delete=False)
+        tmp_path = tmp.name
+        tmp.close()
+
+        workbook = xlsxwriter.Workbook(tmp_path, {'constant_memory': True})
+        worksheet = workbook.add_worksheet('Facturas')
+
+        # Columnas
+        worksheet.set_column(0, 0, 20)
+        worksheet.set_column(1, 2, 15)
+        worksheet.set_column(3, 3, 10)
+        worksheet.set_column(4, 4, 25)
+        worksheet.set_column(5, 6, 15)
+        worksheet.set_column(7, 7, 10)
+        worksheet.set_column(8, 8, 45)
+        worksheet.set_column(9, 10, 15)
+        worksheet.set_column(11, 12, 10)
+        worksheet.set_column(13, 13, 15)
+        worksheet.set_column(14, 14, 20)
+        worksheet.set_column(15, 15, 15)
+        worksheet.set_column(16, 16, 40)
+        worksheet.set_column(17, 18, 25)
+        worksheet.set_column(19, 22, 20)
+
+        # Formatos
+        formato_encabezado = excel.formato_encabezado(workbook)
+        formato_celdas_izquierda = excel.formato_celda_izquierda(workbook)
+        formato_celdas_derecha = excel.formato_celda_derecha(workbook)
+        formato_celdas_decimal = excel.formato_celda_decimal(workbook)
+
+        # Encabezados
+        headers = [
+            'DOCUMENTO','FECHA','MES','AÑO','CLIENTE','ETIQUETA CLIENTE','COMERCIAL',
+            'CÓDIGO','DESCRIPCIÓN','PRECIO UNITARIO','UNIDADES','UxB','BULTOS','DESCUENTO',
+            'SUBTOTAL','EMPRESA','RUBRO','CATEGORIA','MARCA',
+            'CONTRATO DISNEY','SUBCONTRATO DISNEY','PERSONAJE DISNEY','PROPIEDAD DISNEY'
+        ]
+        for col, h in enumerate(headers):
+            worksheet.write(0, col, h, formato_encabezado)
+
+        MoveLine = self.env['account.move.line']
+
         row = 1
-        for factura in facturas:
-            facturas_lines = factura.invoice_line_ids
-            # Fechas formateadas
-            date_facture = factura.invoice_date.strftime('%d/%m/%Y') if factura.invoice_date else ''
-            month_num = factura.invoice_date.strftime('%m') if factura.invoice_date else ''
-            month = MESES_ES.get(month_num, '') if month_num else ''
-            year = factura.invoice_date.strftime('%Y') if factura.invoice_date else ''
-            categorias = '-'.join(factura.partner_id.category_id.mapped('name')) if factura.partner_id.category_id else ''
-            if facturas_lines:
-                for line in facturas_lines:
-                    if not line.product_id and (line.quantity==0 or line.price_unit==0 or line.price_subtotal==0):
-                        continue
-                    # solo imprimir las lineas que tengan esa marca
-                    if self.marca_ids:
-                        if not line.product_id.product_brand_id:
-                            continue
-                        else:
-                            if line.product_id.product_brand_id.id not in self.marca_ids.ids:
-                                continue
-                    uxb_id = line.product_id.packaging_ids[0] if line.product_id.packaging_ids else False
-                    bultos = 0
-                    if uxb_id:
-                        bultos = line.quantity/uxb_id.qty
-                    quantity = line.quantity
-                    subtotal = line.price_subtotal
-                    if factura.move_type in ('out_refund', 'in_refund'):
-                        quantity = -abs(line.quantity)
-                        if line.price_subtotal > 0:
-                            subtotal = -abs(line.price_subtotal)
-                        else:
-                            subtotal = line.price_subtotal
-                    worksheet.write(row, 0, factura.name, formato_celdas_izquierda)
-                    worksheet.write(row, 1, date_facture, formato_celdas_derecha)
-                    worksheet.write(row, 2, month, formato_celdas_derecha)
-                    worksheet.write(row, 3, year, formato_celdas_derecha)
-                    worksheet.write(row, 4, factura.partner_id.name, formato_celdas_izquierda)
-                    worksheet.write(row, 5, categorias, formato_celdas_izquierda)
-                    worksheet.write(row, 6, factura.invoice_user_id.name if factura.invoice_user_id.name else '', formato_celdas_izquierda)
-                    worksheet.write(row, 7, line.product_id.default_code if line.product_id.default_code else '', formato_celdas_izquierda)
-                    worksheet.write(row, 8, line.product_id.name if line.product_id.name else '', formato_celdas_izquierda)
-                    worksheet.write(row, 9, line.price_unit, formato_celdas_decimal)
-                    worksheet.write(row, 10, quantity, formato_celdas_decimal)
-                    worksheet.write(row, 11, uxb_id.name if uxb_id else '', formato_celdas_izquierda)
-                    worksheet.write(row, 12, bultos, formato_celdas_decimal)
-                    worksheet.write(row, 13, line.discount, formato_celdas_decimal)
-                    worksheet.write(row, 14, subtotal, formato_celdas_decimal)
-                    worksheet.write(row, 15, factura.company_id.name, formato_celdas_izquierda)
-                    worksheet.write(row, 16, line.product_id.categ_id.parent_id.name if line.product_id.categ_id.parent_id else '', formato_celdas_izquierda)
-                    worksheet.write(row, 17, line.product_id.categ_id.name if line.product_id.categ_id else '', formato_celdas_izquierda)
-                    worksheet.write(row, 18, line.product_id.product_brand_id.name if line.product_id.product_brand_id else '', formato_celdas_izquierda)
-                    worksheet.write(row, 19, line.product_id.x_contract_id.x_name if line.product_id.x_contract_id else ' ', formato_celdas_izquierda)
-                    worksheet.write(row, 20, line.product_id.x_subcontract_id.x_name if line.product_id.x_subcontract_id else ' ', formato_celdas_izquierda)
-                    worksheet.write(row, 21, line.product_id.x_character_id.x_name if line.product_id.x_character_id else ' ', formato_celdas_izquierda)
-                    worksheet.write(row, 22, line.product_id.x_property_id.x_name if line.product_id.x_property_id else ' ', formato_celdas_izquierda)
-                    row += 1
+        batch = 2000
+        offset = 0
+
+        while True:
+            lines = MoveLine.search(line_domain, order='id', limit=batch, offset=offset)
+            if not lines:
+                break
+
+            # (Opcional) prefetch “barato” dentro del batch
+            _ = lines.mapped('move_id')
+            _ = lines.mapped('product_id')
+
+            for line in lines:
+                move = line.move_id
+                product = line.product_id
+                partner = move.partner_id
+
+                # Fechas
+                if move.invoice_date:
+                    date_facture = move.invoice_date.strftime('%d/%m/%Y')
+                    month_num = move.invoice_date.strftime('%m')
+                    month = MESES_ES.get(month_num, '')
+                    year = move.invoice_date.strftime('%Y')
+                else:
+                    date_facture = month = year = ''
+
+                categorias = '-'.join(partner.category_id.mapped('name')) if partner.category_id else ''
+
+                # UxB / bultos
+                uxb_id = product.packaging_ids[:1]
+                uxb_id = uxb_id[0] if uxb_id else False
+
+                bultos = 0.0
+                if uxb_id and uxb_id.qty:
+                    bultos = line.quantity / uxb_id.qty
+
+                quantity = line.quantity
+                subtotal = line.price_subtotal
+                if move.move_type in ('out_refund', 'in_refund'):
+                    quantity = -abs(line.quantity)
+                    subtotal = -abs(line.price_subtotal) if line.price_subtotal > 0 else line.price_subtotal
+
+                worksheet.write(row, 0, move.name or '', formato_celdas_izquierda)
+                worksheet.write(row, 1, date_facture, formato_celdas_derecha)
+                worksheet.write(row, 2, month, formato_celdas_derecha)
+                worksheet.write(row, 3, year, formato_celdas_derecha)
+                worksheet.write(row, 4, partner.name or '', formato_celdas_izquierda)
+                worksheet.write(row, 5, categorias or '', formato_celdas_izquierda)
+                worksheet.write(row, 6, (move.invoice_user_id.name or '') if move.invoice_user_id else '', formato_celdas_izquierda)
+
+                worksheet.write(row, 7, product.default_code or '', formato_celdas_izquierda)
+                worksheet.write(row, 8, product.display_name or product.name or '', formato_celdas_izquierda)
+
+                worksheet.write(row, 9, line.price_unit or 0.0, formato_celdas_decimal)
+                worksheet.write(row, 10, quantity or 0.0, formato_celdas_decimal)
+                worksheet.write(row, 11, uxb_id.name if uxb_id else '', formato_celdas_izquierda)
+                worksheet.write(row, 12, bultos or 0.0, formato_celdas_decimal)
+                worksheet.write(row, 13, line.discount or 0.0, formato_celdas_decimal)
+                worksheet.write(row, 14, subtotal or 0.0, formato_celdas_decimal)
+                worksheet.write(row, 15, move.company_id.name or '', formato_celdas_izquierda)
+
+                worksheet.write(row, 16, (product.categ_id.parent_id.name or '') if product.categ_id and product.categ_id.parent_id else '', formato_celdas_izquierda)
+                worksheet.write(row, 17, (product.categ_id.name or '') if product.categ_id else '', formato_celdas_izquierda)
+                worksheet.write(row, 18, (product.product_brand_id.name or '') if product.product_brand_id else '', formato_celdas_izquierda)
+
+                worksheet.write(row, 19, product.x_contract_id.x_name if getattr(product, 'x_contract_id', False) else '', formato_celdas_izquierda)
+                worksheet.write(row, 20, product.x_subcontract_id.x_name if getattr(product, 'x_subcontract_id', False) else '', formato_celdas_izquierda)
+                worksheet.write(row, 21, product.x_character_id.x_name if getattr(product, 'x_character_id', False) else '', formato_celdas_izquierda)
+                worksheet.write(row, 22, product.x_property_id.x_name if getattr(product, 'x_property_id', False) else '', formato_celdas_izquierda)
+
+                row += 1
+
+            offset += batch
 
         workbook.close()
-        output.seek(0)
-        # Codificar el archivo en base64
-        archivo_excel = base64.b64encode(output.read())
+
+        # Adjuntar (lee el archivo final)
+        with open(tmp_path, 'rb') as f:
+            archivo_excel = base64.b64encode(f.read())
+
+        # limpiar temp
+        try:
+            os.unlink(tmp_path)
+        except Exception:
+            pass
+
         attachment = self.env['ir.attachment'].create({
-            'name': f'reporte_factura.xlsx',  # Nombre del archivo con fecha
-            'type': 'binary',  # Tipo binario para archivos
-            'datas': archivo_excel,  # Datos codificados en base64
-            'store_fname': f'reporte_factura.xlsx',  # Nombre para almacenamiento
-            'mimetype': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'  # Tipo MIME correcto
+            'name': 'reporte_factura.xlsx',
+            'type': 'binary',
+            'datas': archivo_excel,
+            'store_fname': 'reporte_factura.xlsx',
+            'mimetype': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
         })
-        # Retornar acción para descargar el archivo
+
         return {
             'type': 'ir.actions.act_url',
-            'url': f'/web/content/{attachment.id}?download=true',  # URL para descarga
-            'target': 'self'  # Abrir en la misma ventana
+            'url': f'/web/content/{attachment.id}?download=true',
+            'target': 'self',
         }
