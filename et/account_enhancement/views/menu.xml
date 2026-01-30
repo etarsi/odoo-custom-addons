@@ -49,6 +49,13 @@
         action="action_import_afip_impuesto_bruto_wizard"
         sequence="70"/>
 
+    <menuitem
+        id="account_enhancement.menu_account_import_afip_iibb_wizard"
+        name="Importar AFIP IIBB"
+        parent="l10n_ar.menu_afip_config"
+        action="action_import_afip_iibb_wizard"
+        sequence="80"/>
+
     <!-- SUBMENU FACTURA CLIENTE -->
     <menuitem
         id="menu_account_move_line_factura_cliente"
