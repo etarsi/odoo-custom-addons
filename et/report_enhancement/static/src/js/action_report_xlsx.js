@@ -174,11 +174,11 @@ odoo.define("report_enhancement.report_balance_addition_xlsx", function (require
                     const action = {
                         type: "ir.actions.report",
                         report_type: "qweb-html",
-                        report_name: "report_enhancement.report_balance_addition_html",
-                        report_file: "report_enhancement.report_balance_addition_html",
+                        report_name: "report_enhancement.report_balance_addition",
+                        report_file: "report_enhancement.report_balance_addition",
                         data: this.data || {},
                         context: ctx,
-                        display_name: "Libro mayor",
+                        display_name: "Balance Sumas y Saldos",
                     };
                     return this.do_action(action, {
                         clear_breadcrumbs: true, // opcional que no guarde en breadcrumbs
