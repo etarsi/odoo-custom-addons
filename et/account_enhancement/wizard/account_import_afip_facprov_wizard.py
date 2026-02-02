@@ -466,4 +466,4 @@ class AccountImportAfipFacprovWizard(models.TransientModel):
             iva = self._to_float(ws.cell(r, c_iva_total).value)
             total_iva += iva
 
-        return total_iva
+        raise ValidationError(_("El total de IVA en el archivo es: %s") % total_iva) 
