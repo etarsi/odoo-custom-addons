@@ -4,7 +4,7 @@
     'category': 'Tools',
     'summary': 'Sistema de Devoluciones',
     'author': 'Ezequiel Tarsitano',
-    'depends': ['base', 'account', 'stock'],
+    'depends': ['base', 'account', 'stock', 'account_enhancement'],
     'data': [
         'views/returns.xml',
     ],
