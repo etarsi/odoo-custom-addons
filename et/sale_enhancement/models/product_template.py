@@ -51,3 +51,21 @@ class ProductTemplateInherit(models.Model):
                         company_ids.append(company_id)
         if company_ids:
             self.company_ids = [(6, 0, list(set(company_ids)))]
+
+    # al crear un producto el taxes_id debe tener iva 21 y percepcion iibb caba aplicada de las 3 empresas 2, 3 y 4
+    @api.model
+    def create(self, vals):
+        product = super(ProductTemplateInherit, self).create(vals)
+        #modificar el taxes_id
+
+    def taxes_id_update(self):
+        self.ensure_one()
+        iva_21_ids = self.env['account.tax'].search([('type_tax_use', '=', 'sale'), ('amount', '=', 21), ('name', '=', 'IVA 21%')])
+        percepcion_iibb_caba_ids = self.env['account.tax'].search([('name', '=', 'Percepción IIBB CABA Aplicada'), ('type_tax_use', '=', 'sale'), ()])
+        if percepcion_iibb_caba_ids and iva_21_ids:
+            iva_21 = iva_21_ids.filtered(lambda r: r.company_id.id in [2,3,4])[:1]
+            percepcion_iibb_caba = percepcion_iibb_caba_ids.filtered(lambda r: r.company_id.id in [2,3,4])[:1]
+        
+            if iva_21 and percepcion_iibb_caba:
+                self.taxes_id = [(6, 0, [iva_21.id, percepcion_iibb_caba.id])]
+                _logger.info(f"Producto {self.name} actualizado con impuestos IVA 21% y Percepción IIBB CABA Aplicada.")
