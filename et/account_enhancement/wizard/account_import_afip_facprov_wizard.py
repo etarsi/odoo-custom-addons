@@ -477,5 +477,6 @@ class AccountImportAfipFacprovWizard(models.TransientModel):
                     total_iva += iva
                 else:
                     total_iva -= iva
+                total_iva = round(total_iva, 2)
 
-        raise ValidationError(_("El total de IVA en el archivo es: %s") % total_iva) 
+        raise ValidationError(_("El total de IVA en el archivo es: $ %s") % total_iva) 
