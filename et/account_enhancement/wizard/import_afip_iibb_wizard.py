@@ -9,10 +9,11 @@ import re
 import time
 import logging
 import tempfile
-import shutil
 import urllib.parse
 import socket
 import ipaddress
+import subprocess
+import shutil
 
 from datetime import date
 from calendar import monthrange
@@ -139,6 +140,66 @@ class ImportAfipIibbWizard(models.TransientModel):
         return io.BytesIO(base64.b64decode(att.datas)), False
 
     # ----------------- DOWNLOAD (URL -> DISCO) -----------------
+    def _extract_if_needed(self, downloaded_path, target_dir):
+        """
+        Si es .rar (AGIP), lo extrae con 7z a una subcarpeta y devuelve
+        la ruta del TXT/CSV más probable.
+        Si no es .rar, devuelve el mismo path.
+        """
+        downloaded_path = os.path.realpath(downloaded_path)
+        ext = os.path.splitext(downloaded_path)[1].lower()
+
+        if ext != ".rar":
+            return downloaded_path
+
+        sevenz = shutil.which("7z")
+        if not sevenz:
+            raise UserError(_("No se encontró '7z'. Instalá: sudo apt-get install p7zip-full"))
+
+        # Carpeta de extracción (ej: /opt/odoo15/afip_iibb/ARDJU008022026_extracted/)
+        base = os.path.splitext(os.path.basename(downloaded_path))[0]
+        extract_dir = os.path.realpath(os.path.join(target_dir, f"{base}_extracted"))
+        os.makedirs(extract_dir, exist_ok=True)
+
+        # Extraer (sin shell para evitar inyección)
+        cmd = [sevenz, "x", "-y", f"-o{extract_dir}", downloaded_path]
+        p = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
+
+        if p.returncode != 0:
+            raise UserError(_("Error extrayendo RAR:\n%s") % (p.stdout[-2000:] if p.stdout else ""))
+
+        # Buscar candidato: preferimos .txt / .csv y el más grande
+        candidates = []
+        for root, _, files in os.walk(extract_dir):
+            for fn in files:
+                fpath = os.path.join(root, fn)
+                ext2 = os.path.splitext(fn)[1].lower()
+                if ext2 in (".txt", ".csv", ".dat"):
+                    try:
+                        candidates.append((os.path.getsize(fpath), fpath))
+                    except Exception:
+                        continue
+
+        if not candidates:
+            # Si no hay .txt/.csv, agarramos el archivo más grande de lo extraído
+            any_files = []
+            for root, _, files in os.walk(extract_dir):
+                for fn in files:
+                    fpath = os.path.join(root, fn)
+                    try:
+                        any_files.append((os.path.getsize(fpath), fpath))
+                    except Exception:
+                        continue
+            if not any_files:
+                raise UserError(_("El RAR se extrajo pero no contiene archivos."))
+            any_files.sort(reverse=True)
+            return any_files[0][1]
+
+        candidates.sort(reverse=True)
+        return candidates[0][1]
+    
+    
+    
 
     def _get_download_dir(self):
         """
@@ -280,16 +341,9 @@ class ImportAfipIibbWizard(models.TransientModel):
             raise
 
     def _get_input_binary_stream(self):
-        """
-        Devuelve (fb, close_fb, saved_path)
-        - upload: abre attachment (no guarda en ruta)
-        - url: descarga y guarda en /opt/odoo/afip_iibb (o parametro) y abre el archivo guardado
-        """
         self.ensure_one()
 
         if self.source == 'upload':
-            if not self.file:
-                raise UserError(_("Debe adjuntar el TXT de AFIP."))
             att = self._get_or_create_attachment()
             fb, close_fb = self._open_attachment_binary(att)
             return fb, close_fb, None
@@ -299,11 +353,17 @@ class ImportAfipIibbWizard(models.TransientModel):
             raise UserError(_("Debe pegar una URL para descargar el padrón."))
 
         target_dir = self._get_download_dir()
-        saved_path = self._download_url_to_dir(self.url, target_dir)
-        _logger.info("AFIP IIBB: archivo descargado y guardado en %s", saved_path)
 
-        fb = open(saved_path, "rb")
-        return fb, True, saved_path
+        # 1) Descargar (esto te devuelve el .rar guardado en /opt/odoo15/afip_iibb)
+        saved_path = self._download_url_to_dir(self.url.strip(), target_dir)
+
+        # 2) Extraer si es rar y quedarte con el TXT/CSV interno
+        real_data_path = self._extract_if_needed(saved_path, target_dir)
+
+        _logger.info("AFIP IIBB: descargado=%s procesando=%s", saved_path, real_data_path)
+
+        fb = open(real_data_path, "rb")
+        return fb, True, real_data_path
 
     # ----------------- IMPORT PRINCIPAL -----------------
 
