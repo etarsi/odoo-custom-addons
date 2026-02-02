@@ -383,30 +383,22 @@ class ImportAfipIibbWizard(models.TransientModel):
         if self.source == 'upload':
             att = self._get_or_create_attachment()
             fb, close_fb = self._open_attachment_binary(att)
-            return fb, close_fb, None
+            return fb, close_fb, None, None, None
 
-        # source == 'url'
-        if not self.url:
-            raise UserError(_("Debe pegar una URL para descargar el padrón."))
-
+        # URL
         target_dir = self._get_download_dir()
-
-        # 1) Descargar (esto te devuelve el .rar guardado en /opt/odoo15/afip_iibb)
         saved_path = self._download_url_to_dir(self.url.strip(), target_dir)
-
-        # 2) Extraer si es rar y quedarte con el TXT/CSV interno
         real_data_path = self._extract_if_needed(saved_path, target_dir)
 
-        _logger.info("AFIP IIBB: descargado=%s procesando=%s", saved_path, real_data_path)
-
         fb = open(real_data_path, "rb")
-        return fb, True, real_data_path
-
+        return fb, True, real_data_path, saved_path, target_dir
     # ----------------- IMPORT PRINCIPAL -----------------
 
     def import_data(self):
         self.ensure_one()
-
+        target_dir = None
+        saved_path = None
+        real_data_path = None
         # Validación año
         if self.year < 2000 or self.year > 2100:
             raise UserError(_("El año ingresado no es válido."))
@@ -420,7 +412,7 @@ class ImportAfipIibbWizard(models.TransientModel):
         _logger.info("AFIP IIBB: inicio wizard id=%s source=%s", self.id, self.source)
 
         # 0) Input stream (upload o URL->disco)
-        fb, close_fb, saved_path = self._get_input_binary_stream()
+        fb, close_fb, real_data_path, saved_path, target_dir = self._get_input_binary_stream()
 
         # 1) CUIT -> partner_id (O(1))
         partner_rows = self.env['res.partner'].with_context(active_test=False).search_read(
@@ -480,10 +472,21 @@ class ImportAfipIibbWizard(models.TransientModel):
             if close_fb:
                 fb.close()
 
+
         _logger.info(
             "AFIP IIBB: parse fin lineas=%s partners_matcheados=%s (%.2fs) archivo=%s",
             processed, len(rates_by_partner), time.monotonic() - t0, saved_path or "upload"
         )
+
+        # Limpieza de carpeta extraída (solo si vino de URL rar)
+        try:
+            if saved_path and target_dir and saved_path.lower().endswith(".rar"):
+                base = os.path.splitext(os.path.basename(saved_path))[0]
+                extract_dir = os.path.join(target_dir, f"{base}_extracted")
+                if os.path.isdir(extract_dir):
+                    shutil.rmtree(extract_dir)
+        except Exception:
+            _logger.warning("No se pudo limpiar carpeta extraída", exc_info=True)
 
         if not rates_by_partner:
             return {
