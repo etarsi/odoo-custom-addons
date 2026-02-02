@@ -11,6 +11,8 @@
                     <field name="file"
                         attrs="{'invisible':[('source','!=','upload')], 'required':[('source','=','upload')]}"/>
                     <field name="filename" attrs="{'invisible':[('source','!=','upload')]}"/>
+                    <field name="month" />
+                    <field name="year" />
                 </group>
 
                 <footer>
