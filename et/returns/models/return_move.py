@@ -262,8 +262,10 @@ class ReturnMoveLine(models.Model):
             last_invoice_line = self.env['account.move.line'].search([
                 ('partner_id', '=', record.return_move.partner_id.id),
                 ('product_id', '=', record.product_id.id),
-                ('parent_state', '=', 'posted'),
-            ], order='date desc', limit=1)
+                ('parent_state', '=', 'posted'),                
+                ('move_id.move_type', '=', 'out_invoice'),
+                ('display_type', '=', False),
+            ], order='invoice_date desc', limit=1)
 
             if last_invoice_line:
                 return last_invoice_line
