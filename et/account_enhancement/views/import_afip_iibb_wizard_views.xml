@@ -5,12 +5,7 @@
         <field name="arch" type="xml">
             <form string="Importar AFIP, Impuestos Brutos">
                 <group>
-                    <field name="source"/>
-                    <field name="url"
-                        attrs="{'invisible':[('source','!=','url')], 'required':[('source','=','url')]}"/>
-                    <field name="file"
-                        attrs="{'invisible':[('source','!=','upload')], 'required':[('source','=','upload')]}"/>
-                    <field name="filename" attrs="{'invisible':[('source','!=','upload')]}"/>
+                    <field name="url"/>
                     <field name="month" />
                     <field name="year" />
                 </group>

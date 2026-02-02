@@ -35,20 +35,7 @@ class ImportAfipIibbWizard(models.TransientModel):
     _description = 'Wizard: Importar AFIP (Impuestos Brutos)'
 
     # ----------------- ORIGEN -----------------
-    source = fields.Selection(
-        [('upload', 'Subir archivo'), ('url', 'Descargar desde URL')],
-        string='Origen',
-        required=True,
-        default='url',
-    )
-
     url = fields.Char('URL de descarga (servidor)')
-
-    # Upload (ya NO required)
-    file = fields.Binary('Archivo', attachment=True)
-    filename = fields.Char('Nombre de archivo')
-
-    # ----------------- PARAMETROS -----------------
     month = fields.Selection(
         selection=[(str(i), date(1900, i, 1).strftime('%B')) for i in range(1, 13)],
         string='Mes',
@@ -60,20 +47,15 @@ class ImportAfipIibbWizard(models.TransientModel):
         required=True,
         default=lambda self: fields.Date.today().year,
     )
-
     delimiter = fields.Char(string='Separador', default=';')
     cuit_index = fields.Integer(string='Indice CUIT', default=3)
     percepcion_index = fields.Integer(string='Indice Percepcion', default=7)
     retencion_index = fields.Integer(string='Indice Retencion', default=8)
     tag_id = fields.Integer(string='ID de Tag', default=19)
-
-    # Opcional: límite de descarga (MB)
     max_download_mb = fields.Integer(string='Máx MB descarga', default=350)
-
     _re_digits = re.compile(r"\D+")
 
     # ----------------- HELPERS NUMERICOS -----------------
-
     def _norm_cuit(self, v):
         if not v:
             return False
@@ -100,52 +82,6 @@ class ImportAfipIibbWizard(models.TransientModel):
             return sig.startswith(b"Rar!\x1a\x07")  # rar4/rar5
         except Exception:
             return False
-
-    # ----------------- ATTACHMENT (UPLOAD) -----------------
-
-    def _get_or_create_attachment(self):
-        """Asegura que exista un ir.attachment vinculado al campo file del wizard."""
-        self.ensure_one()
-        if not self.file:
-            raise UserError(_("Debe adjuntar el TXT de AFIP."))
-
-        Attachment = self.env['ir.attachment'].sudo()
-
-        att = Attachment.search([
-            ('res_model', '=', self._name),
-            ('res_id', '=', self.id),
-            ('res_field', '=', 'file'),
-        ], order='id desc', limit=1)
-
-        if att:
-            return att
-
-        # Crear attachment explícitamente (robusto)
-        att = Attachment.create({
-            'name': self.filename or 'padron_afip.txt',
-            'type': 'binary',
-            'datas': self.file,  # ya viene en base64
-            'res_model': self._name,
-            'res_id': self.id,
-            'res_field': 'file',
-            'mimetype': 'text/plain',
-        })
-        return att
-
-    def _open_attachment_binary(self, att):
-        """
-        Devuelve (fb, close_needed) donde fb es un file-like binario.
-        - Si está en filestore: open(path, 'rb')
-        - Si está en DB: BytesIO(base64decode(datas))
-        """
-        if att.store_fname:
-            path = att._full_path(att.store_fname)
-            return open(path, 'rb'), True
-
-        # Fallback: guardado en DB
-        if not att.datas:
-            raise UserError(_("El adjunto no tiene contenido (datas vacío)."))
-        return io.BytesIO(base64.b64decode(att.datas)), False
 
     # ----------------- DOWNLOAD (URL -> DISCO) -----------------
     def _pick_extracted_text_file(self, extract_dir):
@@ -201,8 +137,6 @@ class ImportAfipIibbWizard(models.TransientModel):
             raise UserError(_("Error extrayendo RAR.\n\nUNRAR:\n%s\n\n7Z:\n%s") % (out_unrar[-1200:], out_7z[-1200:]))
 
         raise UserError(_("Error extrayendo RAR con unrar:\n%s") % (out_unrar[-2000:]))
-            
-    
 
     def _get_download_dir(self):
         """
@@ -235,21 +169,6 @@ class ImportAfipIibbWizard(models.TransientModel):
         name = os.path.basename(name)  # evita rutas
         name = re.sub(r"[^a-zA-Z0-9._-]+", "_", name)
         return name or "padron_afip_iibb.txt"
-
-    def _maybe_transform_drive_url(self, url):
-        """
-        Best-effort: transforma links típicos de Google Drive tipo /file/d/<ID>/view
-        a un link de descarga directa uc?export=download&id=<ID>
-        """
-        p = urllib.parse.urlparse(url or "")
-        if "drive.google.com" not in (p.netloc or ""):
-            return url
-
-        if "/file/d/" in (p.path or ""):
-            file_id = p.path.split("/file/d/")[1].split("/")[0]
-            return f"https://drive.google.com/uc?export=download&id={file_id}"
-
-        return url
 
     def _validate_url(self, url):
         """Mitigación SSRF básica + whitelist opcional por dominios."""
@@ -379,12 +298,6 @@ class ImportAfipIibbWizard(models.TransientModel):
 
     def _get_input_binary_stream(self):
         self.ensure_one()
-
-        if self.source == 'upload':
-            att = self._get_or_create_attachment()
-            fb, close_fb = self._open_attachment_binary(att)
-            return fb, close_fb, None, None, None
-
         # URL
         target_dir = self._get_download_dir()
         saved_path = self._download_url_to_dir(self.url.strip(), target_dir)
@@ -407,10 +320,7 @@ class ImportAfipIibbWizard(models.TransientModel):
         y = int(self.year)
         from_date = date(y, m, 1)
         to_date = date(y, m, monthrange(y, m)[1])
-
         t0 = time.monotonic()
-        _logger.info("AFIP IIBB: inicio wizard id=%s source=%s", self.id, self.source)
-
         # 0) Input stream (upload o URL->disco)
         fb, close_fb, real_data_path, saved_path, target_dir = self._get_input_binary_stream()
 
