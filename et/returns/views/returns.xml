@@ -1,5 +1,32 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
+
+    <!-- =========================
+         TREE VIEW
+    ========================== -->
+
+
+    <record id="view_return_move_tree" model="ir.ui.view">
+        <field name="name">return.move.tree</field>
+        <field name="model">return.move</field>
+        <field name="arch" type="xml">
+            <tree string="Devoluciones">
+                <field name="date"/>
+                <field name="name"/>
+                <field name="partner_id"/>
+                <field name="price_total" sum="Total"/>
+                <field name="state"/>
+            </tree>
+        </field>
+    </record>
+
+
+
+    <!-- =========================
+         FORM VIEW
+    ========================== -->
+
+
     <record id="view_return_move_form" model="ir.ui.view">
         <field name="name">return.move.form</field>
         <field name="model">return.move</field>
@@ -9,7 +36,8 @@
                     <button name="action_confirm"
                             type="object"
                             string="Confirmar"
-                            class="btn-primary"/>
+                            class="btn-primary"
+                            attrs="{'invisible': [('state', '!=', 'draft')]}"/>
 
                     <field name="state"
                            widget="statusbar"
@@ -83,4 +111,45 @@
             </form>
         </field>
     </record>
+
+
+
+    <!-- =========================
+         ACTION
+    ========================== -->
+
+
+    <record id="action_return_move" model="ir.actions.act_window">
+        <field name="name">Devoluciones</field>
+        <field name="res_model">return.move</field>
+        <field name="view_mode">tree,form</field>
+        <field name="view_id" ref="view_return_move_tree"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Creá una devolución.
+            </p>
+        </field>
+    </record>
+
+
+
+    <!-- =========================
+         MENÚS
+         - Cambiá el parent si tu menú raíz es otro
+    ========================== -->
+
+
+    <menuitem id="menu_return_move_root"
+              name="Devoluciones"
+              sequence="4"
+              web_icon="returns,static/description/return_logo.png"
+              />
+
+    <menuitem id="menu_return_move"
+              name="Devoluciones"
+              parent="menu_return_move_root"
+              action="action_return_move"
+              sequence="10"/>
+
+
 </odoo>
