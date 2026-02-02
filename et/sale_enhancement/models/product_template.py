@@ -68,7 +68,8 @@ class ProductTemplateInherit(models.Model):
             iva_21 = iva_21_ids.filtered(lambda r: r.company_id.id in [2,3,4])
             
             percepcion_iibb_caba = percepcion_iibb_caba_ids.filtered(lambda r: r.company_id.id in [2,3,4])
-            taxes_ids = [iva_21, percepcion_iibb_caba]
+            taxes_ids.extend(iva_21)
+            taxes_ids.extend(percepcion_iibb_caba)
         if taxes_ids:
             self.taxes_id = [(6, 0, [tax.id for tax in taxes_ids])]
             _logger.info(f"Producto {self.name} actualizado con impuestos IVA 21% y Percepción IIBB CABA Aplicada.")
