@@ -63,10 +63,12 @@ class ProductTemplateInherit(models.Model):
         self.ensure_one()
         iva_21_ids = self.env['account.tax'].search([('type_tax_use', '=', 'sale'), ('amount', '=', 21), ('name', '=', 'IVA 21%')])
         percepcion_iibb_caba_ids = self.env['account.tax'].search([('name', '=', 'Percepción IIBB CABA Aplicada'), ('type_tax_use', '=', 'sale')])
+        taxes_ids = []
         if percepcion_iibb_caba_ids and iva_21_ids:
-            iva_21 = iva_21_ids.filtered(lambda r: r.company_id.id in [2,3,4])[:1]
-            percepcion_iibb_caba = percepcion_iibb_caba_ids.filtered(lambda r: r.company_id.id in [2,3,4])[:1]
-        
-            if iva_21 and percepcion_iibb_caba:
-                self.taxes_id = [(6, 0, [iva_21.id, percepcion_iibb_caba.id])]
-                _logger.info(f"Producto {self.name} actualizado con impuestos IVA 21% y Percepción IIBB CABA Aplicada.")
+            iva_21 = iva_21_ids.filtered(lambda r: r.company_id.id in [2,3,4])
+            
+            percepcion_iibb_caba = percepcion_iibb_caba_ids.filtered(lambda r: r.company_id.id in [2,3,4])
+            taxes_ids = [iva_21, percepcion_iibb_caba]
+        if taxes_ids:
+            self.taxes_id = [(6, 0, [tax.id for tax in taxes_ids])]
+            _logger.info(f"Producto {self.name} actualizado con impuestos IVA 21% y Percepción IIBB CABA Aplicada.")
