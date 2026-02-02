@@ -62,7 +62,7 @@ class ProductTemplateInherit(models.Model):
     def taxes_id_update(self):
         self.ensure_one()
         iva_21_ids = self.env['account.tax'].search([('type_tax_use', '=', 'sale'), ('amount', '=', 21), ('name', '=', 'IVA 21%')])
-        percepcion_iibb_caba_ids = self.env['account.tax'].search([('name', '=', 'Percepción IIBB CABA Aplicada'), ('type_tax_use', '=', 'sale'), ()])
+        percepcion_iibb_caba_ids = self.env['account.tax'].search([('name', '=', 'Percepción IIBB CABA Aplicada'), ('type_tax_use', '=', 'sale')])
         if percepcion_iibb_caba_ids and iva_21_ids:
             iva_21 = iva_21_ids.filtered(lambda r: r.company_id.id in [2,3,4])[:1]
             percepcion_iibb_caba = percepcion_iibb_caba_ids.filtered(lambda r: r.company_id.id in [2,3,4])[:1]
