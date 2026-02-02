@@ -284,7 +284,7 @@ class ImportAfipIibbWizard(models.TransientModel):
         """
         Descarga streaming a un archivo en target_dir.
         Guarda atómico: .tmp -> move(final).
-        Devuelve final_path.
+        Devuelve final_path (con extensión real: .rar, .txt, etc.)
         """
         self.ensure_one()
 
@@ -292,29 +292,27 @@ class ImportAfipIibbWizard(models.TransientModel):
             raise UserError(_("Falta la librería 'requests' en el servidor."))
 
         url = (url or "").strip()
-        url = self._maybe_transform_drive_url(url)
         self._validate_url(url)
 
         max_bytes = int((self.max_download_mb or 350) * 1024 * 1024)
 
-        stamp = fields.Datetime.now().strftime("%Y%m%d_%H%M%S")
-        final_name = self._sanitize_filename(
-            f"AFIP_IIBB_{int(self.year):04d}_{int(self.month):02d}_{stamp}.txt"
-        )
-
         target_dir_real = os.path.realpath(target_dir)
-        final_path = os.path.realpath(os.path.join(target_dir_real, final_name))
+        if not os.path.isdir(target_dir_real):
+            os.makedirs(target_dir_real, exist_ok=True)
 
-        if not final_path.startswith(target_dir_real + os.sep):
-            raise UserError(_("Destino inválido."))
-
+        # Tmp en el mismo filesystem para move atómico
         fd, tmp_path = tempfile.mkstemp(prefix="afip_iibb_", suffix=".tmp", dir=target_dir_real)
         os.close(fd)
 
         total = 0
+        content_disp = None
+        content_type = None
         try:
             with requests.get(url, stream=True, timeout=(10, 300), allow_redirects=True) as r:
                 r.raise_for_status()
+
+                content_disp = r.headers.get("Content-Disposition")
+                content_type = (r.headers.get("Content-Type") or "").lower()
 
                 cl = r.headers.get("Content-Length")
                 if cl and cl.isdigit() and int(cl) > max_bytes:
@@ -329,6 +327,41 @@ class ImportAfipIibbWizard(models.TransientModel):
                             raise UserError(_("El archivo supera el tamaño máximo permitido (%s MB).") % (self.max_download_mb or 350))
                         f.write(chunk)
 
+            # --- definir extensión real ---
+            # 1) intentar por URL
+            path = urllib.parse.urlparse(url).path or ""
+            url_name = os.path.basename(path)
+            url_ext = os.path.splitext(url_name)[1].lower() if url_name else ""
+
+            # 2) intentar por Content-Disposition
+            disp_ext = ""
+            if content_disp and "filename=" in content_disp.lower():
+                # content-disposition: attachment; filename="ARDJU008022026.rar"
+                m = re.search(r'filename\*?=(?:UTF-8\'\')?"?([^";]+)"?', content_disp, flags=re.I)
+                if m:
+                    fname = os.path.basename(m.group(1).strip())
+                    disp_ext = os.path.splitext(fname)[1].lower()
+
+            # 3) fallback por content-type
+            type_ext = ""
+            if "rar" in content_type:
+                type_ext = ".rar"
+            elif "zip" in content_type:
+                type_ext = ".zip"
+            elif "text/plain" in content_type:
+                type_ext = ".txt"
+
+            ext = disp_ext or url_ext or type_ext or ".bin"
+
+            stamp = fields.Datetime.now().strftime("%Y%m%d_%H%M%S")
+            final_name = self._sanitize_filename(
+                f"AFIP_IIBB_{int(self.year):04d}_{int(self.month):02d}_{stamp}{ext}"
+            )
+
+            final_path = os.path.realpath(os.path.join(target_dir_real, final_name))
+            if not final_path.startswith(target_dir_real + os.sep):
+                raise UserError(_("Destino inválido."))
+
             shutil.move(tmp_path, final_path)
             return final_path
 
@@ -339,6 +372,7 @@ class ImportAfipIibbWizard(models.TransientModel):
                 except Exception:
                     pass
             raise
+
 
     def _get_input_binary_stream(self):
         self.ensure_one()
