@@ -148,56 +148,60 @@ class ImportAfipIibbWizard(models.TransientModel):
         return io.BytesIO(base64.b64decode(att.datas)), False
 
     # ----------------- DOWNLOAD (URL -> DISCO) -----------------
+    def _pick_extracted_text_file(self, extract_dir):
+        candidates = []
+        for root, dirnames, filenames in os.walk(extract_dir):
+            for fn in filenames:
+                fp = os.path.join(root, fn)
+                ext = os.path.splitext(fn)[1].lower()
+                if ext in (".txt", ".csv", ".dat"):
+                    try:
+                        candidates.append((os.path.getsize(fp), fp))
+                    except Exception:
+                        pass
+        if not candidates:
+            raise UserError(_("RAR extraído, pero no se encontró TXT/CSV/DAT dentro."))
+        candidates.sort(reverse=True)
+        return candidates[0][1]
+
     def _extract_if_needed(self, downloaded_path, target_dir):
         downloaded_path = os.path.realpath(downloaded_path)
         ext = os.path.splitext(downloaded_path)[1].lower()
-
-        # Detectar rar por extensión o firma
-        is_rar = (ext == ".rar") or self._is_rar_file(downloaded_path)
-        if not is_rar:
+        if ext != ".rar" and not self._is_rar_file(downloaded_path):
             return downloaded_path
 
-        tool = shutil.which("7z") or shutil.which("7zz") or shutil.which("unrar")
-        if not tool:
-            raise UserError(_("No se encontró extractor RAR. Instalá: sudo apt-get install p7zip-full (o unrar)."))
+        unrar = shutil.which("unrar")
+        sevenz = shutil.which("7z") or shutil.which("7zz")
+
+        if not unrar and not sevenz:
+            raise UserError(_("No se encontró extractor RAR. Instalá: sudo apt-get install unrar"))
 
         base = os.path.splitext(os.path.basename(downloaded_path))[0]
         extract_dir = os.path.realpath(os.path.join(os.path.realpath(target_dir), f"{base}_extracted"))
         os.makedirs(extract_dir, exist_ok=True)
 
-        # Comando según herramienta
-        if os.path.basename(tool).startswith("unrar"):
-            # unrar x -o+ archivo.rar /destino/
-            cmd = [tool, "x", "-o+", downloaded_path, extract_dir + os.sep]
-        else:
-            # 7z x -y -o<dir> archivo.rar
-            cmd = [tool, "x", "-y", f"-o{extract_dir}", downloaded_path]
+        def run(cmd):
+            return subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
 
-        p = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
+        out_unrar = ""
+        if unrar:
+            cmd = [unrar, "x", "-o+", downloaded_path, extract_dir + os.sep]
+            p = run(cmd)
+            out_unrar = p.stdout or ""
+            if p.returncode == 0:
+                return self._pick_extracted_text_file(extract_dir)
 
-        if p.returncode != 0:
-            out = (p.stdout or "")
-            # Mostramos el final para que no explote la notificación
-            raise UserError(_("Error extrayendo RAR (rc=%s):\n%s") % (p.returncode, out[-2000:]))
+        if sevenz:
+            cmd = [sevenz, "x", "-y", f"-o{extract_dir}", downloaded_path]
+            p = run(cmd)
+            out_7z = p.stdout or ""
+            if p.returncode == 0:
+                return self._pick_extracted_text_file(extract_dir)
 
-        # Buscar TXT/CSV/DAT: el más grande
-        candidates = []
-        for root, dirnames, filenames in os.walk(extract_dir):   # <- OJO: NO usar "_"
-            for fn in filenames:
-                fpath = os.path.join(root, fn)
-                ext2 = os.path.splitext(fn)[1].lower()
-                if ext2 in (".txt", ".csv", ".dat"):
-                    try:
-                        candidates.append((os.path.getsize(fpath), fpath))
-                    except Exception:
-                        pass
+            raise UserError(_("Error extrayendo RAR.\n\nUNRAR:\n%s\n\n7Z:\n%s") % (out_unrar[-1200:], out_7z[-1200:]))
 
-        if not candidates:
-            raise UserError(_("RAR extraído, pero no se encontró TXT/CSV/DAT dentro."))
-
-        candidates.sort(reverse=True)
-        return candidates[0][1]
-        
+        raise UserError(_("Error extrayendo RAR con unrar:\n%s") % (out_unrar[-2000:]))
+            
     
 
     def _get_download_dir(self):
