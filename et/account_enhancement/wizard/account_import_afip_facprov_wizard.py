@@ -456,14 +456,26 @@ class AccountImportAfipFacprovWizard(models.TransientModel):
         # Columnas necesarias
         col_map = self._build_col_map(ws, header_row)
         c_iva_total = self._col(col_map, 'Total IVA')
+        c_tipo = self._col(col_map, 'Tipo')
+        c_tipo_cambio = self._col(col_map, 'Tipo Cambio')
 
-        if not c_iva_total:
-            raise UserError(_("Faltan columnas clave (IVA Total)."))
+        if not c_iva_total or not c_tipo:
+            raise UserError(_("Faltan columnas clave (Total IVA o Tipo)."))
 
         total_iva = 0.0
         # Recorremos filas de datos
         for r in range(header_row + 1, ws.max_row + 1):
-            iva = self._to_float(ws.cell(r, c_iva_total).value)
-            total_iva += iva
+            tipo = ws.cell(r, c_tipo).value
+            if not tipo:
+                continue
+            else:
+                iva = self._to_float(ws.cell(r, c_iva_total).value)
+                tipo_cambio = self._to_float(ws.cell(r, c_tipo_cambio).value)
+                if tipo_cambio and tipo_cambio != 1:
+                    iva = iva * tipo_cambio
+                if tipo in ['1 - Factura A', '11 - Factura C', '2 - Nota de Débito A']:
+                    total_iva += iva
+                else:
+                    total_iva -= iva
 
         raise ValidationError(_("El total de IVA en el archivo es: %s") % total_iva) 
