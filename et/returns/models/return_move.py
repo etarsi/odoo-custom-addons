@@ -54,6 +54,8 @@ class ReturnMove(models.Model):
         for record in self:
             if record.move_lines:
                 record.price_total = sum(record.move_lines.mapped('price_subtotal'))
+            else:
+                record.price_total = 0
 
 
     @api.depends('credit_notes')
