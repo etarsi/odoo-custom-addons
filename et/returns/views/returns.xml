@@ -1,39 +1,86 @@
+<?xml version="1.0" encoding="utf-8"?>
 <odoo>
-<!-- 
-    <record id="view_remito_test_form" model="ir.ui.view">
-        <field name="name">remito.test.form</field>
-        <field name="model">remito.test</field>
+    <record id="view_return_move_form" model="ir.ui.view">
+        <field name="name">return.move.form</field>
+        <field name="model">return.move</field>
         <field name="arch" type="xml">
-            <form string="Remito JS Test">
+            <form string="Devoluciones">
+                <header>
+                    <button name="action_confirm"
+                            type="object"
+                            string="Confirmar"
+                            class="btn-primary"/>
+
+                    <field name="state"
+                           widget="statusbar"
+                           statusbar_visible="draft,confirmed,done"/>
+                </header>
+
                 <sheet>
+                    <div class="oe_title">
+                        <h1 attrs="{'invisible': ['|', ('state', '!=', 'draft'), ('name', '!=', '/')]}">
+                            <span>Borrador</span>
+                        </h1>
+                        <h1 class="mt0" attrs="{'invisible': [('state', '=', 'draft')]}">
+                            <field name="name" readonly="1" placeholder="DEV-0000001"/>
+                        </h1>
+                    </div>
+
                     <group>
-                        <field name="name"/>
-                        <button name="action_abrir_remitos"
-                                string="Abrir Remitos"
-                                type="object"
-                                class="btn-primary"/>
+                        <group id="header_left_group">
+                            <field name="partner_id" required="1"/>
+                            <!-- <field name="wms_code" readonly="1" attrs="{'invisible': [('state', '=', 'draft')]}"/> -->
+                        </group>
+                        <group id="header_right_group">
+                            <field name="date" required="1"/>
+                            <!-- <field name="sale_id" domain="[('partner_id', '=', partner_id)]"/> -->
+                        </group>
+                    </group>
+
+                    <!-- <separator string=""/> -->
+
+                    <!-- 
+                    <group>
+                        <group id="cause_group">
+                            <field name="cause" required="1"/>
+                            <field name="info"/>
+                        </group>
+                    </group> -->
+
+                    <separator string=""/>
+
+                    <group>
+                        <notebook>
+                            <page string="Líneas de Devolución">
+                                <field name="move_lines"
+                                       mode="tree"
+                                       editable="bottom"
+                                       attrs="{'readonly': [('state', '=', 'done')]}"
+                                       colors="red:price_unit==0">
+                                    <tree editable="bottom" string="Return Items">
+                                        <field name="product_id" readonly="0" required="1"/>
+                                        <field name="quantity_healthy"/>
+                                        <field name="quantity_broken"/>
+                                        <field name="quantity_total"/>
+                                        <field name="uxb" readonly="1"/>
+                                        <field name="bultos" readonly="1"/>
+                                        <field name="price_unit" readonly="1"/>
+                                        <field name="discount" readonly="1"/>
+                                        <field name="price_subtotal" readonly="1"/>
+                                        <field name="invoice_id" optional="hide" readonly="1"/>
+                                        <field name="invoice_line_id" optional="hide" readonly="1"/>
+                                    </tree>
+                                </field>
+                            </page>
+
+                        </notebook>
+                    </group>
+
+                    <group class="oe_subtotal_footer oe_right">
+                        <field name="price_total" readonly="1"/>
                     </group>
                 </sheet>
             </form>
         </field>
     </record>
-
-    <record id="view_remito_test_tree" model="ir.ui.view">
-        <field name="name">remito.test.tree</field>
-        <field name="model">remito.test</field>
-        <field name="arch" type="xml">
-            <tree string="Remito JS Test">
-                <field name="name"/>
-            </tree>
-        </field>
-    </record>
-
-    <record id="action_remito_test" model="ir.actions.act_window">
-        <field name="name">Remitos JS Test</field>
-        <field name="res_model">remito.test</field>
-        <field name="view_mode">tree,form</field>
-    </record>
-
-    <menuitem id="menu_remito_test_root" name="Remitos Test"/>
-    <menuitem id="menu_remito_test" name="Prueba de JS" parent="menu_remito_test_root" action="action_remito_test"/> -->
 </odoo>
