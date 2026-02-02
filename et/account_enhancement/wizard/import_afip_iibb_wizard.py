@@ -32,7 +32,7 @@ COMPANY_IDS = [2, 3, 4]
 
 class ImportAfipIibbWizard(models.TransientModel):
     _name = 'import.afip.iibb.wizard'
-    _description = 'Wizard: Importar AFIP (Impuestos Brutos)'
+    _description = 'Wizard: Importar Alicuotas'
 
     # ----------------- ORIGEN -----------------
     url = fields.Char('URL de descarga (servidor)')
@@ -295,7 +295,6 @@ class ImportAfipIibbWizard(models.TransientModel):
                     pass
             raise
 
-
     def _get_input_binary_stream(self):
         self.ensure_one()
         # URL
@@ -305,8 +304,8 @@ class ImportAfipIibbWizard(models.TransientModel):
 
         fb = open(real_data_path, "rb")
         return fb, True, real_data_path, saved_path, target_dir
-    # ----------------- IMPORT PRINCIPAL -----------------
 
+    # ----------------- IMPORT PRINCIPAL -----------------
     def import_data(self):
         self.ensure_one()
         target_dir = None

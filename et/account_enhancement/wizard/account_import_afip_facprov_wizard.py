@@ -430,3 +430,40 @@ class AccountImportAfipFacprovWizard(models.TransientModel):
                 }
             }
         return response
+    
+    def calculate_iva(self):
+        """lee el archivo excel y sumar la columna Total IVA"""
+        self.ensure_one()
+
+        if not self.file:
+            raise UserError(_("Debe adjuntar un archivo Excel (.xlsx)."))
+
+        try:
+            data = base64.b64decode(self.file)
+        except Exception as e:
+            raise UserError(_("No se pudo decodificar el archivo.\nDetalle: %s") % e)
+
+        try:
+            wb = load_workbook(BytesIO(data), data_only=True)
+        except Exception as e:
+            raise UserError(_("No se pudo leer el Excel. Asegúrese que sea .xlsx válido.\nDetalle: %s") % e)
+
+        ws = wb[wb.sheetnames[0]]
+        header_row = self._find_header_row(ws)
+        if not header_row:
+            raise UserError(_("No se encontró la fila de encabezados. Se esperaba un formato AFIP 'Mis Comprobantes Recibidos'."))
+
+        # Columnas necesarias
+        col_map = self._build_col_map(ws, header_row)
+        c_iva_total = self._col(col_map, 'IVA Total')
+
+        if not c_iva_total:
+            raise UserError(_("Faltan columnas clave (IVA Total)."))
+
+        total_iva = 0.0
+        # Recorremos filas de datos
+        for r in range(header_row + 1, ws.max_row + 1):
+            iva = self._to_float(ws.cell(r, c_iva_total).value)
+            total_iva += iva
+
+        return total_iva
