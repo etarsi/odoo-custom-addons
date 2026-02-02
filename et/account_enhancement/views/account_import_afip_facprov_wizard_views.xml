@@ -9,7 +9,7 @@
                 </group>
                 <footer>
                     <button string="Importar" type="object" name="import_data" class="btn-primary"/>
-                    <button string="Calcular IVA" type="object" name="calculate_iva+" class="btn-secondary"/>
+                    <button string="Calcular IVA" type="object" name="calculate_iva" class="btn-secondary"/>
                     <button string="Cancelar" class="btn-secondary" special="cancel"/>
                 </footer>
             </form>
