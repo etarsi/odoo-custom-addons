@@ -498,12 +498,6 @@ class ImportAfipIibbWizard(models.TransientModel):
             )
         """)
         inserted = cr.rowcount
-        _logger.info("AFIP IIBB: INSERT ok inserted=%s (%.2fs)", inserted, time.monotonic() - t0)
-
-        extra = ""
-        if saved_path:
-            extra = f"\nArchivo guardado en servidor:\n{saved_path}"
-
         return {
             'type': 'ir.actions.client',
             'tag': 'display_notification',
@@ -512,7 +506,6 @@ class ImportAfipIibbWizard(models.TransientModel):
                 'message': (
                     "Se actualizaron y crearon las alícuotas de impuestos brutos según el padrón de AFIP.\n"
                     f"Actualizados: {updated} | Insertados: {inserted}"
-                    f"{extra}"
                 ),
                 'type': 'success',
                 'sticky': True,
