@@ -142,9 +142,9 @@ class ImportAfipIibbWizard(models.TransientModel):
         """
         Directorio destino para guardar el TXT descargado.
         - Si existe el parámetro afip_iibb.download_dir lo usa.
-        - Si no, usa /opt/odoo/afip_iibb
+        - Si no, usa /opt/odoo15/afip_iibb
         """
-        base_dir = '/opt/odoo/afip_iibb'
+        base_dir = '/opt/odoo15/afip_iibb'
 
         if not base_dir:
             raise UserError(_("No está configurada la ruta de descarga (afip_iibb.download_dir)."))
