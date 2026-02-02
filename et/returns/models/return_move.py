@@ -209,8 +209,11 @@ class ReturnMoveLine(models.Model):
     def create(self, vals):
         res = super().create(vals)
 
-        for r in res:
-            r.update_prices()
+        for record in res:
+            record.update_prices()
+            record._compute_subtotal()
+            record._onchang_product_uxb()
+            record._compute_bultos()
 
         return res
 
