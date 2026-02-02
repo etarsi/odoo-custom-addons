@@ -26,14 +26,26 @@ class ReturnMove(models.Model):
         ('bad', 'No lo pudo vender')])
     info = fields.Text(string="Información adicional")
     date = fields.Date(string="Fecha de Recepción", default=fields.Date.today)
-    state = fields.Selection(string="Estado", default='draft', selection=[('draft','Borrador'), ('pending', 'Pendiente'), ('inprogress', 'En Proceso'), ('confirmed', 'Confirmado'), ('done', 'Hecho')])
+    state = fields.Selection(string="Estado", default='draft', selection=[
+        ('draft','Borrador'), 
+        ('pending', 'Pendiente'), 
+        ('inprogress', 'En Proceso'), 
+        ('confirmed', 'Confirmado'), 
+        ('done', 'Hecho')
+    ])
     move_lines = fields.One2many('return.move.line', 'return_move', string="Devoluciones Sanas")
-    move_lines_not_broken = fields.One2many('return.move.line', 'return_move', compute="_compute_not_broken",string="Devoluciones Sanas")
-    move_lines_broken = fields.One2many('return.move.line', 'return_move', compute="_compute_broken",string="Devoluciones Rotas")
     price_total = fields.Float(string="Total", compute="_compute_price_total")
     company_id = fields.Many2one('res.company', string="Compañía")
     wms_code = fields.Char("Código WMS")
 
+
+    credit_notes = fields.One2many(string="Notas de Crédito", comodel_name="account.move", inverse_name="return_id")
+    credit_count = fields.Integer(string="Notas de Crédito", compute="_compute_credit_count")
+
+
+    def action_confirm(self):
+        for record in self:
+            record.state = 'confirmed'
 
     ### COMPUTED ###
 
@@ -42,44 +54,22 @@ class ReturnMove(models.Model):
         for record in self:
             if record.move_lines:
                 record.price_total = sum(record.move_lines.mapped('price_subtotal'))
+            else:
+                record.price_total = 0
 
 
-    @api.depends('move_lines')
-    def _compute_not_broken(self):
+    @api.depends('credit_notes')
+    def _compute_credit_count(self):
         for record in self:
-            record.move_lines_not_broken= record.move_lines.filtered(
-                lambda l: l.is_broken == False)
-            
-
-    @api.depends('move_lines')
-    def _compute_broken(self):
-        for record in self:
-            record.move_lines_broken= record.move_lines.filtered(
-                lambda l: l.is_broken == True)
+            record.credit_count = len(record.credit_notes)
 
     ### ONCHANGE ###
 
     @api.onchange('partner_id')
     def _onchange_partner_id(self):
         for record in self:
-            if record.partner_id:
-                journals = self.env['account.journal'].search([
-                    ('code', 'in', ['00010', '00009'])
-                ])
-                domain = [
-                    ('partner_id', '=', record.partner_id.id),
-                    ('move_type', '=', 'out_invoice'),
-                    ('state', '=', 'posted')
-                ]
-                if journals:
-                    domain.append(('journal_id', 'in', journals.ids))
-                else:
-                    domain.append(('journal_id', '=', 0))
-                    
-                last_invoice = self.env['account.move'].search(domain, order='date desc', limit=1)
-
-                if last_invoice:
-                    record.invoice_id = last_invoice
+            if record.move_lines:
+                record.move_lines.update_prices()
 
 
     def action_send_return(self):        
@@ -181,16 +171,16 @@ class ReturnMove(models.Model):
         return name
 
 
-    def receive_from_digip(self):
-        self.get_random_products()
+    # def receive_from_digip(self):
+    #     self.get_random_products()
 
 
-    def get_random_products(self):
-        return_move_lines = self.env['return.move.line']
-        for record in self:
-            vals = {
+    # def get_random_products(self):
+    #     return_move_lines = self.env['return.move.line']
+    #     for record in self:
+    #         vals = {
                 
-            }
+    #         }
 
 
 
@@ -200,77 +190,99 @@ class ReturnMoveLine(models.Model):
     name = fields.Char(string="Nombre", required=True, default="Remito de prueba")
     return_move = fields.Many2one('return.move', string="Devolución")
     product_id = fields.Many2one('product.product', string="Producto")
-    quantity = fields.Integer(string="Cantidad")
+    quantity_healthy = fields.Integer(string="Cantidad Sana")
+    quantity_broken = fields.Integer(string="Cantidad Rota")
+    quantity_total = fields.Integer(string="Total", compute="_compute_quantity_total")
     uxb = fields.Integer(string="UxB")
     bultos = fields.Float(string="Bultos", compute="_compute_bultos")
     price_unit = fields.Float(string="Precio Unitario")
     discount = fields.Float(string="Descuento")
-    price_subtotal = fields.Float(string="Precio Subtotal")
-    is_broken = fields.Boolean("¿Roto?")
-    wib = fields.Char(string="¿Qué está roto?")
+    price_subtotal = fields.Float(string="Precio Subtotal", compute="_compute_subtotal")
     state = fields.Selection(string='State', selection=[('draft','Borrador'), ('confirmed','Confirmado'), ('done', 'Hecho')])
-    company_id = fields.Many2one('res.company')
+    company_id = fields.Many2one(string="Compañía", comodel_name="res.company")
 
-    invoice_id = fields.Many2one('account.move', string="Factura")
+    invoice_id = fields.Many2one(string="Factura Asociada", comodel_name="account.move")
+    invoice_line_id = fields.Many2one(string="Línea de Factura Asociada", comodel_name="account.move.line")
+
 
     @api.model
     def create(self, vals):
         res = super().create(vals)
 
-        for r in res:
-            r.update_product()
+        for record in res:
+            record.update_prices()
+            record._compute_subtotal()
+            record._onchang_product_uxb()
+            record._compute_bultos()
 
         return res
 
 
     @api.onchange('product_id')
-    def _onchang_product_id(self):
+    def _onchang_product_uxb(self):
         for record in self:
             if record.product_id:
-                record.update_product()
+                record.uxb = record.get_product_uxb(record.product_id)
+
+
+    @api.depends('quantity_healthy', 'quantity_broken')
+    def _compute_quantity_total(self):
+        for record in self:
+            record.quantity_total = record.quantity_healthy + record.quantity_broken
+
+    
+    @api.depends('price_unit', 'quantity_total', 'discount')
+    def _compute_subtotal(self):
+        for record in self:
+            record.price_subtotal = record.price_unit * record.quantity_total * record.discount / 100
     
 
-    def update_product(self):
+    def update_prices(self):
         for record in self:
-            uxb = record.get_product_uxb()
-            record.uxb = uxb
+            if record.product_id:
+                record.invoice_line_id = record.get_last_invoice_line()
 
-            last_invoice_line = record.get_last_invoice_line()
+                if record.invoice_line_id:
+                    record.invoice_id = record.invoice_line_id.move_id.id
+                    record.price_unit = record.invoice_line_id.price_unit
+                    record.discount = record.invoice_line_id.discount                
+                    record.company_id = record.invoice_line_id.company_id.id
 
-            if last_invoice_line:
-                record.invoice_id = last_invoice_line.move_id.id
 
-                if last_invoice_line.company_id.id == 1:
-                    record.price_unit = last_invoice_line.price_unit / 1.21
-                    record.company_id = 2
-                    record.discount = last_invoice_line.discount
-                else:
-                    record.price_unit = last_invoice_line.price_unit
-                    record.company_id = last_invoice_line.company_id.id
-                    record.discount = last_invoice_line.discount
+                # CONDICIONAL A REVISAR
+                # if record.invoice_line_id.company_id.id == 1:
+                #     record.price_unit = record.invoice_line_id.price_unit / 1.21
+                #     record.company_id = 2
+                #     record.discount = record.invoice_line_id.discount
+                # else:
+                #     record.price_unit = record.invoice_line_id.price_unit
+                #     record.company_id = record.invoice_line_id.company_id.id
+                #     record.discount = record.invoice_line_id.discount
 
 
     def get_last_invoice_line(self):
         for record in self:
             last_invoice_line = self.env['account.move.line'].search([
+                ('partner_id', '=', record.return_move.partner_id.id),
                 ('product_id', '=', record.product_id.id),
-                ('parent_state', '=', 'posted'),
+                ('parent_state', '=', 'posted'),                
+                ('move_id.move_type', '=', 'out_invoice'),
+                ('display_type', '=', False),
             ], order='date desc', limit=1)
 
             if last_invoice_line:
                 return last_invoice_line
             
 
-    def get_product_uxb(self):
-        for record in self:
-            if record.product_id.packaging_ids:
-                return record.product_id.packaging_ids[0].qty
+    def get_product_uxb(self, product_id):
+        if product_id.packaging_ids:
+            return product_id.packaging_ids[0].qty
         
 
-    @api.depends('quantity')
+    @api.depends('quantity_total')
     def _compute_bultos(self):
         for record in self:
             if record.uxb != 0:
-                record.bultos = record.quantity / record.uxb
+                record.bultos = record.quantity_total / record.uxb
             else:
                 record.bultos = 0
