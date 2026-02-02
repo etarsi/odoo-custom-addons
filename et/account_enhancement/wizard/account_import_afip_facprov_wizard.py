@@ -455,7 +455,7 @@ class AccountImportAfipFacprovWizard(models.TransientModel):
 
         # Columnas necesarias
         col_map = self._build_col_map(ws, header_row)
-        c_iva_total = self._col(col_map, 'IVA Total')
+        c_iva_total = self._col(col_map, 'Total IVA')
 
         if not c_iva_total:
             raise UserError(_("Faltan columnas clave (IVA Total)."))
