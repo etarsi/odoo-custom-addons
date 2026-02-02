@@ -265,7 +265,7 @@ class ReturnMoveLine(models.Model):
                 ('parent_state', '=', 'posted'),                
                 ('move_id.move_type', '=', 'out_invoice'),
                 ('display_type', '=', False),
-            ], order='invoice_date desc', limit=1)
+            ], order='date desc', limit=1)
 
             if last_invoice_line:
                 return last_invoice_line
