@@ -18,6 +18,8 @@ class ResPartnerInherit(models.Model):
         ('smile', 'FACTURAS PROVEEDORES SMILES'),
     ], help='Seleccionar el diario para facturas de proveedor AFIP Import', default = 'lavalle')
     cuenta_prov_afip_import_id = fields.Many2one('account.account', string='Cuenta Proveedor', help='Seleccionar la cuenta para facturas de proveedor AFIP Import')
+    mail_alternative = fields.Char(string='Email Alternativo', help='Email alternativo para envíos de comprobantes y notificaciones.')
+    mail_alternative_b = fields.Char(string='Email Alternativo B', help='Segundo email alternativo para envíos de comprobantes y notificaciones.')
 
     def action_resumen_composicion(self):
         """Abrir facturas del cliente (y contactos hijos) en vista tree personalizada."""

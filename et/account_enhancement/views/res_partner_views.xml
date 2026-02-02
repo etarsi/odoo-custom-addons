@@ -16,6 +16,12 @@
                     </div>
                 </button>
             </xpath>
+            <xpath expr="//label[@for='lang']" position="replace"/>
+            <xpath expr="//div[contains(@class,'o_row') and .//field[@name='lang']]" position="replace"/>
+            <xpath expr="//field[@name='email']" position="after">
+                <field name="mail_alternative" string="Correo Alternativo 1" widget="email"/>
+                <field name="mail_alternative_b" string="Correo Alternativo 2" widget="email"/>
+            </xpath>
             <xpath expr="//page[@name='internal_notes']" position="after">
                 <page string="Configuración AFIP Import" name="afip_import_config">
                     <group name="afip_import_group" string="Configuración AFIP Import">
