@@ -56,7 +56,8 @@ class ProductTemplateInherit(models.Model):
     @api.model
     def create(self, vals):
         product = super(ProductTemplateInherit, self).create(vals)
-        #modificar el taxes_id
+        product.taxes_id_update()
+        return product
 
     def taxes_id_update(self):
         self.ensure_one()
