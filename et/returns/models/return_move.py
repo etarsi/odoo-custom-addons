@@ -68,24 +68,8 @@ class ReturnMove(models.Model):
     @api.onchange('partner_id')
     def _onchange_partner_id(self):
         for record in self:
-            if record.partner_id:
-                journals = self.env['account.journal'].search([
-                    ('code', 'in', ['00010', '00009'])
-                ])
-                domain = [
-                    ('partner_id', '=', record.partner_id.id),
-                    ('move_type', '=', 'out_invoice'),
-                    ('state', '=', 'posted')
-                ]
-                if journals:
-                    domain.append(('journal_id', 'in', journals.ids))
-                else:
-                    domain.append(('journal_id', '=', 0))
-                    
-                last_invoice = self.env['account.move'].search(domain, order='date desc', limit=1)
-
-                if last_invoice:
-                    record.invoice_id = last_invoice
+            if record.move_lines:
+                record.move_lines.update_prices()
 
 
     def action_send_return(self):        
@@ -252,13 +236,14 @@ class ReturnMoveLine(models.Model):
 
     def update_prices(self):
         for record in self:
-            record.invoice_line_id = record.get_last_invoice_line()
+            if record.product_id:
+                record.invoice_line_id = record.get_last_invoice_line()
 
-            if record.invoice_line_id:
-                record.invoice_id = record.invoice_line_id.move_id.id
-                record.price_unit = record.invoice_line_id.price_unit
-                record.discount = record.invoice_line_id.discount                
-                record.company_id = record.invoice_line_id.company_id.id
+                if record.invoice_line_id:
+                    record.invoice_id = record.invoice_line_id.move_id.id
+                    record.price_unit = record.invoice_line_id.price_unit
+                    record.discount = record.invoice_line_id.discount                
+                    record.company_id = record.invoice_line_id.company_id.id
 
 
                 # CONDICIONAL A REVISAR
