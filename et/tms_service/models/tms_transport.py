@@ -35,3 +35,14 @@ class TmsService(models.Model):
     name = fields.Char(string='Descripción', required=True)
     code = fields.Char(string='Código', required=True)
     active = fields.Boolean(string='Activo', default=True)
+    
+
+class TmsHiring(models.Model):
+    _name = 'tms.hiring'
+    _description = 'Contratación de Transporte'
+
+    name = fields.Char(string='Referencia', required=True)
+    date_hired = fields.Datetime(string='Fecha de Contratación', default=fields.Datetime.now, required=True)
+    transport_id = fields.Many2one('tms.transport', string='Transporte Contratado', required=True)
+    service_id = fields.Many2one('tms.service', string='Servicio Contratado', required=True)
+    observations = fields.Text(string='Observaciones')
