@@ -480,7 +480,7 @@ class AccountImportAfipFacprovWizard(models.TransientModel):
                     
         total_iva = round(total_iva, 2)
         total_iva_str = "{:,.2f}".format(total_iva).replace(",", "X").replace(".", ",").replace("X", ".")
-        wiz = self.env["iva.message.wizard"].create({
+        wiz = self.env["pop.up.message.wizard"].create({
             "message": _("El total de IVA en el archivo es: $ %s") % total_iva_str
         })
         return {
