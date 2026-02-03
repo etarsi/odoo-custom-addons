@@ -8,14 +8,21 @@
     <!-- Submenu de Transporte-->
     <menuitem id="menu_tms_transporte" name="Transportes" parent="tms_root_logo"
               action="delivery.action_delivery_carrier_form" sequence="20"/>
-    <!-- Submenu de Configuración-->
+
+    <!-- Submenu de Citaciones-->
+    <menuitem id="menu_tms_citation"
+              name="Citaciones"
+              parent="tms_root_logo"
+              action="action_tms_citation"
+              sequence="30"/>
+
+    <!-- Submenu de Configuración
     <menuitem id="menu_configuration" name="Configuración" parent="tms_root_logo" sequence="30"/>
-    <!-- submenu de Configuración-->
     <menuitem id="menu_transport_type" name="Tipos de Vehículo" parent="menu_configuration"
               action="action_tms_transport_type" sequence="10"/>
     <menuitem id="menu_tms_company" name="Compañías de Transporte" parent="menu_configuration"
               action="action_tms_transport_company" sequence="20"/>
     <menuitem id="menu_tms_service" name="Servicios" parent="menu_configuration" 
-              action="action_tms_service" sequence="30"/>
+              action="action_tms_service" sequence="30"/>-->
 
 </odoo>

@@ -135,13 +135,4 @@
         <field name="res_model">tms.citation</field>
         <field name="view_mode">tree,form</field>
     </record>
-
-    <!-- MENU -->
-    <!-- Cambiá parent="tms_service.menu_tms_root" por el xmlid real del menú padre de tu módulo -->
-    <menuitem id="menu_tms_citation_root"
-              name="Citaciones"
-              parent="tms_service.menu_tms_root"
-              action="action_tms_citation"
-              sequence="50"/>
-
 </odoo>
