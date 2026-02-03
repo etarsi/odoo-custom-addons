@@ -1,8 +1,8 @@
 <!-- views/iva_message_wizard_views.xml -->
 <odoo>
-  <record id="view_iva_message_wizard_form" model="ir.ui.view">
-    <field name="name">iva.message.wizard.form</field>
-    <field name="model">iva.message.wizard</field>
+  <record id="view_pop_up_message_wizard_form" model="ir.ui.view">
+    <field name="name">pop.up.message.wizard.form</field>
+    <field name="model">pop.up.message.wizard</field>
     <field name="arch" type="xml">
       <form string="Aviso">
         <sheet>
