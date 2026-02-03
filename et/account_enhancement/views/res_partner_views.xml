@@ -16,8 +16,15 @@
                     </div>
                 </button>
             </xpath>
-            <xpath expr="//label[@for='lang']" position="replace"/>
-            <xpath expr="//field[@name='lang']" position="replace"/>
+            <xpath expr="//label[@for='lang']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+
+            <!-- Reemplaza SOLO el row que contiene el campo lang y el botón del globo -->
+            <xpath expr="//div[contains(@class,'o_row') and .//field[@name='lang']]" position="replace">
+                <!-- Dejamos el campo en la vista para que el context default_lang no rompa -->
+                <field name="lang" invisible="1"/>
+            </xpath>
             <xpath expr="//field[@name='website']" position="before">
                 <field name="mail_alternative" string="Correo Alternativo 1" widget="email"/>
                 <field name="mail_alternative_b" string="Correo Alternativo 2" widget="email"/>
