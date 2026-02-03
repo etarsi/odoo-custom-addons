@@ -1,0 +1,17 @@
+<!-- views/iva_message_wizard_views.xml -->
+<odoo>
+  <record id="view_iva_message_wizard_form" model="ir.ui.view">
+    <field name="name">iva.message.wizard.form</field>
+    <field name="model">iva.message.wizard</field>
+    <field name="arch" type="xml">
+      <form string="Aviso">
+        <sheet>
+          <field name="message" nolabel="1" readonly="1"/>
+        </sheet>
+        <footer>
+          <button string="OK" class="btn-primary" special="cancel"/>
+        </footer>
+      </form>
+    </field>
+  </record>
+</odoo>

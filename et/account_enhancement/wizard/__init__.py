@@ -8,3 +8,4 @@ from . import account_import_afip_facprov_wizard
 from . import import_afip_impuesto_bruto_wizard
 from . import general_ledger_wizard
 from . import import_afip_iibb_wizard
+from . import pop_up_message_wizard

@@ -48,6 +48,7 @@
         'views/import_afip_iibb_wizard_views.xml',
         'views/import_afip_impuesto_bruto_wizard_views.xml',
         'data/action_payment_group.xml',
+        'views/wizard/pop_up_message_wizard_views.xml',
         #Reportes
         'wizard/generar_factura_wizard_views.xml',
         #Templates

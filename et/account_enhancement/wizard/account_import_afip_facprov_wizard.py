@@ -477,6 +477,16 @@ class AccountImportAfipFacprovWizard(models.TransientModel):
                     total_iva += iva
                 else:
                     total_iva -= iva
-                total_iva = round(total_iva, 2)
-
-        raise ValidationError(_("El total de IVA en el archivo es: $ %s") % total_iva) 
+                    
+        total_iva = round(total_iva, 2)
+        total_iva_str = "{:,.2f}".format(total_iva).replace(",", "X").replace(".", ",").replace("X", ".")
+        wiz = self.env["iva.message.wizard"].create({
+            "message": _("El total de IVA en el archivo es: $ %s") % total_iva_str
+        })
+        return {
+            "type": "ir.actions.act_window",
+            "res_model": "pop.up.message.wizard",
+            "view_mode": "form",
+            "res_id": wiz.id,
+            "target": "new",
+        }
