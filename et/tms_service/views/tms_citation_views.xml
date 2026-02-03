@@ -1,0 +1,147 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- TREE -->
+    <record id="view_tms_citation_tree" model="ir.ui.view">
+        <field name="name">tms.citation.tree</field>
+        <field name="model">tms.citation</field>
+        <field name="arch" type="xml">
+            <tree string="Citaciones"
+                  decoration-info="state == 'draft'"
+                  decoration-warning="state == 'pending'"
+                  decoration-success="state == 'completed'"
+                  decoration-danger="state == 'canceled'">
+                <field name="name"/>
+                <field name="date"/>
+                <field name="mes"/>
+                <field name="empresa_id"/>
+                <field name="transport_id"/>
+                <field name="transport_type_id"/>
+                <field name="patente_tractor"/>
+                <field name="patente_semi"/>
+                <field name="service_id"/>
+                <field name="area"/>
+                <field name="hour_citation" widget="float_time"/>
+                <field name="hour_arrival" widget="float_time"/>
+                <field name="hiring_id"/>
+                <field name="bulto_count"/>
+                <field name="state"/>
+            </tree>
+        </field>
+    </record>
+
+    <!-- FORM -->
+    <record id="view_tms_citation_form" model="ir.ui.view">
+        <field name="name">tms.citation.form</field>
+        <field name="model">tms.citation</field>
+        <field name="arch" type="xml">
+            <form string="Citación">
+                <header>
+                    <field name="state"
+                           widget="statusbar"
+                           statusbar_visible="draft,pending,completed,canceled"/>
+                </header>
+
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="name"/>
+                            <field name="date"/>
+                            <field name="mes" readonly="1"/>
+
+                            <!-- OJO: es delivery.carrier según tu modelo -->
+                            <field name="empresa_id"/>
+
+                            <field name="tms_stock_picking_id"/>
+                        </group>
+
+                        <group>
+                            <!-- OJO: es tms.transport según tu modelo -->
+                            <field name="transport_id"/>
+
+                            <field name="transport_type_id"/>
+                            <field name="patente_tractor"/>
+                            <field name="patente_semi"/>
+                        </group>
+                    </group>
+
+                    <group>
+                        <group>
+                            <field name="service_id"/>
+                            <field name="area"/>
+                            <field name="hiring_id"/>
+                            <field name="bulto_count"/>
+                        </group>
+
+                        <group>
+                            <field name="hour_citation" widget="float_time"/>
+                            <field name="hour_arrival" widget="float_time"/>
+                        </group>
+                    </group>
+
+                    <notebook>
+                        <page string="Observaciones">
+                            <field name="observations"/>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- SEARCH -->
+    <record id="view_tms_citation_search" model="ir.ui.view">
+        <field name="name">tms.citation.search</field>
+        <field name="model">tms.citation</field>
+        <field name="arch" type="xml">
+            <search string="Buscar Citaciones">
+                <field name="name"/>
+                <field name="empresa_id"/>
+                <field name="transport_id"/>
+                <field name="service_id"/>
+                <field name="area"/>
+                <field name="patente_tractor"/>
+                <field name="patente_semi"/>
+
+                <separator/>
+
+                <filter string="Borrador" name="draft" domain="[('state','=','draft')]"/>
+                <filter string="Pendiente" name="pending" domain="[('state','=','pending')]"/>
+                <filter string="Completada" name="completed" domain="[('state','=','completed')]"/>
+                <filter string="Cancelada" name="canceled" domain="[('state','=','canceled')]"/>
+
+                <separator/>
+
+                <!-- filtros por área según tu selection -->
+                <filter string="P.G" name="area_pg" domain="[('area','=','pg')]"/>
+                <filter string="G.C" name="area_gc" domain="[('area','=','gc')]"/>
+                <filter string="Millan" name="area_millan" domain="[('area','=','millan')]"/>
+                <filter string="Otro" name="area_other" domain="[('area','=','other')]"/>
+
+                <group expand="0" string="Agrupar">
+                    <filter string="Mes" name="grp_mes" context="{'group_by':'mes'}"/>
+                    <filter string="Empresa" name="grp_empresa" context="{'group_by':'empresa_id'}"/>
+                    <filter string="Vehículo" name="grp_transport" context="{'group_by':'transport_id'}"/>
+                    <filter string="Servicio" name="grp_service" context="{'group_by':'service_id'}"/>
+                    <filter string="Estado" name="grp_state" context="{'group_by':'state'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- ACTION -->
+    <record id="action_tms_citation" model="ir.actions.act_window">
+        <field name="name">Citaciones</field>
+        <field name="res_model">tms.citation</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
+    <!-- MENU -->
+    <!-- Cambiá parent="tms_service.menu_tms_root" por el xmlid real del menú padre de tu módulo -->
+    <menuitem id="menu_tms_citation_root"
+              name="Citaciones"
+              parent="tms_service.menu_tms_root"
+              action="action_tms_citation"
+              sequence="50"/>
+
+</odoo>

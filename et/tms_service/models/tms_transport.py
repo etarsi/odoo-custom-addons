@@ -9,6 +9,13 @@ class TmsTransport(models.Model):
     patente_semi = fields.Char(string='Patente Semi', required=True)
     active = fields.Boolean(string='Activo', default=True)
     transport_type_id = fields.Many2one('tms.transport.type', string='Tipo de Transporte')
+    delivery_carrier_id = fields.Many2one(
+        'delivery.carrier',
+        string='Empresa de Transporte',
+        required=True,
+        ondelete='restrict',
+        index=True,
+    )
 
     
 class TmsTransportType(models.Model):
