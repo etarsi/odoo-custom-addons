@@ -4,3 +4,4 @@ access_tms_citation,tms.citation,model_tms_citation,base.group_user,1,1,1,1
 access_tms_transport,tms.transport,model_tms_transport,base.group_user,1,1,1,1
 access_tms_transport_type,tms.transport.type,model_tms_transport_type,base.group_user,1,1,1,1
 access_tms_service,tms.service,model_tms_service,base.group_user,1,1,1,1
+access_tms_hiring,tms.hiring,model_tms_hiring,base.group_user,1,1,1,1
