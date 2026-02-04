@@ -259,7 +259,7 @@ class OutInvoiceRefacturarWizard(models.TransientModel):
                             draft_credit.message_post(body=_('Se modifico las percepciones IIBB los impuestos que quedaron son: %s') % (
                                 ', '.join(draft_credit.invoice_line_ids.mapped('tax_ids.name'))
                             ))
-                    #draft_credits.action_post() CONFIRMAR DESPUÉS DE LA REFACTURACIÓN
+                    draft_credits.action_post() #CONFIRMAR DESPUÉS DE LA REFACTURACIÓN
                 credit_notes |= draft_credits
                 # 2) Nueva factura en la compañía destino
                 new = self.env['account.move'].with_company(self.company_id).with_context(check_move_validity=False).create(vals)
