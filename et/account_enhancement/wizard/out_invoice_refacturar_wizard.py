@@ -252,6 +252,7 @@ class OutInvoiceRefacturarWizard(models.TransientModel):
                         periodo_factura = invoice_date.month #6
                         if invoice_date and periodo_actual != periodo_factura:
                             self._delete_impuestos_percepcion_iibb(draft_credit)
+                            draft_credit.with_context(check_move_validity=False)._recompute_dynamic_lines(recompute_all_taxes=True)
                             draft_credit.update_taxes()
                             draft_credit._compute_amount()
                             # agregar en el chat de la factura la modificación realizada y quien la hizo
