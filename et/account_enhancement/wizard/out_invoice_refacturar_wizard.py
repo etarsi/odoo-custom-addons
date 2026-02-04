@@ -3,7 +3,7 @@ from odoo import api, fields, models, _
 from odoo.exceptions import RedirectWarning, ValidationError
 import math
 from datetime import timedelta
-
+import unicodedata
 
 EXPO_POS = {'FEERCEL', 'FEEWS', 'FEERCELP'}
 class OutInvoiceRefacturarWizard(models.TransientModel):
@@ -42,13 +42,21 @@ class OutInvoiceRefacturarWizard(models.TransientModel):
     def _onchange_accion_descuento(self):      
         if not self.accion_descuento:
             self.descuento_porcentaje = 0.0
-            
-    def _delete_impuestos_perceppcion_iibb(self, move):
-        tax_name = 'percepción iibb'
-        for line in move.invoice_line_ids:
-            line_tax_ids = line.tax_ids.filtered(lambda t: tax_name not in (t.name or '').lower())
-            if line_tax_ids:
-                line.write({'tax_ids': [(6, 0, line_tax_ids.ids)]})
+
+    def _norm(self, s):
+        s = (s or "")
+        s = unicodedata.normalize("NFKD", s)
+        s = "".join(ch for ch in s if not unicodedata.combining(ch))
+        return s.lower()
+
+    def _delete_impuestos_percepcion_iibb(self, move):
+        for line in move.invoice_line_ids.filtered(lambda l: not l.display_type):
+            def is_iibb_perc(t):
+                n = self._norm(t.name)
+                g = self._norm(t.tax_group_id.name) if t.tax_group_id else ""
+                return ("iibb" in n or "iibb" in g) and ("percep" in n or "perc" in n or "percep" in g or "perc" in g)
+            kept = line.tax_ids.filtered(lambda t: not is_iibb_perc(t))
+            line.write({'tax_ids': [(6, 0, kept.ids)]})
 
     @api.onchange('descuento_porcentaje')
     def _onchange_descuento_porcentaje(self):
@@ -239,14 +247,18 @@ class OutInvoiceRefacturarWizard(models.TransientModel):
                             raise ValidationError(_("Se esperaba una Nota de Crédito, pero el tipo comprobante es: %s.") % internal_type)
                         #Validar lineas de NC quitar IIBB
                         invoice_date = move.invoice_date
-                        # rango de fecha cambiar a periodo ejemplo solo se puede quitar las perceppcion_iibb si estamos en el mismo mes
-                        periodo_actual = today.month
-                        periodo_factura = invoice_date.month
+                        # rango de fecha cambiar a periodo ejemplo solo se puede quitar las percepcion_iibb si no son del mismo mes
+                        periodo_actual = today.month #5
+                        periodo_factura = invoice_date.month #6
                         if invoice_date and periodo_actual != periodo_factura:
-                            self._delete_impuestos_perceppcion_iibb(draft_credit)
+                            self._delete_impuestos_percepcion_iibb(draft_credit)
                             draft_credit.update_taxes()
                             draft_credit._compute_amount()
-                    draft_credits.action_post()
+                            # agregar en el chat de la factura la modificación realizada y quien la hizo
+                            draft_credit.message_post(body=_('Se modifico las percepciones IIBB los impuestos que quedaron son: %s') % (
+                                ', '.join(draft_credit.invoice_line_ids.mapped('tax_ids.name'))
+                            ))
+                    #draft_credits.action_post() CONFIRMAR DESPUÉS DE LA REFACTURACIÓN
                 credit_notes |= draft_credits
                 # 2) Nueva factura en la compañía destino
                 new = self.env['account.move'].with_company(self.company_id).with_context(check_move_validity=False).create(vals)

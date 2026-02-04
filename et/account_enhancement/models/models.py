@@ -192,6 +192,12 @@ class AccountMoveInherit(models.Model):
                     raise ValidationError(_("Se esperaba una Nota de Crédito, pero el Tipo Comprobante es: %s.") % (
                         internal_type,
                     ))
+                    
+                if move.invoice_line_ids:
+                    for line in move.invoice_line_ids:
+                        line_tax_ids = line.tax_ids.filtered(lambda t: 'percepción iibb' not in (t.name or '').lower())
+                        if line_tax_ids and len(line.tax_ids) != len(line_tax_ids):
+                            line.write({'tax_ids': [(6, 0, line_tax_ids.ids)]})
         return super().action_post()
 
     @api.depends('line_ids.product_id')
@@ -665,7 +671,7 @@ class AccountMoveReversalInherit(models.TransientModel):
     def _delete_impuestos_perceppcion_iibb(self, move):
         tax_name = 'percepción iibb'
         for line in move.invoice_line_ids:
-            line_tax_ids = line.tax_ids.filtered(lambda t: tax_name not in (t.name or '').lower())
+            line_tax_ids = line.tax_ids.filtered(lambda t: tax_name not in (t.name).lower())
             if line_tax_ids:
                 line.write({'tax_ids': [(6, 0, line_tax_ids.ids)]})
 

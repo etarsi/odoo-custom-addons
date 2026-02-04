@@ -3,6 +3,7 @@ from odoo import api, fields, models, _
 from odoo.exceptions import UserError, ValidationError
 import base64
 import re
+import unicodedata
 from io import BytesIO
 from datetime import datetime, date
 from openpyxl import load_workbook
@@ -20,6 +21,37 @@ class AccountImportAfipFacprovWizard(models.TransientModel):
     
 
     # ---------------- HELPERS ----------------
+    def _norm(self, txt: str) -> str:
+        txt = (txt or "").strip().lower()
+        # quitar tildes
+        txt = "".join(c for c in unicodedata.normalize("NFD", txt) if unicodedata.category(c) != "Mn")
+        return txt
+
+    def _sign_from_tipo(self, tipo) -> int:
+        """
+        Devuelve +1 si suma IVA, -1 si resta IVA.
+        Soporta cosas como:
+        '1 - Factura A'
+        '51 - Factura A Operación Sujeta a Retención'
+        '3 - Nota de Crédito A ...'
+        """
+        s = self._norm(str(tipo))
+
+        # si viene con "NN - ....", quedate con lo que está después del guion (pero no es obligatorio)
+        m = re.match(r"^\s*(\d+)\s*-\s*(.*)$", s)
+        desc = m.group(2) if m else s
+
+        # prioridad: si dice crédito, siempre resta
+        if "nota de credito" in desc or desc.startswith("nc"):
+            return -1
+
+        # débito y factura suman
+        if "nota de debito" in desc or "factura" in desc or desc.startswith("nd") or desc.startswith("fc"):
+            return +1
+
+        # fallback: si no se reconoce, lo tratás como suma (o levantás warning)
+        return +1    
+    
     def _extract_tipo_num(self, value):
         """
         Devuelve el número inicial del campo Tipo.
@@ -472,12 +504,9 @@ class AccountImportAfipFacprovWizard(models.TransientModel):
                 iva = self._to_float(ws.cell(r, c_iva_total).value)
                 tipo_cambio = self._to_float(ws.cell(r, c_tipo_cambio).value)
                 if tipo_cambio and tipo_cambio != 1:
-                    iva = iva * tipo_cambio
-                if tipo in ['1 - Factura A', '11 - Factura C', '2 - Nota de Débito A']:
-                    total_iva += iva
-                else:
-                    total_iva -= iva
-                    
+                    iva *= tipo_cambio
+                sign = self._sign_from_tipo(tipo)
+                total_iva += sign * iva
         total_iva = round(total_iva, 2)
         total_iva_str = "{:,.2f}".format(total_iva).replace(",", "X").replace(".", ",").replace("X", ".")
         wiz = self.env["pop.up.message.wizard"].create({
