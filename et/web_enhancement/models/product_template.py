@@ -108,69 +108,103 @@ class ProductTemplate(models.Model):
         if file_obj.get("mimeType") == "application/vnd.google-apps.shortcut":
             real = service.files().get(
                 fileId=file_obj["id"],
-                fields="shortcutDetails,targetId",
+                fields="id,name,mimeType,shortcutDetails(targetId,targetMimeType)",
                 supportsAllDrives=True,
             ).execute()
             target_id = real.get("shortcutDetails", {}).get("targetId")
             if target_id:
                 return service.files().get(
                     fileId=target_id,
-                    fields="id,name,mimeType",
+                    fields="id,name,mimeType,shortcutDetails(targetId,targetMimeType)",
                     supportsAllDrives=True,
                 ).execute()
         return file_obj
 
-    def _find_subfolder_for_code(self, service, main_folder_id, code):
-        """
-        Busca carpetas por nombre en TODO el Drive (incluye Shared Drives y shortcuts),
-        y filtra solo las que sean descendientes de main_folder_id.
-        Devuelve el mejor match usando un scoring similar al tuyo.
-        """
-        code_str = _nfc((code or "").strip())
-        if not code_str:
-            return None
-
+    def _gdrive_list_subfolders(self, service, parent_id):
+        """Devuelve subcarpetas directas de parent_id."""
         q = (
-            f"'{main_folder_id}' in parents and trashed=false and"
+            f"'{parent_id}' in parents and trashed=false and "
             "mimeType='application/vnd.google-apps.folder'"
         )
-        
         folders, page_token = [], None
         while True:
             resp = service.files().list(
                 q=q,
                 fields="nextPageToken, files(id,name,mimeType)",
-                pageSize=200,
+                pageSize=1000,
                 pageToken=page_token,
                 supportsAllDrives=True,
                 includeItemsFromAllDrives=True,
             ).execute()
             folders.extend(resp.get("files", []))
             page_token = resp.get("nextPageToken")
-
             if not page_token:
                 break
+        return folders
 
-        candidates = []
-        # 1) Primero exactos, luego contains
-        for f in folders:
-            leat = _leading_code(f.get("name"))
-            if leat and leat.lower() == code_str.lower():
-                candidates.append(f)
-                
+
+    def _find_subfolder_for_code(self, service, main_folder_id, code, max_depth=None):
+        """
+        Busca subcarpetas en TODOS los niveles por debajo de main_folder_id.
+        Ej: main/c1/c2/c3/c4...
+        """
+        code_str = _nfc((code or "").strip())
+        if not code_str:
+            return None
+        code_l = code_str.lower()
+
+        # stack: (folder_id, depth)
+        stack = [(main_folder_id, 0)]
+        visited = set()
+        candidates = []  # [(folder_dict, depth)]
+
+        while stack:
+            current_id, depth = stack.pop()
+            if current_id in visited:
+                continue
+            visited.add(current_id)
+
+            if max_depth is not None and depth >= max_depth:
+                continue
+
+            subfolders = self._gdrive_list_subfolders(service, current_id)
+
+            for f in subfolders:
+                name = _nfc((f.get("name") or "").strip())
+                lead = (_leading_code(name) or "").lower()
+
+                # match por código al inicio (52358 - ..., 52358_..., [52358] ...)
+                if lead == code_l:
+                    candidates.append((f, depth + 1))
+
+                # seguir bajando niveles
+                stack.append((f["id"], depth + 1))
+
         if not candidates:
             return None
-            
-        # Scoring: exacto == 3 (nombre == code), prefijo == 2; luego nombre más corto
-        def score(f):
-            name = (f.get("name") or "").strip()
-            if name.lower() == code_str.lower():
-                return (3, -len(name))
-            return (2, -len(name))
 
-        candidates.sort(key=score, reverse=True)
-        best = candidates[0]
-        return {"id": best["id"], "name": best.get("name")}
+        # scoring: nombre exacto > prefijo por código > menor profundidad > nombre más corto
+        def score(item):
+            f, depth = item
+            name = _nfc((f.get("name") or "").strip())
+            name_l = name.lower()
+
+            if name_l == code_l:
+                rank = 3
+            elif (_leading_code(name) or "").lower() == code_l:
+                rank = 2
+            else:
+                rank = 1
+
+            # preferir menos profundidad y nombre más corto
+            return (rank, -depth, -len(name))
+
+        best, best_depth = max(candidates, key=score)
+        return {
+            "id": best["id"],
+            "name": best.get("name"),
+            "depth": best_depth,
+        }
 
     def _create_product_download_mark(self, description=None):
         self.env['product.download.mark'].create({
@@ -232,11 +266,12 @@ class ProductTemplate(models.Model):
                 # Caso 1: usar la carpeta del producto directamente
                 code = tmpl.gdrive_folder_id.strip()
                 # Obtener nombre legible de esa carpeta para el prefijo del ZIP
-                sub = service.files().get(
-                    fileId=code,
-                    fields="id,name",
-                    supportsAllDrives=True
-                ).execute()
+                try:
+                    sub = service.files().get(
+                        fileId=code, fields="id,name,mimeType", supportsAllDrives=True
+                    ).execute()
+                except HttpError:
+                    sub = None
                 #si no encuentra la carpeta, que vuelva a buscar con la carpeta padre
                 if not sub:
                     main_id = (sheet_drive_folder_path or "").strip()
@@ -363,6 +398,7 @@ class ProductTemplate(models.Model):
                 'image_1920': image_extra,
                 'name': self.id,
             })
+
     def _actualizar_foto_principal_desde_gdrive(self, image_files, service):
         # Actualiza la foto principal (image_1920) del producto con la primera imagen encontrada en Drive
         if not image_files:
@@ -383,3 +419,25 @@ class ProductTemplate(models.Model):
         data_b64 = base64.b64encode(data)
         image_1920 = data_b64.decode('ascii')
         self.write({'image_1920': image_1920})
+        
+    def _actualizar_gdrive_folder_id_desde_default_code(self):
+        for record in self:
+            service = record._build_gdrive_service()
+            sheet_drive_folder_path = record.env['ir.config_parameter'].get_param('web_enhancement.sheet_drive_folder_path')
+            if not sheet_drive_folder_path:
+                _logger.info("No está configurado el ID de la carpeta principal en Drive (Settings > Configuración de Google Drive).")
+                return
+            main_id = (sheet_drive_folder_path or "").strip()
+            if not main_id:
+                _logger.info("No está configurado el ID de la carpeta principal en Drive (Settings > Configuración de Google Drive).")
+                return
+            code = (record.default_code or "").strip()
+            if not code:
+                _logger.info("No está configurado el default_code para el producto '%s'." % record.display_name)
+                return
+            sub = record._find_subfolder_for_code(service, main_id, code)
+            if not sub:
+                _logger.info("No se encontró subcarpeta para el código '%s' dentro de la carpeta principal." % code)
+                return
+            target_folder_id = sub["id"]
+            record.write({'gdrive_folder_id': target_folder_id})

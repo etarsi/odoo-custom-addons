@@ -10,4 +10,15 @@
         <field name="binding_model_id" ref="model_product_template"/>
         <field name="binding_type">action</field>
     </record>
+    <record id="action_product_gdrive_id" model="ir.actions.server">
+        <field name="name">Actualizar Google Drive Folder ID</field>
+        <!-- Modelo destino -->
+        <field name="model_id" ref="model_product_template"/>
+        <!-- Llamamos a tu método Python -->
+        <field name="state">code</field>
+        <field name="code">action = records._actualizar_gdrive_folder_id_desde_default_code()</field>
+        <!-- Enlazar a Action menu del modelo -->
+        <field name="binding_model_id" ref="model_product_template"/>
+        <field name="binding_type">action</field>
+    </record>
 </odoo>
