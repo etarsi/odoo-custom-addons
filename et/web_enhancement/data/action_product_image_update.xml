@@ -1,24 +1,10 @@
 <odoo>
-    <record id="action_product_image_update" model="ir.actions.server">
-        <field name="name">Actualizar Imagen del Producto</field>
-        <!-- Modelo destino -->
-        <field name="model_id" ref="model_product_template"/>
-        <!-- Llamamos a tu método Python -->
+    <record id="action_product_sync_gdrive_link_and_images" model="ir.actions.server">
+        <field name="name">Drive: actualizar link + fotos</field>
+        <field name="model_id" ref="product.model_product_template"/>
+        <field name="binding_model_id" ref="product.model_product_template"/>
+        <field name="binding_view_types">list</field>
         <field name="state">code</field>
-        <field name="code">action = records.update_image_product_web()</field>
-        <!-- Enlazar a Action menu del modelo -->
-        <field name="binding_model_id" ref="model_product_template"/>
-        <field name="binding_type">action</field>
-    </record>
-    <record id="action_product_gdrive_id" model="ir.actions.server">
-        <field name="name">Actualizar Google Drive Folder ID</field>
-        <!-- Modelo destino -->
-        <field name="model_id" ref="model_product_template"/>
-        <!-- Llamamos a tu método Python -->
-        <field name="state">code</field>
-        <field name="code">action = records._actualizar_gdrive_folder_id_desde_default_code()</field>
-        <!-- Enlazar a Action menu del modelo -->
-        <field name="binding_model_id" ref="model_product_template"/>
-        <field name="binding_type">action</field>
+        <field name="code">records.action_sync_gdrive_link_and_images()</field>
     </record>
 </odoo>
