@@ -83,11 +83,10 @@ class ReportAccountReturnWizard(models.TransientModel):
         for col, h in enumerate(headers):
             worksheet.write(1, col, h, fmt_header)
             
-            
         # =========================
         # DOMAIN
         # =========================
-        domain = [('move_id.state', '=', 'done'), ('move_id.move_type', 'in', ['out_invoice', 'out_refund'])]
+        domain = [('move_id.state', '=', 'posted'), ('move_id.move_type', 'in', ['out_invoice', 'out_refund'])]
         if self.temporada != 't_all':
             if self.temporada == 't_nino_2025':
                 domain += [('create_date', '>=', date(2025, 3, 1)), ('create_date', '<=', date(2025, 8, 31))]
@@ -99,7 +98,7 @@ class ReportAccountReturnWizard(models.TransientModel):
             domain += [('product_id', 'in', self.product_ids.ids)]            
         account_move_lines = self.env['account.move.line'].search(domain)
         if not account_move_lines:
-            raise ValidationError("No se encontraron albaranes para los criterios seleccionados.")
+            raise ValidationError("No se encontraron facturas o devoluciones para los criterios seleccionados.")
 
         # =========================
         # DATA
