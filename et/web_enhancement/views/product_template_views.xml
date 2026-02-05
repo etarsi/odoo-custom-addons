@@ -41,6 +41,6 @@
         <field name="view_id" ref="view_web_product_template_tree"/>
         <!-- search personalizado-->
         <field name="search_view_id" ref="product.product_template_search_view"/>
-        <field name="domain">[('gdrive_folder_id', '!=', False), ('sale_ok', '=', True)]</field>
+        <field name="domain">[('gdrive_folder_id', '=', False), ('sale_ok', '=', True), ('default_code', '!=', False), ('default_code', 'not like', '9%')]</field>
     </record>
 </odoo>
