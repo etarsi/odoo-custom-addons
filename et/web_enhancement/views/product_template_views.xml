@@ -19,4 +19,28 @@
             </xpath>
         </field>
     </record>
+
+    <!-- Vista Tree para mostrar el nuevo campo gdrive_folder_id -->
+    <record id="view_web_product_template_tree" model="ir.ui.view">
+        <field name="name">web.product.template.tree</field>
+        <field name="model">product.template</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="name"/>
+                <field name="default_code"/>
+                <field name="gdrive_folder_id"/>
+            </tree>
+        </field>
+    </record>
+
+    <!-- action para mostrar la vista tree de productos -->
+    <record id="action_web_product_template_tree" model="ir.actions.act_window">
+        <field name="name">Productos</field>
+        <field name="res_model">product.template</field>
+        <field name="view_mode">tree,form</field>
+        <field name="view_id" ref="view_web_product_template_tree"/>
+        <!-- search personalizado-->
+        <field name="search_view_id" ref="product.product_template_search_view"/>
+        <field name="domain">[('gdrive_folder_id', '!=', False), ('sale_ok', '=', True)]</field>
+    </record>
 </odoo>
