@@ -103,9 +103,11 @@ class ReportAccountReturnWizard(models.TransientModel):
         # =========================
         # DATA
         # =========================
+        impuestos = ''
         row = 2  # empezamos justo debajo de headers
         for line in account_move_lines:
             date_done = line.move_id.invoice_date.strftime('%d/%m/%Y') if line.move_id.invoice_date else ''
+            impuestos = ', '.join([tax.name for tax in line.tax_ids]) if line.tax_ids else ''
             #DATOS DE LAS FILAS DE REPORTE ENTREGA
             worksheet.write(row, 0, date_done, fmt_text2)
             worksheet.write(row, 1, line.move_id.name, fmt_text)
@@ -114,7 +116,7 @@ class ReportAccountReturnWizard(models.TransientModel):
             worksheet.write(row, 4, line.quantity, fmt_moneda)
             worksheet.write(row, 5, line.price_unit, fmt_moneda)
             worksheet.write(row, 6, line.discount, fmt_text2)
-            worksheet.write(row, 7, line.tax_ids.name if line.tax_ids else '', fmt_text2)
+            worksheet.write(row, 7, impuestos, fmt_text2)
             worksheet.write(row, 8, line.price_subtotal, fmt_text)
             worksheet.write(row, 9, line.company_id.name, fmt_text)
             row += 1
