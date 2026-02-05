@@ -3,3 +3,4 @@ access_report_stock_picking_wizard,report.stock.picking.wizard,model_report_stoc
 access_report_stock_picking_factura_wizard,report.stock.picking.factura.wizard,model_report_stock_picking_factura_wizard,,1,1,1,1
 access_report_resumen_stock_wizard,report.resumen.stock.wizard,model_report_resumen_stock_wizard,,1,1,1,1
 access_report_stock_valorizado_wizard,report.stock.valorizado.wizard,model_report_stock_valorizado_wizard,,1,1,1,1
+access_report_account_return_wizard,report.account.return.wizard,model_report_account_return_wizard,,1,1,1,1

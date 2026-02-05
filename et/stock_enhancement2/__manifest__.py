@@ -39,6 +39,7 @@
         'views/report_stock_valorizado_wizard_views.xml',
         'views/report_stock_picking_factura_wizard_views.xml',
         'views/report_resumen_stock_wizard_views.xml',
+        'views/report_account_return_wizard_views.xml',
         #'views/stock_picking_views.xml',
         'views/res_config_settings_views.xml',
         'views/menu.xml',

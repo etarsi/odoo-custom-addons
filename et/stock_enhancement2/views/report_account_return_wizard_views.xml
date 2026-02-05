@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_report_account_return_wizard_form" model="ir.ui.view">
+        <field name="name">report.account.return.wizard.form</field>
+        <field name="model">report.account.return.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Reporte de Facturas-Devoluciones" create="false" edit="false">
+                <group name="reporte_stock_picking" string="Reporte de Pendientes">
+                    <group>
+                        <field name="temporada"/>
+                        <field name="partner_ids" options="{'no_create': True}" widget="many2many_tags"/>
+                        <field name="category_ids" options="{'no_create': True}" widget="many2many_tags"/>
+                    </group>       
+                    <group>
+                        <field name="product_ids" widget="many2many_tags"/>
+                    </group>      
+                </group>
+                <footer>
+                    <button name="action_generar_excel" type="object" string="Generar Excel" class="btn-primary"/>
+                    <button string="Cancelar" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_report_account_return_wizard" model="ir.actions.act_window">
+        <field name="name">Reporte de Facturas-Devoluciones</field>
+        <field name="res_model">report.account.return.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="view_id" ref="view_report_account_return_wizard_form"/>
+        <field name="target">new</field>
+    </record>
+
+    <!-- Menu de inventario / informes  -->
+    <menuitem id="menu_report_account_return_wizard"
+              name="Reporte de Facturas-Devoluciones"
+              parent="stock.menu_warehouse_report"
+              action="action_report_account_return_wizard"
+              sequence="170"/>
+    
+</odoo>
