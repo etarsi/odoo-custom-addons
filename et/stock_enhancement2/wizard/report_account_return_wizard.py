@@ -54,6 +54,7 @@ class ReportAccountReturnWizard(models.TransientModel):
         fmt_moneda = workbook.add_format({'border': 1, 'align': 'right', 'valign': 'vcenter', 'num_format': '$#,##0.00'})
         fmt_int = workbook.add_format({'border': 1, 'align': 'center', 'valign': 'vcenter', 'num_format': '0'})
         fmt_dec2 = workbook.add_format({'border': 1, 'align': 'center', 'valign': 'vcenter', 'num_format': '0.00'})
+        fmt_porcentaje = workbook.add_format({'border': 1, 'align': 'right', 'valign': 'vcenter', 'num_format': '0.00%'})
 
 
         # =========================
@@ -64,14 +65,14 @@ class ReportAccountReturnWizard(models.TransientModel):
         # COLUMNAS DE LA HOJA REPORTE DE ENTREGA
         # =========================
         worksheet.set_column(0, 0, 15)      # Fecha
-        worksheet.set_column(1, 1, 30)    # Factura
-        worksheet.set_column(2, 2, 30)      # codigo
+        worksheet.set_column(1, 1, 30)      # Factura
+        worksheet.set_column(2, 2, 12)      # codigo
         worksheet.set_column(3, 3, 60)      # descripcion
-        worksheet.set_column(4, 4, 20)      # cantidad
-        worksheet.set_column(5, 5, 20)      # precio unitario
+        worksheet.set_column(4, 4, 15)      # cantidad
+        worksheet.set_column(5, 5, 15)      # precio unitario
         worksheet.set_column(6, 6, 30)      # descuento
-        worksheet.set_column(7, 7, 20)      # impuesto
-        worksheet.set_column(8, 8, 55)      # subtotal
+        worksheet.set_column(7, 7, 50)      # impuesto
+        worksheet.set_column(8, 8, 20)      # subtotal
         worksheet.set_column(9, 9, 20)      # compañía
         # Alto de filas de título/encabezado
         worksheet.set_row(0, 20)
@@ -112,13 +113,13 @@ class ReportAccountReturnWizard(models.TransientModel):
             worksheet.write(row, 0, date_done, fmt_text2)
             worksheet.write(row, 1, line.move_id.name, fmt_text)
             worksheet.write(row, 2, line.product_id.default_code or '', fmt_text)
-            worksheet.write(row, 3, line.product_id.name or '', fmt_text2)
-            worksheet.write(row, 4, line.quantity, fmt_moneda)
+            worksheet.write(row, 3, line.product_id.name or '', fmt_text)
+            worksheet.write(row, 4, line.quantity, fmt_int)
             worksheet.write(row, 5, line.price_unit, fmt_moneda)
-            worksheet.write(row, 6, line.discount, fmt_text2)
-            worksheet.write(row, 7, impuestos, fmt_text2)
-            worksheet.write(row, 8, line.price_subtotal, fmt_text)
-            worksheet.write(row, 9, line.company_id.name, fmt_text)
+            worksheet.write(row, 6, line.discount, fmt_porcentaje)
+            worksheet.write(row, 7, impuestos, fmt_text)
+            worksheet.write(row, 8, line.price_subtotal, fmt_moneda)
+            worksheet.write(row, 9, line.company_id.name, fmt_text2)
             row += 1
         workbook.close()
         output.seek(0)
