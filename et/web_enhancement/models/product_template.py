@@ -5,7 +5,6 @@ import base64
 import logging
 import zipfile
 from datetime import datetime
-
 from googleapiclient.errors import HttpError
 import unicodedata, re
 from functools import lru_cache
@@ -28,11 +27,11 @@ def _is_image(file_obj):
 def _nfc(s):
     return unicodedata.normalize("NFC", s or "")
 
+def _escape_q(s):
+    # escape simple para query de Drive
+    return (s or "").replace("\\", "\\\\").replace("'", "\\'")
+
 def _leading_code(name):
-    """
-    Devuelve el primer bloque de código al inicio del nombre.
-    Soporta: '52358 - 55781', '52358_...', '52358 – ...', '[52358] ...'
-    """
     s = (name or "")
     m = re.match(r'^\s*[\[\(\{]*\s*([0-9A-Za-z]+)', s)
     return m.group(1) if m else None
@@ -51,19 +50,6 @@ class ProductTemplate(models.Model):
         scopes = ["https://www.googleapis.com/auth/drive.readonly"]
         creds = service_account.Credentials.from_service_account_file(sa_path, scopes=scopes)
         return build("drive", "v3", credentials=creds, cache_discovery=False)
-
-    @lru_cache(maxsize=4096)
-    def _get_parents_cached(self, service, file_id):
-        """Devuelve la lista de padres (IDs) de un file/folder, cacheado."""
-        try:
-            meta = service.files().get(
-                fileId=file_id,
-                fields="parents",
-                supportsAllDrives=True,
-            ).execute()
-        except HttpError:
-            return []
-        return meta.get("parents", []) or []
 
     def _is_descendant_of(self, service, folder_id, ancestor_id):
         """
@@ -141,70 +127,6 @@ class ProductTemplate(models.Model):
             if not page_token:
                 break
         return folders
-
-
-    def _find_subfolder_for_code(self, service, main_folder_id, code, max_depth=None):
-        """
-        Busca subcarpetas en TODOS los niveles por debajo de main_folder_id.
-        Ej: main/c1/c2/c3/c4...
-        """
-        code_str = _nfc((code or "").strip())
-        if not code_str:
-            return None
-        code_l = code_str.lower()
-
-        # stack: (folder_id, depth)
-        stack = [(main_folder_id, 0)]
-        visited = set()
-        candidates = []  # [(folder_dict, depth)]
-
-        while stack:
-            current_id, depth = stack.pop()
-            if current_id in visited:
-                continue
-            visited.add(current_id)
-
-            if max_depth is not None and depth >= max_depth:
-                continue
-
-            subfolders = self._gdrive_list_subfolders(service, current_id)
-
-            for f in subfolders:
-                name = _nfc((f.get("name") or "").strip())
-                lead = (_leading_code(name) or "").lower()
-
-                # match por código al inicio (52358 - ..., 52358_..., [52358] ...)
-                if lead == code_l:
-                    candidates.append((f, depth + 1))
-
-                # seguir bajando niveles
-                stack.append((f["id"], depth + 1))
-
-        if not candidates:
-            return None
-
-        # scoring: nombre exacto > prefijo por código > menor profundidad > nombre más corto
-        def score(item):
-            f, depth = item
-            name = _nfc((f.get("name") or "").strip())
-            name_l = name.lower()
-
-            if name_l == code_l:
-                rank = 3
-            elif (_leading_code(name) or "").lower() == code_l:
-                rank = 2
-            else:
-                rank = 1
-
-            # preferir menos profundidad y nombre más corto
-            return (rank, -depth, -len(name))
-
-        best, best_depth = max(candidates, key=score)
-        return {
-            "id": best["id"],
-            "name": best.get("name"),
-            "depth": best_depth,
-        }
 
     def _create_product_download_mark(self, description=None):
         self.env['product.download.mark'].create({
@@ -441,3 +363,91 @@ class ProductTemplate(models.Model):
                 return
             target_folder_id = sub["id"]
             record.write({'gdrive_folder_id': target_folder_id})
+            
+    @lru_cache(maxsize=50000)
+    def _get_parents_cached(self, service, file_id):
+        try:
+            meta = service.files().get(
+                fileId=file_id,
+                fields="parents",
+                supportsAllDrives=True,
+            ).execute()
+            return tuple(meta.get("parents", []) or [])
+        except Exception:
+            return tuple()
+
+    def _is_descendant_with_seed_parents(self, service, seed_parents, ancestor_id):
+        """Sube por parents hasta encontrar ancestor_id."""
+        seen = set()
+        stack = list(seed_parents or [])
+        while stack:
+            pid = stack.pop()
+            if pid in seen:
+                continue
+            seen.add(pid)
+            if pid == ancestor_id:
+                return True
+            stack.extend(self._get_parents_cached(service, pid))
+        return False
+
+    def _find_subfolder_for_code(self, service, main_folder_id, code):
+        """
+        Búsqueda rápida:
+        - Drive indexa por nombre (name contains)
+        - luego filtramos por leading code y pertenencia al árbol main_folder_id
+        """
+        code_str = _nfc((code or "").strip())
+        if not code_str:
+            return None
+        code_l = code_str.lower()
+        esc = _escape_q(code_str)
+
+        # 1) query global por nombre (rápido)
+        q = (
+            "mimeType='application/vnd.google-apps.folder' and trashed=false and "
+            f"(name = '{esc}' or name contains '{esc}')"
+        )
+
+        candidates = []
+        page_token = None
+        while True:
+            resp = service.files().list(
+                q=q,
+                fields="nextPageToken, files(id,name,parents)",
+                pageSize=1000,
+                pageToken=page_token,
+                corpora="allDrives",
+                includeItemsFromAllDrives=True,
+                supportsAllDrives=True,
+            ).execute()
+
+            for f in resp.get("files", []):
+                name = _nfc((f.get("name") or "").strip())
+                lead = (_leading_code(name) or "").lower()
+
+                # 2) filtro por código al inicio
+                if lead != code_l:
+                    continue
+
+                # 3) asegurar que está bajo tu carpeta principal
+                if self._is_descendant_with_seed_parents(
+                    service, f.get("parents", []), main_folder_id
+                ):
+                    candidates.append(f)
+
+            page_token = resp.get("nextPageToken")
+            if not page_token:
+                break
+
+        if not candidates:
+            return None
+
+        # scoring: exacto > prefijo, y nombre más corto
+        def score(f):
+            name = _nfc((f.get("name") or "").strip())
+            if name.lower() == code_l:
+                return (3, -len(name))
+            return (2, -len(name))
+
+        best = max(candidates, key=score)
+        return {"id": best["id"], "name": best.get("name")}
