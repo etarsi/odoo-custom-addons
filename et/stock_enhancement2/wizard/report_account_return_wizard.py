@@ -59,7 +59,7 @@ class ReportAccountReturnWizard(models.TransientModel):
         # =========================
         # TITULO
         # =========================
-        worksheet.merge_range(0, 0, 0, 11, ('REPORTE DE DEVOLUCIONES EN FACTURAS'), fmt_title)
+        worksheet.merge_range(0, 0, 0, 10, ('REPORTE DE DEVOLUCIONES EN FACTURAS'), fmt_title)
         # =========================
         # COLUMNAS DE LA HOJA REPORTE DE ENTREGA
         # =========================
@@ -80,7 +80,7 @@ class ReportAccountReturnWizard(models.TransientModel):
         # =========================
         # ENCABEZADOS
         # =========================
-        headers = ['FECHA', 'FACTURA', 'CODIGO', 'DESCRIPCIÓN', 'CANTIDAD', 'PRECIO UNITARIO', 'DESCUENTO', 'IMPUESTO', 'SUBTOTAL', 'COMPAÑIA']
+        headers = ['FECHA', 'FACTURA', 'CLIENTE', 'CODIGO', 'DESCRIPCIÓN', 'CANTIDAD', 'PRECIO UNITARIO', 'DESCUENTO', 'IMPUESTO', 'SUBTOTAL', 'COMPAÑIA']
         for col, h in enumerate(headers):
             worksheet.write(1, col, h, fmt_header)
             
