@@ -87,7 +87,7 @@ class ReportAccountReturnWizard(models.TransientModel):
         # =========================
         # DOMAIN
         # =========================
-        domain = [('state', '=', 'done')]
+        domain = [('move_id.state', '=', 'done'), ('move_id.move_type', 'in', ['out_invoice', 'out_refund'])]
         if self.temporada != 't_all':
             if self.temporada == 't_nino_2025':
                 domain += [('create_date', '>=', date(2025, 3, 1)), ('create_date', '<=', date(2025, 8, 31))]
