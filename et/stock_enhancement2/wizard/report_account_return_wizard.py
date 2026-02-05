@@ -118,7 +118,7 @@ class ReportAccountReturnWizard(models.TransientModel):
             worksheet.write(row, 5, line.quantity, fmt_int)
             worksheet.write(row, 6, line.price_unit, fmt_moneda)
             worksheet.write(row, 7, f'{line.discount} %', fmt_text)
-            worksheet.write(row, 8, impuestos, fmt_text)
+            worksheet.write(row, 8, impuestos, fmt_text2)
             worksheet.write(row, 9, line.price_subtotal, fmt_moneda)
             worksheet.write(row, 10, line.company_id.name, fmt_text2)
             row += 1
