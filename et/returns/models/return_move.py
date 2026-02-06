@@ -102,8 +102,11 @@ class ReturnMove(models.Model):
                     document_type = self.env['l10n_latam.document.type'].browse(111)
 
                 cn_vals = rm._prepare_credit_note_vals(company, journal, document_type, invoice, return_lines)
-
-                cn = AccountMove.with_company(company).create(cn_vals)
+                try:
+                    cn = AccountMove.with_company(company).create(cn_vals)
+                except Exception as e:
+                    _logger.exception("ERROR creando NC. invoice=%s company=%s vals=%s", invoice.id, company.id, cn_vals)
+                    raise
                 created_moves |= cn
 
             # 3) Link opcional con tu one2many credit_notes (si tu account.move tiene return_id)
@@ -133,7 +136,7 @@ class ReturnMove(models.Model):
                 'price_unit': inv_line.price_unit,
                 'discount': inv_line.discount,
                 'tax_ids': [(6, 0, inv_line.tax_ids.ids)],
-                'account_id': inv_line.account_id.id,
+                'account_id': inv_line.account_id.id or False,
             }
             lines_vals.append((0, 0, vals_line))
 
