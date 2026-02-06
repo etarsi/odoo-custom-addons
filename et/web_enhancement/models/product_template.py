@@ -322,3 +322,138 @@ class ProductTemplate(models.Model):
             })
 
         return True
+    
+    def download_image_product(self):
+        """Descarga las imágenes del producto en un archivo ZIP."""
+        self.ensure_one()
+        self = self.sudo()
+        attachments = []
+
+        if not self.product_template_image_ids:
+            raise UserError(_("El producto no tiene imágenes para descargar."))
+
+        zip_buffer = io.BytesIO()
+        with zipfile.ZipFile(zip_buffer, 'w', zipfile.ZIP_DEFLATED) as zip_file:
+            for img in self.product_template_image_ids:
+                image_data = base64.b64decode(img.image_1920)
+                image_name = img.name or f"image_{img.id}.jpg"
+                zip_file.writestr(image_name, image_data)
+
+        zip_buffer.seek(0)
+        zip_data = zip_buffer.read()
+        zip_b64 = base64.b64encode(zip_data).decode('ascii')
+
+        attachment = self.env['ir.attachment'].create({
+            'name': f"{self.default_code or 'product'}_images.zip",
+            'type': 'binary',
+            'datas': zip_b64,
+            'mimetype': 'application/zip',
+            'res_model': 'product.template',
+            'res_id': self.id,
+            'public': True,
+        })
+
+        #generar token si no tiene
+        if not attachment.access_token:
+            attachment._generate_access_token()
+        attachments.append(attachment.id)
+        _logger.info("ZIP creado para '%s' (subcarpeta '%s') -> attachment id %s", attachment.id)
+        # Si es un solo producto, devuelvo descarga directa
+        if attachments:
+            att = self.env["ir.attachment"].browse(attachments[-1])
+            if not att.access_token:
+                att._generate_access_token()
+            url = f"/web/content/{att.id}?download=true"
+            return {
+                "type": "ir.actions.act_url",
+                "url": url,
+                "target": "self",
+            }
+            
+    @api.model
+    def sync_images_from_local_folder(self, folder_path="/opt/odoo15/image/Sebigus 2024"):
+        """
+        Reemplaza image_1920 de productos usando imágenes del filesystem.
+        Matching:
+          1) product.template.default_code
+          2) product.product.default_code (variante -> plantilla)
+          3) product.product.barcode   (variante -> plantilla)
+          4) product.template.name (normalizado, exacto)
+        """
+        if not os.path.isdir(folder_path):
+            raise ValueError(_("La carpeta no existe: %s") % folder_path)
+
+        allowed_ext = {".jpg", ".jpeg", ".png", ".webp"}
+        updated = 0
+        not_found = []
+        errors = []
+
+        def norm(txt):
+            txt = (txt or "").strip()
+            txt = unicodedata.normalize("NFKD", txt).encode("ascii", "ignore").decode("ascii")
+            txt = txt.lower()
+            txt = re.sub(r"\s+", " ", txt)
+            return txt
+
+        # índice por nombre normalizado para evitar búsquedas ilike ambiguas
+        name_index = {}
+        for pt in self:
+            n = norm(pt.name)
+            if n and n not in name_index:
+                name_index[n] = pt.id
+
+        for fname in os.listdir(folder_path):
+            full_path = os.path.join(folder_path, fname)
+            if not os.path.isfile(full_path):
+                continue
+
+            ext = os.path.splitext(fname)[1].lower()
+            if ext not in allowed_ext:
+                continue
+
+            key_raw = os.path.splitext(fname)[0].strip()
+            key = norm(key_raw)
+
+            try:
+                product_tmpl = self.search([("default_code", "=", key_raw)], limit=1)
+
+                if not product_tmpl:
+                    variant = self.env["product.product"].search([("default_code", "=", key_raw)], limit=1)
+                    if variant:
+                        product_tmpl = variant.product_tmpl_id
+
+                if not product_tmpl:
+                    variant = self.env["product.product"].search([("barcode", "=", key_raw)], limit=1)
+                    if variant:
+                        product_tmpl = variant.product_tmpl_id
+
+                if not product_tmpl and key in name_index:
+                    product_tmpl = self.browse(name_index[key])
+
+                if not product_tmpl:
+                    not_found.append(fname)
+                    continue
+
+                with open(full_path, "rb") as f:
+                    image_b64 = base64.b64encode(f.read())
+
+                # Esto reemplaza la imagen existente
+                product_tmpl.write({"image_1920": image_b64})
+                updated += 1
+
+            except Exception as e:
+                _logger.exception("Error procesando %s", fname)
+                errors.append(f"{fname}: {e}")
+
+        _logger.info(
+            "sync_images_from_local_folder -> updated=%s, not_found=%s, errors=%s",
+            updated, len(not_found), len(errors)
+        )
+
+        return {
+            "updated": updated,
+            "not_found_count": len(not_found),
+            "error_count": len(errors),
+            "not_found_files": not_found[:50],  # muestra hasta 50
+            "errors": errors[:50],
+        }

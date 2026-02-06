@@ -47,20 +47,13 @@ class GDriveZipXMLRPC(http.Controller):
             models = xmlrpc.client.ServerProxy(f"{URL}/xmlrpc/2/object", allow_none=True)
 
             # Ejecuta tu método en el otro lado (o en este mismo Odoo si URL apunta acá)
-            res = models.execute_kw(
-                DB, uid, KEY,
-                'product.template',
-                'action_zip_by_default_code_from_main_folder',
-                [[pid]],  # args
-                {}        # kwargs
-            )
+            res = models.execute_kw(DB, uid, KEY, 'product.template', 'download_image_product', [[pid]], {})
 
             # Esperamos un ir.actions.act_url
             if isinstance(res, dict) and res.get('type') == 'ir.actions.act_url' and res.get('url'):
                 return {"ok": True, "url": res['url']}
 
             return {"ok": False, "message": _("Operación finalizada sin URL directa.")}
-
         except Exception as e:
             _logger.info("Error XML-RPC: %s", e)
             return {"ok": False, "message": _("Error inesperado comunicando con Odoo.")}
