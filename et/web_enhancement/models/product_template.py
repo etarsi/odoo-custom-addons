@@ -370,90 +370,132 @@ class ProductTemplate(models.Model):
                 "target": "self",
             }
             
+
+
+    @api.model
+    def _find_product_template_by_code(self, code):
+        """Busca template por default_code (template o variante) o barcode."""
+        code = (code or "").strip()
+        if not code:
+            return self.env["product.template"]
+
+        pt = self.search([("default_code", "=", code)], limit=1)
+        if pt:
+            return pt
+
+        pp = self.env["product.product"].search([("default_code", "=", code)], limit=1)
+        if pp:
+            return pp.product_tmpl_id
+
+        pp = self.env["product.product"].search([("barcode", "=", code)], limit=1)
+        if pp:
+            return pp.product_tmpl_id
+
+        return self.env["product.template"]
+
+    @api.model
+    def _extract_code_from_folder_name(self, folder_name):
+        """
+        Ej:
+        '5656 - 8989' -> '5656'
+        Si no tiene ' - ', devuelve el nombre completo recortado.
+        """
+        name = (folder_name or "").strip()
+        if " - " in name:
+            return name.split(" - ", 1)[0].strip()
+
+        # opcional: soportar '5656-8989' sin espacios
+        m = re.match(r"^\s*([^-]+)-.+$", name)
+        if m:
+            return m.group(1).strip()
+
+        return name
+
     @api.model
     def sync_images_from_local_folder(self, folder_path="/opt/odoo15/image/SEBIGUS 2024"):
         """
-        Reemplaza image_1920 de productos usando imágenes del filesystem.
-        Matching:
-          1) product.template.default_code
-          2) product.product.default_code (variante -> plantilla)
-          3) product.product.barcode   (variante -> plantilla)
-          4) product.template.name (normalizado, exacto)
+        Reemplaza TODAS las imágenes de cada producto encontrado:
+        - Borra imagen principal + galería actual
+        - Carga nuevas imágenes desde cada subcarpeta del path
+          (nombre de subcarpeta: 'CODIGO - algo')
+        - Usa la 1ra imagen como principal (image_1920) y el resto a galería (product.image)
         """
         if not os.path.isdir(folder_path):
-            raise ValueError(_("La carpeta no existe: %s") % folder_path)
+            raise UserError(_("La carpeta no existe: %s") % folder_path)
 
         allowed_ext = {".jpg", ".jpeg", ".png", ".webp"}
         updated = 0
         not_found = []
+        no_images = []
         errors = []
 
-        def norm(txt):
-            txt = (txt or "").strip()
-            txt = unicodedata.normalize("NFKD", txt).encode("ascii", "ignore").decode("ascii")
-            txt = txt.lower()
-            txt = re.sub(r"\s+", " ", txt)
-            return txt
-
-        # índice por nombre normalizado para evitar búsquedas ilike ambiguas
-        name_index = {}
-        for pt in self:
-            n = norm(pt.name)
-            if n and n not in name_index:
-                name_index[n] = pt.id
-
-        for fname in os.listdir(folder_path):
-            full_path = os.path.join(folder_path, fname)
-            if not os.path.isfile(full_path):
+        # Recorre subcarpetas dentro de /opt/odoo15/image/SEBIGUS 2024
+        for entry in os.scandir(folder_path):
+            if not entry.is_dir():
                 continue
 
-            ext = os.path.splitext(fname)[1].lower()
-            if ext not in allowed_ext:
-                continue
-
-            key_raw = os.path.splitext(fname)[0].strip()
-            key = norm(key_raw)
+            folder_name = entry.name
+            code = self._extract_code_from_folder_name(folder_name)
 
             try:
-                product_tmpl = self.search([("default_code", "=", key_raw)], limit=1)
-
-                if not product_tmpl:
-                    variant = self.env["product.product"].search([("default_code", "=", key_raw)], limit=1)
-                    if variant:
-                        product_tmpl = variant.product_tmpl_id
-
-                if not product_tmpl:
-                    variant = self.env["product.product"].search([("barcode", "=", key_raw)], limit=1)
-                    if variant:
-                        product_tmpl = variant.product_tmpl_id
-
-                if not product_tmpl and key in name_index:
-                    product_tmpl = self.browse(name_index[key])
-
-                if not product_tmpl:
-                    not_found.append(fname)
+                pt = self._find_product_template_by_code(code)
+                if not pt:
+                    not_found.append(folder_name)
                     continue
 
-                with open(full_path, "rb") as f:
-                    image_b64 = base64.b64encode(f.read())
+                # Imágenes dentro de esa subcarpeta
+                img_paths = []
+                for fname in sorted(os.listdir(entry.path)):
+                    full = os.path.join(entry.path, fname)
+                    if not os.path.isfile(full):
+                        continue
+                    ext = os.path.splitext(fname)[1].lower()
+                    if ext in allowed_ext:
+                        img_paths.append(full)
 
-                # Esto reemplaza la imagen existente
-                product_tmpl.write({"image_1920": image_b64})
+                if not img_paths:
+                    no_images.append(folder_name)
+                    continue
+
+                # 1) Borrar todo lo viejo (principal + galería)
+                pt.write({
+                    "image_1920": False,
+                    "product_template_image_ids": [(5, 0, 0)],
+                })
+
+                # 2) Cargar nuevas
+                # Primera imagen = principal
+                with open(img_paths[0], "rb") as f:
+                    main_b64 = base64.b64encode(f.read()).decode("ascii")
+                pt.write({"image_1920": main_b64})
+
+                # Restantes = galería
+                for img in img_paths[1:]:
+                    with open(img, "rb") as f:
+                        img_b64 = base64.b64encode(f.read()).decode("ascii")
+                    self.env["product.image"].create({
+                        "product_tmpl_id": pt.id,
+                        "name": os.path.basename(img),
+                        "image_1920": img_b64,
+                    })
+
                 updated += 1
 
             except Exception as e:
-                _logger.exception("Error procesando %s", fname)
-                errors.append(f"{fname}: {e}")
+                _logger.exception("Error procesando carpeta %s", folder_name)
+                errors.append(f"{folder_name}: {e}")
 
         _logger.info(
-            "sync_images_from_local_folder -> updated=%s, not_found=%s, errors=%s",
-            updated, len(not_found), len(errors)
+            "sync_images_from_local_folder => updated=%s, not_found=%s, no_images=%s, errors=%s",
+            updated, len(not_found), len(no_images), len(errors)
         )
 
         return {
-            "updated": updated,
+            "updated_products": updated,
             "not_found_count": len(not_found),
+            "no_images_count": len(no_images),
             "error_count": len(errors),
-            "not_found_files": not_found[:50],  # muestra hasta 50
-            "errors": errors[:50],
+            "not_found_folders": not_found[:100],
+            "no_images_folders": no_images[:100],
+            "errors": errors[:100],
         }
