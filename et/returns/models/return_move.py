@@ -44,7 +44,7 @@ class ReturnMove(models.Model):
     wms_code = fields.Char("Código WMS")
 
 
-    credit_notes = fields.One2many(string="Notas de Crédito", comodel_name="account.move", inverse_name="return_id")
+    credit_notes = fields.One2many(string="Notas de Crédito", comodel_name="account.move", inverse_name="return_move")
     credit_count = fields.Integer(string="Notas de Crédito", compute="_compute_credit_count")
 
 
@@ -99,7 +99,7 @@ class ReturnMove(models.Model):
                     document_type = self.env['l10n_latam.document.type'].browse(111)
 
                 cn = rm._create_cn_without_x2many(company, journal, document_type, invoice, return_lines)
-                cn.write({'return_id': rm.id})
+                cn.write({'return_move': rm.id})
                 created_moves |= cn
 
             return rm._action_open_credit_notes(created_moves)
