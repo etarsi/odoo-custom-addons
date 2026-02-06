@@ -157,7 +157,22 @@ class ReturnMove(models.Model):
         }
 
         Move = self.env['account.move'].with_company(company).with_context(clean_ctx)
-        tmp = Move.new(cn_vals)
+        
+        try:
+            tmp = Move.new(cn_vals)
+        except Exception as e:
+            raise UserError("REVIENTA EN new(cn_vals): %s" % e)
+
+        # probamos campos sospechosos uno por uno
+        try:
+            _ = tmp.invoice_line_ids
+        except Exception as e:
+            raise UserError("REVIENTA EN invoice_line_ids: %s" % e)
+
+        try:
+            _ = tmp.line_ids
+        except Exception as e:
+            raise UserError("REVIENTA EN line_ids: %s" % e)
 
         if document_type:
             cn_vals['l10n_latam_document_type_id'] = document_type.id
