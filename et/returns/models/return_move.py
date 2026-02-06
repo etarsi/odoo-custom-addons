@@ -109,7 +109,6 @@ class ReturnMove(models.Model):
             'move_type': 'out_refund',
             'company_id': company.id,
             'journal_id': journal.id,
-            'l10n_latam_document_type_id': document_type.id,
             'partner_id': invoice.partner_id.id,
             'currency_id': invoice.currency_id.id,
             'invoice_date': fields.Date.context_today(self),
@@ -117,6 +116,9 @@ class ReturnMove(models.Model):
             'reversed_entry_id': invoice.id,
             'return_id': self.id,
         }
+
+        if document_type:
+            cn_vals['l10n_latam_document_type_id'] = document_type.id
 
         cn = AccountMove.with_company(company).create(cn_vals)
 
