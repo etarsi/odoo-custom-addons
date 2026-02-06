@@ -47,16 +47,17 @@ class ReturnMove(models.Model):
     credit_notes = fields.One2many(string="Notas de Crédito", comodel_name="account.move", inverse_name="return_move")
     credit_count = fields.Integer(string="Notas de Crédito", compute="_compute_credit_count")
 
-
-    def action_confirm(self):
-        for record in self:
-            record.state = 'confirmed'
-
+    def set_name(self):      
+        next_number = self.env['ir.sequence'].sudo().next_by_code('DEV')        
+        name = f'DEV-{next_number}'
+        self.name = name
 
     def action_create_credit_notes(self):
         AccountMove = self.env['account.move']
 
+
         for rm in self:
+            rm.set_name()
             if not rm.move_lines:
                 raise UserError(_("La devolución no tiene líneas."))
 
@@ -214,62 +215,7 @@ class ReturnMove(models.Model):
             action['res_id'] = credit_notes.id
         return action
     
-    
-    # def _prepare_invoice_line(self, **optional_values):
-    #     """
-    #     Prepare the dict of values to create the new invoice line for a sales order line.
 
-    #     :param qty: float quantity to invoice
-    #     :param optional_values: any parameter that should be added to the returned invoice line
-    #     """
-    #     self.ensure_one()
-
-    #     res = {
-    #         'display_type': False,
-    #         'sequence': self.sequence,
-    #         'name': self.name,
-    #         'product_id': self.product_id.id,
-    #         'product_uom_id': self.product_id.uom_id.id,
-    #         'quantity': self.quantity_total,
-    #         'discount': self.discount,
-    #         'price_unit': self.price_unit,
-    #         'tax_ids': [(6, 0, self.tax_id.ids)],
-            # 'sale_line_ids': [(4, self.invoice_line_id)], # por ahora no interesa actualizar este dato
-        # }
-        # if self.order_id.analytic_account_id and not self.display_type:
-        #     res['analytic_account_id'] = self.order_id.analytic_account_id.id
-        # if self.analytic_tag_ids and not self.display_type:
-        #     res['analytic_tag_ids'] = [(6, 0, self.analytic_tag_ids.ids)]
-        # if optional_values:
-            # res.update(optional_values)
-        # if self.display_type:
-        #     res['account_id'] = False
-        # return res
-
-    def _prepare_invoice_base_vals(self, company_id):
-        invoice_date_due = fields.Date.context_today(self)
-
-        if self.sale_id.payment_term_id:
-            extra_days = max(self.sale_id.payment_term_id.line_ids.mapped('days') or [0])
-            invoice_date_due = self.set_due_date_plus_x(extra_days)
-        
-        
-        return {
-            'move_type': 'out_refund',
-            'partner_id': self.sale_id.partner_invoice_id,
-            'partner_shipping_id': self.sale_id.partner_shipping_id,
-            'invoice_date': fields.Date.context_today(self),
-            'invoice_date_due': invoice_date_due,
-            'company_id': self.sale_id.company_id.id,
-            'currency_id': self.sale_id.company_id.currency_id.id,
-            'invoice_origin': self.origin or self.name,
-            'payment_reference': self.name,
-            'fiscal_position_id': self.sale_id.partner_invoice_id.property_account_position_id.id,
-            'invoice_payment_term_id': self.sale_id.payment_term_id,
-            'wms_code': self.codigo_wms,
-            'pricelist_id': self.sale_id.pricelist_id.id,
-            'special_price': self.sale_id.special_price,
-        }
 
     ### COMPUTED ###
 
