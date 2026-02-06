@@ -80,6 +80,7 @@ class ReturnMove(models.Model):
                 groups[(company_id, inv.id)].append(line)
 
             created_moves = AccountMove
+            created_moves_ids = []
 
             for (company_id, invoice_id), return_lines in groups.items():
                 invoice = AccountMove.browse(invoice_id)
@@ -102,10 +103,10 @@ class ReturnMove(models.Model):
                 cn = rm._create_cn_without_x2many(company, journal, document_type, invoice, return_lines)
                 # cn.write({'return_move': rm.id})
                 
-                
+                created_moves_ids.append(cn.id)
                 created_moves |= cn
 
-            rm.credit_notes = [(6, 0, created_moves.ids)]
+            rm.credit_notes = [(6, 0, created_moves_ids.append(cn.id))]
             
             return rm._action_open_credit_notes(created_moves)
 
