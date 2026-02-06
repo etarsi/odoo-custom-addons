@@ -121,24 +121,8 @@ class ReturnMove(models.Model):
         AccountMove = self.env['account.move']
         AML = self.env['account.move.line']
 
-        cn_vals = {
-            'move_type': 'out_refund',
-            'company_id': company.id,
-            'journal_id': journal.id,
-            'partner_id': invoice.partner_id.id,
-            'invoice_date': fields.Date.context_today(self),
-            # 'ref': _("Devolución %s - Factura %s") % (self.name, invoice.name),
-            'reversed_entry_id': invoice.id,
-            'return_id': self.id,
-        }
-        cn_vals['invoice_line_ids'] = [(5, 0, 0)]
-        cn_vals['line_ids'] = [(5, 0, 0)]
-
-        if document_type:
-            cn_vals['l10n_latam_document_type_id'] = document_type.id
-
-        self._assert_vals_clean(cn_vals)
         clean_ctx = dict(self.env.context)
+        # fuera defaults de cualquier action anterior
         for k in list(clean_ctx.keys()):
             if k.startswith('default_'):
                 clean_ctx.pop(k, None)
@@ -147,17 +131,38 @@ class ReturnMove(models.Model):
             'default_move_type': 'out_refund',
             'check_move_validity': False,
             'skip_invoice_sync': True,
+            'mail_create_nosubscribe': True,
+            'tracking_disable': True,
         })
 
-        cn = self.env['account.move'].with_company(company).with_context(clean_ctx).create(cn_vals)
+        cn_vals = {
+            'move_type': 'out_refund',
+            'company_id': company.id,
+            'journal_id': journal.id,
+            'partner_id': invoice.partner_id.id,
+            'invoice_date': fields.Date.context_today(self),
+            'reversed_entry_id': invoice.id,
+            'return_id': self.id,
+            # clave: forzar invoice_line_ids vacío (válido)
+            'invoice_line_ids': [(5, 0, 0)],
+        }
 
+        if document_type:
+            cn_vals['l10n_latam_document_type_id'] = document_type.id
+
+        # IMPORTANTE: no tocar line_ids
+        cn_vals.pop('line_ids', None)
+
+        cn = AccountMove.with_company(company).with_context(clean_ctx).create(cn_vals)
+
+        # Crear líneas "factura" (no contables) con move_id
         for rline in return_lines:
             inv_line = rline.invoice_line_id
             qty = rline.quantity_total
             if not qty or qty <= 0:
                 continue
 
-            line_vals = {
+            AML.with_company(company).create({
                 'move_id': cn.id,
                 'product_id': inv_line.product_id.id or False,
                 'name': inv_line.name or inv_line.product_id.display_name,
@@ -165,14 +170,10 @@ class ReturnMove(models.Model):
                 'product_uom_id': (inv_line.product_uom_id.id or inv_line.product_id.uom_id.id),
                 'price_unit': inv_line.price_unit or 0.0,
                 'discount': inv_line.discount or 0.0,
-                # Recomendación: DEJAR que Odoo compute cuenta/impuestos.
-                # Si querés forzar, agregalos luego de que funcione:
-                # 'tax_ids': [(6, 0, inv_line.tax_ids.ids)],
-                # 'account_id': inv_line.account_id.id,
-            }
-            AML.with_company(company).create(line_vals)
+            })
 
         return cn
+
 
 
     def _action_open_credit_notes(self, credit_notes):
