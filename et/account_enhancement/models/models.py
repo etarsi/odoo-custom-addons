@@ -168,21 +168,21 @@ class AccountMoveInherit(models.Model):
     # FIN ENVIO DE CORREO---------------------------------------------------------
     
 
-    @api.model_create_multi
-    def create(self, vals_list):
-        moves = super().create(vals_list)
+    # @api.model_create_multi
+    # def create(self, vals_list):
+    #     moves = super().create(vals_list)
 
-        for move in moves:
-            # Validar que la NC sea tipo "credit_note" SOLO si usa documentos
-            if move.move_type == 'out_refund' and move.l10n_latam_use_documents:
-                doc = move.l10n_latam_document_type_id
-                internal_type = doc.internal_type if doc and doc.internal_type else 'No esta definido'
-                if not doc or doc.internal_type != 'credit_note':
-                    raise ValidationError(_(
-                        "Se esperaba una Nota de Crédito, pero el Tipo Comprobante es: %s."
-                    ) % internal_type)
+    #     for move in moves:
+    #         # Validar que la NC sea tipo "credit_note" SOLO si usa documentos
+    #         if move.move_type == 'out_refund' and move.l10n_latam_use_documents:
+    #             doc = move.l10n_latam_document_type_id
+    #             internal_type = doc.internal_type if doc and doc.internal_type else 'No esta definido'
+    #             if not doc or doc.internal_type != 'credit_note':
+    #                 raise ValidationError(_(
+    #                     "Se esperaba una Nota de Crédito, pero el Tipo Comprobante es: %s."
+    #                 ) % internal_type)
 
-        return moves
+    #     return moves
 
     def action_post(self):
         for move in self:
