@@ -177,26 +177,30 @@ class ReturnMove(models.Model):
 
         cn = AccountMove.with_company(company).create(cn_vals)
         # cn = AccountMove.with_company(company).with_context(clean_ctx).create(cn_vals)
-
+        lines_cmds = []
         for rline in return_lines:
             inv_line = rline.invoice_line_id
             qty = rline.quantity_total
             if not qty or qty <= 0:
                 continue
-            
-            line_vals = {
-                'move_id': cn.id,
+
+            lines_cmds.append((0, 0, {
                 'product_id': inv_line.product_id.id or False,
                 'name': inv_line.name or inv_line.product_id.display_name,
                 'quantity': qty,
                 'product_uom_id': (inv_line.product_uom_id.id or inv_line.product_id.uom_id.id),
                 'price_unit': inv_line.price_unit or 0.0,
                 'discount': inv_line.discount or 0.0,
-                'account_id': inv_line.account_id.id,
-                'tax_ids': [(6, 0, inv_line.tax_ids.ids)],
-            }
+                'account_id': inv_line.account_id.id,                 # importante
+                'tax_ids': [(6, 0, inv_line.tax_ids.ids or [])],      # importante
+            }))
 
-            AML.with_company(company).create(line_vals)
+        cn.write({'invoice_line_ids': lines_cmds})
+
+        # Forzar recomputes típicos de factura
+        cn._recompute_dynamic_lines(recompute_all_taxes=True)
+        cn._compute_amount()
+
 
         return cn
 
