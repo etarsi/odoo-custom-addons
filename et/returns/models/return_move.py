@@ -101,9 +101,8 @@ class ReturnMove(models.Model):
                     document_type = self.env['l10n_latam.document.type'].browse(111)
 
                 cn = rm._create_cn_without_x2many(company, journal, document_type, invoice, return_lines)
-                # cn.write({'return_move': rm.id})
+                raise UserError(rm.id)
                 
-                created_moves_ids.append(cn.id)
                 created_moves |= cn
 
             rm.credit_notes = [(6, 0, created_moves_ids.append(cn.id))]
@@ -183,6 +182,7 @@ class ReturnMove(models.Model):
 
         # cn = AccountMove.with_company(company).create(cn_vals)
         cn = AccountMove.with_company(company).with_context(clean_ctx).create(cn_vals)
+
         lines_cmds = []
         for rline in return_lines:
             inv_line = rline.invoice_line_id
