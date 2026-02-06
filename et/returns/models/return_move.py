@@ -142,19 +142,18 @@ class ReturnMove(models.Model):
         AccountMove = self.env['account.move']
         AML = self.env['account.move.line']
 
-        clean_ctx = dict(self.env.context)
-        # fuera defaults de cualquier action anterior
-        for k in list(clean_ctx.keys()):
-            if k.startswith('default_'):
-                clean_ctx.pop(k, None)
+        # clean_ctx = dict(self.env.context)
+        # for k in list(clean_ctx.keys()):
+        #     if k.startswith('default_'):
+        #         clean_ctx.pop(k, None)
 
-        clean_ctx.update({
-            'default_move_type': 'out_refund',
-            'check_move_validity': False,
-            'skip_invoice_sync': True,
-            'mail_create_nosubscribe': True,
-            'tracking_disable': True,
-        })
+        # clean_ctx.update({
+        #     'default_move_type': 'out_refund',
+        #     'check_move_validity': False,
+        #     'skip_invoice_sync': True,
+        #     'mail_create_nosubscribe': True,
+        #     'tracking_disable': True,
+        # })
 
         cn_vals = {
             'move_type': 'out_refund',
@@ -172,22 +171,20 @@ class ReturnMove(models.Model):
             'payment_reference': invoice.payment_reference or invoice.name,
             'ref': f"Devolución {self.name} - Factura {invoice.name}",
             'reversed_entry_id': invoice.id,
-            # 'invoice_line_ids': [(5, 0, 0)],
         }
        
-
-        # IMPORTANTE: no tocar line_ids
         cn_vals.pop('line_ids', None)
 
-        cn = AccountMove.with_company(company).with_context(clean_ctx).create(cn_vals)
+        cn = AccountMove.with_company(company).create(cn_vals)
+        # cn = AccountMove.with_company(company).with_context(clean_ctx).create(cn_vals)
 
         for rline in return_lines:
             inv_line = rline.invoice_line_id
             qty = rline.quantity_total
             if not qty or qty <= 0:
                 continue
-
-            AML.with_company(company).create({
+            
+            line_vals = {
                 'move_id': cn.id,
                 'product_id': inv_line.product_id.id or False,
                 'name': inv_line.name or inv_line.product_id.display_name,
@@ -195,7 +192,11 @@ class ReturnMove(models.Model):
                 'product_uom_id': (inv_line.product_uom_id.id or inv_line.product_id.uom_id.id),
                 'price_unit': inv_line.price_unit or 0.0,
                 'discount': inv_line.discount or 0.0,
-            })
+                'account_id': inv_line.account_id.id,
+                'tax_ids': [(6, 0, inv_line.tax_ids.ids)],
+            }
+
+            AML.with_company(company).create(line_vals)
 
         return cn
 
@@ -209,141 +210,7 @@ class ReturnMove(models.Model):
             action['res_id'] = credit_notes.id
         return action
     
-    # def action_create_credit_notes(self):
-    #     self.ensure_one()
-
-    #     for record in self:
-    #         if record.move_lines:
-    #             for line in record.move_lines:
-
-    #                 base_vals = line._prepare_invoice_line()
-            # base_vals = move.sale_line_id._prepare_invoice_line(sequence=sequence)
-
-    #         qty_total = move.quantity_done
-    #         qty_blanco = math.floor(qty_total * proportion_blanco)
-    #         qty_negro = qty_total - qty_blanco
-
-    #         if proportion_blanco > 0:
-    #             blanco_vals = base_vals.copy()
-    #             blanco_vals['quantity'] = qty_blanco
-    #             # blanco_vals['tax_ids'] = False
-    #             blanco_vals['company_id'] = company_blanca.id
-    #             move_line_with_lot = move.move_line_ids.filtered(lambda ml: ml.lot_id)[:1]
-    #             if move_line_with_lot:
-    #                 blanco_vals['lot_id'] = move_line_with_lot.lot_id.id
-    #             taxes = move.sale_line_id.tax_id
-    #             blanco_vals['tax_ids'] = [(6, 0, taxes.ids)] if taxes else False
-    #             invoice_lines_blanco.append((0, 0, blanco_vals))
-
-    #         if proportion_negro > 0:
-    #             negro_vals = base_vals.copy()
-    #             negro_vals['quantity'] = qty_negro
-    #             negro_vals['company_id'] = company_negra.id
-    #             move_line_with_lot = move.move_line_ids.filtered(lambda ml: ml.lot_id)[:1]
-    #             if move_line_with_lot:
-    #                 negro_vals['lot_id'] = move_line_with_lot.lot_id.id
-    #             if tipo == 'TIPO 3':
-    #                 negro_vals['price_unit'] *= 1
-    #             else:
-    #                 negro_vals['price_unit'] *= 1.21
-                
-    #             negro_vals['tax_ids'] = False
-    #             invoice_lines_negro.append((0, 0, negro_vals))
-
-    #         sequence += 1
-
-    #     invoices = self.env['account.move']
-
-    #     # Crear factura blanca
-    #     if invoice_lines_blanco:            
-    #         vals_blanco = self._prepare_invoice_base_vals(company_blanca)
-
-    #         vals_blanco['invoice_line_ids'] = invoice_lines_blanco
-    #         vals_blanco['invoice_user_id'] = self.sale_id.user_id
-    #         vals_blanco['partner_bank_id'] = False            
-    #         vals_blanco['company_id'] = company_blanca.id
-
-    #         if not vals_blanco.get('journal_id'):
-    #             journal = self.env['account.journal'].search([
-    #                 ('type', '=', 'sale'),
-    #                 ('company_id', '=', company_blanca.id)
-    #             ], limit=1)
-    #             if not journal:
-    #                 raise UserError(f"No se encontr\u00f3 un diario de ventas para la compa\u00f1\u00eda {self.company_id.name}.")
-    #             vals_blanco['journal_id'] = journal.id
-
-    #         invoices += self.env['account.move'].with_company(company_blanca).create(vals_blanco)
-
-    #     # Crear factura negra
-    #     if invoice_lines_negro:
-    #         vals_negro = self._prepare_invoice_base_vals(company_negra)
-    #         vals_negro['invoice_line_ids'] = invoice_lines_negro
-    #         vals_negro['invoice_user_id'] = self.sale_id.user_id                        
-    #         vals_negro['company_id'] = company_negra
-
-    #         # Asignar journal correcto
-    #         journal = self.env['account.journal'].search([
-    #             ('type', '=', 'sale'),
-    #             ('company_id', '=', company_negra.id)
-    #         ], limit=1)
-    #         if not journal:
-    #             raise UserError("No se encontró un diario de ventas para Producción B.")
-    #         vals_negro['journal_id'] = journal.id
-    #         vals_negro['partner_bank_id'] = False
-
-    #         invoices += self.env['account.move'].with_company(company_negra).create(vals_negro)
-
-    #     # Relacionar con la transferencia
-    #     invoices.write({
-    #         'invoice_origin': self.origin or self.name,
-    #     })
-
-    #     self.invoice_ids = [(6, 0, invoices.ids)]
-
-    #     self.invoice_state = 'invoiced'
-    #     for move in self.move_ids_without_package.filtered(lambda m: m.sale_line_id):
-    #         move.sale_line_id.qty_invoiced += move.quantity_done
-    #         move.invoice_state = 'invoiced'
-            
-    #     #sacar todas las facturas
-    #     #Enviar el invoice_id al tms_stock_picking
-    #     tms_stock = self.env['tms.stock.picking'].search([('codigo_wms', '=', self.codigo_wms)], limit=1)
-    #     if tms_stock:
-    #         invoices = self.env['account.move'].browse(self.invoice_ids.ids)
-    #         rubros_ids = []
-    #         amount_total = 0
-    #         amount_nc_total = 0
-    #         for invoice in invoices:
-    #             #separar facturas de cliente y notas de credito
-    #             if invoice.move_type == 'out_refund' and invoice.state != 'cancel':
-    #                 amount_nc_total += invoice.amount_total
-    #             elif invoice.move_type == 'out_invoice' and invoice.state != 'cancel':
-    #                 amount_total += invoice.amount_total
-    #             items = invoice.invoice_line_ids.mapped('product_id.categ_id.parent_id')
-    #             items = items.filtered(lambda c: c and c.id).ids
-    #             rubros_ids = list(set(rubros_ids + items))
-            
-    #         #quitar los rubros duplicados
-    #         rube_ids_final = list(set(rubros_ids))
-    #         tms_stock.write({'account_move_ids': self.invoice_ids.ids, 'amount_totals': amount_total, 'amount_nc_totals': amount_nc_total, 'items_ids': rube_ids_final})
-
-    #     if len(self.invoice_ids) == 1:
-    #         return {
-    #             'name': "Factura generada",
-    #             'type': 'ir.actions.act_window',
-    #             'res_model': 'account.move',
-    #             'view_mode': 'form',
-    #             'res_id': self.invoice_ids[0].id,
-    #         }
-    #     else:
-    #         return {
-    #             'name': "Facturas generadas",
-    #             'type': 'ir.actions.act_window',
-    #             'res_model': 'account.move',
-    #             'view_mode': 'tree,form',
-    #             'domain': [('id', 'in', self.invoice_ids.ids)],
-    #         }
-
+    
     # def _prepare_invoice_line(self, **optional_values):
     #     """
     #     Prepare the dict of values to create the new invoice line for a sales order line.
