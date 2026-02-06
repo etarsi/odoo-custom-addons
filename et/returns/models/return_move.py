@@ -172,7 +172,6 @@ class ReturnMove(models.Model):
             'payment_reference': invoice.payment_reference or invoice.name,
             'ref': f"Devolución {self.name} - Factura {invoice.name}",
             'reversed_entry_id': invoice.id,
-            'return_id': self.id,
             'invoice_line_ids': [(5, 0, 0)],
         }
 
