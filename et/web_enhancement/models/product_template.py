@@ -110,7 +110,7 @@ class ProductTemplate(models.Model):
             status, done = downloader.next_chunk()
         data = buf.getvalue()
         if not data:
-            _logger.warning("Archivo vacío al actualizar foto principal: %s (%s)", file_name, file_id)
+            _logger.info("Archivo vacío al actualizar foto principal: %s (%s)", file_name, file_id)
             return
         data_b64 = base64.b64encode(data)
         image_1920 = data_b64.decode('ascii')
@@ -247,7 +247,7 @@ class ProductTemplate(models.Model):
 
             except Exception:
                 errors += 1
-                _logger.exception("Error sincronizando producto %s (%s)", record.display_name, record.id)
+                _logger.info("Error sincronizando producto %s (%s)", record.display_name, record.id)
                 continue
 
         return {
