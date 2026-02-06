@@ -11,6 +11,8 @@ import requests
 from itertools import groupby
 from datetime import timedelta
 from odoo.tools import defaultdict
+from odoo.models import BaseModel
+from odoo.exceptions import UserError
 
 _logger = logging.getLogger(__name__)
 
@@ -101,6 +103,20 @@ class ReturnMove(models.Model):
 
             return rm._action_open_credit_notes(created_moves)
 
+
+    def _assert_vals_clean(self, obj, path="vals"):
+        if isinstance(obj, BaseModel):
+            raise UserError("VALS INVÁLIDOS: recordset en %s (%s)" % (path, obj._name))
+        if isinstance(obj, dict):
+            for k, v in obj.items():
+                self._assert_vals_clean(v, "%s.%s" % (path, k))
+        elif isinstance(obj, (list, tuple)):
+            for i, v in enumerate(obj):
+                self._assert_vals_clean(v, "%s[%s]" % (path, i))
+
+
+
+
     def _create_cn_without_x2many(self, company, journal, document_type, invoice, return_lines):
         AccountMove = self.env['account.move']
         AML = self.env['account.move.line']
@@ -120,6 +136,7 @@ class ReturnMove(models.Model):
         if document_type:
             cn_vals['l10n_latam_document_type_id'] = document_type.id
 
+        self._assert_vals_clean(cn_vals)
         cn = AccountMove.with_company(company).create(cn_vals)
 
         for rline in return_lines:

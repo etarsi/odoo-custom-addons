@@ -17,9 +17,28 @@ class WMSTransfer(models.Model):
     state_incoming = fields.Selection(string="Estado", selection=[
         ('no', 'No aplica'),
         ('pending', 'Pendiente'),
-        ('preparation', 'En Preparación'),
-    ])
+        ('process', 'En Proceso'),
+        ('finished', 'Finalizada')
+    ], default='no')
+    state_return = fields.Selection(string="Estado", selection=[
+        ('no', 'No aplica'),
+        ('pending', 'Pendiente'),
+        ('finished', 'Finalizada')
+    ], default='no')
+    state_internal = fields.Selection(string="Estado", selection=[
+        ('no', 'No aplica'),
+        ('pending', 'Pendiente'),
+        ('process', 'En Proceso'),
+        ('finished', 'Finalizada')
+    ], default='no')
+    state_outgoing = fields.Selection(string="Estado", selection=[
+        ('no', 'No aplica'),
+        ('pending', 'Pendiente'),
+        ('process', 'En Proceso'),
+        ('finished', 'Finalizada')
+    ], default='no')
     sale_type = fields.Char(string="TIPO")
+    preselection_id = fields.Many2one(string="Preselección", comodel_name="wms.preselection")
     sale_id = fields.Many2one(string="Pedido de Venta", comodel_name="sale.order")
     purchase_id = fields.Many2one(string="Pedido de Compra", comodel_name="purchase.order")
     # invoice_ids = fields.One2many(string="Facturas", comodel_name="account.move", inverse_name="transfer_id")
@@ -32,7 +51,6 @@ class WMSTransfer(models.Model):
 
     partner_tag = fields.Many2many()
 
-    time_elapsed = fields.Date(string="Días de Atraso")
     total_bultos = fields.Float(string="Bultos")
     total_bultos_prepared = fields.Float(string="Bultos Preparados")
     total_available_percentage = fields.Float(string="Porcentaje Disponible")
@@ -56,6 +74,13 @@ class WMSTransfer(models.Model):
                 vals['origin'] = purchase.name
 
 
+        preselection_id = vals.get('preselection_id')
+        if preselection_id and 'origin' in self._fields and not vals.get('origin'):
+            preselection = self.env['wms.preselection'].browse(preselection_id)
+            if preselection.exists():
+                vals['origin'] = preselection.name
+
+
         return super().create(vals)
 
 
@@ -74,7 +99,7 @@ class WMSTransfer(models.Model):
     def _onchange_bultos(self):
         for record in self:
             if record.line_ids:
-                record.total_bultos = 0 # ESTABA VACIO -> TITO  
+                record.total_bultos = 0 # ESTABA
 
 
 
