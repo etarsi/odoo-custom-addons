@@ -170,22 +170,6 @@ class AccountMoveInherit(models.Model):
 
     @api.model_create_multi
     def create(self, vals_list):
-        for v in vals_list:
-        # log de claves peligrosas
-            if 'invoice_line_ids' in v or 'line_ids' in v:
-                _logger.error("CREATE MOVE trae x2many: invoice_line_ids=%s line_ids=%s",
-                            v.get('invoice_line_ids'), v.get('line_ids'))
-            # log de defaults en contexto
-            ctx = self.env.context
-            if ctx.get('default_invoice_line_ids') or ctx.get('default_line_ids'):
-                _logger.error("CTX trae defaults x2many: default_invoice_line_ids=%s default_line_ids=%s",
-                            ctx.get('default_invoice_line_ids'), ctx.get('default_line_ids'))
-
-            # log completo SOLO para out_refund para no spamear
-            if v.get('move_type') == 'out_refund':
-                _logger.error("VALS out_refund = %s", v)
-                _logger.error("CTX = %s", dict(self.env.context))
-
         moves = super().create(vals_list)
 
         for move in moves:

@@ -136,7 +136,18 @@ class ReturnMove(models.Model):
             cn_vals['l10n_latam_document_type_id'] = document_type.id
 
         self._assert_vals_clean(cn_vals)
-        cn = AccountMove.with_company(company).create(cn_vals)
+        clean_ctx = dict(self.env.context)
+        for k in list(clean_ctx.keys()):
+            if k.startswith('default_'):
+                clean_ctx.pop(k, None)
+
+        clean_ctx.update({
+            'default_move_type': 'out_refund',
+            'check_move_validity': False,
+            'skip_invoice_sync': True,
+        })
+
+        cn = self.env['account.move'].with_company(company).with_context(clean_ctx).create(cn_vals)
 
         for rline in return_lines:
             inv_line = rline.invoice_line_id
