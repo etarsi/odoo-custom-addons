@@ -57,11 +57,9 @@ class ReturnMove(models.Model):
             if not rm.move_lines:
                 raise UserError(_("La devolución no tiene líneas."))
 
-            # 1) Validación y agrupación (company -> invoice -> lines)
-            groups = defaultdict(list)  # key: (company_id, invoice_id) => [return_line,...]
+            groups = defaultdict(list)
 
             for line in rm.move_lines:
-                # asegurate de tener invoice_line/invoice: si no, refrescá
                 if not line.invoice_line_id or not line.invoice_id:
                     line.update_prices()
 
@@ -74,23 +72,19 @@ class ReturnMove(models.Model):
                 if inv.move_type != 'out_invoice' or inv.state != 'posted':
                     raise UserError(_("Factura inválida (debe ser factura cliente posteada): %s") % inv.display_name)
 
-                # company viene de la factura encontrada (no uses la del return.move)
                 company_id = inv.company_id.id
                 groups[(company_id, inv.id)].append(line)
 
             created_moves = AccountMove
 
-            # 2) Crear una NC por cada factura (y por ende por empresa)
             for (company_id, invoice_id), return_lines in groups.items():
                 invoice = AccountMove.browse(invoice_id)
                 company = invoice.company_id
 
-                # Elegir diario de NC (podés cambiar la lógica)
                 journal = self.env['account.journal'].search([
                     ('type', '=', 'sale'),
                     ('company_id', '=', company.id),
                     ('code', '=', '00010')
-                    # opcional: ('l10n_latam_use_documents', '=', True),
                 ], limit=1)
                 if not journal:
                     raise UserError(_("No encontré un diario de Ventas para la compañía %s") % company.display_name)
@@ -101,49 +95,17 @@ class ReturnMove(models.Model):
                 elif invoice.l10n_latam_document_type_id.code == '201':
                     document_type = self.env['l10n_latam.document.type'].browse(111)
 
-                cn_vals = rm._prepare_credit_note_vals(company, journal, document_type, invoice, return_lines)
-                try:
-                    cn = AccountMove.with_company(company).create(cn_vals)
-                except Exception as e:
-                    _logger.exception("ERROR creando NC. invoice=%s company=%s vals=%s", invoice.id, company.id, cn_vals)
-                    raise
+                cn = rm._create_cn_without_x2many(company, journal, document_type, invoice, return_lines)
                 created_moves |= cn
+            rm.credit_notes = [(6, 0, created_moves.ids)]
 
-            # 3) Link opcional con tu one2many credit_notes (si tu account.move tiene return_id)
-            # rm.credit_notes = [(6, 0, created_moves.ids)]  # OJO: si return_id existe, esto no es necesario.
-
-            # 4) Acción para abrirlas
             return rm._action_open_credit_notes(created_moves)
 
-    def _prepare_credit_note_vals(self, company, journal, document_type, invoice, return_lines):
-        lines_vals = []
+    def _create_cn_without_x2many(self, company, journal, document_type, invoice, return_lines):
+        AccountMove = self.env['account.move']
+        AML = self.env['account.move.line']
 
-        for rline in return_lines:
-            inv_line = rline.invoice_line_id
-
-            # cantidad a acreditar: usá total o solo sana/rota según tu regla
-            qty = rline.quantity_total
-
-            if qty <= 0:
-                continue
-
-            # impuestos/cuenta desde la línea original (seguro son de esa empresa)
-            vals_line = {
-                'product_id': inv_line.product_id.id,
-                'name': inv_line.name,
-                'quantity': qty,
-                'product_uom_id': inv_line.product_uom_id.id,
-                'price_unit': inv_line.price_unit,
-                'discount': inv_line.discount,
-                'tax_ids': [(6, 0, inv_line.tax_ids.ids)],
-                'account_id': inv_line.account_id.id or False,
-            }
-            lines_vals.append((0, 0, vals_line))
-
-        if not lines_vals:
-            raise UserError(_("No hay líneas válidas para crear la NC de %s") % invoice.display_name)
-
-        return {
+        cn_vals = {
             'move_type': 'out_refund',
             'company_id': company.id,
             'journal_id': journal.id,
@@ -152,15 +114,37 @@ class ReturnMove(models.Model):
             'currency_id': invoice.currency_id.id,
             'invoice_date': fields.Date.context_today(self),
             'ref': _("Devolución %s - Factura %s") % (self.name, invoice.name),
-            # link fuerte con factura (opcional, útil para trazabilidad)
             'reversed_entry_id': invoice.id,
-            'invoice_line_ids': lines_vals,
-            # si en account.move agregaste return_id:
             'return_id': self.id,
         }
 
+        cn = AccountMove.with_company(company).create(cn_vals)
+
+        for rline in return_lines:
+            inv_line = rline.invoice_line_id
+            qty = rline.quantity_total
+            if not qty or qty <= 0:
+                continue
+
+            line_vals = {
+                'move_id': cn.id,
+                'product_id': inv_line.product_id.id or False,
+                'name': inv_line.name or inv_line.product_id.display_name,
+                'quantity': qty,
+                'product_uom_id': (inv_line.product_uom_id.id or inv_line.product_id.uom_id.id),
+                'price_unit': inv_line.price_unit or 0.0,
+                'discount': inv_line.discount or 0.0,
+                # Recomendación: DEJAR que Odoo compute cuenta/impuestos.
+                # Si querés forzar, agregalos luego de que funcione:
+                # 'tax_ids': [(6, 0, inv_line.tax_ids.ids)],
+                # 'account_id': inv_line.account_id.id,
+            }
+            AML.with_company(company).create(line_vals)
+
+        return cn
+
+
     def _action_open_credit_notes(self, credit_notes):
-        # acción estándar de NC cliente
         action = self.env.ref('account.action_move_out_refund_type').read()[0]
         action['domain'] = [('id', 'in', credit_notes.ids)]
         if len(credit_notes) == 1:
