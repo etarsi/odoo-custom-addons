@@ -131,6 +131,8 @@ class ReturnMove(models.Model):
             'reversed_entry_id': invoice.id,
             'return_id': self.id,
         }
+        cn_vals['invoice_line_ids'] = [(5, 0, 0)]
+        cn_vals['line_ids'] = [(5, 0, 0)]
 
         if document_type:
             cn_vals['l10n_latam_document_type_id'] = document_type.id
