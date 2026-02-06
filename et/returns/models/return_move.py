@@ -102,8 +102,10 @@ class ReturnMove(models.Model):
                 cn = rm._create_cn_without_x2many(company, journal, document_type, invoice, return_lines)
                 # cn.write({'return_move': rm.id})
                 
-                # rm.credit_note_ids = [(4, cn.id)]
+                rm.credit_notes = [(4, cn.id)]
                 created_moves |= cn
+
+            
             return rm._action_open_credit_notes(created_moves)
 
 
