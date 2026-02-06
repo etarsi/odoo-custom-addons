@@ -116,6 +116,26 @@ class ReturnMove(models.Model):
                 self._assert_vals_clean(v, "%s[%s]" % (path, i))
 
 
+    def _debug_find_bad_key_for_new(self, company, clean_ctx, cn_vals):
+        Move = self.env['account.move'].with_company(company).with_context(clean_ctx)
+
+        # probar de a una key
+        for k in list(cn_vals.keys()):
+            try:
+                Move.new({k: cn_vals[k]})
+            except Exception as e:
+                raise UserError("DEBUG: new() revienta con key='%s' value=%r\nERROR=%s" % (k, cn_vals[k], e))
+
+        # probar acumulativo (por si es combinación de dos)
+        acc = {}
+        for k in list(cn_vals.keys()):
+            acc[k] = cn_vals[k]
+            try:
+                Move.new(acc)
+            except Exception as e:
+                raise UserError("DEBUG: new() revienta al agregar key='%s' value=%r\nACC=%r\nERROR=%s" % (k, cn_vals[k], acc, e))
+
+        raise UserError("DEBUG: new() NO revienta con ninguna key individual (es combinación rara).")
 
 
     def _create_cn_without_x2many(self, company, journal, document_type, invoice, return_lines):
@@ -157,23 +177,8 @@ class ReturnMove(models.Model):
         }
 
         Move = self.env['account.move'].with_company(company).with_context(clean_ctx)
+        self._debug_find_bad_key_for_new(company, clean_ctx, cn_vals)
         
-        for k in list(cn_vals.keys()):
-            try:
-                Move.new({k: cn_vals[k]})
-            except Exception as e:
-                raise UserError("DEBUG: new() revienta con key='%s' value=%r\nERROR=%s" % (k, cn_vals[k], e))
-
-        # probar acumulativo (por si es combinación de dos)
-        acc = {}
-        for k in list(cn_vals.keys()):
-            acc[k] = cn_vals[k]
-            try:
-                Move.new(acc)
-            except Exception as e:
-                raise UserError("DEBUG: new() revienta al agregar key='%s' value=%r\nACC=%r\nERROR=%s" % (k, cn_vals[k], acc, e))
-
-        raise UserError("DEBUG: new() NO revienta con ninguna key individual (es combinación rara).")
 
         # IMPORTANTE: no tocar line_ids
         cn_vals.pop('line_ids', None)
