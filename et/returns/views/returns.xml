@@ -33,7 +33,7 @@
         <field name="arch" type="xml">
             <form string="Devoluciones">
                 <header>
-                    <button name="action_confirm"
+                    <button name="action_create_credit_notes"
                             type="object"
                             string="Confirmar"
                             class="btn-primary"
