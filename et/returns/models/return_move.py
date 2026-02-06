@@ -142,18 +142,18 @@ class ReturnMove(models.Model):
         AccountMove = self.env['account.move']
         AML = self.env['account.move.line']
 
-        # clean_ctx = dict(self.env.context)
-        # for k in list(clean_ctx.keys()):
-        #     if k.startswith('default_'):
-        #         clean_ctx.pop(k, None)
+        clean_ctx = dict(self.env.context)
+        for k in list(clean_ctx.keys()):
+            if k.startswith('default_'):
+                clean_ctx.pop(k, None)
 
-        # clean_ctx.update({
-        #     'default_move_type': 'out_refund',
-        #     'check_move_validity': False,
-        #     'skip_invoice_sync': True,
-        #     'mail_create_nosubscribe': True,
-        #     'tracking_disable': True,
-        # })
+        clean_ctx.update({
+            'default_move_type': 'out_refund',
+            'check_move_validity': False,
+            'skip_invoice_sync': True,
+            'mail_create_nosubscribe': True,
+            'tracking_disable': True,
+        })
 
         cn_vals = {
             'move_type': 'out_refund',
@@ -175,8 +175,8 @@ class ReturnMove(models.Model):
        
         cn_vals.pop('line_ids', None)
 
-        cn = AccountMove.with_company(company).create(cn_vals)
-        # cn = AccountMove.with_company(company).with_context(clean_ctx).create(cn_vals)
+        # cn = AccountMove.with_company(company).create(cn_vals)
+        cn = AccountMove.with_company(company).with_context(clean_ctx).create(cn_vals)
         lines_cmds = []
         for rline in return_lines:
             inv_line = rline.invoice_line_id
