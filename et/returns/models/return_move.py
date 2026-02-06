@@ -137,15 +137,24 @@ class ReturnMove(models.Model):
 
         cn_vals = {
             'move_type': 'out_refund',
-            'company_id': company.id,
+            'company_id': invoice.company_id.id,
             'journal_id': journal.id,
             'partner_id': invoice.partner_id.id,
+            'partner_shipping_id': invoice.partner_shipping_id.id or invoice.partner_id.id,
+            'currency_id': invoice.currency_id.id,
             'invoice_date': fields.Date.context_today(self),
+            'invoice_date_due': fields.Date.context_today(self),
+            'invoice_payment_term_id': invoice.invoice_payment_term_id.id or False,
+            'fiscal_position_id': invoice.fiscal_position_id.id or False,
+
+            'invoice_origin': invoice.invoice_origin or invoice.name,
+            'payment_reference': invoice.payment_reference or invoice.name,
+            'ref': f"Devolución {self.name} - Factura {invoice.name}",
             'reversed_entry_id': invoice.id,
             'return_id': self.id,
-            # clave: forzar invoice_line_ids vacío (válido)
             'invoice_line_ids': [(5, 0, 0)],
         }
+
 
         if document_type:
             cn_vals['l10n_latam_document_type_id'] = document_type.id
@@ -156,21 +165,21 @@ class ReturnMove(models.Model):
         cn = AccountMove.with_company(company).with_context(clean_ctx).create(cn_vals)
 
         # Crear líneas "factura" (no contables) con move_id
-        for rline in return_lines:
-            inv_line = rline.invoice_line_id
-            qty = rline.quantity_total
-            if not qty or qty <= 0:
-                continue
+        # for rline in return_lines:
+        #     inv_line = rline.invoice_line_id
+        #     qty = rline.quantity_total
+        #     if not qty or qty <= 0:
+        #         continue
 
-            AML.with_company(company).create({
-                'move_id': cn.id,
-                'product_id': inv_line.product_id.id or False,
-                'name': inv_line.name or inv_line.product_id.display_name,
-                'quantity': qty,
-                'product_uom_id': (inv_line.product_uom_id.id or inv_line.product_id.uom_id.id),
-                'price_unit': inv_line.price_unit or 0.0,
-                'discount': inv_line.discount or 0.0,
-            })
+        #     AML.with_company(company).create({
+        #         'move_id': cn.id,
+        #         'product_id': inv_line.product_id.id or False,
+        #         'name': inv_line.name or inv_line.product_id.display_name,
+        #         'quantity': qty,
+        #         'product_uom_id': (inv_line.product_uom_id.id or inv_line.product_id.uom_id.id),
+        #         'price_unit': inv_line.price_unit or 0.0,
+        #         'discount': inv_line.discount or 0.0,
+        #     })
 
         return cn
 
