@@ -101,7 +101,7 @@ class ReturnMove(models.Model):
                     document_type = self.env['l10n_latam.document.type'].browse(111)
 
                 cn = rm._create_cn_without_x2many(company, journal, document_type, invoice, return_lines)
-                raise UserError(rm.id)
+                cn.return_move = rm.id
                 
                 created_moves |= cn
 
