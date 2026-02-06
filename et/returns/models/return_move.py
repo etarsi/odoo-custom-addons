@@ -100,7 +100,7 @@ class ReturnMove(models.Model):
                     document_type = self.env['l10n_latam.document.type'].browse(111)
 
                 cn = rm._create_cn_without_x2many(company, journal, document_type, invoice, return_lines)
-                cn.write({'return_move': rm.id})
+                # cn.write({'return_move': rm.id})
                 
                 # rm.credit_note_ids = [(4, cn.id)]
                 created_moves |= cn
