@@ -13,6 +13,7 @@ from datetime import timedelta
 from odoo.tools import defaultdict
 from odoo.models import BaseModel
 from odoo.exceptions import UserError
+import pprint
 
 _logger = logging.getLogger(__name__)
 
@@ -155,12 +156,24 @@ class ReturnMove(models.Model):
             'invoice_line_ids': [(5, 0, 0)],
         }
 
+        Move = self.env['account.move'].with_company(company).with_context(clean_ctx)
+        tmp = Move.new(cn_vals)
 
         if document_type:
             cn_vals['l10n_latam_document_type_id'] = document_type.id
 
         # IMPORTANTE: no tocar line_ids
         cn_vals.pop('line_ids', None)
+
+        raise UserError(
+            "DEBUG CREATE NC\n\n"
+            "CTX:\n%s\n\n"
+            "VALS:\n%s"
+            % (
+                pprint.pformat(dict(clean_ctx), width=120),
+                pprint.pformat(cn_vals, width=120),
+            )
+        )
 
         cn = AccountMove.with_company(company).with_context(clean_ctx).create(cn_vals)
 
