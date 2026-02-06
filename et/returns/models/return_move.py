@@ -126,9 +126,8 @@ class ReturnMove(models.Model):
             'company_id': company.id,
             'journal_id': journal.id,
             'partner_id': invoice.partner_id.id,
-            'currency_id': invoice.currency_id.id,
             'invoice_date': fields.Date.context_today(self),
-            'ref': _("Devolución %s - Factura %s") % (self.name, invoice.name),
+            # 'ref': _("Devolución %s - Factura %s") % (self.name, invoice.name),
             'reversed_entry_id': invoice.id,
             'return_id': self.id,
         }
