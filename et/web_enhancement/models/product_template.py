@@ -371,7 +371,7 @@ class ProductTemplate(models.Model):
             }
             
     @api.model
-    def sync_images_from_local_folder(self, folder_path="/opt/odoo15/image/Sebigus 2024"):
+    def sync_images_from_local_folder(self, folder_path="/opt/odoo15/image/SEBIGUS 2024"):
         """
         Reemplaza image_1920 de productos usando imágenes del filesystem.
         Matching:
