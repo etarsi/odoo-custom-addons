@@ -372,130 +372,126 @@ class ProductTemplate(models.Model):
             
 
 
-    @api.model
-    def _find_product_template_by_code(self, code):
-        """Busca template por default_code (template o variante) o barcode."""
-        code = (code or "").strip()
-        if not code:
-            return self.env["product.template"]
-
-        pt = self.search([("default_code", "=", code)], limit=1)
-        if pt:
-            return pt
-
-        pp = self.env["product.product"].search([("default_code", "=", code)], limit=1)
-        if pp:
-            return pp.product_tmpl_id
-
-        pp = self.env["product.product"].search([("barcode", "=", code)], limit=1)
-        if pp:
-            return pp.product_tmpl_id
-
-        return self.env["product.template"]
-
-    @api.model
     def _extract_code_from_folder_name(self, folder_name):
-        """
-        Ej:
-        '5656 - 8989' -> '5656'
-        Si no tiene ' - ', devuelve el nombre completo recortado.
-        """
         name = (folder_name or "").strip()
         if " - " in name:
             return name.split(" - ", 1)[0].strip()
-
-        # opcional: soportar '5656-8989' sin espacios
-        m = re.match(r"^\s*([^-]+)-.+$", name)
+        m = re.match(r"^\s*([^-]+)-.+$", name)  # 5656-8989
         if m:
             return m.group(1).strip()
-
         return name
 
-    @api.model
-    def sync_images_from_local_folder(self, folder_path="/opt/odoo15/image/SEBIGUS 2024"):
+    def _list_images_in_dir(self, dir_path, allowed_ext):
+        images = []
+        for fname in sorted(os.listdir(dir_path)):
+            full = os.path.join(dir_path, fname)
+            if os.path.isfile(full) and os.path.splitext(fname)[1].lower() in allowed_ext:
+                images.append(full)
+        return images
+
+    def sync_images_from_local_folder(self, folder_path="/opt/odoo15/image/SEBIGUS 2024", do_commit=False):
         """
-        Reemplaza TODAS las imágenes de cada producto encontrado:
-        - Borra imagen principal + galería actual
-        - Carga nuevas imágenes desde cada subcarpeta del path
-          (nombre de subcarpeta: 'CODIGO - algo')
-        - Usa la 1ra imagen como principal (image_1920) y el resto a galería (product.image)
+        Si self tiene registros => procesa SOLO esos productos (seleccionados).
+        Si self está vacío => procesa todos.
         """
         if not os.path.isdir(folder_path):
             raise UserError(_("La carpeta no existe: %s") % folder_path)
 
         allowed_ext = {".jpg", ".jpeg", ".png", ".webp"}
+
+        # 1) Mapa: codigo -> [subcarpetas]
+        folder_map = {}
+        for entry in os.scandir(folder_path):
+            if not entry.is_dir(follow_symlinks=False):
+                continue
+            code = self._extract_code_from_folder_name(entry.name)
+            if code:
+                folder_map.setdefault(code, []).append(entry.path)
+
+        # 2) Productos a procesar: seleccionados o todos
+        products = self if self else self.search([])
         updated = 0
         not_found = []
         no_images = []
         errors = []
 
-        # Recorre subcarpetas dentro de /opt/odoo15/image/SEBIGUS 2024
-        for entry in os.scandir(folder_path):
-            if not entry.is_dir():
+        for idx, pt in enumerate(products, start=1):
+            # Código del template; si no tiene, intenta variante
+            code = (pt.default_code or "").strip()
+            if not code and pt.product_variant_ids:
+                code = (pt.product_variant_ids[0].default_code or "").strip()
+
+            if not code:
+                not_found.append(f"{pt.display_name} (sin default_code)")
                 continue
 
-            folder_name = entry.name
-            code = self._extract_code_from_folder_name(folder_name)
+            candidates = folder_map.get(code, [])
+            if not candidates:
+                not_found.append(f"{pt.display_name} [{code}]")
+                continue
+
+            # Elegir primera carpeta que tenga imágenes válidas
+            chosen_images = []
+            for cdir in candidates:
+                imgs = self._list_images_in_dir(cdir, allowed_ext)
+                if imgs:
+                    chosen_images = imgs
+                    break
+
+            if not chosen_images:
+                no_images.append(f"{pt.display_name} [{code}]")
+                continue
 
             try:
-                pt = self._find_product_template_by_code(code)
-                if not pt:
-                    not_found.append(folder_name)
-                    continue
+                with self.env.cr.savepoint():
+                    # Desactivar tracking para acelerar
+                    pt_fast = pt.with_context(tracking_disable=True, mail_create_nolog=True, mail_notrack=True)
 
-                # Imágenes dentro de esa subcarpeta
-                img_paths = []
-                for fname in sorted(os.listdir(entry.path)):
-                    full = os.path.join(entry.path, fname)
-                    if not os.path.isfile(full):
-                        continue
-                    ext = os.path.splitext(fname)[1].lower()
-                    if ext in allowed_ext:
-                        img_paths.append(full)
+                    # Borrar galería vieja y portada vieja
+                    pt_fast.product_template_image_ids.unlink()
+                    pt_fast.write({"image_1920": False})
 
-                if not img_paths:
-                    no_images.append(folder_name)
-                    continue
+                    # Portada nueva (primera imagen)
+                    with open(chosen_images[0], "rb") as f:
+                        main_b64 = base64.b64encode(f.read()).decode("ascii")
+                    pt_fast.write({"image_1920": main_b64})
 
-                # 1) Borrar todo lo viejo (principal + galería)
-                pt.write({
-                    "image_1920": False,
-                    "product_template_image_ids": [(5, 0, 0)],
-                })
-
-                # 2) Cargar nuevas
-                # Primera imagen = principal
-                with open(img_paths[0], "rb") as f:
-                    main_b64 = base64.b64encode(f.read()).decode("ascii")
-                pt.write({"image_1920": main_b64})
-
-                # Restantes = galería
-                for img in img_paths[1:]:
-                    with open(img, "rb") as f:
-                        img_b64 = base64.b64encode(f.read()).decode("ascii")
-                    self.env["product.image"].create({
-                        "product_tmpl_id": pt.id,
-                        "name": os.path.basename(img),
-                        "image_1920": img_b64,
-                    })
+                    # Resto a galería (create en lote)
+                    vals_list = []
+                    for img in chosen_images[1:]:
+                        with open(img, "rb") as f:
+                            img_b64 = base64.b64encode(f.read()).decode("ascii")
+                        vals_list.append({
+                            "product_tmpl_id": pt.id,
+                            "name": os.path.basename(img),
+                            "image_1920": img_b64,
+                        })
+                    if vals_list:
+                        self.env["product.image"].create(vals_list)
 
                 updated += 1
+                _logger.info("OK imagenes producto %s [%s] -> %s", pt.display_name, code, len(chosen_images))
+
+                # opcional: commit por lote para evitar transacción gigante
+                if do_commit and idx % 10 == 0:
+                    self.env.cr.commit()
 
             except Exception as e:
-                _logger.exception("Error procesando carpeta %s", folder_name)
-                errors.append(f"{folder_name}: {e}")
+                _logger.exception("Error en producto %s [%s]", pt.display_name, code)
+                errors.append(f"{pt.display_name} [{code}]: {e}")
 
         _logger.info(
-            "sync_images_from_local_folder => updated=%s, not_found=%s, no_images=%s, errors=%s",
+            "sync_images_from_local_folder FIN -> updated=%s not_found=%s no_images=%s errors=%s",
             updated, len(not_found), len(no_images), len(errors)
         )
 
         return {
+            "processed": len(products),
             "updated_products": updated,
             "not_found_count": len(not_found),
             "no_images_count": len(no_images),
             "error_count": len(errors),
-            "not_found_folders": not_found[:100],
-            "no_images_folders": no_images[:100],
+            "not_found": not_found[:100],
+            "no_images": no_images[:100],
             "errors": errors[:100],
         }
