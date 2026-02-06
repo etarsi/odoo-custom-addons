@@ -158,37 +158,25 @@ class ReturnMove(models.Model):
 
         Move = self.env['account.move'].with_company(company).with_context(clean_ctx)
         
-        try:
-            tmp = Move.new(cn_vals)
-        except Exception as e:
-            raise UserError("REVIENTA EN new(cn_vals): %s" % e)
+        for k in list(cn_vals.keys()):
+            try:
+                Move.new({k: cn_vals[k]})
+            except Exception as e:
+                raise UserError("DEBUG: new() revienta con key='%s' value=%r\nERROR=%s" % (k, cn_vals[k], e))
 
-        # probamos campos sospechosos uno por uno
-        try:
-            _ = tmp.invoice_line_ids
-        except Exception as e:
-            raise UserError("REVIENTA EN invoice_line_ids: %s" % e)
+        # probar acumulativo (por si es combinación de dos)
+        acc = {}
+        for k in list(cn_vals.keys()):
+            acc[k] = cn_vals[k]
+            try:
+                Move.new(acc)
+            except Exception as e:
+                raise UserError("DEBUG: new() revienta al agregar key='%s' value=%r\nACC=%r\nERROR=%s" % (k, cn_vals[k], acc, e))
 
-        try:
-            _ = tmp.line_ids
-        except Exception as e:
-            raise UserError("REVIENTA EN line_ids: %s" % e)
-
-        if document_type:
-            cn_vals['l10n_latam_document_type_id'] = document_type.id
+        raise UserError("DEBUG: new() NO revienta con ninguna key individual (es combinación rara).")
 
         # IMPORTANTE: no tocar line_ids
         cn_vals.pop('line_ids', None)
-
-        raise UserError(
-            "DEBUG CREATE NC\n\n"
-            "CTX:\n%s\n\n"
-            "VALS:\n%s"
-            % (
-                pprint.pformat(dict(clean_ctx), width=120),
-                pprint.pformat(cn_vals, width=120),
-            )
-        )
 
         cn = AccountMove.with_company(company).with_context(clean_ctx).create(cn_vals)
 
