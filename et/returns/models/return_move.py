@@ -10,6 +10,8 @@ import math
 import requests
 from itertools import groupby
 from datetime import timedelta
+from odoo.tools import defaultdict
+
 _logger = logging.getLogger(__name__)
 
 class ReturnMove(models.Model):
@@ -47,6 +49,121 @@ class ReturnMove(models.Model):
         for record in self:
             record.state = 'confirmed'
 
+
+    def action_create_credit_notes(self):
+        AccountMove = self.env['account.move']
+
+        for rm in self:
+            if not rm.move_lines:
+                raise UserError(_("La devolución no tiene líneas."))
+
+            # 1) Validación y agrupación (company -> invoice -> lines)
+            groups = defaultdict(list)  # key: (company_id, invoice_id) => [return_line,...]
+
+            for line in rm.move_lines:
+                # asegurate de tener invoice_line/invoice: si no, refrescá
+                if not line.invoice_line_id or not line.invoice_id:
+                    line.update_prices()
+
+                if not line.invoice_line_id or not line.invoice_id:
+                    raise UserError(_(
+                        "No se encontró factura/línea de factura para el producto %s."
+                    ) % (line.product_id.display_name,))
+
+                inv = line.invoice_id
+                if inv.move_type != 'out_invoice' or inv.state != 'posted':
+                    raise UserError(_("Factura inválida (debe ser factura cliente posteada): %s") % inv.display_name)
+
+                # company viene de la factura encontrada (no uses la del return.move)
+                company_id = inv.company_id.id
+                groups[(company_id, inv.id)].append(line)
+
+            created_moves = AccountMove
+
+            # 2) Crear una NC por cada factura (y por ende por empresa)
+            for (company_id, invoice_id), return_lines in groups.items():
+                invoice = AccountMove.browse(invoice_id)
+                company = invoice.company_id
+
+                # Elegir diario de NC (podés cambiar la lógica)
+                journal = self.env['account.journal'].search([
+                    ('type', '=', 'sale'),
+                    ('company_id', '=', company.id),
+                    ('code', '=', '00010')
+                    # opcional: ('l10n_latam_use_documents', '=', True),
+                ], limit=1)
+                if not journal:
+                    raise UserError(_("No encontré un diario de Ventas para la compañía %s") % company.display_name)
+
+
+                if invoice.l10n_latam_document_type_id.code == '1':
+                    document_type = self.env['l10n_latam.document.type'].browse(3)
+                elif invoice.l10n_latam_document_type_id.code == '201':
+                    document_type = self.env['l10n_latam.document.type'].browse(111)
+
+                cn_vals = rm._prepare_credit_note_vals(company, journal, document_type, invoice, return_lines)
+
+                cn = AccountMove.with_company(company).create(cn_vals)
+                created_moves |= cn
+
+            # 3) Link opcional con tu one2many credit_notes (si tu account.move tiene return_id)
+            # rm.credit_notes = [(6, 0, created_moves.ids)]  # OJO: si return_id existe, esto no es necesario.
+
+            # 4) Acción para abrirlas
+            return rm._action_open_credit_notes(created_moves)
+
+    def _prepare_credit_note_vals(self, company, journal, document_type, invoice, return_lines):
+        lines_vals = []
+
+        for rline in return_lines:
+            inv_line = rline.invoice_line_id
+
+            # cantidad a acreditar: usá total o solo sana/rota según tu regla
+            qty = rline.quantity_total
+
+            if qty <= 0:
+                continue
+
+            # impuestos/cuenta desde la línea original (seguro son de esa empresa)
+            vals_line = {
+                'product_id': inv_line.product_id.id,
+                'name': inv_line.name,
+                'quantity': qty,
+                'product_uom_id': inv_line.product_uom_id.id,
+                'price_unit': inv_line.price_unit,
+                'discount': inv_line.discount,
+                'tax_ids': [(6, 0, inv_line.tax_ids.ids)],
+                'account_id': inv_line.account_id.id,
+            }
+            lines_vals.append((0, 0, vals_line))
+
+        if not lines_vals:
+            raise UserError(_("No hay líneas válidas para crear la NC de %s") % invoice.display_name)
+
+        return {
+            'move_type': 'out_refund',
+            'company_id': company.id,
+            'journal_id': journal.id,
+            'l10n_latam_document_type_id': document_type.id,
+            'partner_id': invoice.partner_id.id,
+            'currency_id': invoice.currency_id.id,
+            'invoice_date': fields.Date.context_today(self),
+            'ref': _("Devolución %s - Factura %s") % (self.name, invoice.name),
+            # link fuerte con factura (opcional, útil para trazabilidad)
+            'reversed_entry_id': invoice.id,
+            'invoice_line_ids': lines_vals,
+            # si en account.move agregaste return_id:
+            'return_id': self.id,
+        }
+
+    def _action_open_credit_notes(self, credit_notes):
+        # acción estándar de NC cliente
+        action = self.env.ref('account.action_move_out_refund_type').read()[0]
+        action['domain'] = [('id', 'in', credit_notes.ids)]
+        if len(credit_notes) == 1:
+            action['views'] = [(self.env.ref('account.view_move_form').id, 'form')]
+            action['res_id'] = credit_notes.id
+        return action
     
     # def action_create_credit_notes(self):
     #     self.ensure_one()
@@ -56,7 +173,7 @@ class ReturnMove(models.Model):
     #             for line in record.move_lines:
 
     #                 base_vals = line._prepare_invoice_line()
-    #         base_vals = move.sale_line_id._prepare_invoice_line(sequence=sequence)
+            # base_vals = move.sale_line_id._prepare_invoice_line(sequence=sequence)
 
     #         qty_total = move.quantity_done
     #         qty_blanco = math.floor(qty_total * proportion_blanco)
@@ -192,9 +309,6 @@ class ReturnMove(models.Model):
     #     """
     #     self.ensure_one()
 
-    #     tax_ids = 
-    #     sale_line_id = self.invoice_line_id.sale
-
     #     res = {
     #         'display_type': False,
     #         'sequence': self.sequence,
@@ -205,42 +319,42 @@ class ReturnMove(models.Model):
     #         'discount': self.discount,
     #         'price_unit': self.price_unit,
     #         'tax_ids': [(6, 0, self.tax_id.ids)],
-    #         'sale_line_ids': [(4, self.invoice_line_id)],
-    #     }
-    #     if self.order_id.analytic_account_id and not self.display_type:
-    #         res['analytic_account_id'] = self.order_id.analytic_account_id.id
-    #     if self.analytic_tag_ids and not self.display_type:
-    #         res['analytic_tag_ids'] = [(6, 0, self.analytic_tag_ids.ids)]
-    #     if optional_values:
-    #         res.update(optional_values)
-    #     if self.display_type:
-    #         res['account_id'] = False
-    #     return res
+            # 'sale_line_ids': [(4, self.invoice_line_id)], # por ahora no interesa actualizar este dato
+        # }
+        # if self.order_id.analytic_account_id and not self.display_type:
+        #     res['analytic_account_id'] = self.order_id.analytic_account_id.id
+        # if self.analytic_tag_ids and not self.display_type:
+        #     res['analytic_tag_ids'] = [(6, 0, self.analytic_tag_ids.ids)]
+        # if optional_values:
+            # res.update(optional_values)
+        # if self.display_type:
+        #     res['account_id'] = False
+        # return res
 
-    # def _prepare_invoice_base_vals(self, company_id):
-    #     invoice_date_due = fields.Date.context_today(self)
+    def _prepare_invoice_base_vals(self, company_id):
+        invoice_date_due = fields.Date.context_today(self)
 
-    #     if self.sale_id.payment_term_id:
-    #         extra_days = max(self.sale_id.payment_term_id.line_ids.mapped('days') or [0])
-    #         invoice_date_due = self.set_due_date_plus_x(extra_days)
+        if self.sale_id.payment_term_id:
+            extra_days = max(self.sale_id.payment_term_id.line_ids.mapped('days') or [0])
+            invoice_date_due = self.set_due_date_plus_x(extra_days)
         
         
-    #     return {
-    #         'move_type': 'out_refund',
-    #         'partner_id': self.sale_id.partner_invoice_id,
-    #         'partner_shipping_id': self.sale_id.partner_shipping_id,
-    #         'invoice_date': fields.Date.context_today(self),
-    #         'invoice_date_due': invoice_date_due,
-    #         'company_id': self.sale_id.company_id.id,
-    #         'currency_id': self.sale_id.company_id.currency_id.id,
-    #         'invoice_origin': self.origin or self.name,
-    #         'payment_reference': self.name,
-    #         'fiscal_position_id': self.sale_id.partner_invoice_id.property_account_position_id.id,
-    #         'invoice_payment_term_id': self.sale_id.payment_term_id,
-    #         'wms_code': self.codigo_wms,
-    #         'pricelist_id': self.sale_id.pricelist_id.id,
-    #         'special_price': self.sale_id.special_price,
-    #     }
+        return {
+            'move_type': 'out_refund',
+            'partner_id': self.sale_id.partner_invoice_id,
+            'partner_shipping_id': self.sale_id.partner_shipping_id,
+            'invoice_date': fields.Date.context_today(self),
+            'invoice_date_due': invoice_date_due,
+            'company_id': self.sale_id.company_id.id,
+            'currency_id': self.sale_id.company_id.currency_id.id,
+            'invoice_origin': self.origin or self.name,
+            'payment_reference': self.name,
+            'fiscal_position_id': self.sale_id.partner_invoice_id.property_account_position_id.id,
+            'invoice_payment_term_id': self.sale_id.payment_term_id,
+            'wms_code': self.codigo_wms,
+            'pricelist_id': self.sale_id.pricelist_id.id,
+            'special_price': self.sale_id.special_price,
+        }
 
     ### COMPUTED ###
 
@@ -452,7 +566,7 @@ class ReturnMoveLine(models.Model):
                 ('parent_state', '=', 'posted'),                
                 ('move_id.move_type', '=', 'out_invoice'),
                 ('display_type', '=', False),
-            ], order='date desc', limit=1)
+            ], order='move_id.invoice_date desc, id desc', limit=1)
 
             if last_invoice_line:
                 return last_invoice_line
