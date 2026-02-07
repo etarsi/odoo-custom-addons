@@ -36,7 +36,7 @@ class ReturnMove(models.Model):
         ('pending', 'Pendiente'), 
         ('inprogress', 'En Proceso'), 
         ('confirmed', 'Confirmado'), 
-        ('done', 'Hecho')
+        ('done', 'Completa')
     ])
     move_lines = fields.One2many('return.move.line', 'return_move', string="Devoluciones Sanas")
     price_total = fields.Float(string="Total", compute="_compute_price_total")
@@ -52,18 +52,27 @@ class ReturnMove(models.Model):
         name = f'DEV-{next_number}'
         self.name = name
 
+    def action_confirm(self):
+        for record in self:
+            record.set_name()
+            record.state = 'confirmed'
+
+    def action_draft(self):
+        for record in self:
+            record.state = 'draft'
+
     def action_create_credit_notes(self):
         AccountMove = self.env['account.move']
 
-
+        
         for rm in self:
-            rm.set_name()
+            rm.state = 'done'
             if not rm.move_lines:
                 raise UserError(_("La devolución no tiene líneas."))
 
             groups = defaultdict(list)
 
-            for line in rm.move_lines:
+            for line in rm.move_lines:               
                 if not line.invoice_line_id or not line.invoice_id:
                     line.update_prices()
 

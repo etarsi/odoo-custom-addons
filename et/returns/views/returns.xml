@@ -33,11 +33,22 @@
         <field name="arch" type="xml">
             <form string="Devoluciones">
                 <header>
-                    <button name="action_create_credit_notes"
+                    <button name="action_confirm"
                             type="object"
                             string="Confirmar"
                             class="btn-primary"
                             attrs="{'invisible': [('state', '!=', 'draft')]}"/>
+                    
+                    <button name="action_create_credit_notes"
+                            type="object"
+                            string="Crear Notas de Crédito"
+                            class="btn-primary"
+                            attrs="{'invisible': [('state', '!=', 'confirmed')]}"/>
+
+                    <button name="action_draft"
+                            type="object"
+                            string="Restablecer a borrador"
+                            attrs="{'invisible': [('state', '!=', 'confirmed')]}"/>
 
                     <field name="state"
                            widget="statusbar"
