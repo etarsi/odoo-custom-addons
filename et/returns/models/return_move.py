@@ -105,7 +105,7 @@ class ReturnMove(models.Model):
             rm.credit_notes = [(6, 0, created_moves_ids)]
 
             for move in created_moves:
-                if invoice.l10n_latam_document_type_id.code == '201':
+                if move.invoice_id.l10n_latam_document_type_id.code == '201':
                     document_type = self.env['l10n_latam.document.type'].browse(111)
                     move.afip_fce_es_anulacion = True
                     move.l10n_latam_document_type_id = document_type.id

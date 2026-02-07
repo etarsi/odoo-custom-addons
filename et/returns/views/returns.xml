@@ -96,9 +96,9 @@
                                        colors="red:price_unit==0">
                                     <tree editable="bottom" string="Return Items">
                                         <field name="product_id" readonly="0" required="1"/>
-                                        <field name="quantity_healthy"/>
-                                        <field name="quantity_broken"/>
-                                        <field name="quantity_total"/>
+                                        <field name="quantity_healthy" sum="total"/>
+                                        <field name="quantity_broken" sum="total"/>
+                                        <field name="quantity_total" sum="total"/>
                                         <field name="uxb" readonly="1"/>
                                         <field name="bultos" readonly="1"/>
                                         <field name="price_unit" readonly="1"/>
