@@ -188,10 +188,10 @@ class ReturnMove(models.Model):
     def action_open_credit_notes(self):
         self.ensure_one()
         action = self.env.ref('account.action_move_out_refund_type').read()[0]
-        action['domain'] = [('id', 'in', self.credit_note_ids.ids)]
-        if len(self.credit_note_ids) == 1:
+        action['domain'] = [('id', 'in', self.credit_notes.ids)]
+        if len(self.credit_notes) == 1:
             action['views'] = [(self.env.ref('account.view_move_form').id, 'form')]
-            action['res_id'] = self.credit_note_ids.id
+            action['res_id'] = self.credit_notes.id
         return action
     
 
