@@ -121,31 +121,8 @@ class ReturnMove(models.Model):
                 self._assert_vals_clean(v, "%s[%s]" % (path, i))
 
 
-    def _debug_find_bad_key_for_new(self, company, clean_ctx, cn_vals):
-        Move = self.env['account.move'].with_company(company).with_context(clean_ctx)
-
-        # probar de a una key
-        for k in list(cn_vals.keys()):
-            try:
-                Move.new({k: cn_vals[k]})
-            except Exception as e:
-                raise UserError("DEBUG: new() revienta con key='%s' value=%r\nERROR=%s" % (k, cn_vals[k], e))
-
-        # probar acumulativo (por si es combinación de dos)
-        acc = {}
-        for k in list(cn_vals.keys()):
-            acc[k] = cn_vals[k]
-            try:
-                Move.new(acc)
-            except Exception as e:
-                raise UserError("DEBUG: new() revienta al agregar key='%s' value=%r\nACC=%r\nERROR=%s" % (k, cn_vals[k], acc, e))
-
-        raise UserError("DEBUG: new() NO revienta con ninguna key individual (es combinación rara).")
-
-
-    def _create_cn_without_x2many(self, company, journal, document_type, invoice, return_lines):
+    def _create_cn_without_x2many(self, company, journal, invoice, return_lines):
         AccountMove = self.env['account.move']
-        AML = self.env['account.move.line']
 
         clean_ctx = dict(self.env.context)
         for k in list(clean_ctx.keys()):
@@ -404,11 +381,11 @@ class ReturnMoveLine(models.Model):
             record.quantity_total = record.quantity_healthy + record.quantity_broken
 
     
-    @api.depends('price_unit', 'quantity_total', 'discount')
+    @api.depends('price_unit', 'quantity_total', 'discount', 'product_id')
     def _compute_subtotal(self):
         for record in self:
             record.price_subtotal = record.price_unit * record.quantity_total * record.discount / 100
-    
+
 
     def update_prices(self):
         for record in self:
@@ -420,17 +397,6 @@ class ReturnMoveLine(models.Model):
                     record.price_unit = record.invoice_line_id.price_unit
                     record.discount = record.invoice_line_id.discount                
                     record.company_id = record.invoice_line_id.company_id.id
-
-
-                # CONDICIONAL A REVISAR
-                # if record.invoice_line_id.company_id.id == 1:
-                #     record.price_unit = record.invoice_line_id.price_unit / 1.21
-                #     record.company_id = 2
-                #     record.discount = record.invoice_line_id.discount
-                # else:
-                #     record.price_unit = record.invoice_line_id.price_unit
-                #     record.company_id = record.invoice_line_id.company_id.id
-                #     record.discount = record.invoice_line_id.discount
 
 
     def get_last_invoice_line(self):
