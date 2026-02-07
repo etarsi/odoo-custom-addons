@@ -70,6 +70,9 @@ class ReturnMove(models.Model):
                 if not line.invoice_line_id or not line.invoice_id:
                     continue
 
+                if line.quantity_total == 0:
+                    continue
+
                 inv = line.invoice_id
                 if inv.move_type != 'out_invoice' or inv.state != 'posted':
                     raise UserError(_("Factura inválida (debe ser factura cliente posteada): %s") % inv.display_name)
