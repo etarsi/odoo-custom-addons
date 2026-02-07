@@ -362,14 +362,23 @@ class ReturnMoveLine(models.Model):
         for record in res:
             record.update_prices()
             record._compute_subtotal()
-            record._onchang_product_uxb()
+            record._onchange_product_uxb()
             record._compute_bultos()
 
         return res
 
 
     @api.onchange('product_id')
-    def _onchang_product_uxb(self):
+    def _onchange_product_id(self):
+        for record in self:
+            if record.product_id:
+                record.update_prices()                
+                record._compute_subtotal()
+                record._onchange_product_uxb()
+                record._compute_bultos()
+
+    @api.onchange('product_id')
+    def _onchange_product_uxb(self):
         for record in self:
             if record.product_id:
                 record.uxb = record.get_product_uxb(record.product_id)
