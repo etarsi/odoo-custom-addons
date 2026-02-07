@@ -103,6 +103,14 @@ class ReturnMove(models.Model):
                 created_moves |= cn
 
             rm.credit_notes = [(6, 0, created_moves_ids)]
+
+            for move in created_moves:
+                if invoice.l10n_latam_document_type_id.code == '1':
+                    document_type = self.env['l10n_latam.document.type'].browse(3)
+                elif invoice.l10n_latam_document_type_id.code == '201':
+                    document_type = self.env['l10n_latam.document.type'].browse(111)
+
+                move.l10n_latam_document_type_id = document_type.id
             
             return rm._action_open_credit_notes(created_moves)
 
