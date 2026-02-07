@@ -101,24 +101,12 @@ class ReturnMove(models.Model):
                     document_type = self.env['l10n_latam.document.type'].browse(111)
 
                 cn = rm._create_cn_without_x2many(company, journal, document_type, invoice, return_lines)
-                cn.return_move = rm.id
-                
+                created_moves_ids.append(cn.id)
                 created_moves |= cn
 
-            rm.credit_notes = [(6, 0, created_moves_ids.append(cn.id))]
+            rm.credit_notes = [(6, 0, created_moves_ids)]
             
             return rm._action_open_credit_notes(created_moves)
-
-
-    def _assert_vals_clean(self, obj, path="vals"):
-        if isinstance(obj, BaseModel):
-            raise UserError("VALS INVÁLIDOS: recordset en %s (%s)" % (path, obj._name))
-        if isinstance(obj, dict):
-            for k, v in obj.items():
-                self._assert_vals_clean(v, "%s.%s" % (path, k))
-        elif isinstance(obj, (list, tuple)):
-            for i, v in enumerate(obj):
-                self._assert_vals_clean(v, "%s[%s]" % (path, i))
 
 
     def _create_cn_without_x2many(self, company, journal, invoice, return_lines):
@@ -224,105 +212,12 @@ class ReturnMove(models.Model):
         for record in self:
             record.credit_count = len(record.credit_notes)
 
-    ### ONCHANGE ###
 
     @api.onchange('partner_id')
     def _onchange_partner_id(self):
         for record in self:
             if record.move_lines:
                 record.move_lines.update_prices()
-
-
-    def action_send_return(self):        
-        for record in self:
-            
-            next_number = self.env['ir.sequence'].sudo().next_by_code('DEV')
-            headers = {
-                "Content-Type": "application/json",
-                "Accept": "application/json",
-            }
-
-            provider = record.get_current_provider(record.partner_id)
-
-            payload = {
-                "Numero": f'R{next_number}',
-                "Factura": "",
-                "Fecha": str(record.date),
-                "CodigoProveedor": provider['code'],
-                "Proveedor": provider['name'],
-                "Observacion": "Prueba de Odoo",
-                "DocumentoRecepcionTipo": "remito",
-                "RecepcionTipo": "devolucion",
-                "DocumentoRecepcionDetalleRequest": [
-                ]
-            }          
-            
-            
-            headers["x-api-key"] = self.env['ir.config_parameter'].sudo().get_param('digipwms.key')
-            response = requests.post('http://api.patagoniawms.com/v1/DocumentoRecepcion', headers=headers, json=payload)
-
-            if response.status_code == 200:
-                record.state = 'inprogress'
-                record.wms_code = f'R{next_number}'
-                record.name = record.get_document_name(next_number)
-            else:
-                raise UserError(f'Error code: {response.status_code} - Error Msg: {response.text}')
-
-
-    def get_current_provider(self, partner_id):
-        current_provider = {
-            'code': "",
-            'name': "",
-        }
-        
-        providers = self.get_providers()
-
-        for p in providers:
-                if p['Activo']:
-                    if p['Descripcion'] == partner_id.name:
-                        current_provider['code'] = p['Codigo']
-                        current_provider['name'] = p['Descripcion']
-                        return current_provider
-
-        if not current_provider['code']:        
-            current_provider = self.create_provider(partner_id)
-            return current_provider
-            
-
-    def get_providers(self):
-        
-        headers = {}
-        headers["x-api-key"] = self.env['ir.config_parameter'].sudo().get_param('digipwms.key')
-        
-        response = requests.get('http://api.patagoniawms.com/v1/Proveedor', headers=headers)
-
-        if response.status_code == 200:
-            data = response.json()
-            return data        
-        else:
-            raise UserError(f'No se pudo obtener los proveedores de Digip. STATUS_CODE: {response.status_code}')
-
-
-    def create_provider(self, provider):
-        current_provider = {}
-        headers = {}
-        headers["x-api-key"] = self.env['ir.config_parameter'].sudo().get_param('digipwms.key')
-        payload = {
-                "Codigo": str(provider.id),
-                "Descripcion": provider.name,
-                "RequiereControlCiego": True,
-                "Activo": True,
-                }
-        response = requests.post('http://api.patagoniawms.com/v1/Proveedor', headers=headers, json=payload)
-
-        if response.status_code == 204:
-            current_provider['code'] = provider.id
-            current_provider['name'] = provider.name
-
-            return current_provider
-        else:
-            raise UserError(f'No se pudo crear el proveedor en Digip. STATUS_CODE: {response.status_code}')
-        
 
 
     def get_document_name(self, next_number):
