@@ -184,6 +184,15 @@ class AccountMoveInherit(models.Model):
 
     #     return moves
 
+    def unlink(self):
+        Return = self.env['return.move']
+        returns = Return.search([('credit_notes', 'in', self.ids)])
+        if returns:
+            cmds = [(3, mid) for mid in self.ids]
+            returns.write({'credit_note_ids': cmds})
+
+        return super().unlink()
+
     def action_post(self):
         for move in self:
             #validar nota de credito sea de tipo comprobante nota de credito
