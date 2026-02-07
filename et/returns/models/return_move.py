@@ -384,7 +384,8 @@ class ReturnMoveLine(models.Model):
     @api.depends('price_unit', 'quantity_total', 'discount', 'product_id')
     def _compute_subtotal(self):
         for record in self:
-            record.price_subtotal = record.price_unit * record.quantity_total * record.discount / 100
+            subtotal = record.price_unit * record.quantity_total
+            record.price_subtotal = subtotal * (1 - (record.discount or 0.0) / 100)
 
 
     def update_prices(self):
