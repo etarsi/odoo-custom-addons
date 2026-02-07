@@ -144,8 +144,8 @@ class ReturnMove(models.Model):
         cn_vals.pop('line_ids', None)
 
         cn = AccountMove.with_company(company).with_context(clean_ctx).create(cn_vals)
-        cn_vals['l10n_latam_document_type_id'] = document_type.id
-        
+        # cn_vals['l10n_latam_document_type_id'] = document_type.id
+
         lines_cmds = []
         for rline in return_lines:
             inv_line = rline.invoice_line_id
