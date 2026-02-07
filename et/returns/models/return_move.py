@@ -68,9 +68,7 @@ class ReturnMove(models.Model):
                     line.update_prices()
 
                 if not line.invoice_line_id or not line.invoice_id:
-                    raise UserError(_(
-                        "No se encontró factura/línea de factura para el producto %s."
-                    ) % (line.product_id.display_name,))
+                    continue
 
                 inv = line.invoice_id
                 if inv.move_type != 'out_invoice' or inv.state != 'posted':
@@ -145,7 +143,6 @@ class ReturnMove(models.Model):
        
         cn_vals.pop('line_ids', None)
 
-        # cn = AccountMove.with_company(company).create(cn_vals)
         cn = AccountMove.with_company(company).with_context(clean_ctx).create(cn_vals)
 
         lines_cmds = []
