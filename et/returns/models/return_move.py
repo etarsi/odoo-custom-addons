@@ -98,7 +98,6 @@ class ReturnMove(models.Model):
                 elif invoice.l10n_latam_document_type_id.code == '201':
                     document_type = self.env['l10n_latam.document.type'].browse(111)
 
-                raise UserError(document_type.name)
                 cn = rm._create_cn_without_x2many(company, journal, invoice, document_type, return_lines)
                 created_moves_ids.append(cn.id)
                 created_moves |= cn
@@ -128,7 +127,6 @@ class ReturnMove(models.Model):
             'move_type': 'out_refund',
             'company_id': invoice.company_id.id,
             'journal_id': journal.id,
-            'l10n_latam_document_type_id': document_type.id,
             'partner_id': invoice.partner_id.id,
             'partner_shipping_id': invoice.partner_shipping_id.id or invoice.partner_id.id,
             'currency_id': invoice.currency_id.id,
@@ -146,7 +144,8 @@ class ReturnMove(models.Model):
         cn_vals.pop('line_ids', None)
 
         cn = AccountMove.with_company(company).with_context(clean_ctx).create(cn_vals)
-
+        cn_vals['l10n_latam_document_type_id'] = document_type.id
+        
         lines_cmds = []
         for rline in return_lines:
             inv_line = rline.invoice_line_id
