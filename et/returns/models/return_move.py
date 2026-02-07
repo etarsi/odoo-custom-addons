@@ -105,13 +105,10 @@ class ReturnMove(models.Model):
             rm.credit_notes = [(6, 0, created_moves_ids)]
 
             for move in created_moves:
-                if invoice.l10n_latam_document_type_id.code == '1':
-                    document_type = self.env['l10n_latam.document.type'].browse(3)
-                elif invoice.l10n_latam_document_type_id.code == '201':
+                if invoice.l10n_latam_document_type_id.code == '201':
                     document_type = self.env['l10n_latam.document.type'].browse(111)
-
-                move.l10n_latam_document_type_id = document_type.id
-                move.afip_fce_es_anulacion = True
+                    move.afip_fce_es_anulacion = True
+                    move.l10n_latam_document_type_id = document_type.id
             
             return rm._action_open_credit_notes(created_moves)
 
@@ -153,7 +150,6 @@ class ReturnMove(models.Model):
         cn_vals.pop('line_ids', None)
 
         cn = AccountMove.with_company(company).with_context(clean_ctx).create(cn_vals)
-        # cn_vals['l10n_latam_document_type_id'] = document_type.id
 
         lines_cmds = []
         for rline in return_lines:
@@ -169,13 +165,12 @@ class ReturnMove(models.Model):
                 'product_uom_id': (inv_line.product_uom_id.id or inv_line.product_id.uom_id.id),
                 'price_unit': inv_line.price_unit or 0.0,
                 'discount': inv_line.discount or 0.0,
-                'account_id': inv_line.account_id.id,                 # importante
-                'tax_ids': [(6, 0, inv_line.tax_ids.ids or [])],      # importante
+                'account_id': inv_line.account_id.id,
+                'tax_ids': [(6, 0, inv_line.tax_ids.ids or [])],
             }))
 
         cn.write({'invoice_line_ids': lines_cmds})
 
-        # Forzar recomputes típicos de factura
         cn._recompute_dynamic_lines(recompute_all_taxes=True)
         cn._compute_amount()
 
