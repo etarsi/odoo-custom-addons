@@ -111,6 +111,7 @@ class ReturnMove(models.Model):
                     document_type = self.env['l10n_latam.document.type'].browse(111)
 
                 move.l10n_latam_document_type_id = document_type.id
+                move.afip_fce_es_anulacion = True
             
             return rm._action_open_credit_notes(created_moves)
 
