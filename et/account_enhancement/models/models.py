@@ -189,7 +189,7 @@ class AccountMoveInherit(models.Model):
         returns = Return.search([('credit_notes', 'in', self.ids)])
         if returns:
             cmds = [(3, mid) for mid in self.ids]
-            returns.write({'credit_note_ids': cmds})
+            returns.write({'credit_notes': cmds})
 
         return super().unlink()
 
