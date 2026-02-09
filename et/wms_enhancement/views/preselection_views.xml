@@ -1,0 +1,198 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- =========================================================
+        WMS PRESELECTION - ACTION
+    ========================================================== -->
+    <record id="action_wms_preselection" model="ir.actions.act_window">
+        <field name="name">Preselección</field>
+        <field name="res_model">wms.preselection</field>
+        <field name="view_mode">tree,form</field>
+        <field name="search_view_id" ref="view_wms_preselection_search"/>
+        <field name="context">{}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Creá tu primera Preselección
+            </p>
+        </field>
+    </record>
+
+
+
+    <!-- =========================================================
+        WMS PRESELECTION - TREE
+    ========================================================== -->
+    <record id="view_wms_preselection_tree" model="ir.ui.view">
+        <field name="name">wms.preselection.tree</field>
+        <field name="model">wms.preselection</field>
+        <field name="arch" type="xml">
+            <tree string="Preselección">
+                <field name="date"/>
+                <field name="partner_id" optional="show"/>
+                <field name="transfer_id" optional="show"/>                
+                <field name="items_id" widget="many2many_tags" optional="show"/>                
+                <field name="bultos_count" sum="total" optional="show"/>                
+                <field name="lines_count" sum="total" optional="show"/>                
+                <field name="state" optional="show" widget="badge"/>
+            </tree>
+        </field>
+    </record>
+
+    <!-- =========================================================
+        WMS PRESELECTION - SEARCH
+    ========================================================== -->
+    <record id="view_wms_preselection_search" model="ir.ui.view">
+        <field name="name">wms.preselection.search</field>
+        <field name="model">wms.preselection</field>
+        <field name="arch" type="xml">
+            <!-- <search string="Buscar Transferencias">
+                <field name="name"/>
+                <field name="partner_id"/>
+                <field name="partner_address_id"/>
+                <field name="sale_id"/>
+                <field name="purchase_id"/>
+
+                <filter string="Ingreso" name="incoming" domain="[('operation_type','=','incoming')]"/>
+                <filter string="Entrega" name="outgoing" domain="[('operation_type','=','outgoing')]"/>
+
+                <group expand="0" string="Agrupar por">
+                    <filter string="Operación" name="group_operation" context="{'group_by':'operation_type'}"/>
+                    <filter string="Cliente" name="group_partner" context="{'group_by':'partner_id'}"/>
+                </group>
+            </search> -->
+        </field>
+    </record>
+
+    <!-- =========================================================
+        WMS PRESELECTION - FORM
+    ========================================================== -->
+    <record id="view_wms_preselection_form" model="ir.ui.view">
+        <field name="name">wms.preselection.form</field>
+        <field name="model">wms.preselection</field>
+        <field name="arch" type="xml">
+            <form string="Preselección">
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <field name="transfer_id" invisible="1"/>
+                        <button type="object"
+                                name="action_open_wms_transfer"
+                                class="oe_stat_button"
+                                icon="fa-exchange"
+                                attrs="{'invisible': [('transfer_id', '=', False)]}">
+                            <div class="o_stat_info">
+                                <span class="o_stat_text">Transferencia</span>
+                            </div>
+                        </button>
+                    </div>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="name" placeholder="PRESELECT/..." />
+                        </h1>
+                    </div>
+
+                    <group>
+                        <group string="Cliente">
+                            <field name="partner_id" required="1" options="{'no_create_edit': True}"/>
+                        </group>
+                        <group string="Date">
+                            <field name="date" required="1" options="{'no_create_edit': True}"/>
+                        </group>
+                    </group>
+
+
+                    <notebook>
+                        <page string="Líneas">
+                            <field name="line_ids">
+                                <tree editable="bottom" string="Líneas de Transferencia">
+                                    <field name="id" optional="hide"/>
+                                    <field name="product_id"/>
+                                    <field name="bultos"/>
+                                    <field name="uxb"/>
+                                    <field name="quantity"/>
+                                    <field name="quantity_prepared"/>
+                                    <field name="quantity_delivered"/>
+                                    <field name="quantity_invoiced"/>
+                                </tree>                                
+                            </field>
+                        </page>
+                        
+                    </notebook>
+
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+
+
+    <!-- =========================================================
+        WMS PRESELECTION LINE - TREE
+    ========================================================== -->
+    <record id="view_wms_preselection_line_tree" model="ir.ui.view">
+        <field name="name">wms.preselection.line.tree</field>
+        <field name="model">wms.preselection.line</field>
+        <field name="arch" type="xml">
+            <!-- <tree string="Líneas de Transferencia">
+                <field name="transfer_id"/>
+                <field name="state"/>
+                <field name="invoice_state"/>
+                <field name="product_id"/>
+                <field name="lot_name"/>
+                <field name="uxb"/>
+                <field name="availability"/>
+                <field name="available_percent"/>
+                <field name="qty_demand"/>
+                <field name="qty_done"/>
+                <field name="qty_invoiced"/>
+                <field name="sale_line_id" optional="hide"/>
+            </tree> -->
+        </field>
+    </record>
+
+    <!-- =========================================================
+        WMS PRESELECTION LINE - SEARCH
+    ========================================================== -->
+    <record id="view_wms_preselection_line_search" model="ir.ui.view">
+        <field name="name">wms.preselection.line.search</field>
+        <field name="model">wms.preselection.line</field>
+        <field name="arch" type="xml">
+            <search string="Buscar Líneas">
+                <field name="transfer_id"/>
+                <!-- <field name="product_id"/>
+                <field name="lot_name"/>
+                <field name="sale_line_id"/>
+
+                <separator/>
+
+                <filter string="Pendiente" name="st_pending" domain="[('state','=','pending')]"/>
+                <filter string="En Preparación" name="st_prep" domain="[('state','=','preparation')]"/>
+                <filter string="Hecho" name="st_done" domain="[('state','=','done')]"/>
+
+                <separator/>
+
+                <filter string="No Facturado" name="inv_no" domain="[('invoice_state','=','no')]"/>
+                <filter string="Parcial" name="inv_partial" domain="[('invoice_state','=','partial')]"/>
+                <filter string="Facturado" name="inv_total" domain="[('invoice_state','=','total')]"/>
+
+                <group expand="0" string="Agrupar por">
+                    <filter string="Transferencia" name="group_transfer" context="{'group_by':'transfer_id'}"/>
+                    <filter string="Producto" name="group_product" context="{'group_by':'product_id'}"/>
+                    <filter string="Estado" name="group_state" context="{'group_by':'state'}"/>
+                </group> -->
+            </search>
+        </field>
+    </record>
+
+    <!-- =========================================================
+        WMS PRESELECTION LINE - ACTION
+    ========================================================== -->
+    <record id="action_wms_preselection_line" model="ir.actions.act_window">
+        <field name="name">Líneas de Preselección</field>
+        <field name="res_model">wms.preselection.line</field>
+        <field name="view_mode">tree,form</field>
+        <field name="search_view_id" ref="view_wms_preselection_line_search"/>
+        <field name="context">{}</field>
+    </record>
+
+
+</odoo>

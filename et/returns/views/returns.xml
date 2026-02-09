@@ -76,7 +76,7 @@
 
                     <group>
                         <group id="header_left_group">
-                            <field name="partner_id" required="1"/>
+                            <field name="partner_id" options="{'no_create_edit': True}" required="1"/>
                             <!-- <field name="wms_code" readonly="1" attrs="{'invisible': [('state', '=', 'draft')]}"/> -->
                         </group>
                         <group id="header_right_group">
