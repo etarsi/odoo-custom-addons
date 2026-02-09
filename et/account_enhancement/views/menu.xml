@@ -1,4 +1,5 @@
 <odoo>
+    <!-- MENU PROVEEDORES -->
     <!-- Submenú de Proveedores -->
     <menuitem id="menu_account_move_calendar_to_pay"
                 name="Calendario de Pagos"
@@ -19,7 +20,8 @@
         action="action_account_import_afip_facprov_wizard"
         sequence="60"/>
 
-    <!-- SUBMENU DE REPORTE ACCOUNT FACTURAS-->
+    <!-- MENU INFORMES-->
+    <!-- SUBMENU REPORTES GENERALES-->
     <menuitem 
         id="account_enhancement.menu_account_report_factura_general"
         name="Reportes Generales"
@@ -63,4 +65,17 @@
         parent="account.menu_finance_receivables"
         action="action_account_move_line_factura_cliente"
         sequence="3"/>
+
+    <!-- MENU CONFIGURACION-->
+    <menuitem
+        id="account_enhancement.menu_account_configuration_fiscal_period"
+        name="Ejercicio Cierre y Apertura de Gestión"
+        parent="account.menu_finance_configuration"
+        sequence="10"/>
+    <menuitem
+        id="account_enhancement.menu_account_fiscal_period"
+        name="Ejercicio Cierre y Apertura"
+        parent="account_enhancement.menu_account_configuration_fiscal_period"
+        action="action_fiscal_period_config"
+        sequence="10"/>
 </odoo>

@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_fiscal_period_config_tree" model="ir.ui.view">
+        <field name="name">account.fiscal.period.config.tree</field>
+        <field name="model">account.fiscal.period.config</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="company_id"/>
+                <field name="date_start"/>
+                <field name="date_end"/>
+                <field name="state"/>
+                <field name="journal_id"/>
+                <field name="equity_account_id"/>
+                <field name="opening_move_id"/>
+                <field name="closing_move_id"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_fiscal_period_config_form" model="ir.ui.view">
+        <field name="name">account.fiscal.period.config.form</field>
+        <field name="model">account.fiscal.period.config</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_generate_management_closure" type="object" string="Generar Cierre de Gestión" states="open"/>
+                    <button name="action_generate_opening_closing_moves"
+                            type="object"
+                            string="Generar Asientos Cierre/Apertura"
+                            class="oe_highlight"/>
+                    <field name="state" widget="statusbar" statusbar_visible="open,closed"/>
+                </header>
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="company_id" readonly="1"/>
+                            <field name="date_start"/>
+                            <field name="date_end"/>
+                        </group>
+                        <group>
+                            <field name="journal_id"/>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_fiscal_period_config" model="ir.actions.act_window">
+        <field name="name">Ejercicio de Cierre y Apertura</field>
+        <field name="res_model">account.fiscal.period.config</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+</odoo>
