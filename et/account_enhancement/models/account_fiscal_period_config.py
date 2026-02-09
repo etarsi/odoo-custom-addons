@@ -10,17 +10,17 @@ class AccountFiscalPeriodConfig(models.Model):
     _order = "company_id"
 
     company_id = fields.Many2one(
-        "res.company", required=True, ondelete="cascade",
+        "res.company", string="Compañía", required=True, ondelete="cascade",
         default=lambda self: self.env.company, index=True
     )
-    date_start = fields.Date(required=True, default=lambda self: fields.Date.to_string(fields.Date.today().replace(month=1, day=1)))
-    date_end = fields.Date(required=True, default=lambda self: fields.Date.to_string(fields.Date.today().replace(month=12, day=31)))
+    date_start = fields.Date(string="Fecha Inicio", required=True, default=lambda self: fields.Date.to_string(fields.Date.today().replace(month=1, day=1)), index=True)
+    date_end = fields.Date(string="Fecha Fin", required=True, default=lambda self: fields.Date.to_string(fields.Date.today().replace(month=12, day=31)), index=True)
     state = fields.Selection(
         [("draft", "Borrador"), 
         ("open", "Gestión Activa"),
         ("closed", "Gestión Finalizada"),
         ("archived", "Archivada")],
-        default="draft", required=True)
+        default="draft", required=True, index=True)
     journal_id = fields.Many2one(
         "account.journal",
         string="Diario de Cierre/Apertura",
