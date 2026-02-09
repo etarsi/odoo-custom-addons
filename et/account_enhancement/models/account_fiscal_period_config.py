@@ -63,11 +63,6 @@ class AccountFiscalPeriodConfig(models.Model):
             self._validate_no_overlap()
         return res
     
-    def create(self, vals):
-        rec = super().create(vals)
-        rec._validate_no_overlap()
-        return rec
-    
     # ---------------------------
     # API utilitaria para bloqueos
     # ---------------------------
