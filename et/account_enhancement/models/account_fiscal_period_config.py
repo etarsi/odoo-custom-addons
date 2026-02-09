@@ -20,19 +20,17 @@ class AccountFiscalPeriodConfig(models.Model):
         ("open", "Gestión Activa"),
         ("closed", "Gestión Finalizada"),
         ("archived", "Archivada")],
-        default="draft", required=True, index=True)
+        default="draft", string="Estado", required=True, index=True)
     journal_id = fields.Many2one(
         "account.journal",
         string="Diario de Cierre/Apertura",
         required=True,
         domain="[('company_id','=',company_id),('type','=','general')]",
     )
-
-
-    def create(self, vals):
-        record = super().create(vals)
-        record._validate_no_overlap()
-        return record
+    closing_move_ids = fields.One2many("account.move", "fiscal_period_config_id", string="Asientos de Cierre/Apertura", readonly=True)
+    
+    
+    
 
     @api.constrains("date_start", "date_end")
     def _check_dates(self):
@@ -53,6 +51,12 @@ class AccountFiscalPeriodConfig(models.Model):
             ], limit=1)
             if overlapping:
                 raise ValidationError(_("El período se superpone con otro período existente (%s - %s).") % (overlapping.date_start, overlapping.date_end))
+
+    @api.model_create_multi
+    def create(self, vals_list):
+        records = super().create(vals_list)
+        records._validate_no_overlap()
+        return records
 
     def unlink(self):
         for rec in self:
@@ -99,9 +103,24 @@ class AccountFiscalPeriodConfig(models.Model):
             })
 
     # ---------------------------
-    # Botones de Cierre de Gestión
+    # Botones de Cierre de Gestión y Apertura
     # ---------------------------
     def action_generate_management_closure(self):
+        self.ensure_one()
+        #generar el asiento de cierre
+        closing_move_vals = self._prepare_closing_move_vals()
+        self.write({"state": "closed"})
+        closing_move = self.env["account.move"].create(closing_move_vals)
+        
+        return {
+            "name": _("Asiento de Cierre de Gestión"),
+            "type": "ir.actions.act_window",
+            "res_model": "account.move",
+            "view_mode": "form",
+            "res_id": closing_move.id,
+        }
+    
+    def action_generate_management_open(self):
         self.write({"state": "open"})
         return True
 
@@ -191,7 +210,7 @@ class AccountFiscalPeriodConfig(models.Model):
             debit = -bal if bal < 0 else 0.0
             credit = bal if bal > 0 else 0.0
             line_vals.append((0, 0, {
-                "name": _("Cierre"),
+                "name": _("Cierre - %s") % self.env["account.account"].browse(account_id).display_name,
                 "account_id": account_id,
                 "debit": debit,
                 "credit": credit,
@@ -200,7 +219,7 @@ class AccountFiscalPeriodConfig(models.Model):
         if abs(total_pl) > 0.0000001:
             # Contrapartida a cuenta patrimonial
             line_vals.append((0, 0, {
-                "name": _("Resultado del ejercicio"),
+                "name": _("Cierre - Resultado del período"),
                 "debit": total_pl if total_pl > 0 else 0.0,
                 "credit": -total_pl if total_pl < 0 else 0.0,
             }))
@@ -211,5 +230,6 @@ class AccountFiscalPeriodConfig(models.Model):
             "date": self.date_end,
             "journal_id": self.journal_id.id,
             "ref": _("Cierre %s") % self.company_id.display_name,
+            "fiscal_period_config_id": self.id,
             "line_ids": line_vals,
         }

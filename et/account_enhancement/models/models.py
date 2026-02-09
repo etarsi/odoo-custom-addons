@@ -48,6 +48,10 @@ class AccountMoveInherit(models.Model):
     special_price = fields.Boolean(string="Precio Especial", default=False)
     #Diferencia entre debit - credit 
     balance_diff = fields.Float(string="Diferencia Debe - Haber", compute="_compute_balance_diff")
+    fiscal_period_config_id = fields.Many2one("account.fiscal.period.config", string="Ejercicio de Cierre/Apertura", copy=False, readonly=True)
+    
+    
+    
     
     # ENVIO DE CORREO---------------------------------------------------------
     def _get_default_invoice_mail_template(self):

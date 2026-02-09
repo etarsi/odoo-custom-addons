@@ -9,7 +9,7 @@
                 <field name="date_start"/>
                 <field name="date_end"/>
                 <field name="journal_id"/>
-                <field name="state"/>
+                <field name="state" widget="badge" decoration-info="state == 'draft'" decoration-success="state == 'open'" decoration-danger="state == 'closed'" decoration-muted="state == 'archived'"/>
             </tree>
         </field>
     </record>
@@ -20,7 +20,8 @@
         <field name="arch" type="xml">
             <form>
                 <header>
-                    <button name="action_generate_management_closure" type="object" string="Generar Cierre de Gestión" states="open"/>
+                    <button name="action_generate_management_closure" type="object" string="Generar Cierre de Gestión" states="open" attrs="{'invisible': [('state', '!=', 'open')]}"/>
+                    <button name="action_generate_management_open" type="object" string="Generar Apertura de Gestión" states="closed" attrs="{'invisible': [('state', '!=', 'closed')]}"/>
                     <field name="state" widget="statusbar" statusbar_visible="open,closed"/>
                 </header>
                 <sheet>
