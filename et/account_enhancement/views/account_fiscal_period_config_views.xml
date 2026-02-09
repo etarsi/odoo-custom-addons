@@ -21,10 +21,6 @@
             <form>
                 <header>
                     <button name="action_generate_management_closure" type="object" string="Generar Cierre de Gestión" states="open"/>
-                    <button name="action_generate_opening_closing_moves"
-                            type="object"
-                            string="Generar Asientos Cierre/Apertura"
-                            class="oe_highlight"/>
                     <field name="state" widget="statusbar" statusbar_visible="open,closed"/>
                 </header>
                 <sheet>
