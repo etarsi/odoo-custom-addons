@@ -29,7 +29,10 @@ class AccountFiscalPeriodConfig(models.Model):
     )
 
 
-
+    def create(self, vals):
+        record = super().create(vals)
+        record._validate_no_overlap()
+        return record
 
     @api.constrains("date_start", "date_end")
     def _check_dates(self):
