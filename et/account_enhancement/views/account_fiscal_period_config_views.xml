@@ -8,11 +8,8 @@
                 <field name="company_id"/>
                 <field name="date_start"/>
                 <field name="date_end"/>
-                <field name="state"/>
                 <field name="journal_id"/>
-                <field name="equity_account_id"/>
-                <field name="opening_move_id"/>
-                <field name="closing_move_id"/>
+                <field name="state"/>
             </tree>
         </field>
     </record>
