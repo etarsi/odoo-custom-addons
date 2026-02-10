@@ -19,19 +19,6 @@
         <field name="arch" type="xml">
             <form>
                 <header>
-                    <!-- Botón para ver los asientos contables enlazados-->
-                    <button
-                        type="object"
-                        name="action_view_account_moves"
-                        class="oe_stat_button"
-                        icon="fa-certificate">
-                        <div class="o_stat_info">
-                            <span class="o_stat_text">Asientos</span>
-                            <span class="o_stat_value">
-                                <field name="account_move_count"/>
-                            </span>
-                        </div>
-                    </button>
                     <button name="action_generate_management_closure"
                             type="object"
                             class="oe_highlight"
@@ -39,6 +26,21 @@
                     />
                 </header>
                 <sheet>
+                    <div name="button_box" class="oe_button_box">
+                        <!-- Botón para ver los asientos contables enlazados-->
+                        <button
+                            type="object"
+                            name="action_view_account_moves"
+                            class="oe_stat_button"
+                            icon="fa-certificate">
+                            <div class="o_stat_info">
+                                <span class="o_stat_text">Asientos</span>
+                                <span class="o_stat_value">
+                                    <field name="account_move_count"/>
+                                </span>
+                            </div>
+                        </button>
+                    </div>
                     <group>
                         <group>
                             <field name="company_id"/>
