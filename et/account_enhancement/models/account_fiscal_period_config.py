@@ -279,14 +279,14 @@ class AccountFiscalPeriodConfig(models.Model):
             })
         return account_moves
     
-    def opening_move_exists(self, account_sale_ids, account_expense_ids, account_moves):
-        if account_sale_ids:
+    def opening_move_exists(self, account_client_ids, account_proveedor_ids, account_moves):
+        if account_client_ids:
             balances = self._group_balances([
                 ("company_id", "=", self.company_id.id),
                 ("parent_state", "=", "posted"),
                 ("date", ">=", self.date_start),
                 ("date", "<=", self.date_end),
-                ("account_id", "in", account_sale_ids.ids),
+                ("account_id", "in", account_client_ids.ids),
                 ("account_id.deprecated", "=", False),
             ])
             if balances:
@@ -298,7 +298,7 @@ class AccountFiscalPeriodConfig(models.Model):
                     debit = -bal if bal < 0 else 0.0
                     credit = bal if bal > 0 else 0.0
                     line_vals.append((0, 0, {
-                        "name": _("Cierre - %s") % self.env["account.account"].browse(account_id).display_name,
+                        "name": _("%s") % self.env["account.account"].browse(account_id).display_name,
                         "account_id": account_id,
                         "debit": debit,
                         "credit": credit,
@@ -307,7 +307,7 @@ class AccountFiscalPeriodConfig(models.Model):
                 if abs(total_pl) > 0.0000001:
                     # Contrapartida a cuenta patrimonial
                     line_vals.append((0, 0, {
-                        "name": _("Resultado del ejercicio"),
+                        "name": _("%s") % self.env["account.account"].browse(self.equity_account_id.id).display_name,
                         "account_id": self.equity_account_id.id,
                         "debit": total_pl if total_pl > 0 else 0.0,
                         "credit": -total_pl if total_pl < 0 else 0.0,
@@ -316,19 +316,19 @@ class AccountFiscalPeriodConfig(models.Model):
                 account_moves.append({
                     "move_type": "entry",
                     "company_id": self.company_id.id,
-                    "date": self.date_end,
+                    "date": self.date_start,
                     "journal_id": self.journal_id.id,
-                    "ref": _("Cierre de Gestión (Clientes) de %s") % self.company_id.display_name,
+                    "ref": _("Apertura de Gestión (Clientes) de %s") % self.company_id.display_name,
                     "fiscal_period_config_id": self.id,
                     "line_ids": line_vals,
                 }) 
-        if account_expense_ids:
+        if account_proveedor_ids:
             balances = self._group_balances([
                 ("company_id", "=", self.company_id.id),
                 ("parent_state", "=", "posted"),
                 ("date", ">=", self.date_start),
                 ("date", "<=", self.date_end),
-                ("account_id", "in", account_expense_ids.ids),
+                ("account_id", "in", account_proveedor_ids.ids),
                 ("account_id.deprecated", "=", False),
             ])
 
@@ -340,7 +340,7 @@ class AccountFiscalPeriodConfig(models.Model):
                 debit = -bal if bal < 0 else 0.0
                 credit = bal if bal > 0 else 0.0
                 line_vals.append((0, 0, {
-                    "name": _("Cierre - %s") % self.env["account.account"].browse(account_id).display_name,
+                    "name": _("%s") % self.env["account.account"].browse(account_id).display_name,
                     "account_id": account_id,
                     "debit": debit,
                     "credit": credit,
@@ -349,7 +349,7 @@ class AccountFiscalPeriodConfig(models.Model):
             if abs(total_pl) > 0.0000001:
                 # Contrapartida a cuenta patrimonial
                 line_vals.append((0, 0, {
-                    "name": _("Resultado del ejercicio"),
+                    "name": _("%s") % self.env["account.account"].browse(self.equity_account_id.id).display_name,
                     "account_id": self.equity_account_id.id,
                     "debit": total_pl if total_pl > 0 else 0.0,
                     "credit": -total_pl if total_pl < 0 else 0.0,
@@ -358,9 +358,9 @@ class AccountFiscalPeriodConfig(models.Model):
             account_moves.append({
                 "move_type": "entry",
                 "company_id": self.company_id.id,
-                "date": self.date_end,
+                "date": self.date_start,
                 "journal_id": self.journal_id.id,
-                "ref": _("Cierre de Gestión (Proveedores) de %s") % self.company_id.display_name,
+                "ref": _("Apertura de Gestión (Proveedores) de %s") % self.company_id.display_name,
                 "fiscal_period_config_id": self.id,
                 "line_ids": line_vals,
             })
