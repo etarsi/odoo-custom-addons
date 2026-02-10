@@ -49,7 +49,7 @@
                 <field name="total_bultos" optional="show"/>
                 <field name="total_bultos_prepared" optional="show"/>
                 <field name="total_available_percentage" optional="show"/>
-                <field name="state_general" optional="show"/>
+                <field name="state_general"/>
             </tree>
         </field>
     </record>
