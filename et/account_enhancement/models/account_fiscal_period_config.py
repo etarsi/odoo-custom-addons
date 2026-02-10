@@ -143,7 +143,7 @@ class AccountFiscalPeriodConfig(models.Model):
         account_client_ids = None
         account_proveedor_ids = self.env['account.account'].search(['&',
                                                                     ('company_id', '=', self.company_id.id),
-                                                                    '|', '|', 
+                                                                    '|',
                                                                         ('code', '=like', '4%'), 
                                                                         ('code', '=like', '5%')])
         #generar el asiento de apertura
