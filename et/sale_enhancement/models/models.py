@@ -53,7 +53,7 @@ class SaleOrderInherit(models.Model):
     )
     is_marketing = fields.Boolean(string="Venta de Marketing", default=False)
 
-    # transfer_id = fields.Many2one(string="Transferencia", comodel_name="wms.transfer")
+    transfer_id = fields.Many2one(string="Transferencia", comodel_name="wms.transfer")
 
     def action_open_wms_transfer(self):
         self.ensure_one()
