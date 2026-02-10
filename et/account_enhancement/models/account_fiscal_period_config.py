@@ -31,10 +31,10 @@ class AccountFiscalPeriodConfig(models.Model):
     account_move_count = fields.Integer(string="Cantidad de Asientos de Cierre/Apertura", compute="_compute_account_move_count")
     
     #validar sql un registro por compañía 
-    _sql = """
-        CREATE UNIQUE INDEX account_fiscal_period_config_company_id_uniq ON account_fiscal_period_config (company_id) WHERE state != 'archived';
-    """
-    
+    _sql_constraints = [
+        ("uniq_company", "unique(company_id)", "Solo puede existir 1 configuración por empresa."),
+    ]
+
     def _compute_account_move_count(self):
         for rec in self:
             rec.account_move_count = len(rec.account_move_ids)
