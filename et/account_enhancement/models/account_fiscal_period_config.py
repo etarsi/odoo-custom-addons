@@ -118,8 +118,8 @@ class AccountFiscalPeriodConfig(models.Model):
         """Cierre al date_end: cierra ingresos/gastos del período a cuenta patrimonial.
             CREAR 4 ASIENTOS CONTABLES 2 PARA CIERRE DE GESTIÓN Y 2 PARA APERTURA DEL SIGUIENTE PERÍODO UNO PARA CUENTAS DEL 1 AL 3 Y OTRO PARA CUENTAS DEL 4 AL 5"""
         self.ensure_one()    
-        account_sale_ids = self.env['account.account'].search([('code', 'ilike', '1%'), ('code', 'ilike', '2%'), ('code', 'ilike', '3%'), ('company_id', '=', self.company_id.id)]) #cuentas que inicien con 1,2,3
-        account_expense_ids = self.env['account.account'].search([('code', 'ilike', '4%'), ('code', 'ilike', '5%'), ('company_id', '=', self.company_id.id)]) #cuentas que inicien con 4,5
+        account_sale_ids = self.env['account.account'].search(['&', ('company_id', '=', self.company_id.id), '|', '|', ('code', 'ilike', '1%'), ('code', 'ilike', '2%'), ('code', 'ilike', '3%')]) #cuentas que inicien con 1,2,3
+        account_expense_ids = self.env['account.account'].search(['&', ('company_id', '=', self.company_id.id), '|', ('code', 'ilike', '4%'), ('code', 'ilike', '5%')]) #cuentas que inicien con 4,5
         account_moves = []
         if account_sale_ids:
             balances = self._group_balances([
