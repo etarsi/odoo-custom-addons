@@ -49,10 +49,30 @@ class AccountMoveInherit(models.Model):
     #Diferencia entre debit - credit 
     balance_diff = fields.Float(string="Diferencia Debe - Haber", compute="_compute_balance_diff")
     fiscal_period_config_id = fields.Many2one("account.fiscal.period.config", string="Ejercicio de Cierre/Apertura", copy=False, readonly=True)
+    #bloqueo de contabilidad para evitar modificaciones en líneas de asiento relacionadas a los movimientos de cierre y apertura generados por el módulo
+    block_accounting = fields.Boolean(string="Bloqueo de Contabilidad", default=False, help="Si está activo, no se podrán crear ni modificar líneas de asiento relacionadas a este movimiento.")
     
     
+    #VALIDACIONES DE ASIENTOS DE CIERRE Y APERTURA PARA EVITAR MODIFICACIONES POSTERIORES
+    #@api.constrains('block_accounting') # Si se activa el bloqueo, validar que no haya líneas de asiento relacionadas a este movimiento que puedan ser modificadas
+    #def _check_block_accounting(self):
     
-    
+    #    for record in self:
+    #        if record.block_accounting:
+    #            raise ValidationError(_("Este asiento está bloqueado y no puede ser modificado."))
+
+    #def unlink(self):
+    #    for record in self:
+    #        if record.block_accounting:
+    #            raise ValidationError(_("Este asiento está bloqueado y no puede ser eliminado."))
+    #    return super().unlink()
+
+    #def write(self, vals):
+    #    for record in self:
+    #        if record.block_accounting:
+    #            raise ValidationError(_("Este asiento está bloqueado y no puede ser modificado."))
+    #    return super().write(vals)
+
     # ENVIO DE CORREO---------------------------------------------------------
     def _get_default_invoice_mail_template(self):
         """Toma una plantilla estándar si existe; si no, buscá una de account.move."""

@@ -19,11 +19,18 @@
         <field name="arch" type="xml">
             <form>
                 <header>
-                    <button name="action_generate_management_closure"
-                            type="object"
+                    <button name="action_generate_management_closure_4_5" type="object"
                             class="oe_highlight"
-                            string="Generar Cierre de Gestión"
-                    />
+                            string="Generar Asientos de Cierre 4-5"/>
+                    <button name="action_generate_management_closure_1_2_3" type="object"
+                            class="oe_highlight"
+                            string="Generar Asientos de Cierre 1-2-3"/>
+                    <button name="action_generate_opening_entries_1_2_3" type="object"
+                            class="oe_highlight"
+                            string="Generar Asientos de Apertura 1-2-3"/>
+                    <button name="action_generate_opening_entries_4_5" type="object"
+                            class="oe_highlight"
+                            string="Generar Asientos de Apertura 4-5"/>
                 </header>
                 <sheet>
                     <div name="button_box" class="oe_button_box">
@@ -34,7 +41,7 @@
                             class="oe_stat_button"
                             icon="fa-certificate">
                             <div class="o_stat_info">
-                                <span class="o_stat_text">Asientos</span>
+                                <span class="o_stat_text">Asientos Contables</span>
                                 <span class="o_stat_value">
                                     <field name="account_move_count"/>
                                 </span>
