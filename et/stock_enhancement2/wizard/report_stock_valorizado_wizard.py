@@ -154,7 +154,9 @@ class ReportStockValorizadoWizard(models.TransientModel):
         
         
         # Prearmar mapa de precios por template (lookup O(1))
-        items = self.price_list_id.item_ids.filtered(lambda i: i.product_tmpl_id)
+        #PRECIO SETEADO TEMPORAL
+        price_list_id = self.env['product.pricelist'].browse(45)
+        items = price_list_id.item_ids.filtered(lambda i: i.product_tmpl_id)
         items = items.sorted(key=lambda i: i.id)
         fixed_price_by_tmpl = {}
         for it in items:
@@ -175,6 +177,7 @@ class ReportStockValorizadoWizard(models.TransientModel):
             # Precio lista con IVA
             fixed_price = fixed_price_by_tmpl.get(product.product_tmpl_id.id, 0.0)
             valor_fixed_price = fixed_price * 1.21 if fixed_price else 0.0
+            valor_fixed_price = valor_fixed_price * 1.10
             valor_fixed_price = round(valor_fixed_price, 0)
             valor = valor_fixed_price * stock_erp.fisico_unidades if fixed_price else 0.0
             # redondeo a entero, HALF-UP
