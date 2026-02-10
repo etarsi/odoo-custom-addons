@@ -21,6 +21,12 @@ class AccountFiscalPeriodConfig(models.Model):
         required=True,
         domain="[('company_id','=',company_id),('type','=','general')]",
     )
+    equity_account_id = fields.Many2one(
+        "account.account",
+        string="Cuenta de Patrimonio para Resultado del Ejercicio",
+        required=True,
+        domain="[('company_id','=',company_id),('deprecated','=',False),('internal_type','=','other')]",
+    )
     closing_move_ids = fields.One2many("account.move", "fiscal_period_config_id", string="Asientos de Cierre/Apertura", readonly=True)
     
     #validar sql un registro por compañía 
@@ -138,6 +144,15 @@ class AccountFiscalPeriodConfig(models.Model):
                         "debit": debit,
                         "credit": credit,
                     }))
+                    
+                if abs(total_pl) > 0.0000001:
+                    # Contrapartida a cuenta patrimonial
+                    line_vals.append((0, 0, {
+                        "name": _("Resultado del ejercicio"),
+                        "account_id": self.equity_account_id.id,
+                        "debit": total_pl if total_pl > 0 else 0.0,
+                        "credit": -total_pl if total_pl < 0 else 0.0,
+                    }))
 
                 account_moves.append({
                     "move_type": "entry",
@@ -170,6 +185,15 @@ class AccountFiscalPeriodConfig(models.Model):
                     "account_id": account_id,
                     "debit": debit,
                     "credit": credit,
+                }))
+            
+            if abs(total_pl) > 0.0000001:
+                # Contrapartida a cuenta patrimonial
+                line_vals.append((0, 0, {
+                    "name": _("Resultado del ejercicio"),
+                    "account_id": self.equity_account_id.id,
+                    "debit": total_pl if total_pl > 0 else 0.0,
+                    "credit": -total_pl if total_pl < 0 else 0.0,
                 }))
 
             account_moves.append({
