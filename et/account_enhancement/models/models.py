@@ -13,7 +13,7 @@ _logger = logging.getLogger(__name__)
 class AccountMoveInherit(models.Model):
     _inherit = 'account.move'
 
-    # transfer_id = fields.Many2one(string="Transferencia", comodel_name="wms.transfer")
+    transfer_id = fields.Many2one(string="Transferencia", comodel_name="wms.transfer")
     return_move = fields.Many2one(string="Devolución", comodel_name="return.move")
     wms_code = fields.Char(string="Código WMS")
     executive_id = fields.Many2one(
@@ -207,6 +207,15 @@ class AccountMoveInherit(models.Model):
     #                 ) % internal_type)
 
     #     return moves
+
+    def unlink(self):
+        Return = self.env['return.move']
+        returns = Return.search([('credit_notes', 'in', self.ids)])
+        if returns:
+            cmds = [(3, mid) for mid in self.ids]
+            returns.write({'credit_notes': cmds})
+
+        return super().unlink()
 
     def action_post(self):
         for move in self:

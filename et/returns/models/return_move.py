@@ -36,7 +36,7 @@ class ReturnMove(models.Model):
         ('pending', 'Pendiente'), 
         ('inprogress', 'En Proceso'), 
         ('confirmed', 'Confirmado'), 
-        ('done', 'Hecho')
+        ('done', 'Completa')
     ])
     move_lines = fields.One2many('return.move.line', 'return_move', string="Devoluciones Sanas")
     price_total = fields.Float(string="Total", compute="_compute_price_total")
@@ -52,25 +52,35 @@ class ReturnMove(models.Model):
         name = f'DEV-{next_number}'
         self.name = name
 
+    def action_confirm(self):
+        for record in self:
+            record.set_name()
+            record.state = 'confirmed'
+
+    def action_draft(self):
+        for record in self:
+            record.state = 'draft'
+
     def action_create_credit_notes(self):
         AccountMove = self.env['account.move']
 
-
+        
         for rm in self:
-            rm.set_name()
+            rm.state = 'done'
             if not rm.move_lines:
                 raise UserError(_("La devolución no tiene líneas."))
 
             groups = defaultdict(list)
 
-            for line in rm.move_lines:
+            for line in rm.move_lines:               
                 if not line.invoice_line_id or not line.invoice_id:
                     line.update_prices()
 
                 if not line.invoice_line_id or not line.invoice_id:
-                    raise UserError(_(
-                        "No se encontró factura/línea de factura para el producto %s."
-                    ) % (line.product_id.display_name,))
+                    continue
+
+                if line.quantity_total == 0:
+                    continue
 
                 inv = line.invoice_id
                 if inv.move_type != 'out_invoice' or inv.state != 'posted':
@@ -80,6 +90,7 @@ class ReturnMove(models.Model):
                 groups[(company_id, inv.id)].append(line)
 
             created_moves = AccountMove
+            created_moves_ids = []
 
             for (company_id, invoice_id), return_lines in groups.items():
                 invoice = AccountMove.browse(invoice_id)
@@ -99,49 +110,23 @@ class ReturnMove(models.Model):
                 elif invoice.l10n_latam_document_type_id.code == '201':
                     document_type = self.env['l10n_latam.document.type'].browse(111)
 
-                cn = rm._create_cn_without_x2many(company, journal, document_type, invoice, return_lines)
-                cn.write({'return_move': rm.id})
+                cn = rm._create_cn_without_x2many(company, journal, invoice, document_type, return_lines)
+                created_moves_ids.append(cn.id)
                 created_moves |= cn
 
+            rm.credit_notes = [(6, 0, created_moves_ids)]
+
+            for move in created_moves:
+                if move.reversed_entry_id.l10n_latam_document_type_id.code == '201':
+                    document_type = self.env['l10n_latam.document.type'].browse(111)
+                    move.afip_fce_es_anulacion = True
+                    move.l10n_latam_document_type_id = document_type.id
+            
             return rm._action_open_credit_notes(created_moves)
 
 
-    def _assert_vals_clean(self, obj, path="vals"):
-        if isinstance(obj, BaseModel):
-            raise UserError("VALS INVÁLIDOS: recordset en %s (%s)" % (path, obj._name))
-        if isinstance(obj, dict):
-            for k, v in obj.items():
-                self._assert_vals_clean(v, "%s.%s" % (path, k))
-        elif isinstance(obj, (list, tuple)):
-            for i, v in enumerate(obj):
-                self._assert_vals_clean(v, "%s[%s]" % (path, i))
-
-
-    def _debug_find_bad_key_for_new(self, company, clean_ctx, cn_vals):
-        Move = self.env['account.move'].with_company(company).with_context(clean_ctx)
-
-        # probar de a una key
-        for k in list(cn_vals.keys()):
-            try:
-                Move.new({k: cn_vals[k]})
-            except Exception as e:
-                raise UserError("DEBUG: new() revienta con key='%s' value=%r\nERROR=%s" % (k, cn_vals[k], e))
-
-        # probar acumulativo (por si es combinación de dos)
-        acc = {}
-        for k in list(cn_vals.keys()):
-            acc[k] = cn_vals[k]
-            try:
-                Move.new(acc)
-            except Exception as e:
-                raise UserError("DEBUG: new() revienta al agregar key='%s' value=%r\nACC=%r\nERROR=%s" % (k, cn_vals[k], acc, e))
-
-        raise UserError("DEBUG: new() NO revienta con ninguna key individual (es combinación rara).")
-
-
-    def _create_cn_without_x2many(self, company, journal, document_type, invoice, return_lines):
+    def _create_cn_without_x2many(self, company, journal, invoice, document_type, return_lines):
         AccountMove = self.env['account.move']
-        AML = self.env['account.move.line']
 
         clean_ctx = dict(self.env.context)
         for k in list(clean_ctx.keys()):
@@ -176,8 +161,8 @@ class ReturnMove(models.Model):
        
         cn_vals.pop('line_ids', None)
 
-        # cn = AccountMove.with_company(company).create(cn_vals)
         cn = AccountMove.with_company(company).with_context(clean_ctx).create(cn_vals)
+
         lines_cmds = []
         for rline in return_lines:
             inv_line = rline.invoice_line_id
@@ -192,13 +177,12 @@ class ReturnMove(models.Model):
                 'product_uom_id': (inv_line.product_uom_id.id or inv_line.product_id.uom_id.id),
                 'price_unit': inv_line.price_unit or 0.0,
                 'discount': inv_line.discount or 0.0,
-                'account_id': inv_line.account_id.id,                 # importante
-                'tax_ids': [(6, 0, inv_line.tax_ids.ids or [])],      # importante
+                'account_id': inv_line.account_id.id,
+                'tax_ids': [(6, 0, inv_line.tax_ids.ids or [])],
             }))
 
         cn.write({'invoice_line_ids': lines_cmds})
 
-        # Forzar recomputes típicos de factura
         cn._recompute_dynamic_lines(recompute_all_taxes=True)
         cn._compute_amount()
 
@@ -213,6 +197,15 @@ class ReturnMove(models.Model):
         if len(credit_notes) == 1:
             action['views'] = [(self.env.ref('account.view_move_form').id, 'form')]
             action['res_id'] = credit_notes.id
+        return action
+    
+    def action_open_credit_notes(self):
+        self.ensure_one()
+        action = self.env.ref('account.action_move_out_refund_type').read()[0]
+        action['domain'] = [('id', 'in', self.credit_notes.ids)]
+        if len(self.credit_notes) == 1:
+            action['views'] = [(self.env.ref('account.view_move_form').id, 'form')]
+            action['res_id'] = self.credit_notes.id
         return action
     
 
@@ -233,105 +226,12 @@ class ReturnMove(models.Model):
         for record in self:
             record.credit_count = len(record.credit_notes)
 
-    ### ONCHANGE ###
 
     @api.onchange('partner_id')
     def _onchange_partner_id(self):
         for record in self:
             if record.move_lines:
                 record.move_lines.update_prices()
-
-
-    def action_send_return(self):        
-        for record in self:
-            
-            next_number = self.env['ir.sequence'].sudo().next_by_code('DEV')
-            headers = {
-                "Content-Type": "application/json",
-                "Accept": "application/json",
-            }
-
-            provider = record.get_current_provider(record.partner_id)
-
-            payload = {
-                "Numero": f'R{next_number}',
-                "Factura": "",
-                "Fecha": str(record.date),
-                "CodigoProveedor": provider['code'],
-                "Proveedor": provider['name'],
-                "Observacion": "Prueba de Odoo",
-                "DocumentoRecepcionTipo": "remito",
-                "RecepcionTipo": "devolucion",
-                "DocumentoRecepcionDetalleRequest": [
-                ]
-            }          
-            
-            
-            headers["x-api-key"] = self.env['ir.config_parameter'].sudo().get_param('digipwms.key')
-            response = requests.post('http://api.patagoniawms.com/v1/DocumentoRecepcion', headers=headers, json=payload)
-
-            if response.status_code == 200:
-                record.state = 'inprogress'
-                record.wms_code = f'R{next_number}'
-                record.name = record.get_document_name(next_number)
-            else:
-                raise UserError(f'Error code: {response.status_code} - Error Msg: {response.text}')
-
-
-    def get_current_provider(self, partner_id):
-        current_provider = {
-            'code': "",
-            'name': "",
-        }
-        
-        providers = self.get_providers()
-
-        for p in providers:
-                if p['Activo']:
-                    if p['Descripcion'] == partner_id.name:
-                        current_provider['code'] = p['Codigo']
-                        current_provider['name'] = p['Descripcion']
-                        return current_provider
-
-        if not current_provider['code']:        
-            current_provider = self.create_provider(partner_id)
-            return current_provider
-            
-
-    def get_providers(self):
-        
-        headers = {}
-        headers["x-api-key"] = self.env['ir.config_parameter'].sudo().get_param('digipwms.key')
-        
-        response = requests.get('http://api.patagoniawms.com/v1/Proveedor', headers=headers)
-
-        if response.status_code == 200:
-            data = response.json()
-            return data        
-        else:
-            raise UserError(f'No se pudo obtener los proveedores de Digip. STATUS_CODE: {response.status_code}')
-
-
-    def create_provider(self, provider):
-        current_provider = {}
-        headers = {}
-        headers["x-api-key"] = self.env['ir.config_parameter'].sudo().get_param('digipwms.key')
-        payload = {
-                "Codigo": str(provider.id),
-                "Descripcion": provider.name,
-                "RequiereControlCiego": True,
-                "Activo": True,
-                }
-        response = requests.post('http://api.patagoniawms.com/v1/Proveedor', headers=headers, json=payload)
-
-        if response.status_code == 204:
-            current_provider['code'] = provider.id
-            current_provider['name'] = provider.name
-
-            return current_provider
-        else:
-            raise UserError(f'No se pudo crear el proveedor en Digip. STATUS_CODE: {response.status_code}')
-        
 
 
     def get_document_name(self, next_number):
@@ -371,14 +271,23 @@ class ReturnMoveLine(models.Model):
         for record in res:
             record.update_prices()
             record._compute_subtotal()
-            record._onchang_product_uxb()
+            record._onchange_product_uxb()
             record._compute_bultos()
 
         return res
 
 
     @api.onchange('product_id')
-    def _onchang_product_uxb(self):
+    def _onchange_product_id(self):
+        for record in self:
+            if record.product_id:
+                record.update_prices()                
+                record._compute_subtotal()
+                record._onchange_product_uxb()
+                record._compute_bultos()
+
+    @api.onchange('product_id')
+    def _onchange_product_uxb(self):
         for record in self:
             if record.product_id:
                 record.uxb = record.get_product_uxb(record.product_id)
@@ -390,11 +299,12 @@ class ReturnMoveLine(models.Model):
             record.quantity_total = record.quantity_healthy + record.quantity_broken
 
     
-    @api.depends('price_unit', 'quantity_total', 'discount')
+    @api.depends('price_unit', 'quantity_total', 'discount', 'product_id')
     def _compute_subtotal(self):
         for record in self:
-            record.price_subtotal = record.price_unit * record.quantity_total * record.discount / 100
-    
+            subtotal = record.price_unit * record.quantity_total
+            record.price_subtotal = subtotal * (1 - (record.discount or 0.0) / 100)
+
 
     def update_prices(self):
         for record in self:
@@ -406,17 +316,6 @@ class ReturnMoveLine(models.Model):
                     record.price_unit = record.invoice_line_id.price_unit
                     record.discount = record.invoice_line_id.discount                
                     record.company_id = record.invoice_line_id.company_id.id
-
-
-                # CONDICIONAL A REVISAR
-                # if record.invoice_line_id.company_id.id == 1:
-                #     record.price_unit = record.invoice_line_id.price_unit / 1.21
-                #     record.company_id = 2
-                #     record.discount = record.invoice_line_id.discount
-                # else:
-                #     record.price_unit = record.invoice_line_id.price_unit
-                #     record.company_id = record.invoice_line_id.company_id.id
-                #     record.discount = record.invoice_line_id.discount
 
 
     def get_last_invoice_line(self):

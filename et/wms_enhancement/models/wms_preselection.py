@@ -1,4 +1,5 @@
 from odoo import models, fields, api
+from odoo.exceptions import AccessError, UserError, ValidationError
 
 
 class WMSPreselection(models.Model):
@@ -62,7 +63,7 @@ class WMSPreselection(models.Model):
                     'state': 'pending',
                     'invoice_state': 'no',
                     'sale_line_id': line.id,
-                    'uxb': line.product_packaging_id.qty or False,
+                    'uxb': line.product_packaging_id.qty or 0,
                     'qty_demand': line.quantity,
                 }
                 transfer_lines_vals_list.append(transfer_line)
@@ -72,7 +73,18 @@ class WMSPreselection(models.Model):
             record.transfer_id = transfer_id.id
             record.state = 'confirmed'
 
-
+    def action_open_wms_transfer(self):
+        self.ensure_one()
+        if not self.transfer_id:
+            raise UserError(_("No hay una Transferencia asociada."))
+        return {
+            'type': 'ir.actions.act_window',
+            'name': _('Transferencia WMS'),
+            'res_model': 'wms.transfer',
+            'view_mode': 'form',
+            'res_id': self.transfer_id.id,
+            'target': 'current',
+        }
 
 class WMSPreselectionLine(models.Model):
     _name = 'wms.preselection.line'
