@@ -27,13 +27,27 @@ class AccountFiscalPeriodConfig(models.Model):
         required=True,
         domain="[('company_id','=',company_id),('deprecated','=',False),('internal_type','=','other')]",
     )
-    closing_move_ids = fields.One2many("account.move", "fiscal_period_config_id", string="Asientos de Cierre/Apertura", readonly=True)
+    account_move_ids = fields.One2many("account.move", "fiscal_period_config_id", string="Asientos de Cierre/Apertura", readonly=True)
+    account_move_count = fields.Integer(string="Cantidad de Asientos de Cierre/Apertura", compute="_compute_account_move_count")
     
     #validar sql un registro por compañía 
     _sql = """
         CREATE UNIQUE INDEX account_fiscal_period_config_company_id_uniq ON account_fiscal_period_config (company_id) WHERE state != 'archived';
     """
     
+    def _compute_account_move_count(self):
+        for rec in self:
+            rec.account_move_count = len(rec.account_move_ids)
+            
+    def action_view_account_moves(self):
+        self.ensure_one()
+        return {
+            "name": _("Asientos de Cierre/Apertura"),
+            "type": "ir.actions.act_window",
+            "res_model": "account.move",
+            "view_mode": "tree,form",
+            "domain": [("fiscal_period_config_id", "=", self.id)],
+        }
 
     @api.constrains("date_start", "date_end")
     def _check_dates(self):
@@ -121,14 +135,14 @@ class AccountFiscalPeriodConfig(models.Model):
         account_sale_ids = self.env['account.account'].search(['&',
                                                                     ('company_id', '=', self.company_id.id),
                                                                     '|', '|', 
-                                                                        ('code', '=ilike', '1%'), 
-                                                                        ('code', '=ilike', '2%'), 
-                                                                        ('code', '=ilike', '3%')])
+                                                                        ('code', '=like', '1%'), 
+                                                                        ('code', '=like', '2%'), 
+                                                                        ('code', '=like', '3%')])
         account_expense_ids = self.env['account.account'].search(['&',
                                                                         ('company_id', '=', self.company_id.id), 
                                                                         '|', 
-                                                                            ('code', '=ilike', '4%'), 
-                                                                            ('code', '=ilike', '5%')])
+                                                                            ('code', '=like', '4%'), 
+                                                                            ('code', '=like', '5%')])
         account_moves = []
         if account_sale_ids:
             balances = self._group_balances([
