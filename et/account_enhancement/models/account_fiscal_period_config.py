@@ -23,7 +23,10 @@ class AccountFiscalPeriodConfig(models.Model):
     )
     closing_move_ids = fields.One2many("account.move", "fiscal_period_config_id", string="Asientos de Cierre/Apertura", readonly=True)
     
-    
+    #validar sql un registro por compañía 
+    _sql = """
+        CREATE UNIQUE INDEX account_fiscal_period_config_company_id_uniq ON account_fiscal_period_config (company_id) WHERE state != 'archived';
+    """
     
 
     @api.constrains("date_start", "date_end")
@@ -32,38 +35,6 @@ class AccountFiscalPeriodConfig(models.Model):
             if rec.date_start and rec.date_end and rec.date_start > rec.date_end:
                 raise ValidationError(_("La fecha inicio no puede ser mayor que fecha fin."))
 
-    def _validate_no_overlap(self):
-        for rec in self:
-            if not rec.date_start or not rec.date_end:
-                continue
-            overlapping = self.search([
-                ("id", "!=", rec.id),
-                ("company_id", "=", rec.company_id.id),
-                ("state", "!=", "archived"),
-                ("date_start", "<=", rec.date_end),
-                ("date_end", ">=", rec.date_start),
-            ], limit=1)
-            if overlapping:
-                raise ValidationError(_("El período se superpone con otro período existente (%s - %s).") % (overlapping.date_start, overlapping.date_end))
-
-    @api.model_create_multi
-    def create(self, vals_list):
-        records = super().create(vals_list)
-        records._validate_no_overlap()
-        return records
-
-    def unlink(self):
-        for rec in self:
-            if rec.state != "draft":
-                raise UserError(_("Solo se pueden eliminar períodos en estado Borrador."))
-        return super().unlink()
-    
-    def write(self, vals):
-        res = super().write(vals)
-        if "date_start" in vals or "date_end" in vals:
-            self._validate_no_overlap()
-        return res
-    
     # ---------------------------
     # API utilitaria para bloqueos
     # ---------------------------

@@ -9,7 +9,6 @@
                 <field name="date_start"/>
                 <field name="date_end"/>
                 <field name="journal_id"/>
-                <field name="state" widget="badge" decoration-info="state == 'draft'" decoration-success="state == 'open'" decoration-danger="state == 'closed'" decoration-muted="state == 'archived'"/>
             </tree>
         </field>
     </record>
@@ -24,14 +23,7 @@
                             type="object"
                             class="oe_highlight"
                             string="Generar Cierre de Gestión"
-                            states="open"/>
-
-                    <button name="action_generate_management_open"
-                            type="object"
-                            class="oe_highlight"
-                            string="Generar Apertura de Gestión"
-                            states="draft"/>
-                    <field name="state" widget="statusbar" statusbar_visible="open,closed"/>
+                    />
                 </header>
                 <sheet>
                     <group>
