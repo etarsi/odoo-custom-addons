@@ -108,56 +108,10 @@ class AccountFiscalPeriodConfig(models.Model):
                 result.append((account_id, balance))
         return result
 
-    def _prepare_opening_move_vals(self):
-        """Apertura al date_start: saldos BS acumulados hasta date_start - 1 día."""
-        self.ensure_one()
-        prev_day = self.date_start - timedelta(days=1)
-
-        balances = self._group_balances([
-            ("company_id", "=", self.company_id.id),
-            ("parent_state", "=", "posted"),
-            ("date", "<=", prev_day),
-            ("account_id.internal_group", "in", ("asset", "liability", "equity")),
-            ("account_id.deprecated", "=", False),
-        ])
-
-        line_vals = []
-        total_balance = 0.0
-        for account_id, bal in balances:
-            total_balance += bal
-            debit = bal if bal > 0 else 0.0
-            credit = -bal if bal < 0 else 0.0
-            line_vals.append((0, 0, {
-                "name": _("Apertura"),
-                "account_id": account_id,
-                "debit": debit,
-                "credit": credit,
-            }))
-
-        # Si por datos inconsistentes no balancea, ajusta contra cuenta patrimonial definida
-        if abs(total_balance) > 0.0000001:
-            line_vals.append((0, 0, {
-                "name": _("Ajuste de apertura"),
-                "debit": -total_balance if total_balance < 0 else 0.0,
-                "credit": total_balance if total_balance > 0 else 0.0,
-            }))
-
-        return {
-            "move_type": "entry",
-            "company_id": self.company_id.id,
-            "date": self.date_start,
-            "journal_id": self.journal_id.id,
-            "ref": _("Apertura %s") % self.company_id.display_name,
-            "line_ids": line_vals,
-        }
-
     def _prepare_move_vals(self):
         """Cierre al date_end: cierra ingresos/gastos del período a cuenta patrimonial.
             CREAR 4 ASIENTOS CONTABLES 2 PARA CIERRE DE GESTIÓN Y 2 PARA APERTURA DEL SIGUIENTE PERÍODO UNO PARA CUENTAS DEL 1 AL 3 Y OTRO PARA CUENTAS DEL 4 AL 5"""
-        self.ensure_one()
-
-    
-    
+        self.ensure_one()    
         account_sale_ids = self.env['account.account'].search([('code', 'ilike', '1%'), ('code', 'ilike', '2%'), ('code', 'ilike', '3%')]) #cuentas que inicien con 1,2,3
         account_expense_ids = self.env['account.account'].search([('code', 'ilike', '4%'), ('code', 'ilike', '5%')]) #cuentas que inicien con 4,5
         account_moves = []
@@ -183,14 +137,6 @@ class AccountFiscalPeriodConfig(models.Model):
                         "account_id": account_id,
                         "debit": debit,
                         "credit": credit,
-                    }))
-
-                if abs(total_pl) > 0.0000001:
-                    # Contrapartida a cuenta patrimonial
-                    line_vals.append((0, 0, {
-                        "name": _("Cierre - Resultado del período"),
-                        "debit": total_pl if total_pl > 0 else 0.0,
-                        "credit": -total_pl if total_pl < 0 else 0.0,
                     }))
 
                 account_moves.append({
@@ -226,13 +172,6 @@ class AccountFiscalPeriodConfig(models.Model):
                     "credit": credit,
                 }))
 
-            if abs(total_pl) > 0.0000001:
-                # Contrapartida a cuenta patrimonial
-                line_vals.append((0, 0, {
-                    "name": _("Cierre - Resultado del período"),
-                    "debit": total_pl if total_pl > 0 else 0.0,
-                    "credit": -total_pl if total_pl < 0 else 0.0,
-                }))
             account_moves.append({
                 "move_type": "entry",
                 "company_id": self.company_id.id,
