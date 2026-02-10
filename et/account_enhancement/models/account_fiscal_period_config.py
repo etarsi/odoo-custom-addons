@@ -15,12 +15,6 @@ class AccountFiscalPeriodConfig(models.Model):
     )
     date_start = fields.Date(string="Fecha Inicio", required=True, default=lambda self: fields.Date.to_string(fields.Date.today().replace(month=1, day=1)), index=True)
     date_end = fields.Date(string="Fecha Fin", required=True, default=lambda self: fields.Date.to_string(fields.Date.today().replace(month=12, day=31)), index=True)
-    state = fields.Selection(
-        [("draft", "Borrador"), 
-        ("open", "Gestión Activa"),
-        ("closed", "Gestión Finalizada"),
-        ("archived", "Archivada")],
-        default="draft", string="Estado", required=True, index=True)
     journal_id = fields.Many2one(
         "account.journal",
         string="Diario de Cierre/Apertura",
@@ -108,22 +102,19 @@ class AccountFiscalPeriodConfig(models.Model):
     def action_generate_management_closure(self):
         self.ensure_one()
         #generar el asiento de cierre
-        closing_move_vals = self._prepare_closing_move_vals()
-        self.write({"state": "closed"})
-        closing_move = self.env["account.move"].create(closing_move_vals)
-        
+        move_vals = self._prepare_move_vals()
+        if move_vals:
+            for vals in move_vals:
+                self.env["account.move"].create(vals)
+
         return {
-            "name": _("Asiento de Cierre de Gestión"),
+            "name": _("Asiento de Apertura/Cierre de Gestión"),
             "type": "ir.actions.act_window",
             "res_model": "account.move",
-            "view_mode": "form",
-            "res_id": closing_move.id,
+            "view_mode": "tree,form",
+            "domain": [("fiscal_period_config_id", "=", self.id)],  
         }
     
-    def action_generate_management_open(self):
-        self.write({"state": "open"})
-        return True
-
     # ---------------------------
     # Asientos apertura / cierre
     # ---------------------------
@@ -189,47 +180,96 @@ class AccountFiscalPeriodConfig(models.Model):
             "line_ids": line_vals,
         }
 
-    def _prepare_closing_move_vals(self):
-        """Cierre al date_end: cierra ingresos/gastos del período a cuenta patrimonial."""
+    def _prepare_move_vals(self):
+        """Cierre al date_end: cierra ingresos/gastos del período a cuenta patrimonial.
+            CREAR 4 ASIENTOS CONTABLES 2 PARA CIERRE DE GESTIÓN Y 2 PARA APERTURA DEL SIGUIENTE PERÍODO UNO PARA CUENTAS DEL 1 AL 3 Y OTRO PARA CUENTAS DEL 4 AL 5"""
         self.ensure_one()
 
-        balances = self._group_balances([
-            ("company_id", "=", self.company_id.id),
-            ("parent_state", "=", "posted"),
-            ("date", ">=", self.date_start),
-            ("date", "<=", self.date_end),
-            ("account_id.internal_group", "in", ("income", "expense")),
-            ("account_id.deprecated", "=", False),
-        ])
+    
+    
+        account_sale_ids = self.env['account.account'].search([('code', 'ilike', '1%'), ('code', 'ilike', '2%'), ('code', 'ilike', '3%')]) #cuentas que inicien con 1,2,3
+        account_expense_ids = self.env['account.account'].search([('code', 'ilike', '4%'), ('code', 'ilike', '5%')]) #cuentas que inicien con 4,5
+        account_moves = []
+        if account_sale_ids:
+            balances = self._group_balances([
+                ("company_id", "=", self.company_id.id),
+                ("parent_state", "=", "posted"),
+                ("date", ">=", self.date_start),
+                ("date", "<=", self.date_end),
+                ("account_id", "in", account_sale_ids.ids),
+                ("account_id.deprecated", "=", False),
+            ])
+            if balances:
+                line_vals = []
+                total_pl = 0.0
+                for account_id, bal in balances:
+                    total_pl += bal
+                    # Línea opuesta para dejar la cuenta P&L en cero
+                    debit = -bal if bal < 0 else 0.0
+                    credit = bal if bal > 0 else 0.0
+                    line_vals.append((0, 0, {
+                        "name": _("Cierre - %s") % self.env["account.account"].browse(account_id).display_name,
+                        "account_id": account_id,
+                        "debit": debit,
+                        "credit": credit,
+                    }))
 
-        line_vals = []
-        total_pl = 0.0
-        for account_id, bal in balances:
-            total_pl += bal
-            # Línea opuesta para dejar la cuenta P&L en cero
-            debit = -bal if bal < 0 else 0.0
-            credit = bal if bal > 0 else 0.0
-            line_vals.append((0, 0, {
-                "name": _("Cierre - %s") % self.env["account.account"].browse(account_id).display_name,
-                "account_id": account_id,
-                "debit": debit,
-                "credit": credit,
-            }))
+                if abs(total_pl) > 0.0000001:
+                    # Contrapartida a cuenta patrimonial
+                    line_vals.append((0, 0, {
+                        "name": _("Cierre - Resultado del período"),
+                        "debit": total_pl if total_pl > 0 else 0.0,
+                        "credit": -total_pl if total_pl < 0 else 0.0,
+                    }))
 
-        if abs(total_pl) > 0.0000001:
-            # Contrapartida a cuenta patrimonial
-            line_vals.append((0, 0, {
-                "name": _("Cierre - Resultado del período"),
-                "debit": total_pl if total_pl > 0 else 0.0,
-                "credit": -total_pl if total_pl < 0 else 0.0,
-            }))
+                account_moves.append({
+                    "move_type": "entry",
+                    "company_id": self.company_id.id,
+                    "date": self.date_end,
+                    "journal_id": self.journal_id.id,
+                    "ref": _("Cierre de Gestión (Clientes) de %s") % self.company_id.display_name,
+                    "fiscal_period_config_id": self.id,
+                    "line_ids": line_vals,
+                }) 
+        if account_expense_ids:
+            balances = self._group_balances([
+                ("company_id", "=", self.company_id.id),
+                ("parent_state", "=", "posted"),
+                ("date", ">=", self.date_start),
+                ("date", "<=", self.date_end),
+                ("account_id", "in", account_expense_ids.ids),
+                ("account_id.deprecated", "=", False),
+            ])
 
-        return {
-            "move_type": "entry",
-            "company_id": self.company_id.id,
-            "date": self.date_end,
-            "journal_id": self.journal_id.id,
-            "ref": _("Cierre %s") % self.company_id.display_name,
-            "fiscal_period_config_id": self.id,
-            "line_ids": line_vals,
-        }
+            line_vals = []
+            total_pl = 0.0
+            for account_id, bal in balances:
+                total_pl += bal
+                # Línea opuesta para dejar la cuenta P&L en cero
+                debit = -bal if bal < 0 else 0.0
+                credit = bal if bal > 0 else 0.0
+                line_vals.append((0, 0, {
+                    "name": _("Cierre - %s") % self.env["account.account"].browse(account_id).display_name,
+                    "account_id": account_id,
+                    "debit": debit,
+                    "credit": credit,
+                }))
+
+            if abs(total_pl) > 0.0000001:
+                # Contrapartida a cuenta patrimonial
+                line_vals.append((0, 0, {
+                    "name": _("Cierre - Resultado del período"),
+                    "debit": total_pl if total_pl > 0 else 0.0,
+                    "credit": -total_pl if total_pl < 0 else 0.0,
+                }))
+            account_moves.append({
+                "move_type": "entry",
+                "company_id": self.company_id.id,
+                "date": self.date_end,
+                "journal_id": self.journal_id.id,
+                "ref": _("Cierre de Gestión (Proveedores) de %s") % self.company_id.display_name,
+                "fiscal_period_config_id": self.id,
+                "line_ids": line_vals,
+            }) 
+
+        return account_moves
