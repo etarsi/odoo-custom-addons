@@ -22,12 +22,12 @@ class ReportStockValorizadoWizard(models.TransientModel):
     @api.model
     def default_get(self, fields_list):
         res = super().default_get(fields_list)
-        default_pricelist = self.env['product.pricelist'].search([('is_default', '=', True)], limit=1)
+        default_pricelist = self.env['product.pricelist'].browse(45)
         res['price_list_id'] = default_pricelist.id if default_pricelist else False
         return res    
 
     def _compute_default_price_list(self):
-        default_pricelist = self.env['product.pricelist'].search([('is_default', '=', True)], limit=1)
+        default_pricelist = self.env['product.pricelist'].browse(45)
         if not default_pricelist:
             raise ValidationError("No se encontró una lista de precios por defecto. Por favor, configure una lista de precios como predeterminada.")
         self.price_list_id = default_pricelist
