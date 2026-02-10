@@ -41,7 +41,6 @@
                 <field name="container"/>
                 <field name="dispatch"/>
 
-                <separator/>
 
                 <!-- Estados -->
                 <!-- <filter string="Borrador" name="st_draft" domain="[('state','=','draft')]"/>
