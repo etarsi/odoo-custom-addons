@@ -52,7 +52,6 @@ class SaleOrderInherit(models.Model):
         readonly=True,
     )
     is_marketing = fields.Boolean(string="Venta de Marketing", default=False)
-
     transfer_id = fields.Integer(string="Transferencia")
 
     #def action_open_wms_transfer(self):
@@ -216,9 +215,11 @@ class SaleOrderInherit(models.Model):
             if record.pricelist_id:
                 if record.is_marketing and not record.pricelist_id.is_marketing:
                     raise UserError("La lista de precios seleccionada no corresponde a Marketing.")
+                elif record.pricelist_id.list_default_b and record.condicion_m2m.name != 'TIPO 3':
+                    raise UserError("La lista de precios seleccionada solo corresponde a pedidos con condición de venta TIPO 3.")
                 record.update_lines_prices()
 
-    @api.onchange('condicion_m2m')
+    @api.onchange('condicion_m2m', 'is_marketing')
     def _onchange_condicion_m2m(self):
         for record in self:
             if record.is_marketing:
@@ -242,6 +243,7 @@ class SaleOrderInherit(models.Model):
                 pricelist = self.env['product.pricelist'].search([('list_default_b','=', True)])
                 if pricelist:
                     record.pricelist_id = pricelist.id
+                    record.company_id = self.env['res.company'].browse(1) # Forzar compañía Producción B
                     discounts = {}
 
                     for line in record.order_line:
@@ -259,6 +261,7 @@ class SaleOrderInherit(models.Model):
                 pricelist = self.env['product.pricelist'].search([('is_default','=', True)])
                 if pricelist:
                     record.pricelist_id = pricelist.id
+                    record.update_prices()
                 else:
                     raise UserError("No se encontró precio de lista por defecto")
 
