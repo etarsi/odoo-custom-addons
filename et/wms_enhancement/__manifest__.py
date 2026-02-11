@@ -27,7 +27,7 @@
         # 'security/ir.model.access.csv',
         'views/transfer_views.xml',
         'views/task_views.xml',
-        #'views/sale_order_views.xml',
+        'views/sale_order_views.xml',
         # 'views/preselection_views.xml',
         'views/menus.xml',
     ],

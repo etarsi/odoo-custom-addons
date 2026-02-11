@@ -52,7 +52,6 @@ class SaleOrderInherit(models.Model):
         readonly=True,
     )
     is_marketing = fields.Boolean(string="Venta de Marketing", default=False)
-    transfer_id = fields.Integer(string="Transferencia")
 
     #def action_open_wms_transfer(self):
     #    self.ensure_one()
