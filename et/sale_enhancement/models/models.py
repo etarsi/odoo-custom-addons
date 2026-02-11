@@ -53,19 +53,19 @@ class SaleOrderInherit(models.Model):
     )
     is_marketing = fields.Boolean(string="Venta de Marketing", default=False)
 
-    #def action_open_wms_transfer(self):
-    #    self.ensure_one()
-    #    if not self.transfer_id:
-    #        return False
+    def action_open_wms_transfer(self):
+       self.ensure_one()
+       if not self.transfer_id:
+           return False
 
-    #    return {
-    #        'type': 'ir.actions.act_window',
-    #        'name': _('Transferencia WMS'),
-    #        'res_model': 'wms.transfer',
-    #        'view_mode': 'form',
-    #        'res_id': self.transfer_id.id,
-    #        'target': 'current',
-    #    }
+       return {
+           'type': 'ir.actions.act_window',
+           'name': _('Transferencia WMS'),
+           'res_model': 'wms.transfer',
+           'view_mode': 'form',
+           'res_id': self.transfer_id.id,
+           'target': 'current',
+       }
 
     def pasar_a_tipo1_seb(self):
         for record in self:
