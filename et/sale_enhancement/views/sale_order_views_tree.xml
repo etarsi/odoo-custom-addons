@@ -24,7 +24,7 @@
                     <attribute name="invisible">1</attribute>
                 </xpath>
                 <!-- agregar company_id debajo de sale_order_template_id -->
-                <xpath expr="//field[@name='sale_order_template_id']" position="after">
+                <xpath expr="//field[@name='partner_shipping_id']" position="after">
                     <field name="company_id" string="Compañía" options="{'no_create': True, 'no_create_edit': True}" attrs="{'readonly': [('state', 'in', ['sale', 'done', 'cancel'])]}"/>
                     <field name="is_marketing" string="Venta Marketing" attrs="{'readonly': [('state', 'in', ['sale', 'done', 'cancel'])]}" />
                 </xpath>
@@ -32,9 +32,12 @@
                 <xpath expr="//field[@name='order_line']/tree/field[@name='product_id']" position="attributes">
                     <attribute name="attrs">{'column_invisible': [('parent.state', 'in', ['sale','done','cancel'])]}</attribute>
                 </xpath>
-                <xpath expr="//field[@name='order_line']/tree/field[@name='product_template_id']" position="attributes">
-                    <attribute name="attrs">{'column_invisible': [('parent.state', 'in', ['sale','done','cancel'])]}</attribute>
-                </xpath> -->
+                -->
+                <xpath expr="//field[@name='payment_term_id']" position="after">
+                    <field name="condicion_m2m" options="{'no_create': True, 'no_create_edit': True}" attrs="{'readonly':[('state','=','sale')], 'required': True}"/>			    
+                    <field name="global_discount" string="Descuento"/>
+                    <field name="special_price" attrs="{'readonly': [('state', '=', 'sale')]}"/>
+                </xpath>
             </field>
         </record>
 
