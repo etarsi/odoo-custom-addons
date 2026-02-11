@@ -584,19 +584,6 @@ class SaleOrderInherit(models.Model):
             
         return res
 
-    def action_open_wms_transfer(self):
-        self.ensure_one()
-        return True
-    #    if not self.transfer_id:
-    #        raise UserError(_("No hay una Transferencia asociada."))
-    #    return {
-    #        'type': 'ir.actions.act_window',
-    #        'name': _('Transferencia WMS'),
-    #        'res_model': 'wms.transfer',
-    #        'view_mode': 'form',
-    #        'res_id': self.transfer_id.id,
-    #        'target': 'current',
-    #    }
 
     def update_prices(self):
         self.ensure_one()
