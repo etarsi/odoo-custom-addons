@@ -579,8 +579,9 @@ class SaleOrderInherit(models.Model):
             
         return res
 
-    #def action_open_wms_transfer(self):
-    #    self.ensure_one()
+    def action_open_wms_transfer(self):
+        self.ensure_one()
+        return True
     #    if not self.transfer_id:
     #        raise UserError(_("No hay una Transferencia asociada."))
     #    return {
