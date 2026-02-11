@@ -34,7 +34,7 @@
         ],  
     },
     # any module necessary for this one to work correctly
-    'depends': ['base', 'web', 'account', 'web_refresher', 'account_check_printing', 'account_payment_group', 'l10n_latam_check', 'l10n_ar', 'l10n_ar_reports','l10n_ar_afipws_fe', 'mail', 'sale', 'product', 'l10n_ar_ux', 'account_financial_report'],
+    'depends': ['base', 'web', 'account', 'web_refresher', 'account_check_printing', 'account_payment_group', 'l10n_latam_check', 'l10n_ar', 'l10n_ar_reports','l10n_ar_afipws_fe', 'mail', 'sale', 'product', 'l10n_ar_ux', 'account_financial_report', 'account_report', 'account_fiscal_period', 'account_payment_order', 'account_payment_group', 'account_bank_statement_import', 'account_bank_statement_import_sepa', 'account_bank_statement_import_csv', 'account_bank_statement_import_ofx', 'account_bank_statement_import_qif', 'account_bank_statement_import_csv_generic', 'sale_enhancement'],
 
     # always loaded
     'data': [
