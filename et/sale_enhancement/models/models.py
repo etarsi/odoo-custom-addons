@@ -217,6 +217,8 @@ class SaleOrderInherit(models.Model):
                     raise UserError("La lista de precios seleccionada no corresponde a Marketing.")
                 elif record.pricelist_id.list_default_b and record.condicion_m2m.name != 'TIPO 3':
                     raise UserError("La lista de precios seleccionada solo corresponde a pedidos con condición de venta TIPO 3.")
+                elif record.pricelist_id.is_default and (record.is_marketing or record.condicion_m2m.name == 'TIPO 3'):
+                    raise UserError("La lista de precios por defecto no corresponde a la condición de venta o tipo de pedido seleccionado.")
                 record.update_lines_prices()
 
     @api.onchange('condicion_m2m', 'is_marketing')
