@@ -2,13 +2,12 @@
 <odoo>
 
     <!-- =========================================================
-        WMS TRANSFER - ACTION
+        WMS TRANSFER - ACTION         <field name="search_view_id" ref="view_wms_transfer_search"/>
     ========================================================== -->
     <record id="action_wms_transfer" model="ir.actions.act_window">
         <field name="name">Transferencias</field>
         <field name="res_model">wms.transfer</field>
         <field name="view_mode">tree,form</field>
-        <field name="search_view_id" ref="view_wms_transfer_search"/>
         <field name="context">{}</field>
         <field name="help" type="html">
             <p class="o_view_nocontent_smiling_face">
