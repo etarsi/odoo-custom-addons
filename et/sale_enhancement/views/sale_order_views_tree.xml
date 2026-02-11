@@ -2,8 +2,8 @@
 <odoo>
     <data>
         <!-- Heredar la vista de formulario de sale.order -->
-        <record id="view_order_form_company_default" model="ir.ui.view">
-            <field name="name">sale.order.form.company.default</field>
+        <record id="view_order_form_enhancement" model="ir.ui.view">
+            <field name="name">sale.order.form.enhancement.view</field>
             <field name="model">sale.order</field>
             <field name="inherit_id" ref="sale.view_order_form"/>
             <field name="arch" type="xml">

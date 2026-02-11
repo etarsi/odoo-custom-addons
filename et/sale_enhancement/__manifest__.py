@@ -20,7 +20,7 @@
     'version': '0.1',
 
     # any module necessary for this one to work correctly
-    'depends': ['base', 'sale', 'delivery', 'sebigus-split-orders', 'stock_enhancement2', 'product', 'stock', 'contacts', 'wms_enhancement'],
+    'depends': ['base', 'sale', 'delivery', 'sebigus-split-orders', 'stock_enhancement2', 'product', 'stock', 'contacts'],
 
     # always loaded
     'data': [
@@ -38,7 +38,6 @@
         'views/product_template_views.xml',
         'views/product_pricelist_view.xml',
         'views/sale_order_views_tree.xml',
-        #'views/transfer_view.xml',
     ],
     # only loaded in demonstration mode
     'demo': [

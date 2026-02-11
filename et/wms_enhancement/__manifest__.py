@@ -20,15 +20,15 @@
     'version': '0.1',
 
     # any module necessary for this one to work correctly
-    'depends': ['base', 'sale'],
+    'depends': ['base', 'sale_enhancement', 'account_enhancement'],
 
     # always loaded
     'data': [
         # 'security/ir.model.access.csv',
         'views/transfer_views.xml',
         'views/task_views.xml',
-        'views/sale_order_views.xml',
-        'views/preselection_views.xml',
+        #'views/sale_order_views.xml',
+        # 'views/preselection_views.xml',
         'views/menus.xml',
     ],
     # only loaded in demonstration mode
