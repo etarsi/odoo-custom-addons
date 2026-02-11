@@ -17,7 +17,7 @@
                     
                 </xpath>
                 <!-- En el button box de Odoo -->
-                <xpath expr="//sheet/div[@name='button_box']" position="inside">
+                <!-- <xpath expr="//sheet/div[@name='button_box']" position="inside">
                     <field name="transfer_id" invisible="1"/>
                     <button type="object"
                             name="action_open_wms_transfer"
@@ -28,7 +28,7 @@
                             <span class="o_stat_text">Transferencia</span>
                         </div>
                     </button>
-                </xpath>
+                </xpath>-->
                 <xpath expr="//page[@name='other_information']//field[@name='company_id']" position="after">
                     <field name="company_default" string="Compañía Forzada" options="{'no_create': True, 'no_create_edit': True}" attrs="{'readonly': [('state', 'in', ['sale', 'done', 'cancel'])]}"/>
                 </xpath>

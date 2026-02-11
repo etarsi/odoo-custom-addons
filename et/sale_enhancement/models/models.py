@@ -53,21 +53,21 @@ class SaleOrderInherit(models.Model):
     )
     is_marketing = fields.Boolean(string="Venta de Marketing", default=False)
 
-    transfer_id = fields.Many2one(string="Transferencia", comodel_name="wms.transfer")
+    #transfer_id = fields.Many2one(string="Transferencia", comodel_name="wms.transfer")
 
-    def action_open_wms_transfer(self):
-        self.ensure_one()
-        if not self.transfer_id:
-            return False
+    #def action_open_wms_transfer(self):
+    #    self.ensure_one()
+    #    if not self.transfer_id:
+    #        return False
 
-        return {
-            'type': 'ir.actions.act_window',
-            'name': _('Transferencia WMS'),
-            'res_model': 'wms.transfer',
-            'view_mode': 'form',
-            'res_id': self.transfer_id.id,
-            'target': 'current',
-        }
+    #    return {
+    #        'type': 'ir.actions.act_window',
+    #        'name': _('Transferencia WMS'),
+    #        'res_model': 'wms.transfer',
+    #        'view_mode': 'form',
+    #        'res_id': self.transfer_id.id,
+    #        'target': 'current',
+    #    }
 
     def pasar_a_tipo1_seb(self):
         for record in self:
@@ -579,18 +579,18 @@ class SaleOrderInherit(models.Model):
             
         return res
 
-    def action_open_wms_transfer(self):
-        self.ensure_one()
-        if not self.transfer_id:
-            raise UserError(_("No hay una Transferencia asociada."))
-        return {
-            'type': 'ir.actions.act_window',
-            'name': _('Transferencia WMS'),
-            'res_model': 'wms.transfer',
-            'view_mode': 'form',
-            'res_id': self.transfer_id.id,
-            'target': 'current',
-        }
+    #def action_open_wms_transfer(self):
+    #    self.ensure_one()
+    #    if not self.transfer_id:
+    #        raise UserError(_("No hay una Transferencia asociada."))
+    #    return {
+    #        'type': 'ir.actions.act_window',
+    #        'name': _('Transferencia WMS'),
+    #        'res_model': 'wms.transfer',
+    #        'view_mode': 'form',
+    #        'res_id': self.transfer_id.id,
+    #        'target': 'current',
+    #    }
 
     def update_prices(self):
         self.ensure_one()
