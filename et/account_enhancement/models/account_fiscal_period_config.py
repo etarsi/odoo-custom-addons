@@ -78,10 +78,10 @@ class AccountFiscalPeriodConfig(models.Model):
                 self.env["account.move"].create(vals)
 
         return {
-            "name": _("Asiento Contable de Cierre de Gestión (1-2-3) - %s") % self.company_id.display_name,
+            "name": _("Asiento Contable de Cierre de Periodo (1-2-3) - %s") % self.company_id.display_name,
             "type": "ir.actions.act_window",
             "res_model": "account.move",
-            "view_mode": "tree,form",
+            "view_mode": "form",
             "domain": [("fiscal_period_config_id", "=", self.id)],  
         }
         
@@ -103,14 +103,14 @@ class AccountFiscalPeriodConfig(models.Model):
                 self.env["account.move"].create(vals)
 
         return {
-            "name": _("Asiento Contable Cierre de Gestión (4-5) - %s") % self.company_id.display_name,
+            "name": _("Asiento Contable Cierre de Periodo (4-5) - %s") % self.company_id.display_name,
             "type": "ir.actions.act_window",
             "res_model": "account.move",
-            "view_mode": "tree,form",
+            "view_mode": "form",
             "domain": [("fiscal_period_config_id", "=", self.id)],  
         }
         
-    def action_generate_opening_entries_1_2_3(self):
+    def action_generate_opening_entries(self):
         self.ensure_one()
         # validar que la fecha actual este 1 dia después de date_end para evitar generar asientos con fecha en el pasado
         #if fields.Date.to_date(self.date_end) >= fields.Date.today():
@@ -121,46 +121,49 @@ class AccountFiscalPeriodConfig(models.Model):
                                                                         ('code', '=like', '1%'), 
                                                                         ('code', '=like', '2%'), 
                                                                         ('code', '=like', '3%')])
-        account_proveedor_ids = None
-        #generar el asiento de apertura
-        move_vals = self._prepare_move_vals(account_client_ids, account_proveedor_ids, closed_gestion=False, open_gestion=True)
-        if move_vals:
-            for vals in move_vals:
-                self.env["account.move"].create(vals)
-
-        return {
-            "name": _("Asiento Contable de Apertura de Gestión (1-2-3) - %s") % self.company_id.display_name,
-            "type": "ir.actions.act_window",
-            "res_model": "account.move",
-            "view_mode": "tree,form",
-            "domain": [("fiscal_period_config_id", "=", self.id)],  
-        }
+        account_move = self.env['account.move'].search([('company_id', '=', self.company_id.id),
+                                                        ('fiscal_period_config_id', '=', self.id),
+                                                        ('date', '=', self.date_end),
+                                                        ('journal_id', '=', self.journal_id.id),
+                                                        ('move_type', '=', 'entry'),
+                                                        ('line_ids.account_id', 'in', account_client_ids.ids if account_client_ids else [])], limit=1)
+        if account_move:
+            raise ValidationError(_("No existe asiento de cierre para cuentas 1-2-3. No se puede generar el asiento de apertura."))
         
-    def action_generate_opening_entries_4_5(self):
-        self.ensure_one()
-        # validar que la fecha actual este 1 dia después de date_end para evitar generar asientos con fecha en el pasado
-        #if fields.Date.to_date(self.date_end) >= fields.Date.today():
-        #    raise UserError(_("La fecha de fin del período debe ser menor a la fecha actual para generar el asiento de apertura."))
-        account_client_ids = None
-        account_proveedor_ids = self.env['account.account'].search(['&',
-                                                                    ('company_id', '=', self.company_id.id),
-                                                                    '|',
-                                                                        ('code', '=like', '4%'), 
-                                                                        ('code', '=like', '5%')])
+        date = fields.Date.to_date(self.date_end) + timedelta(days=1) # la fecha de apertura es un día después de la fecha de cierre
+        line_ids = []
+        for line in account_move.line_ids:
+            if account_client_ids and line.account_id in account_client_ids:
+                # invertir el saldo del asiento de cierre para la apertura
+                debit = line.credit
+                credit = line.debit
+                line_ids.append((0, 0, {
+                    "name": _("Apertura - %s") % line.account_id.display_name,
+                    "account_id": line.account_id.id,
+                    "debit": debit,
+                    "credit": credit,
+                }))
         #generar el asiento de apertura
-        move_vals = self._prepare_move_vals(account_client_ids, account_proveedor_ids, closed_gestion=False, open_gestion=True)
+        move_vals = {
+            "move_type": "entry",
+            "company_id": self.company_id.id,
+            "date": date,
+            "journal_id": self.journal_id.id,
+            "ref": _("Apertura de periodo de %s") % self.company_id.display_name,
+            "fiscal_period_config_id": self.id,
+            "line_ids": line_ids,
+            
+        }
         if move_vals:
-            for vals in move_vals:
-                self.env["account.move"].create(vals)
+            move = self.env["account.move"].create(move_vals)
 
         return {
-            "name": _("Asiento Contable de Apertura de Gestión (4-5) - %s") % self.company_id.display_name,
+            "name": _("Asiento Contable de Apertura de Periodo - %s") % self.company_id.display_name,
             "type": "ir.actions.act_window",
             "res_model": "account.move",
-            "view_mode": "tree,form",
-            "domain": [("fiscal_period_config_id", "=", self.id)],  
+            "view_mode": "form",
+            "domain": [("fiscal_period_config_id", "=", self.id), ("id", "=", move.id) if move_vals else []],  
         }
-
     
     # ---------------------------
     # Asientos apertura / cierre
@@ -190,7 +193,7 @@ class AccountFiscalPeriodConfig(models.Model):
         if closed_gestion:
             account_moves = self.closed_gestion_move_exists(account_client_ids, account_proveedor_ids, account_moves)
         elif open_gestion:
-            account_moves = self.opening_move_exists(account_client_ids, account_proveedor_ids, account_moves)
+            account_moves = self.opening_move_exists(account_proveedor_ids, account_moves)
         return account_moves
 
     def _base_domain(self):
@@ -395,58 +398,8 @@ class AccountFiscalPeriodConfig(models.Model):
             }) 
         return account_moves
     
-    def opening_move_exists(self, account_client_ids, account_proveedor_ids, account_moves):
+    def opening_move_exists(self, account_client_ids, account_moves):
         if account_client_ids:
-            balances = self._group_balances([
-                ("company_id", "=", self.company_id.id),
-                ("parent_state", "=", "posted"),
-                ("date", ">=", self.date_start),
-                ("date", "<=", self.date_end),
-                ("account_id", "in", account_client_ids.ids),
-                ("account_id.deprecated", "=", False),
-            ])
-            if balances:
-                line_vals = []
-                total_pl = 0.0
-                for account_id, bal in balances:
-                    total_pl += bal
-                    # Línea opuesta para dejar la cuenta P&L en cero
-                    debit = -bal if bal < 0 else 0.0
-                    credit = bal if bal > 0 else 0.0
-                    line_vals.append((0, 0, {
-                        "name": _("%s") % self.env["account.account"].browse(account_id).display_name,
-                        "account_id": account_id,
-                        "debit": debit,
-                        "credit": credit,
-                    }))
-                    
-                if abs(total_pl) > 0.0000001:
-                    # Contrapartida a cuenta patrimonial
-                    line_vals.append((0, 0, {
-                        "name": _("%s") % self.env["account.account"].browse(self.equity_account_id.id).display_name,
-                        "account_id": self.equity_account_id.id,
-                        "debit": total_pl if total_pl > 0 else 0.0,
-                        "credit": -total_pl if total_pl < 0 else 0.0,
-                    }))
-
-                account_moves.append({
-                    "move_type": "entry",
-                    "company_id": self.company_id.id,
-                    "date": self.date_start,
-                    "journal_id": self.journal_id.id,
-                    "ref": _("Apertura de Gestión (Clientes) de %s") % self.company_id.display_name,
-                    "fiscal_period_config_id": self.id,
-                    "line_ids": line_vals,
-                }) 
-        if account_proveedor_ids:
-            balances = self._group_balances([
-                ("company_id", "=", self.company_id.id),
-                ("parent_state", "=", "posted"),
-                ("date", ">=", self.date_start),
-                ("date", "<=", self.date_end),
-                ("account_id", "in", account_proveedor_ids.ids),
-                ("account_id.deprecated", "=", False),
-            ])
 
             line_vals = []
             total_pl = 0.0
