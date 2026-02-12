@@ -73,13 +73,15 @@ class AccountFiscalPeriodConfig(models.Model):
                                                                         ('code', '=like', '1%'), 
                                                                         ('code', '=like', '2%'), 
                                                                         ('code', '=like', '3%')])
+        
+        account_client_existing = self.env['account.account'].search([('company_id', '=', self.company_id.id), ('code', '=like', '1%')])
         # verificar si existe un asiento de cierre para cuentas 1-2-3, si existe no generar otro
         existing_move = self.env['account.move'].search([('company_id', '=', self.company_id.id),
                                                         ('fiscal_period_config_id', '=', self.id),
                                                         ('date', '=', self.date_end),
                                                         ('journal_id', '=', self.journal_id.id),
                                                         ('move_type', '=', 'entry'),
-                                                        ('line_ids.account_id', 'in', account_client_ids.ids),
+                                                        ('line_ids.account_id', 'in', account_client_existing.ids),
                                                         ('state', '=', 'posted')], limit=1)
         _logger.info("Existing move for closure 1-2-3: %s", existing_move)
         #validar si existe el asiento 4-5 confirmado, si existe que le permita generar el asiento de cierre 1-2-3, sino no permitir generar el asiento de cierre 1-2-3
@@ -136,13 +138,16 @@ class AccountFiscalPeriodConfig(models.Model):
                                                                         '|', 
                                                                             ('code', '=like', '4%'), 
                                                                             ('code', '=like', '5%')])
+        
+        account_proveedor_existing = self.env['account.account'].search([('company_id', '=', self.company_id.id), ('code', '=like', '4%')])
+
         #verificar si existe un asiento de cierre para cuentas 4-5, si existe no generar otro
         existing_move = self.env['account.move'].search([('company_id', '=', self.company_id.id),
                                                         ('fiscal_period_config_id', '=', self.id),
                                                         ('date', '=', self.date_end),
                                                         ('journal_id', '=', self.journal_id.id),
                                                         ('move_type', '=', 'entry'),
-                                                        ('line_ids.account_id', 'in', account_proveedor_ids.ids if account_proveedor_ids else []),
+                                                        ('line_ids.account_id', 'in', account_proveedor_existing.ids if account_proveedor_existing else []),
                                                         ('state', '=', 'posted')], limit=1)
         if existing_move:
             raise ValidationError(_("Ya existe un asiento de cierre para cuentas 4-5 en este período. No se puede generar otro."))
