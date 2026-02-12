@@ -121,13 +121,16 @@ class AccountFiscalPeriodConfig(models.Model):
                                                                         ('code', '=like', '1%'), 
                                                                         ('code', '=like', '2%'), 
                                                                         ('code', '=like', '3%')])
+        if not account_client_ids:
+            raise ValidationError(_("No se encontraron cuentas 1-2-3 para generar el asiento de apertura."))
         account_move = self.env['account.move'].search([('company_id', '=', self.company_id.id),
                                                         ('fiscal_period_config_id', '=', self.id),
                                                         ('date', '=', self.date_end),
                                                         ('journal_id', '=', self.journal_id.id),
                                                         ('move_type', '=', 'entry'),
-                                                        ('line_ids.account_id', 'in', account_client_ids.ids if account_client_ids else [])], limit=1)
-        if account_move:
+                                                        ('line_ids.account_id', 'in', account_client_ids.ids if account_client_ids else []),
+                                                        ('state', '=', 'posted')], limit=1)
+        if not account_move:
             raise ValidationError(_("No existe asiento de cierre para cuentas 1-2-3. No se puede generar el asiento de apertura."))
         
         date = fields.Date.to_date(self.date_end) + timedelta(days=1) # la fecha de apertura es un día después de la fecha de cierre
@@ -192,8 +195,6 @@ class AccountFiscalPeriodConfig(models.Model):
         account_moves = []
         if closed_gestion:
             account_moves = self.closed_gestion_move_exists(account_client_ids, account_proveedor_ids, account_moves)
-        elif open_gestion:
-            account_moves = self.opening_move_exists(account_proveedor_ids, account_moves)
         return account_moves
 
     def _base_domain(self):
@@ -203,50 +204,6 @@ class AccountFiscalPeriodConfig(models.Model):
             ("parent_state", "=", "posted"),
         ]
         return dom
-
-    def _get_lines(self):
-        self.ensure_one()
-        AML = self.env["account.move.line"].with_context(active_test=False)
-
-        base = self._base_domain()  # ojo: que respete target_move posted/all si lo agregás
-        
-        dom_initial = base + [("date", "<", self.date_start)]
-        dom_period  = base + [("date", ">=", self.date_start), ("date", "<=", self.date_end)]
-
-        initial = AML.read_group(dom_initial, ["balance"], ["account_id"])
-        period  = AML.read_group(dom_period,  ["debit", "credit", "balance"], ["account_id"])
-
-        init_map = {x["account_id"][0]: x.get("balance", 0.0) for x in initial if x.get("account_id")}
-        per_map  = {x["account_id"][0]: x for x in period if x.get("account_id")}
-
-        account_ids = set(init_map) | set(per_map)
-        accounts = self.env["account.account"].browse(list(account_ids)).sorted(lambda a: (a.code, a.id))
-
-        lines = []
-        totals = {"initial_balance": 0.0, "debit": 0.0, "credit": 0.0, "period_balance": 0.0, "ending_balance": 0.0}
-
-        for acc in accounts:
-            initial_balance = init_map.get(acc.id, 0.0)
-            debit = per_map.get(acc.id, {}).get("debit", 0.0) or 0.0
-            credit = per_map.get(acc.id, {}).get("credit", 0.0) or 0.0
-            period_balance = per_map.get(acc.id, {}).get("balance", 0.0) or (debit - credit)
-            ending_balance = initial_balance + period_balance
-
-            if self.hide_account_at_0 and (
-                abs(initial_balance) < 1e-9 and abs(debit) < 1e-9 and abs(credit) < 1e-9 and abs(ending_balance) < 1e-9
-            ):
-                continue
-
-            lines.append({
-                "account_code": acc.code,
-                "account_name": acc.name,
-                "initial_balance": initial_balance,
-                "debit": debit,
-                "credit": credit,
-                "period_balance": period_balance,
-                "ending_balance": ending_balance,
-            })
-        return lines, totals
 
     def closed_gestion_move_exists(self, account_client_ids, account_proveedor_ids, account_moves):
         AML = self.env["account.move.line"].with_context(active_test=False)
@@ -396,41 +353,4 @@ class AccountFiscalPeriodConfig(models.Model):
                 "fiscal_period_config_id": self.id,
                 "line_ids": line_vals,
             }) 
-        return account_moves
-    
-    def opening_move_exists(self, account_client_ids, account_moves):
-        if account_client_ids:
-
-            line_vals = []
-            total_pl = 0.0
-            for account_id, bal in balances:
-                total_pl += bal
-                # Línea opuesta para dejar la cuenta P&L en cero
-                debit = -bal if bal < 0 else 0.0
-                credit = bal if bal > 0 else 0.0
-                line_vals.append((0, 0, {
-                    "name": _("%s") % self.env["account.account"].browse(account_id).display_name,
-                    "account_id": account_id,
-                    "debit": debit,
-                    "credit": credit,
-                }))
-            
-            if abs(total_pl) > 0.0000001:
-                # Contrapartida a cuenta patrimonial
-                line_vals.append((0, 0, {
-                    "name": _("%s") % self.env["account.account"].browse(self.equity_account_id.id).display_name,
-                    "account_id": self.equity_account_id.id,
-                    "debit": total_pl if total_pl > 0 else 0.0,
-                    "credit": -total_pl if total_pl < 0 else 0.0,
-                }))
-
-            account_moves.append({
-                "move_type": "entry",
-                "company_id": self.company_id.id,
-                "date": self.date_start,
-                "journal_id": self.journal_id.id,
-                "ref": _("Apertura de Gestión (Proveedores) de %s") % self.company_id.display_name,
-                "fiscal_period_config_id": self.id,
-                "line_ids": line_vals,
-            })
         return account_moves
