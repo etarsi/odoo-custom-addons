@@ -254,6 +254,7 @@ class AccountFiscalPeriodConfig(models.Model):
 
     def _prepare_move_vals(self, account_client_ids=None, account_proveedor_ids=None):
         self.ensure_one()
+        account_moves = []
         account_moves = self.closed_gestion_move_exists(account_client_ids, account_proveedor_ids, account_moves)
         return account_moves
 
