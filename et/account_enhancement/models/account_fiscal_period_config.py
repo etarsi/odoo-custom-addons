@@ -3,6 +3,8 @@ from datetime import timedelta
 from odoo import api, fields, models, _
 from odoo.exceptions import ValidationError, UserError
 from odoo.tools.float_utils import float_is_zero
+import logging
+_logger = logging.getLogger(__name__)
 
 class AccountFiscalPeriodConfig(models.Model):
     _name = "account.fiscal.period.config"
@@ -64,6 +66,7 @@ class AccountFiscalPeriodConfig(models.Model):
         # validar que la fecha actual este 1 dia después de date_end para evitar generar asientos con fecha en el pasado
         #if fields.Date.to_date(self.date_end) >= fields.Date.today():
         #    raise UserError(_("La fecha de fin del período debe ser menor a la fecha actual para generar el asiento de cierre."))
+        account_proveedor_ids = None
         account_client_ids = self.env['account.account'].search(['&',
                                                                     ('company_id', '=', self.company_id.id),
                                                                     '|', '|', 
@@ -92,7 +95,7 @@ class AccountFiscalPeriodConfig(models.Model):
         
         if existing_move:
             raise ValidationError(_("Ya existe un asiento de cierre para cuentas 1-2-3 en este período. No se puede generar otro."))
-        account_proveedor_ids = None
+
         #generar el asiento de cierre
         move_vals_list = self._prepare_move_vals(account_client_ids, account_proveedor_ids)
         created_moves = self.env['account.move']
@@ -147,9 +150,10 @@ class AccountFiscalPeriodConfig(models.Model):
         #generar el asiento de cierre
         move_vals_list = self._prepare_move_vals(account_client_ids, account_proveedor_ids)
         created_moves = self.env['account.move']
+        _logger.info("move_vals_list: %s", move_vals_list)
         for vals in move_vals_list:
             created_moves |= self.env['account.move'].create(vals)
-
+        _logger.info("created_moves: %s", created_moves)
         if not created_moves:
             raise ValidationError(_("No se generaron asientos de cierre."))
 
