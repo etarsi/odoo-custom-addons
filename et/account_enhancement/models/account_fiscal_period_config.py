@@ -147,14 +147,10 @@ class AccountFiscalPeriodConfig(models.Model):
             raise ValidationError(_("Ya existe un asiento de cierre para cuentas 4-5 en este período. No se puede generar otro."))
         
         #generar el asiento de cierre
-        _logger.info("Generando asiento de cierre para cuentas 4-5 del período %s - %s", self.date_start, self.date_end)
-        _logger.info("Cuentas proveedor para cierre 4-5: %s", account_proveedor_ids)
         move_vals_list = self._prepare_move_vals(account_client_ids, account_proveedor_ids)
         created_moves = self.env['account.move']
-        _logger.info("move_vals_list: %s", move_vals_list)
         for vals in move_vals_list:
             created_moves |= self.env['account.move'].create(vals)
-        _logger.info("created_moves: %s", created_moves)
         if not created_moves:
             raise ValidationError(_("No se generaron asientos de cierre."))
         # Si hay uno solo, abrir FORM directo al registro
