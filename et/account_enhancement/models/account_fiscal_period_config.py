@@ -79,8 +79,9 @@ class AccountFiscalPeriodConfig(models.Model):
                                                         ('date', '=', self.date_end),
                                                         ('journal_id', '=', self.journal_id.id),
                                                         ('move_type', '=', 'entry'),
-                                                        ('line_ids.account_id', 'in', account_client_ids.ids if account_client_ids else []),
+                                                        ('line_ids.account_id', 'in', account_client_ids.ids),
                                                         ('state', '=', 'posted')], limit=1)
+        _logger.info("Existing move for closure 1-2-3: %s", existing_move)
         #validar si existe el asiento 4-5 confirmado, si existe que le permita generar el asiento de cierre 1-2-3, sino no permitir generar el asiento de cierre 1-2-3
         existing_move_4_5 = self.env['account.move'].search([('company_id', '=', self.company_id.id),
                                                         ('fiscal_period_config_id', '=', self.id),
