@@ -200,7 +200,7 @@ class AccountFiscalPeriodConfig(models.Model):
                                                         ('date', '=', self.date_end),
                                                         ('journal_id', '=', self.journal_id.id),
                                                         ('move_type', '=', 'entry'),
-                                                        ('line_ids.account_id', 'in', account_client_ids.ids if account_client_ids else []),
+                                                        ('line_ids.account_id', 'in', account_client_existing.ids if account_client_existing else []),
                                                         ('state', '=', 'posted')], limit=1)
         existing_moves = self.env['account.move'].search([('company_id', '=', self.company_id.id),
                                                         ('fiscal_period_config_id', '=', self.id),
