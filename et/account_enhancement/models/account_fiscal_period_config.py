@@ -94,17 +94,33 @@ class AccountFiscalPeriodConfig(models.Model):
             raise ValidationError(_("Ya existe un asiento de cierre para cuentas 1-2-3 en este período. No se puede generar otro."))
         account_proveedor_ids = None
         #generar el asiento de cierre
-        move_vals = self._prepare_move_vals(account_client_ids, account_proveedor_ids)
-        if move_vals:
-            for vals in move_vals:
-                self.env["account.move"].create(vals)
+        move_vals_list = self._prepare_move_vals(account_client_ids, account_proveedor_ids)
+        created_moves = self.env['account.move']
+        for vals in move_vals_list:
+            created_moves |= self.env['account.move'].create(vals)
 
+        if not created_moves:
+            raise ValidationError(_("No se generaron asientos de cierre."))
+
+        # Si hay uno solo, abrir FORM directo al registro
+        if len(created_moves) == 1:
+            return {
+                "type": "ir.actions.act_window",
+                "name": _("Asiento Contable de Cierre de Periodo (4-5) - %s") % self.company_id.display_name,
+                "res_model": "account.move",
+                "view_mode": "form",
+                "res_id": created_moves.id,
+                "target": "current",
+            }
+
+        # Fallback: si por diseño se generan varios
         return {
-            "name": _("Asiento Contable de Cierre de Periodo (1-2-3) - %s") % self.company_id.display_name,
             "type": "ir.actions.act_window",
+            "name": _("Asientos Contables de Cierre de Periodo (4-5) - %s") % self.company_id.display_name,
             "res_model": "account.move",
-            "view_mode": "form",
-            "domain": [("fiscal_period_config_id", "=", self.id)],  
+            "view_mode": "tree,form",
+            "domain": [("id", "in", created_moves.ids)],
+            "target": "current",
         }
         
     def action_generate_management_closure_4_5(self):
@@ -129,17 +145,33 @@ class AccountFiscalPeriodConfig(models.Model):
         
         
         #generar el asiento de cierre
-        move_vals = self._prepare_move_vals(account_client_ids, account_proveedor_ids)
-        if move_vals:
-            for vals in move_vals:
-                self.env["account.move"].create(vals)
+        move_vals_list = self._prepare_move_vals(account_client_ids, account_proveedor_ids)
+        created_moves = self.env['account.move']
+        for vals in move_vals_list:
+            created_moves |= self.env['account.move'].create(vals)
 
+        if not created_moves:
+            raise ValidationError(_("No se generaron asientos de cierre."))
+
+        # Si hay uno solo, abrir FORM directo al registro
+        if len(created_moves) == 1:
+            return {
+                "type": "ir.actions.act_window",
+                "name": _("Asiento Contable de Cierre de Periodo (4-5) - %s") % self.company_id.display_name,
+                "res_model": "account.move",
+                "view_mode": "form",
+                "res_id": created_moves.id,
+                "target": "current",
+            }
+
+        # Fallback: si por diseño se generan varios
         return {
-            "name": _("Asiento Contable Cierre de Periodo (4-5) - %s") % self.company_id.display_name,
             "type": "ir.actions.act_window",
+            "name": _("Asientos Contables de Cierre de Periodo (4-5) - %s") % self.company_id.display_name,
             "res_model": "account.move",
-            "view_mode": "form",
-            "domain": [("fiscal_period_config_id", "=", self.id)],  
+            "view_mode": "tree,form",
+            "domain": [("id", "in", created_moves.ids)],
+            "target": "current",
         }
         
     def action_generate_opening_entries(self):
