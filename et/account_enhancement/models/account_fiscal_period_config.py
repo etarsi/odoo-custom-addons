@@ -146,7 +146,6 @@ class AccountFiscalPeriodConfig(models.Model):
         if existing_move:
             raise ValidationError(_("Ya existe un asiento de cierre para cuentas 4-5 en este período. No se puede generar otro."))
         
-        
         #generar el asiento de cierre
         move_vals_list = self._prepare_move_vals(account_client_ids, account_proveedor_ids)
         created_moves = self.env['account.move']
@@ -156,7 +155,6 @@ class AccountFiscalPeriodConfig(models.Model):
         _logger.info("created_moves: %s", created_moves)
         if not created_moves:
             raise ValidationError(_("No se generaron asientos de cierre."))
-
         # Si hay uno solo, abrir FORM directo al registro
         if len(created_moves) == 1:
             return {
