@@ -20,3 +20,51 @@ class SaleOrderInherit(models.Model):
            'res_id': self.transfer_id.id,
            'target': 'current',
        }
+    
+    
+    def action_confirm(self):
+        res = super().action_confirm()
+        for record in self:          
+
+            ### TRANSFER CREATION
+            if record.transfer_id:
+                continue
+
+            transfer_vals = {
+                'operation_type':'outgoing',
+                'partner_id':record.partner_id.id,
+                'partner_address_id':record.partner_shipping_id.id or False,
+                'sale_type':record.condicion_m2m.name,
+                'sale_id':record.id,
+            }
+
+            transfer_id = self.env['wms.transfer'].create(transfer_vals)
+            transfer_lines_list = []
+            for line in record.order_line:
+               if line.product_id and line.is_available:
+                   transfer_line = {
+                       'transfer_id': transfer_id.id,
+                       'product_id': line.product_id.id,
+                       'state': 'pending',
+                       'invoice_state': 'no',
+                       'sale_line_id': line.id,
+                       'uxb': line.product_packaging_id.qty or False,
+                       'qty_demand': line.product_uom_qty or 0,
+                   }
+
+                   transfer_lines_list.append(transfer_line)
+            
+            self.env['wms.transfer.line'].create(transfer_lines_list)
+
+            record.transfer_id = transfer_id.id
+
+
+
+
+
+
+class SaleOrderLineInherit(models.Model):
+    _inherit = 'sale.order.line'
+    
+    quantity_delivered = fields.Integer(string="Cantidad Entregada")
+    quantity_invoiced = fields.Integer(string="Cantidad Facturada")

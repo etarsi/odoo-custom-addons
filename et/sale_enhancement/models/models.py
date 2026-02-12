@@ -523,6 +523,13 @@ class SaleOrderInherit(models.Model):
             order.message_post(body=_("Orden de venta creada."))
         return order
 
+    @api.onchange('state')
+    def _onchange_state_name(self):
+        for record in self:
+
+            company_letter = record._get_company_letter(record)
+            record.name = f"{record.name} - {company_letter}"
+
     def action_confirm(self):
         res = super().action_confirm()
         for record in self:
@@ -752,8 +759,6 @@ class SaleOrderLineInherit(models.Model):
     stock_erp = fields.Many2one('stock.erp')
     stock_moves_erp = fields.Many2one('stock.moves.erp')
     
-    quantity_delivered = fields.Integer(string="Cantidad Entregada")
-    quantity_invoiced = fields.Integer(string="Cantidad Facturada")
 
 
     def create(self, vals):

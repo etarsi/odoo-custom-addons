@@ -41,11 +41,12 @@ class WMSTransfer(models.Model):
     preselection_id = fields.Many2one(string="Preselección", comodel_name="wms.preselection")
     sale_id = fields.Many2one(string="Pedido de Venta", comodel_name="sale.order")
     purchase_id = fields.Many2one(string="Pedido de Compra", comodel_name="purchase.order")
-    #invoice_ids = fields.One2many(string="Facturas", comodel_name="account.move", inverse_name="transfer_id")
+    invoice_ids = fields.One2many(string="Facturas", comodel_name="account.move", inverse_name="transfer_id")
     line_ids = fields.One2many(string="Líneas de  Transferencia", comodel_name="wms.transfer.line", inverse_name="transfer_id")
+    available_line_ids = fields.One2many(string="Líneas de  Transferencia", comodel_name="wms.transfer.line", compute="_compute_available_line_ids")
     task_ids = fields.One2many(string="Tareas", comodel_name="wms.task", inverse_name="transfer_id")
-    task_count = fields.Integer(string="Tareas", compute="_compute_task_count", store=True)
-    lines_count = fields.Integer(string="Líneas de Transf")
+    task_count = fields.Integer(string="Tareas", compute="_compute_task_count")
+    lines_count = fields.Integer(string="Cantidad de Líneas", compute="_compute_lines_count")
     origin = fields.Char(string="Documento")
     
 
@@ -89,10 +90,20 @@ class WMSTransfer(models.Model):
         for rec in self:
             rec.task_count = len(rec.task_ids)
 
-    @api.depends('line_ids')
+
+    @api.depends('available_line_ids')
     def _compute_lines_count(self):
         for rec in self:
-            rec.lines_count = len(rec.line_ids)
+            rec.lines_count = len(rec.available_line_ids)
+
+
+    @api.depends('line_ids.is_available')
+    def _compute_available_line_ids(self):
+        for transfer in self:
+            transfer.available_line_ids = self.env['wms.transfer.line'].search([
+                ('transfer_id', '=', transfer.id),
+                ('is_available', '=', True)
+            ])
 
 
     @api.onchange('line_ids.bultos')
@@ -100,6 +111,27 @@ class WMSTransfer(models.Model):
         for record in self:
             if record.line_ids:
                 record.total_bultos = 0 # ESTABA
+
+    
+    # ACTIONS
+
+    def action_create_task(self):
+        return
+
+    def action_create_tasks_auto(self):
+
+
+
+        return
+    
+
+
+
+
+
+    def action_close_transfer(self):
+        return
+    
 
 
 
@@ -126,4 +158,42 @@ class WMSTransferLine(models.Model):
     qty_demand = fields.Integer(string="Demanda")
     qty_done = fields.Integer(string="Hecho")
     qty_invoiced = fields.Integer(string="Facturado")
-    available_percent = fields.Char(string="Disponible %")
+    available_percent = fields.Float(string="Disponible Preparación")
+    is_available = fields.Boolean(string="Disponible Comercial", compute="_compute_is_available")
+
+
+    @api.model
+    def create(self, vals):
+        
+        product_id = vals.get('product_id')
+
+        stock_erp = self.env['stock.erp'].search([
+            ('product_id', '=', product_id)
+        ], limit=1)
+
+        if stock_erp:
+            fisico_unidades = stock_erp.fisico_unidades
+        else:
+            raise UserWarning("No se encontró stock para el producto [{stock_erp.product_code}] {stock_erp.product_name}")
+        
+        demand = vals.get('qty_demand')
+
+        if demand > 0:
+            ratio = fisico_unidades / demand
+            available_percent = min(ratio * 100, 100)
+        else:
+            available_percent = 0
+
+        vals['available_percent'] = available_percent
+
+
+        return super().create(vals)
+
+
+    @api.depends('qty_demand')
+    def _compute_is_available(self):
+        for record in self:
+            if record.qty_demand == 0:
+                record.is_available = False
+            else:
+                record.is_available = True
