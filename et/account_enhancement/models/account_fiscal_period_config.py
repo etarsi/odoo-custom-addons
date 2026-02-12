@@ -82,7 +82,7 @@ class AccountFiscalPeriodConfig(models.Model):
                                                         ('journal_id', '=', self.journal_id.id),
                                                         ('move_type', '=', 'entry'),
                                                         ('line_ids.account_id', 'in', account_client_existing.ids),
-                                                        ('state', '=', 'posted')], limit=1)
+                                                        ('state', 'in', ['posted', 'draft'])], limit=1)
         _logger.info("Existing move for closure 1-2-3: %s", existing_move)
         #validar si existe el asiento 4-5 confirmado, si existe que le permita generar el asiento de cierre 1-2-3, sino no permitir generar el asiento de cierre 1-2-3
         existing_move_4_5 = self.env['account.move'].search([('company_id', '=', self.company_id.id),
@@ -148,7 +148,7 @@ class AccountFiscalPeriodConfig(models.Model):
                                                         ('journal_id', '=', self.journal_id.id),
                                                         ('move_type', '=', 'entry'),
                                                         ('line_ids.account_id', 'in', account_proveedor_existing.ids if account_proveedor_existing else []),
-                                                        ('state', '=', 'posted')], limit=1)
+                                                        ('state', 'in', ['posted', 'draft'])], limit=1)
         if existing_move:
             raise ValidationError(_("Ya existe un asiento de cierre para cuentas 4-5 en este período. No se puede generar otro."))
         
@@ -185,12 +185,14 @@ class AccountFiscalPeriodConfig(models.Model):
         # validar que la fecha actual este 1 dia después de date_end para evitar generar asientos con fecha en el pasado
         #if fields.Date.to_date(self.date_end) >= fields.Date.today():
         #    raise UserError(_("La fecha de fin del período debe ser menor a la fecha actual para generar el asiento de apertura."))
+        date = fields.Date.to_date(self.date_end) + timedelta(days=1) # la fecha de apertura es un día después de la fecha de cierre
         account_client_ids = self.env['account.account'].search(['&',
                                                                     ('company_id', '=', self.company_id.id),
                                                                     '|', '|', 
                                                                         ('code', '=like', '1%'), 
                                                                         ('code', '=like', '2%'), 
                                                                         ('code', '=like', '3%')])
+        account_client_existing = self.env['account.account'].search([('company_id', '=', self.company_id.id), ('code', '=like', '1%')])
         if not account_client_ids:
             raise ValidationError(_("No se encontraron cuentas 1-2-3 para generar el asiento de apertura."))
         account_move = self.env['account.move'].search([('company_id', '=', self.company_id.id),
@@ -200,10 +202,18 @@ class AccountFiscalPeriodConfig(models.Model):
                                                         ('move_type', '=', 'entry'),
                                                         ('line_ids.account_id', 'in', account_client_ids.ids if account_client_ids else []),
                                                         ('state', '=', 'posted')], limit=1)
+        existing_moves = self.env['account.move'].search([('company_id', '=', self.company_id.id),
+                                                        ('fiscal_period_config_id', '=', self.id),
+                                                        ('date', '=', fields.Date.to_string(date)),
+                                                        ('journal_id', '=', self.journal_id.id),
+                                                        ('move_type', '=', 'entry'),
+                                                        ('line_ids.account_id', 'in', account_client_existing.ids if account_client_existing else []),
+                                                        ('state', 'in', ['posted', 'draft'])])
         if not account_move:
             raise ValidationError(_("No existe asiento de cierre para cuentas 1-2-3. No se puede generar el asiento de apertura."))
-        
-        date = fields.Date.to_date(self.date_end) + timedelta(days=1) # la fecha de apertura es un día después de la fecha de cierre
+        if existing_moves:
+            raise ValidationError(_("Ya existe un asiento de apertura para cuentas 1-2-3 en este período. No se puede generar otro."))
+
         line_ids = []
         for line in account_move.line_ids:
             if account_client_ids and line.account_id in account_client_ids:
