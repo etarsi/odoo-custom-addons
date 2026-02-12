@@ -2,6 +2,7 @@
 from datetime import timedelta
 from odoo import api, fields, models, _
 from odoo.exceptions import ValidationError, UserError
+from odoo.tools.float_utils import float_is_zero
 
 class AccountFiscalPeriodConfig(models.Model):
     _name = "account.fiscal.period.config"
@@ -246,107 +247,152 @@ class AccountFiscalPeriodConfig(models.Model):
 
     def closed_gestion_move_exists(self, account_client_ids, account_proveedor_ids, account_moves):
         AML = self.env["account.move.line"].with_context(active_test=False)
+        currency = self.company_id.currency_id
         base = self._base_domain()
         if account_client_ids:
-            base = base + [("account_id", "in", account_client_ids.ids)]
+            base = self._base_domain() + [("account_id", "in", account_client_ids.ids)]
             dom_initial = base + [("date", "<", self.date_start)]
-            dom_period  = base + [("date", ">=", self.date_start), ("date", "<=", self.date_end)]
+            dom_period = base + [("date", ">=", self.date_start), ("date", "<=", self.date_end)]
 
             initial = AML.read_group(dom_initial, ["balance"], ["account_id"])
-            period  = AML.read_group(dom_period,  ["debit", "credit", "balance"], ["account_id"])
+            period = AML.read_group(dom_period, ["debit", "credit", "balance"], ["account_id"])
 
-            init_map = {x["account_id"][0]: x.get("balance", 0.0) for x in initial if x.get("account_id")}
-            per_map  = {x["account_id"][0]: x for x in period if x.get("account_id")}
+            init_map = {x["account_id"][0]: (x.get("balance", 0.0) or 0.0) for x in initial if x.get("account_id")}
+            per_map = {x["account_id"][0]: x for x in period if x.get("account_id")}
 
-            account_ids = set(init_map) | set(per_map)
-            accounts = self.env["account.account"].browse(list(account_ids)).sorted(lambda a: (a.code, a.id))
+            account_ids_all = set(init_map) | set(per_map)
+            accounts = self.env["account.account"].browse(list(account_ids_all)).sorted(lambda a: (a.code or "", a.id))
+
             line_vals = []
-            total_pl = 0.0
+            total_debit = 0.0
+            total_credit = 0.0
+
             for acc in accounts:
                 initial_balance = init_map.get(acc.id, 0.0)
-                debit = per_map.get(acc.id, {}).get("debit", 0.0) or 0.0
-                credit = per_map.get(acc.id, {}).get("credit", 0.0) or 0.0
-                period_balance = per_map.get(acc.id, {}).get("balance", 0.0) or (debit - credit)
-                ending_balance = initial_balance + period_balance
-                total_pl += ending_balance
-                # Línea opuesta para dejar la cuenta P&L en cero
-                debit = -ending_balance if ending_balance < 0 else 0.0
-                credit = ending_balance if ending_balance > 0 else 0.0
+                debit_p = per_map.get(acc.id, {}).get("debit", 0.0) or 0.0
+                credit_p = per_map.get(acc.id, {}).get("credit", 0.0) or 0.0
+                period_balance = per_map.get(acc.id, {}).get("balance", 0.0)
+                if period_balance is None:
+                    period_balance = debit_p - credit_p
+
+                ending_balance = currency.round(initial_balance + period_balance)
+
+                # Línea opuesta para dejar la cuenta en cero
+                debit = currency.round(-ending_balance if ending_balance < 0 else 0.0)
+                credit = currency.round(ending_balance if ending_balance > 0 else 0.0)
+
+                if float_is_zero(debit - credit, precision_rounding=currency.rounding):
+                    continue
+
                 line_vals.append((0, 0, {
-                    "name": _("Cierre - %s") % self.env["account.account"].browse(acc.id).display_name,
+                    "name": _("Cierre - %s") % acc.display_name,
                     "account_id": acc.id,
                     "debit": debit,
                     "credit": credit,
                 }))
+                total_debit += debit
+                total_credit += credit
 
-                if abs(total_pl) > 0.0000001:
-                    # Contrapartida a cuenta patrimonial
-                    line_vals.append((0, 0, {
-                        "name": _("%s") % self.env["account.account"].browse(self.equity_account_id.id).display_name,
-                        "account_id": self.equity_account_id.id,
-                        "debit": total_pl if total_pl > 0 else 0.0,
-                        "credit": -total_pl if total_pl < 0 else 0.0,
-                    }))
+            # Contrapartida UNA sola vez, al final
+            diff = currency.round(total_debit - total_credit)
+            if not float_is_zero(diff, precision_rounding=currency.rounding):
+                # Si diff > 0 sobran débitos => agregar crédito
+                # Si diff < 0 sobran créditos => agregar débito
+                line_vals.append((0, 0, {
+                    "name": _("Contrapartida cierre - %s") % self.equity_account_id.display_name,
+                    "account_id": self.equity_account_id.id,
+                    "debit": currency.round(-diff if diff < 0 else 0.0),
+                    "credit": currency.round(diff if diff > 0 else 0.0),
+                }))
+                total_debit += currency.round(-diff if diff < 0 else 0.0)
+                total_credit += currency.round(diff if diff > 0 else 0.0)
+
+            # Validación final defensiva
+            final_diff = currency.round(total_debit - total_credit)
+            if not float_is_zero(final_diff, precision_rounding=currency.rounding):
+                raise ValueError(_("Asiento desbalanceado residual: %s") % final_diff)
 
             account_moves.append({
                 "move_type": "entry",
                 "company_id": self.company_id.id,
                 "date": self.date_end,
                 "journal_id": self.journal_id.id,
-                "ref": _("Cierre de Periodo - %s") % self.company_id.display_name,
+                "ref": _("Cierre de Periodo - %s") % (self.company_id.display_name),
                 "fiscal_period_config_id": self.id,
                 "line_ids": line_vals,
             }) 
         if account_proveedor_ids:
-            base = base + [("account_id", "in", account_proveedor_ids.ids)]
+            base = self._base_domain() + [("account_id", "in", account_proveedor_ids.ids)]
             dom_initial = base + [("date", "<", self.date_start)]
-            dom_period  = base + [("date", ">=", self.date_start), ("date", "<=", self.date_end)]
+            dom_period = base + [("date", ">=", self.date_start), ("date", "<=", self.date_end)]
 
             initial = AML.read_group(dom_initial, ["balance"], ["account_id"])
-            period  = AML.read_group(dom_period,  ["debit", "credit", "balance"], ["account_id"])
+            period = AML.read_group(dom_period, ["debit", "credit", "balance"], ["account_id"])
 
-            init_map = {x["account_id"][0]: x.get("balance", 0.0) for x in initial if x.get("account_id")}
-            per_map  = {x["account_id"][0]: x for x in period if x.get("account_id")}
+            init_map = {x["account_id"][0]: (x.get("balance", 0.0) or 0.0) for x in initial if x.get("account_id")}
+            per_map = {x["account_id"][0]: x for x in period if x.get("account_id")}
 
-            account_ids = set(init_map) | set(per_map)
-            accounts = self.env["account.account"].browse(list(account_ids)).sorted(lambda a: (a.code, a.id))
+            account_ids_all = set(init_map) | set(per_map)
+            accounts = self.env["account.account"].browse(list(account_ids_all)).sorted(lambda a: (a.code or "", a.id))
+
             line_vals = []
-            total_pl = 0.0
+            total_debit = 0.0
+            total_credit = 0.0
+
             for acc in accounts:
                 initial_balance = init_map.get(acc.id, 0.0)
-                debit = per_map.get(acc.id, {}).get("debit", 0.0) or 0.0
-                credit = per_map.get(acc.id, {}).get("credit", 0.0) or 0.0
-                period_balance = per_map.get(acc.id, {}).get("balance", 0.0) or (debit - credit)
-                ending_balance = initial_balance + period_balance
-                total_pl += ending_balance
-                # Línea opuesta para dejar la cuenta P&L en cero
-                debit = -ending_balance if ending_balance < 0 else 0.0
-                credit = ending_balance if ending_balance > 0 else 0.0
+                debit_p = per_map.get(acc.id, {}).get("debit", 0.0) or 0.0
+                credit_p = per_map.get(acc.id, {}).get("credit", 0.0) or 0.0
+                period_balance = per_map.get(acc.id, {}).get("balance", 0.0)
+                if period_balance is None:
+                    period_balance = debit_p - credit_p
+
+                ending_balance = currency.round(initial_balance + period_balance)
+
+                # Línea opuesta para dejar la cuenta en cero
+                debit = currency.round(-ending_balance if ending_balance < 0 else 0.0)
+                credit = currency.round(ending_balance if ending_balance > 0 else 0.0)
+
+                if float_is_zero(debit - credit, precision_rounding=currency.rounding):
+                    continue
+
                 line_vals.append((0, 0, {
-                    "name": _("%s") % self.env["account.account"].browse(acc.id).display_name,
+                    "name": _("Cierre - %s") % acc.display_name,
                     "account_id": acc.id,
                     "debit": debit,
                     "credit": credit,
                 }))
+                total_debit += debit
+                total_credit += credit
 
-                if abs(total_pl) > 0.0000001:
-                    # Contrapartida a cuenta patrimonial
-                    line_vals.append((0, 0, {
-                        "name": _("%s") % self.env["account.account"].browse(self.equity_account_id.id).display_name,
-                        "account_id": self.equity_account_id.id,
-                        "debit": total_pl if total_pl > 0 else 0.0,
-                        "credit": -total_pl if total_pl < 0 else 0.0,
-                    }))
+            # Contrapartida UNA sola vez, al final
+            diff = currency.round(total_debit - total_credit)
+            if not float_is_zero(diff, precision_rounding=currency.rounding):
+                # Si diff > 0 sobran débitos => agregar crédito
+                # Si diff < 0 sobran créditos => agregar débito
+                line_vals.append((0, 0, {
+                    "name": _("Contrapartida cierre - %s") % self.equity_account_id.display_name,
+                    "account_id": self.equity_account_id.id,
+                    "debit": currency.round(-diff if diff < 0 else 0.0),
+                    "credit": currency.round(diff if diff > 0 else 0.0),
+                }))
+                total_debit += currency.round(-diff if diff < 0 else 0.0)
+                total_credit += currency.round(diff if diff > 0 else 0.0)
 
-                account_moves.append({
-                    "move_type": "entry",
-                    "company_id": self.company_id.id,
-                    "date": self.date_end,
-                    "journal_id": self.journal_id.id,
-                    "ref": _("Cierre de Periodo - %s") % self.company_id.display_name,
-                    "fiscal_period_config_id": self.id,
-                    "line_ids": line_vals,
-                }) 
+            # Validación final defensiva
+            final_diff = currency.round(total_debit - total_credit)
+            if not float_is_zero(final_diff, precision_rounding=currency.rounding):
+                raise ValueError(_("Asiento desbalanceado residual: %s") % final_diff)
+
+            account_moves.append({
+                "move_type": "entry",
+                "company_id": self.company_id.id,
+                "date": self.date_end,
+                "journal_id": self.journal_id.id,
+                "ref": _("Cierre de Periodo - %s") % (self.company_id.display_name),
+                "fiscal_period_config_id": self.id,
+                "line_ids": line_vals,
+            }) 
         return account_moves
     
     def opening_move_exists(self, account_client_ids, account_proveedor_ids, account_moves):
