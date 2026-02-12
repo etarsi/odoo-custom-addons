@@ -94,7 +94,7 @@ class AccountFiscalPeriodConfig(models.Model):
             raise ValidationError(_("Ya existe un asiento de cierre para cuentas 1-2-3 en este período. No se puede generar otro."))
         account_proveedor_ids = None
         #generar el asiento de cierre
-        move_vals = self._prepare_move_vals(account_client_ids, account_proveedor_ids, closed_gestion=True, open_gestion=False)
+        move_vals = self._prepare_move_vals(account_client_ids, account_proveedor_ids)
         if move_vals:
             for vals in move_vals:
                 self.env["account.move"].create(vals)
@@ -129,7 +129,7 @@ class AccountFiscalPeriodConfig(models.Model):
         
         
         #generar el asiento de cierre
-        move_vals = self._prepare_move_vals(account_client_ids, account_proveedor_ids, closed_gestion=True, open_gestion=False)
+        move_vals = self._prepare_move_vals(account_client_ids, account_proveedor_ids)
         if move_vals:
             for vals in move_vals:
                 self.env["account.move"].create(vals)
@@ -220,11 +220,9 @@ class AccountFiscalPeriodConfig(models.Model):
                 result.append((account_id, balance))
         return result
 
-    def _prepare_move_vals(self, account_client_ids=None, account_proveedor_ids=None, closed_gestion=False, open_gestion=False):
-        self.ensure_one()    
-        account_moves = []
-        if closed_gestion:
-            account_moves = self.closed_gestion_move_exists(account_client_ids, account_proveedor_ids, account_moves)
+    def _prepare_move_vals(self, account_client_ids=None, account_proveedor_ids=None):
+        self.ensure_one()
+        account_moves = self.closed_gestion_move_exists(account_client_ids, account_proveedor_ids, account_moves)
         return account_moves
 
     def _base_domain(self):
