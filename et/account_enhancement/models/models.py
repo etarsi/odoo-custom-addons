@@ -50,7 +50,8 @@ class AccountMoveInherit(models.Model):
     balance_diff = fields.Float(string="Diferencia Debe - Haber", compute="_compute_balance_diff")
     fiscal_period_config_id = fields.Many2one("account.fiscal.period.config", string="Ejercicio de Cierre/Apertura", copy=False, readonly=True)
     #bloqueo de contabilidad para evitar modificaciones en líneas de asiento relacionadas a los movimientos de cierre y apertura generados por el módulo
-    block_accounting = fields.Boolean(string="Bloqueo de Contabilidad", default=False, help="Si está activo, no se podrán crear ni modificar líneas de asiento relacionadas a este movimiento.")
+    block_accounting = fields.Boolean(string="Bloqueo de Contabilidad", default=False,
+                                        help="Si está activo, no se podrán crear ni modificar líneas de asiento relacionadas a este movimiento.")
     
     
     #VALIDACIONES DE ASIENTOS DE CIERRE Y APERTURA PARA EVITAR MODIFICACIONES POSTERIORES
