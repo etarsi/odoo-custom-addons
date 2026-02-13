@@ -547,105 +547,13 @@ class AccountMoveInherit(models.Model):
                     record.update_taxes()
                     record._compute_amount()
                     record._compute_tax_totals_json()
-                    
-                        
-class WmsCode(models.Model):
-    _name = "wms.code"
-    _description = "Código WMS"
-
-    name = fields.Char("Código", required=True)
 
 
-class AccountPaymentInherit(models.TransientModel):
-    _inherit = 'account.payment.mass.transfer'
 
 
-    @api.model
-    def default_get(self, fields_list):
-        res = super().default_get(fields_list)
-        if self._context.get('active_model') != 'account.payment':
-            raise UserError(_("The register payment wizard should only be called on account.payment records."))
-        payments = self.env['account.payment'].browse(self._context.get('active_ids', []))
-        checks = payments.filtered(lambda x: x.payment_method_line_id.code == 'new_third_party_checks')
-        if not all(check.state == 'posted' for check in checks):
-            raise UserError(_("All the selected checks must be posted"))
-        self.filtered(lambda x: x.payment_method_line_id.code in ['in_third_party_checks', 'out_third_party_checks'])
-        if not checks[0].l10n_latam_check_current_journal_id.inbound_payment_method_line_ids.filtered(
-                lambda x: x.code == 'in_third_party_checks'):
-            raise UserError(_("Checks must be on a third party checks journal to be transfered by this wizard"))
-        res['journal_id'] = checks[0].l10n_latam_check_current_journal_id.id
-        return res
-    
-
-class AccountMoveReversalInherit(models.TransientModel):
-    _inherit = 'account.move.reversal'
-
-
-    def _prepare_default_reversal(self, move):
-        vals = super()._prepare_default_reversal(move)
-        if self.refund_method in ['modify', 'cancel']:
-            vals['auto_post'] = 'no' 
-        return vals
-
-    def reverse_moves(self):
-        action = super().reverse_moves()
-        new_moves = self.new_move_ids
-
-        today = fields.Date.context_today(self)
-        credit_notes = self.env['account.move'].search([
-            ('reversed_entry_id', 'in', self.move_ids.ids),
-            ('move_type', '=', 'out_refund')], limit=1)
-        
-        invoice_date = None
-        for move in self.move_ids:
-            invoice_date = move.invoice_date
-
-        # rango de fecha cambiar a periodo ejemplo solo se puede quitar las perceppcion_iibb si estamos en el mismo mes
-        periodo_actual = today.month
-        if invoice_date:
-            periodo_factura = invoice_date.month
-
-        if credit_notes and self.refund_method == 'modify':
-            if periodo_actual != periodo_factura:
-                self._delete_impuestos_perceppcion_iibb(credit_notes)
-                credit_notes.update_taxes()
-                credit_notes._compute_amount()
-                credit_notes.action_post()
-                # Conciliación entre factura original y NC (para que cambie el payment_state)
-                for origin in self.move_ids:
-                    cns = credit_notes.filtered(lambda m: m.reversed_entry_id == origin and m.state == 'posted')
-                    if not cns:
-                        continue
-                    receiv_pay_lines = (origin.line_ids + cns.line_ids).filtered(
-                        lambda l: l.account_id.internal_type in ('receivable', 'payable') and not l.reconciled
-                    )
-                    if receiv_pay_lines:
-                        if hasattr(receiv_pay_lines, 'auto_reconcile_lines'):
-                            receiv_pay_lines.auto_reconcile_lines()
-                        else:
-                            receiv_pay_lines.reconcile()
-                    origin.write({'payment_state': 'reversed'})
-        for new_move in new_moves:
-            invoice_date = new_move.invoice_date if new_move else None
-            if self.refund_method == 'refund':
-                if not new_move:
-                    return action
-                self._delete_impuestos_perceppcion_iibb(new_move)
-            else:
-                if periodo_actual != periodo_factura:
-                    self._delete_impuestos_perceppcion_iibb(new_move)
-            new_move.update_taxes()
-        return action
-    
-    def _delete_impuestos_perceppcion_iibb(self, move):
-        tax_name = 'percepción iibb'
-        for line in move.invoice_line_ids:
-            line_tax_ids = line.tax_ids.filtered(lambda t: tax_name not in (t.name).lower())
-            if line_tax_ids:
-                line.write({'tax_ids': [(6, 0, line_tax_ids.ids)]})
-
-class AccountMovelLineInherit(models.Model):
-    _inherit = ["account.move.line", "fiscal.lock.mixin"]
+class AccountMoveLineInherit(models.Model):
+    _inherit = "account.move.line"
+    _description = "Extensión de account.move.line"
 
 
     lot_id = fields.Many2one('stock.production.lot', string='Nro Lote')
@@ -764,7 +672,102 @@ class AccountMovelLineInherit(models.Model):
                     sql_sale_order = "UPDATE sale_order_line SET product_id = %s, name = %s WHERE id = %s"
                     self.env.cr.execute(sql_sale_order, (product_replace.id, name_product, self.sale_line_ids.id))
             else:
-                raise ValidationError(f'No se encontró producto de reemplazo con código {search_code} para el producto {self.product_id.default_code}')            
+                raise ValidationError(f'No se encontró producto de reemplazo con código {search_code} para el producto {self.product_id.default_code}')      
+                        
+class WmsCode(models.Model):
+    _name = "wms.code"
+    _description = "Código WMS"
+
+    name = fields.Char("Código", required=True)
+
+
+class AccountPaymentInherit(models.TransientModel):
+    _inherit = 'account.payment.mass.transfer'
+
+
+    @api.model
+    def default_get(self, fields_list):
+        res = super().default_get(fields_list)
+        if self._context.get('active_model') != 'account.payment':
+            raise UserError(_("The register payment wizard should only be called on account.payment records."))
+        payments = self.env['account.payment'].browse(self._context.get('active_ids', []))
+        checks = payments.filtered(lambda x: x.payment_method_line_id.code == 'new_third_party_checks')
+        if not all(check.state == 'posted' for check in checks):
+            raise UserError(_("All the selected checks must be posted"))
+        self.filtered(lambda x: x.payment_method_line_id.code in ['in_third_party_checks', 'out_third_party_checks'])
+        if not checks[0].l10n_latam_check_current_journal_id.inbound_payment_method_line_ids.filtered(
+                lambda x: x.code == 'in_third_party_checks'):
+            raise UserError(_("Checks must be on a third party checks journal to be transfered by this wizard"))
+        res['journal_id'] = checks[0].l10n_latam_check_current_journal_id.id
+        return res
+    
+
+class AccountMoveReversalInherit(models.TransientModel):
+    _inherit = 'account.move.reversal'
+
+
+    def _prepare_default_reversal(self, move):
+        vals = super()._prepare_default_reversal(move)
+        if self.refund_method in ['modify', 'cancel']:
+            vals['auto_post'] = 'no' 
+        return vals
+
+    def reverse_moves(self):
+        action = super().reverse_moves()
+        new_moves = self.new_move_ids
+
+        today = fields.Date.context_today(self)
+        credit_notes = self.env['account.move'].search([
+            ('reversed_entry_id', 'in', self.move_ids.ids),
+            ('move_type', '=', 'out_refund')], limit=1)
+        
+        invoice_date = None
+        for move in self.move_ids:
+            invoice_date = move.invoice_date
+
+        # rango de fecha cambiar a periodo ejemplo solo se puede quitar las perceppcion_iibb si estamos en el mismo mes
+        periodo_actual = today.month
+        if invoice_date:
+            periodo_factura = invoice_date.month
+
+        if credit_notes and self.refund_method == 'modify':
+            if periodo_actual != periodo_factura:
+                self._delete_impuestos_perceppcion_iibb(credit_notes)
+                credit_notes.update_taxes()
+                credit_notes._compute_amount()
+                credit_notes.action_post()
+                # Conciliación entre factura original y NC (para que cambie el payment_state)
+                for origin in self.move_ids:
+                    cns = credit_notes.filtered(lambda m: m.reversed_entry_id == origin and m.state == 'posted')
+                    if not cns:
+                        continue
+                    receiv_pay_lines = (origin.line_ids + cns.line_ids).filtered(
+                        lambda l: l.account_id.internal_type in ('receivable', 'payable') and not l.reconciled
+                    )
+                    if receiv_pay_lines:
+                        if hasattr(receiv_pay_lines, 'auto_reconcile_lines'):
+                            receiv_pay_lines.auto_reconcile_lines()
+                        else:
+                            receiv_pay_lines.reconcile()
+                    origin.write({'payment_state': 'reversed'})
+        for new_move in new_moves:
+            invoice_date = new_move.invoice_date if new_move else None
+            if self.refund_method == 'refund':
+                if not new_move:
+                    return action
+                self._delete_impuestos_perceppcion_iibb(new_move)
+            else:
+                if periodo_actual != periodo_factura:
+                    self._delete_impuestos_perceppcion_iibb(new_move)
+            new_move.update_taxes()
+        return action
+    
+    def _delete_impuestos_perceppcion_iibb(self, move):
+        tax_name = 'percepción iibb'
+        for line in move.invoice_line_ids:
+            line_tax_ids = line.tax_ids.filtered(lambda t: tax_name not in (t.name).lower())
+            if line_tax_ids:
+                line.write({'tax_ids': [(6, 0, line_tax_ids.ids)]})      
         
 
 #SOLO DEBERIA ESTAR ACTIVO PARA EL SERVIDOR DE TEST PARA HACER PRUEBAS CON AFIP
