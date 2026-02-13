@@ -4,7 +4,7 @@ from odoo import api, fields, models, _
 # PURCHASE ORDER
 # =========================================================
 class PurchaseOrder(models.Model):
-    _inherit = ["purchase.order", "fiscal.lock.mixin"]
+    _inherit = "purchase.order"
 
     fiscal_period_locked = fields.Boolean(
         string="Bloqueado por Gestión",

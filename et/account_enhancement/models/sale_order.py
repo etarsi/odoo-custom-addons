@@ -12,7 +12,7 @@ _logger = logging.getLogger(__name__)
 
 
 class SaleOrderInherit(models.Model):
-    _inherit = ["sale.order", "fiscal.lock.mixin"]
+    _inherit = "sale.order"
 
     fiscal_period_locked = fields.Boolean(
         string="Bloqueado por Gestión",

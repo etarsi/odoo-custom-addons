@@ -11,7 +11,7 @@ _logger = logging.getLogger(__name__)
 
 
 class AccountPaymentGroupInherit(models.Model):
-    _inherit = ["account.payment.group", "fiscal.lock.mixin"]
+    _inherit = "account.payment.group"
 
     fiscal_period_locked = fields.Boolean(string="Bloqueado por Gestión", compute="_compute_fiscal_period_locked", readonly=True)
     executive_id = fields.Many2one(
