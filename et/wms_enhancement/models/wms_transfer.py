@@ -175,6 +175,9 @@ class WMSTransferLine(models.Model):
     available_percent = fields.Float(string="Disponible Preparación")
     is_available = fields.Boolean(string="Disponible Comercial", compute="_compute_is_available")
 
+    bultos = fields.Float(string="Bultos", compute="_compute_bultos", store=True)
+    bultos_available = fields.Float(string="Bultos Disponible")
+
 
     @api.model
     def create(self, vals):
@@ -191,6 +194,7 @@ class WMSTransferLine(models.Model):
             raise UserWarning("No se encontró stock para el producto [{stock_erp.product_code}] {stock_erp.product_name}")
         
         demand = vals.get('qty_demand')
+        uxb = stock_erp.uxb
 
         if demand > 0:
             ratio = fisico_unidades / demand
@@ -199,6 +203,7 @@ class WMSTransferLine(models.Model):
             available_percent = 0
 
         vals['available_percent'] = available_percent
+        vals['bultos_available'] = fisico_unidades / uxb
 
 
         return super().create(vals)
@@ -213,6 +218,15 @@ class WMSTransferLine(models.Model):
                 record.is_available = True
 
 
+    @api.depends('qty_demand', 'uxb', 'product_id')
+    def _compute_bultos(self):
+        for record in self:
+            if record.qty_demand > 0 and record.uxb > 0 and record.product_id:
+                record.bultos = record.qty_demand / record.uxb
+            else:
+                record.bultos = 0
+
+
     def update_availability(self):
         for record in self:
             stock_erp = self.env['stock.erp'].search([
@@ -225,6 +239,7 @@ class WMSTransferLine(models.Model):
             raise UserWarning("No se encontró stock para el producto [{stock_erp.product_code}] {stock_erp.product_name}")
         
         demand = record.qty_demand
+        uxb = record.uxb
     
         if demand > 0:
             ratio = fisico_unidades / demand
@@ -233,3 +248,4 @@ class WMSTransferLine(models.Model):
             available_percent = 0
 
         record.available_percent = available_percent
+        record.bultos_available = fisico_unidades / uxb

@@ -103,42 +103,39 @@
                     </div>
 
                     <group>
-                        <group string="Operación">
-                            <field name="operation_type"/>
-                            <field name="sale_type"/>
+                        <group string="Cliente / Entrega">
+                            <field name="partner_id" readonly="1"/>
+                            <field name="partner_address_id" readonly="1"/>
                         </group>
 
-                        <group string="Cliente / Entrega">
-                            <field name="partner_id" options="{'no_create_edit': False}"/>
-                            <field name="partner_address_id"
-                                   domain="[('parent_id','=',partner_id)]"
-                                   context="{'default_parent_id': partner_id}"/>
-                        </group>
+                        <group string="Operación">
+                            <field name="operation_type" readonly="1"/>
+                            <field name="sale_type" string="Tipo de Pedido" readonly="1"/>
+                        </group>                        
                     </group>
 
-                    <group string="Documentos Origen">
+                    <group string="Origen">
                         <group>
-                            <field name="sale_id"/>
-                        </group>
-                        <group>
-                            <field name="purchase_id"/>
+                            <field name="origin"/>
                         </group>
                     </group>
 
                     <notebook>
-                        <page string="Líneas">
+                        <page string="Líneas de Transferencia">
                             <field name="available_line_ids">
                                 <tree editable="bottom" string="Líneas de Transferencia">
-                                    <field name="state"/>
-                                    <field name="invoice_state"/>
+                                    <field name="state" widget="badge" decoration-success="state == 'done''" decoration-warning="state == 'pending'" decoration-info="state == 'preparation'"/>
+                                    <field name="invoice_state" widget="badge" decoration-success="state == 'total''" decoration-warning="state == 'partial'" decoration-danger="state == 'no'"/>
                                     <field name="product_id"/>
                                     <field name="lot_name"/>
+                                    <field name="bultos"/>
                                     <field name="uxb"/>
-                                    <field name="availability"/>
-                                    <field name="available_percent"/>
                                     <field name="qty_demand"/>
                                     <field name="qty_done"/>
-                                    <field name="qty_invoiced"/>
+                                    <field name="qty_invoiced"/>     
+                                    <field name="bultos_available"/>                     
+                                    <field name="available_percent"/>                          
+                                    <field name="availability"/>
                                     <field name="sale_line_id" optional="hide"/>
                                 </tree>
 
