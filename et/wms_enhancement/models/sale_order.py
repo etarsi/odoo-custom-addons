@@ -60,12 +60,8 @@ class SaleOrderInherit(models.Model):
             
 
 
-
-
-
-
-# class SaleOrderLineInherit(models.Model):
-#     _inherit = 'sale.order.line'
+class SaleOrderLineInherit(models.Model):
+    _inherit = 'sale.order.line'
     
-#     quantity_delivered = fields.Integer(string="Cantidad Entregada")
-#     quantity_invoiced = fields.Integer(string="Cantidad Facturada")
+    quantity_delivered = fields.Integer(string="Cantidad Entregada")
+    quantity_invoiced = fields.Integer(string="Cantidad Facturada")
