@@ -63,5 +63,5 @@ class SaleOrderInherit(models.Model):
 class SaleOrderLineInherit(models.Model):
     _inherit = 'sale.order.line'
     
-    quantity_delivered = fields.Integer(string="Cantidad Entregada")
-    quantity_invoiced = fields.Integer(string="Cantidad Facturada")
+    wms_qty_delivered = fields.Float(string="Cantidad Entregada")
+    wms_qty_invoiced = fields.Float(string="Cantidad Facturada")
