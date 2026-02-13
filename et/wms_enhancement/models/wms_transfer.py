@@ -13,25 +13,7 @@ class WMSTransfer(models.Model):
         ('internal', 'Interno'),
         ('outgoing', 'Entrega'),
     ])
-    state_general = fields.Char(string="Estado")
-    state_incoming = fields.Selection(string="Estado", selection=[
-        ('no', 'No aplica'),
-        ('pending', 'Pendiente'),
-        ('process', 'En Proceso'),
-        ('finished', 'Finalizada')
-    ], default='no')
-    state_return = fields.Selection(string="Estado", selection=[
-        ('no', 'No aplica'),
-        ('pending', 'Pendiente'),
-        ('finished', 'Finalizada')
-    ], default='no')
-    state_internal = fields.Selection(string="Estado", selection=[
-        ('no', 'No aplica'),
-        ('pending', 'Pendiente'),
-        ('process', 'En Proceso'),
-        ('finished', 'Finalizada')
-    ], default='no')
-    state_outgoing = fields.Selection(string="Estado", selection=[
+    state = fields.Selection(string="Estado", selection=[
         ('no', 'No aplica'),
         ('pending', 'Pendiente'),
         ('process', 'En Proceso'),

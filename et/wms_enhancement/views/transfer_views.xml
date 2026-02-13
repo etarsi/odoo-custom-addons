@@ -86,6 +86,9 @@
         <field name="model">wms.transfer</field>
         <field name="arch" type="xml">
             <form string="Transferencia WMS">
+                <header>
+                    <field name="state" widget="statusbar" statusbar_visible="pending,process,finished"/>
+                </header>
                 <sheet>
                     <div class="oe_button_box" name="button_box">
                         <button type="action"
@@ -109,6 +112,7 @@
                         </group>
 
                         <group string="Operación">
+                            
                             <field name="operation_type" readonly="1"/>
                             <field name="sale_type" string="Tipo de Pedido" readonly="1"/>
                         </group>                        
