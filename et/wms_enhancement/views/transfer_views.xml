@@ -101,7 +101,7 @@
                                 icon="fa-shopping-cart"
                                 attrs="{'invisible': [('purchase_id', '=', False)]}">
                             <div class="o_stat_info">
-                                <span class="o_stat_text">Compra</span>
+                                <span class="o_stat_text">Pedido de Compra</span>
                             </div>
                         </button>
 
@@ -121,7 +121,7 @@
                                 icon="fa-shopping-cart"
                                 attrs="{'invisible': [('sale_id', '=', False)]}">
                             <div class="o_stat_info">
-                                <span class="o_stat_text">Venta</span>
+                                <span class="o_stat_text">Pedido de Venta</span>
                             </div>
                         </button>
                     

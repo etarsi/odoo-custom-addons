@@ -36,6 +36,7 @@ class SaleOrderInherit(models.Model):
                 'partner_address_id':record.partner_shipping_id.id or False,
                 'sale_type':record.condicion_m2m.name,
                 'sale_id':record.id,
+                'state': 'pending',
             }
 
             transfer_id = self.env['wms.transfer'].create(transfer_vals)

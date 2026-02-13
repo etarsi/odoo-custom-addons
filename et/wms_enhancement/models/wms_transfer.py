@@ -109,6 +109,8 @@ class WMSTransfer(models.Model):
         for record in self:
             record.update_availability()
 
+            
+
         return
 
     def action_create_task(self):
