@@ -18,7 +18,7 @@ class StockMovesERP(models.Model):
     name = fields.Char()
     stock_erp = fields.Many2one('stock.erp')
     sale_id = fields.Many2one('sale.order')
-    sale_line_id = fields.Many2one('sale.order.line')
+    sale_line_id = fields.Many2one('sale.order.line', ondelete='set null')
     partner_id = fields.Many2one('res.partner')
     picking_id = fields.Many2one('stock.picking')
     product_id = fields.Many2one('product.product')
