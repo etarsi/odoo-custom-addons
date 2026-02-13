@@ -41,7 +41,7 @@ class SaleOrderInherit(models.Model):
             transfer_id = self.env['wms.transfer'].create(transfer_vals)
             transfer_lines_list = []
             for line in record.order_line:
-               if line.product_id and line.is_available:
+               if line.product_id:
                    transfer_line = {
                        'transfer_id': transfer_id.id,
                        'product_id': line.product_id.id,
@@ -57,6 +57,7 @@ class SaleOrderInherit(models.Model):
             self.env['wms.transfer.line'].create(transfer_lines_list)
 
             record.transfer_id = transfer_id.id
+            
 
 
 
