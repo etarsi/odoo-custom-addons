@@ -112,15 +112,27 @@ class WMSTransfer(models.Model):
             if record.line_ids:
                 record.total_bultos = 0 # ESTABA
 
-    
+
+    def update_availability(self):
+        for record in self:
+            if record.available_line_ids:
+                for line in record.available_line_ids:
+                    line.update_availability()
+
+
+
     # ACTIONS
+
+    def action_create_task_digip(self):
+        for record in self:
+            record.update_availability()
+
+        return
 
     def action_create_task(self):
         return
 
     def action_create_tasks_auto(self):
-
-
 
         return
     
@@ -132,6 +144,8 @@ class WMSTransfer(models.Model):
     def action_close_transfer(self):
         return
     
+
+
 
 
 
@@ -197,3 +211,25 @@ class WMSTransferLine(models.Model):
                 record.is_available = False
             else:
                 record.is_available = True
+
+
+    def update_availability(self):
+        for record in self:
+            stock_erp = self.env['stock.erp'].search([
+            ('product_id', '=', record.product_id.id)
+        ], limit=1)
+
+        if stock_erp:
+            fisico_unidades = stock_erp.fisico_unidades
+        else:
+            raise UserWarning("No se encontró stock para el producto [{stock_erp.product_code}] {stock_erp.product_name}")
+        
+        demand = record.qty_demand
+    
+        if demand > 0:
+            ratio = fisico_unidades / demand
+            available_percent = min(ratio * 100, 100)
+        else:
+            available_percent = 0
+
+        record.available_percent = available_percent
