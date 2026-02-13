@@ -1,11 +1,6 @@
-# -*- coding: utf-8 -*-
-import io
-import os
-import base64
-import logging
-import zipfile
+
+import zipfile, mimetypes, logging, base64, io, os, zipfile
 from datetime import datetime
-from googleapiclient.errors import HttpError
 import unicodedata, re
 from functools import lru_cache
 from google.oauth2 import service_account
@@ -13,6 +8,7 @@ from googleapiclient.discovery import build
 from googleapiclient.http import MediaIoBaseDownload
 from odoo import api, fields, models, _
 from odoo.exceptions import UserError
+from odoo.tools.mimetypes import guess_mimetype
 
 _logger = logging.getLogger(__name__)
 
@@ -327,50 +323,59 @@ class ProductTemplate(models.Model):
         """Descarga las imágenes del producto en un archivo ZIP."""
         self.ensure_one()
         self = self.sudo()
-        attachments = []
 
         if not self.product_template_image_ids:
             raise UserError(_("El producto no tiene imágenes para descargar."))
 
         zip_buffer = io.BytesIO()
-        with zipfile.ZipFile(zip_buffer, 'w', zipfile.ZIP_DEFLATED) as zip_file:
+        used_names = set()
+
+        with zipfile.ZipFile(zip_buffer, "w", zipfile.ZIP_DEFLATED) as zip_file:
             for img in self.product_template_image_ids:
+                if not img.image_1920:
+                    continue
+
                 image_data = base64.b64decode(img.image_1920)
-                image_name = img.name or f"image_{img.id}.jpg"
-                zip_file.writestr(image_name, image_data)
+
+                # Nombre base (el campo name puede venir como "9009", sin extensión)
+                raw_name = (img.name or f"image_{img.id}").strip()
+                raw_name = os.path.basename(raw_name)  # evita rutas
+                base, ext = os.path.splitext(raw_name)
+
+                # Si no tiene extensión, la deducimos del binario
+                if not ext:
+                    mime = guess_mimetype(image_data, default="image/jpeg")
+                    ext = mimetypes.guess_extension(mime) or ".jpg"
+
+                # Sanitizar nombre para ZIP/Windows
+                base = re.sub(r'[\\/:*?"<>|]+', "_", base).strip() or f"image_{img.id}"
+                filename = f"{base}{ext.lower()}"
+
+                # Evitar duplicados dentro del ZIP
+                if filename in used_names:
+                    filename = f"{base}_{img.id}{ext.lower()}"
+                used_names.add(filename)
+
+                zip_file.writestr(filename, image_data)
 
         zip_buffer.seek(0)
-        zip_data = zip_buffer.read()
-        zip_b64 = base64.b64encode(zip_data).decode('ascii')
+        zip_b64 = base64.b64encode(zip_buffer.read()).decode("ascii")
 
-        attachment = self.env['ir.attachment'].create({
-            'name': f"{self.default_code or 'product'}_images.zip",
-            'type': 'binary',
-            'datas': zip_b64,
-            'mimetype': 'application/zip',
-            'res_model': 'product.template',
-            'res_id': self.id,
-            'public': True,
+        attachment = self.env["ir.attachment"].create({
+            "name": f"{self.default_code or 'product'}_images.zip",
+            "type": "binary",
+            "datas": zip_b64,
+            "mimetype": "application/zip",
+            "res_model": "product.template",
+            "res_id": self.id,
+            "public": True,
         })
 
-        #generar token si no tiene
-        if not attachment.access_token:
-            attachment._generate_access_token()
-        attachments.append(attachment.id)
-        _logger.info("ZIP creado para '%s' (subcarpeta '%s') -> attachment id %s", attachment.id)
-        # Si es un solo producto, devuelvo descarga directa
-        if attachments:
-            att = self.env["ir.attachment"].browse(attachments[-1])
-            if not att.access_token:
-                att._generate_access_token()
-            url = f"/web/content/{att.id}?download=true"
-            return {
-                "type": "ir.actions.act_url",
-                "url": url,
-                "target": "self",
-            }
-            
-
+        return {
+            "type": "ir.actions.act_url",
+            "url": f"/web/content/{attachment.id}?download=true&filename={attachment.name}",
+            "target": "self",
+        }
 
     def _extract_code_from_folder_name(self, folder_name):
         name = (folder_name or "").strip()

@@ -32,6 +32,10 @@ class AccountFiscalPeriodConfig(models.Model):
     )
     account_move_ids = fields.One2many("account.move", "fiscal_period_config_id", string="Asientos de Cierre/Apertura", readonly=True)
     account_move_count = fields.Integer(string="Cantidad de Asientos de Cierre/Apertura", compute="_compute_account_move_count")
+    state = fields.Selection(string="Estado", selection=[
+        ('open', 'Apertura'),
+        ('closed', 'Cierre'),
+    ], default='open')
     
     #validar sql un registro por compañía 
     _sql_constraints = [
