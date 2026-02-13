@@ -11,8 +11,9 @@ import base64
 _logger = logging.getLogger(__name__)
 
 class AccountMoveInherit(models.Model):
-    _inherit = 'account.move'
+    _inherit = ["account.move", "fiscal.lock.mixin"]
 
+    fiscal_period_locked = fields.Boolean(string="Bloqueado por Gestión", compute="_compute_fiscal_period_locked", readonly=True)
     #transfer_id = fields.Many2one(string="Transferencia", comodel_name="wms.transfer")
     return_move = fields.Many2one(string="Devolución", comodel_name="return.move")
     wms_code = fields.Char(string="Código WMS")
@@ -52,27 +53,6 @@ class AccountMoveInherit(models.Model):
     #bloqueo de contabilidad para evitar modificaciones en líneas de asiento relacionadas a los movimientos de cierre y apertura generados por el módulo
     block_accounting = fields.Boolean(string="Bloqueo de Contabilidad", default=False,
                                         help="Si está activo, no se podrán crear ni modificar líneas de asiento relacionadas a este movimiento.")
-    
-    
-    #VALIDACIONES DE ASIENTOS DE CIERRE Y APERTURA PARA EVITAR MODIFICACIONES POSTERIORES
-    #@api.constrains('block_accounting') # Si se activa el bloqueo, validar que no haya líneas de asiento relacionadas a este movimiento que puedan ser modificadas
-    #def _check_block_accounting(self):
-    
-    #    for record in self:
-    #        if record.block_accounting:
-    #            raise ValidationError(_("Este asiento está bloqueado y no puede ser modificado."))
-
-    #def unlink(self):
-    #    for record in self:
-    #        if record.block_accounting:
-    #            raise ValidationError(_("Este asiento está bloqueado y no puede ser eliminado."))
-    #    return super().unlink()
-
-    #def write(self, vals):
-    #    for record in self:
-    #        if record.block_accounting:
-    #            raise ValidationError(_("Este asiento está bloqueado y no puede ser modificado."))
-    #    return super().write(vals)
 
     # ENVIO DE CORREO---------------------------------------------------------
     def _get_default_invoice_mail_template(self):
@@ -193,31 +173,47 @@ class AccountMoveInherit(models.Model):
     # FIN ENVIO DE CORREO---------------------------------------------------------
     
 
-    # @api.model_create_multi
-    # def create(self, vals_list):
-    #     moves = super().create(vals_list)
 
-    #     for move in moves:
-    #         # Validar que la NC sea tipo "credit_note" SOLO si usa documentos
-    #         if move.move_type == 'out_refund' and move.l10n_latam_use_documents:
-    #             doc = move.l10n_latam_document_type_id
-    #             internal_type = doc.internal_type if doc and doc.internal_type else 'No esta definido'
-    #             if not doc or doc.internal_type != 'credit_note':
-    #                 raise ValidationError(_(
-    #                     "Se esperaba una Nota de Crédito, pero el Tipo Comprobante es: %s."
-    #                 ) % internal_type)
+    @api.depends("company_id", "date", "block_accounting")
+    def _compute_fiscal_period_locked(self):
+        for rec in self:
+            by_date = rec._is_locked_by_period(rec.company_id.id, rec.date)
+            by_flag = bool(getattr(rec, "block_accounting", False))
+            rec.fiscal_period_locked = by_date or by_flag
 
-    #     return moves
+    @api.model_create_multi
+    def create(self, vals_list):
+        normalized = []
+        for vals in vals_list:
+            v = self._normalize_exception_vals(vals)
+            company_id = v.get("company_id") or self.env.company.id
+            date_value = v.get("date") or fields.Date.context_today(self)
+            self._raise_if_locked(company_id, date_value, "crear", self._description or self._name, vals=v)
+            normalized.append(v)
+        return super().create(normalized)
+
+    def write(self, vals):
+        vals = self._normalize_exception_vals(vals)
+        for rec in self:
+            rec._raise_if_block_accounting(rec, "modificar", rec=rec, vals=vals, parent=rec)
+            rec._raise_if_locked(rec.company_id.id, rec.date, "modificar", rec._description or rec._name, rec=rec, vals=vals, parent=rec)
+
+            target_company = vals.get("company_id", rec.company_id.id)
+            target_date = vals.get("date", rec.date)
+            rec._raise_if_locked(target_company, target_date, "modificar", rec._description or rec._name, rec=rec, vals=vals, parent=rec)
+        return super().write(vals)
 
     def unlink(self):
-        Return = self.env['return.move']
-        returns = Return.search([('credit_notes', 'in', self.ids)])
-        if returns:
-            cmds = [(3, mid) for mid in self.ids]
-            returns.write({'credit_notes': cmds})
-
+        for rec in self:
+            rec._raise_if_block_accounting(rec, "eliminar", rec=rec, parent=rec)
+            rec._raise_if_locked(rec.company_id.id, rec.date, "eliminar", rec._description or rec._name, rec=rec, parent=rec)
+            Return = rec.env['return.move']
+            returns = Return.search([('credit_notes', 'in', rec.id)])
+            if returns:
+                cmds = [(3, rec.id)]
+                returns.write({'credit_notes': cmds})
         return super().unlink()
-
+    
     def action_post(self):
         for move in self:
             #validar nota de credito sea de tipo comprobante nota de credito
@@ -282,7 +278,6 @@ class AccountMoveInherit(models.Model):
                 amt = float(item.get('amount') or 0.0)
                 move.total_amount_paid += amt
 
-    
     def _compute_calendar_color_state(self):
         for move in self:
             if move.payment_state == 'paid':
@@ -554,69 +549,6 @@ class AccountMoveInherit(models.Model):
                     record._compute_tax_totals_json()
                     
                         
-
-
-
-class SaleOrderInherit(models.Model):
-    _inherit = 'sale.order'
-
-    def _prepare_invoice(self):
-        """
-        Prepare the dict of values to create the new invoice for a sales order. This method may be
-        overridden to implement custom invoice generation (making sure to call super() to establish
-        a clean extension chain).
-        """
-        self.ensure_one()
-        journal = self.env['account.move'].with_context(default_move_type='out_invoice')._get_default_journal()
-        if not journal:
-            raise UserError(_('Please define an accounting sales journal for the company %s (%s).', self.company_id.name, self.company_id.id))
-        
-        WmsCode = self.env['wms.code']
-        wms_codes = set()
-        if self.picking_ids:
-            for p in self.picking_ids:
-                if p.codigo_wms:
-                    wms_codes.add(p.codigo_wms)
-        
-        wms_code_records = WmsCode.search([('name', 'in', list(wms_codes))])
-        existing_names = set(wms_code_records.mapped('name'))
-        missing_names = wms_codes - existing_names
-        
-        new_records = WmsCode.create([{'name': name} for name in missing_names])
-        wms_records = wms_code_records | new_records
-
-        invoice_vals = {
-            'ref': self.client_order_ref or '',
-            'move_type': 'out_invoice',
-            'narration': self.note,
-            'currency_id': self.pricelist_id.currency_id.id,
-            'campaign_id': self.campaign_id.id,
-            'medium_id': self.medium_id.id,
-            'source_id': self.source_id.id,
-            'user_id': self.user_id.id,
-            'invoice_user_id': self.user_id.id,
-            'team_id': self.team_id.id,
-            'partner_id': self.partner_invoice_id.id,
-            'partner_shipping_id': self.partner_shipping_id.id,
-            'fiscal_position_id': (self.fiscal_position_id or self.fiscal_position_id.get_fiscal_position(self.partner_invoice_id.id)).id,
-            'partner_bank_id': self.company_id.partner_id.bank_ids.filtered(lambda bank: bank.company_id.id in (self.company_id.id, False))[:1].id,
-            'journal_id': journal.id,  # company comes from the journal
-            'invoice_origin': self.name,
-            'invoice_payment_term_id': self.payment_term_id.id,
-            'payment_reference': self.reference,
-            'transaction_ids': [(6, 0, self.transaction_ids.ids)],
-            'invoice_line_ids': [],
-            'company_id': self.company_id.id,
-        }
-        return invoice_vals
-    
-    def action_open_refacturar_wizard(self):
-        self.ensure_one()
-        action = self.env.ref('account_enhancement.action_open_sale_refacturar_account_wizard').read()[0]
-        # Pasar el pedido por defecto al wizard
-        action['context'] = dict(self.env.context, default_sale_id=self.id)
-        return action    
-    
 class WmsCode(models.Model):
     _name = "wms.code"
     _description = "Código WMS"
@@ -713,10 +645,75 @@ class AccountMoveReversalInherit(models.TransientModel):
                 line.write({'tax_ids': [(6, 0, line_tax_ids.ids)]})
 
 class AccountMovelLineInherit(models.Model):
-    _inherit = 'account.move.line'
+    _inherit = ["account.move.line", "fiscal.lock.mixin"]
+
 
     lot_id = fields.Many2one('stock.production.lot', string='Nro Lote')
     debit2 = fields.Float(string="Debe")
+
+    fiscal_period_locked = fields.Boolean(
+        string="Bloqueado por Gestión",
+        compute="_compute_fiscal_period_locked",
+        readonly=True,
+    )
+
+    @api.depends("company_id", "date", "move_id.date", "move_id.company_id", "move_id.block_accounting")
+    def _compute_fiscal_period_locked(self):
+        for rec in self:
+            company_id = rec.company_id.id or rec.move_id.company_id.id
+            date_value = rec.date or rec.move_id.date
+            by_date = rec._is_locked_by_period(company_id, date_value)
+            by_flag = bool(getattr(rec.move_id, "block_accounting", False))
+            rec.fiscal_period_locked = by_date or by_flag
+
+    @api.model_create_multi
+    def create(self, vals_list):
+        Move = self.env["account.move"]
+        normalized = []
+        for vals in vals_list:
+            v = self._normalize_exception_vals(vals)
+            move = Move.browse(v["move_id"]) if v.get("move_id") else False
+
+            self._raise_if_block_accounting(move, "crear", vals=v, parent=move)
+
+            company_id = v.get("company_id") or (move.company_id.id if move else self.env.company.id)
+            date_value = v.get("date") or (move.date if move else fields.Date.context_today(self))
+            self._raise_if_locked(company_id, date_value, "crear", self._description or self._name, vals=v, parent=move)
+
+            normalized.append(v)
+        return super().create(normalized)
+
+    def write(self, vals):
+        Move = self.env["account.move"]
+        vals = self._normalize_exception_vals(vals)
+
+        for rec in self:
+            # Estado actual
+            rec._raise_if_block_accounting(rec.move_id, "modificar", rec=rec, vals=vals, parent=rec.move_id)
+
+            current_company = rec.company_id.id or rec.move_id.company_id.id
+            current_date = rec.date or rec.move_id.date
+            rec._raise_if_locked(current_company, current_date, "modificar", rec._description or rec._name, rec=rec, vals=vals, parent=rec.move_id)
+
+            # Estado destino
+            target_move = Move.browse(vals["move_id"]) if vals.get("move_id") else rec.move_id
+            rec._raise_if_block_accounting(target_move, "modificar", rec=rec, vals=vals, parent=target_move)
+
+            target_company = vals.get("company_id") or (target_move.company_id.id if target_move else current_company)
+            target_date = vals.get("date") or (target_move.date if target_move else current_date)
+            rec._raise_if_locked(target_company, target_date, "modificar", rec._description or rec._name, rec=rec, vals=vals, parent=target_move)
+
+        return super().write(vals)
+
+    def unlink(self):
+        for rec in self:
+            rec._raise_if_block_accounting(rec.move_id, "eliminar", rec=rec, parent=rec.move_id)
+
+            company_id = rec.company_id.id or rec.move_id.company_id.id
+            date_value = rec.date or rec.move_id.date
+            rec._raise_if_locked(company_id, date_value, "eliminar", rec._description or rec._name, rec=rec, parent=rec.move_id)
+
+        return super().unlink()
 
     @api.onchange('product_id', 'name', 'move_id.partner_id')
     def _onchange_product_id(self):

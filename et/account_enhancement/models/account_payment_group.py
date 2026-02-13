@@ -11,8 +11,9 @@ _logger = logging.getLogger(__name__)
 
 
 class AccountPaymentGroupInherit(models.Model):
-    _inherit = 'account.payment.group'
+    _inherit = ["account.payment.group", "fiscal.lock.mixin"]
 
+    fiscal_period_locked = fields.Boolean(string="Bloqueado por Gestión", compute="_compute_fiscal_period_locked", readonly=True)
     executive_id = fields.Many2one(
         'res.users',
         string="Ejecutivo de Cuenta",
@@ -29,6 +30,63 @@ class AccountPaymentGroupInherit(models.Model):
     paid_date_venc_text = fields.Text(default='⚠️ EL PAGO A REGISTRAR ESTA FUERA DE FECHA ⚠️')          
     archived = fields.Boolean(string='Archivado', default=False, tracking=True)
 
+
+    def _pg_date(self, rec=None, vals=None):
+        vals = vals or {}
+        return (
+            vals.get("payment_date")
+            or vals.get("date")
+            or (getattr(rec, "payment_date", False) if rec else False)
+            or (getattr(rec, "date", False) if rec else False)
+        )
+
+    def _compute_fiscal_period_locked(self):
+        for rec in self:
+            rec.fiscal_period_locked = rec._is_locked_by_period(rec.company_id.id, self._pg_date(rec=rec))
+
+    @api.model_create_multi
+    def create(self, vals_list):
+        normalized = []
+        for vals in vals_list:
+            v = self._normalize_exception_vals(vals)
+            company_id = v.get("company_id") or self.env.company.id
+            date_value = self._pg_date(vals=v) or fields.Date.context_today(self)
+            self._raise_if_locked(company_id, date_value, "crear", self._description or self._name, vals=v)
+            normalized.append(v)
+        return super().create(normalized)
+
+    def write(self, vals):
+        vals = self._normalize_exception_vals(vals)
+        for rec in self:
+            rec._raise_if_locked(rec.company_id.id, self._pg_date(rec=rec), "modificar", rec._description or rec._name, rec=rec, vals=vals)
+
+            target_company = vals.get("company_id", rec.company_id.id)
+            target_date = self._pg_date(rec=rec, vals=vals)
+            rec._raise_if_locked(target_company, target_date, "modificar", rec._description or rec._name, rec=rec, vals=vals)
+        return super().write(vals)
+    
+    def un_link(self):
+        for record in self:
+            record._raise_if_locked(record.company_id.id, self._pg_date(rec=record), "eliminar", record._description or record._name, rec=record)
+            to_archive = record.filtered(lambda r: r.state in ('draft', 'cancel'))
+            others = record - to_archive
+            if others:
+                raise UserError(_(
+                    "Solo se pueden suprimir grupos de pago en estado Borrador "
+                    "o Cancelado.\nEstados no permitidos: %s"
+                ) % ', '.join(sorted(set(others.mapped('state')))))
+            if to_archive:
+                to_archive.write({'archived': True})
+        return {
+            'type': 'ir.actions.client',
+            'tag': 'display_notification',
+            'params': {
+                'title': 'Listo',
+                'message': 'Se Eliminaron los grupos de pago seleccionados.',
+                'type': 'success',
+                'sticky': False,
+            }
+        }
 
     
     #### ONCHANGE #####
@@ -193,28 +251,6 @@ class AccountPaymentGroupInherit(models.Model):
                 for indx, payment in enumerate(payments, start=1):
                     payment.index = indx
                     
-    def un_link(self):
-        for record in self:
-            to_archive = record.filtered(lambda r: r.state in ('draft', 'cancel'))
-            others = record - to_archive
-            if others:
-                raise UserError(_(
-                    "Solo se pueden suprimir grupos de pago en estado Borrador "
-                    "o Cancelado.\nEstados no permitidos: %s"
-                ) % ', '.join(sorted(set(others.mapped('state')))))
-            if to_archive:
-                to_archive.write({'archived': True})
-        return {
-            'type': 'ir.actions.client',
-            'tag': 'display_notification',
-            'params': {
-                'title': 'Listo',
-                'message': 'Se Eliminaron los grupos de pago seleccionados.',
-                'type': 'success',
-                'sticky': False,
-            }
-        }
-
     #### DEPENDS #####
     @api.depends('partner_id', 'partner_type', 'company_id')
     def _compute_to_pay_move_lines(self):
