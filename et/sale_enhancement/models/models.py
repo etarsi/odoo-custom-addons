@@ -758,6 +758,7 @@ class SaleOrderLineInherit(models.Model):
                 stock_moves_erp_res = self.env['stock.moves.erp'].search([('sale_line_id', '=', record.id), ('type', '=', 'reserve')], limit=1)
 
                 if stock_moves_erp_res:
+                    stock_moves_erp_res.sale_line_id = False
                     stock_moves_erp_res.unreserve_stock()
 
                 return super().unlink()
