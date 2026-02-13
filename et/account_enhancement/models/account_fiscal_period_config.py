@@ -32,6 +32,10 @@ class AccountFiscalPeriodConfig(models.Model):
     )
     account_move_ids = fields.One2many("account.move", "fiscal_period_config_id", string="Asientos de Cierre/Apertura", readonly=True)
     account_move_count = fields.Integer(string="Cantidad de Asientos de Cierre/Apertura", compute="_compute_account_move_count")
+    state = fields.Selection(string="Estado", selection=[
+        ('open', 'Apertura'),
+        ('closed', 'Cierre'),
+    ], default='open')
     
     #validar sql un registro por compañía 
     _sql_constraints = [
@@ -185,7 +189,6 @@ class AccountFiscalPeriodConfig(models.Model):
         # validar que la fecha actual este 1 dia después de date_end para evitar generar asientos con fecha en el pasado
         #if fields.Date.to_date(self.date_end) >= fields.Date.today():
         #    raise UserError(_("La fecha de fin del período debe ser menor a la fecha actual para generar el asiento de apertura."))
-        date = fields.Date.to_date(self.date_end) + timedelta(days=1) # la fecha de apertura es un día después de la fecha de cierre
         account_client_ids = self.env['account.account'].search(['&',
                                                                     ('company_id', '=', self.company_id.id),
                                                                     '|', '|', 
@@ -200,11 +203,11 @@ class AccountFiscalPeriodConfig(models.Model):
                                                         ('date', '=', self.date_end),
                                                         ('journal_id', '=', self.journal_id.id),
                                                         ('move_type', '=', 'entry'),
-                                                        ('line_ids.account_id', 'in', account_client_ids.ids if account_client_ids else []),
+                                                        ('line_ids.account_id', 'in', account_client_existing.ids if account_client_existing else []),
                                                         ('state', '=', 'posted')], limit=1)
         existing_moves = self.env['account.move'].search([('company_id', '=', self.company_id.id),
                                                         ('fiscal_period_config_id', '=', self.id),
-                                                        ('date', '=', fields.Date.to_string(date)),
+                                                        ('date', '=', self.date_end),
                                                         ('journal_id', '=', self.journal_id.id),
                                                         ('move_type', '=', 'entry'),
                                                         ('line_ids.account_id', 'in', account_client_existing.ids if account_client_existing else []),
@@ -230,7 +233,7 @@ class AccountFiscalPeriodConfig(models.Model):
         move_vals = {
             "move_type": "entry",
             "company_id": self.company_id.id,
-            "date": date,
+            "date": self.date_end,
             "journal_id": self.journal_id.id,
             "ref": _("Apertura de periodo de %s") % self.company_id.display_name,
             "fiscal_period_config_id": self.id,
