@@ -91,6 +91,36 @@
                 </header>
                 <sheet>
                     <div class="oe_button_box" name="button_box">
+                        <button name="action_open_purchase"
+                                type="object"
+                                class="oe_stat_button"
+                                icon="fa-shopping-cart"
+                                attrs="{'invisible': [('purchase_id', '=', False)]}">
+                            <div class="o_stat_info">
+                                <span class="o_stat_text">Compra</span>
+                            </div>
+                        </button>
+
+                        <button name="action_open_preselection"
+                                type="object"
+                                class="oe_stat_button"
+                                icon="fa-shopping-cart"
+                                attrs="{'invisible': [('preselection_id', '=', False)]}">
+                            <div class="o_stat_info">
+                                <span class="o_stat_text">Preselección</span>
+                            </div>
+                        </button>
+
+                        <button name="action_open_sale"
+                                type="object"
+                                class="oe_stat_button"
+                                icon="fa-shopping-cart"
+                                attrs="{'invisible': [('sale_id', '=', False)]}">
+                            <div class="o_stat_info">
+                                <span class="o_stat_text">Venta</span>
+                            </div>
+                        </button>
+                    
                         <button type="action"
                                 name="%(action_wms_task_from_transfer)d"
                                 class="oe_stat_button"
@@ -112,7 +142,7 @@
                         </group>
 
                         <group string="Operación">
-                            
+                            <field name="create_date" string="Fecha Transferencia"/>
                             <field name="operation_type" readonly="1"/>
                             <field name="sale_type" string="Tipo de Pedido" readonly="1"/>
                         </group>                        

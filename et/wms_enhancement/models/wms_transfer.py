@@ -1,4 +1,4 @@
-from odoo import models, fields, api
+from odoo import models, fields, api, _
 
 
 class WMSTransfer(models.Model):
@@ -127,6 +127,47 @@ class WMSTransfer(models.Model):
         return
     
 
+    def action_open_purchase(self):
+        self.ensure_one()
+        if not self.purchase_id:
+            return False
+
+        return {
+            'type': 'ir.actions.act_window',
+            'name': _('Pedido de Compra'),
+            'res_model': 'purchase.order',
+            'view_mode': 'form',
+            'res_id': self.purchase_id.id,
+            'target': 'current',
+        }
+
+    def action_open_preselection(self):
+        self.ensure_one()
+        if not self.preselection_id:
+            return False
+
+        return {
+            'type': 'ir.actions.act_window',
+            'name': _('Pedido de Preselección'),
+            'res_model': 'wms.preselection',
+            'view_mode': 'form',
+            'res_id': self.preselection_id.id,
+            'target': 'current',
+        }
+    
+    def action_open_sale(self):
+        self.ensure_one()
+        if not self.sale_id:
+            return False
+
+        return {
+            'type': 'ir.actions.act_window',
+            'name': _('Pedido de Venta'),
+            'res_model': 'sale.order',
+            'view_mode': 'form',
+            'res_id': self.sale_id.id,
+            'target': 'current',
+        }
 
 
 
