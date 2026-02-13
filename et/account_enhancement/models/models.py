@@ -11,7 +11,7 @@ import base64
 _logger = logging.getLogger(__name__)
 
 class AccountMoveInherit(models.Model):
-    _inherit = "account.move"
+    _inherit = ["account.move", "fiscal.lock.mixin"]
 
     fiscal_period_locked = fields.Boolean(string="Bloqueado por Gestión", compute="_compute_fiscal_period_locked", readonly=True)
     #transfer_id = fields.Many2one(string="Transferencia", comodel_name="wms.transfer")
@@ -552,7 +552,7 @@ class AccountMoveInherit(models.Model):
 
 
 class AccountMoveLineInherit(models.Model):
-    _inherit = "account.move.line"
+    _inherit = ["account.move.line", "fiscal.lock.mixin"]
     _description = "Extensión de account.move.line"
 
 

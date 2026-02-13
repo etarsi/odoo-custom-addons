@@ -44,7 +44,7 @@ class PurchaseOrderInherit(models.Model):
 
 
 class PurchaseOrderLineInherit(models.Model):
-    _inherit = "purchase.order.line"
+    _inherit = ["purchase.order.line", "fiscal.lock.mixin"]
 
     fiscal_period_locked = fields.Boolean(
         string="Bloqueado por Gestión",
