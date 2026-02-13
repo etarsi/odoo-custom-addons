@@ -12,18 +12,9 @@ _logger = logging.getLogger(__name__)
 
 
 class SaleOrderInherit(models.Model):
-    _inherit = ["sale.order", "fiscal.lock.mixin"]
+    _inherit = "sale.order"
 
-    fiscal_period_locked = fields.Boolean(
-        string="Bloqueado por Gestión",
-        compute="_compute_fiscal_period_locked",
-        readonly=True,
-    )
-
-    @api.depends("company_id", "date_order")
-    def _compute_fiscal_period_locked(self):
-        for rec in self:
-            rec.fiscal_period_locked = rec._is_locked_by_period(rec.company_id.id, rec.date_order)
+    period_cut_locked = fields.Boolean(string="Período de Corte Bloqueado", default=False)
 
     @api.model_create_multi
     def create(self, vals_list):
@@ -111,49 +102,25 @@ class SaleOrderInherit(models.Model):
 
 
 class SaleOrderLineInherit(models.Model):
-    _inherit = ["sale.order.line", "fiscal.lock.mixin"]
+    _inherit = "sale.order.line"
 
-    fiscal_period_locked = fields.Boolean(
-        string="Bloqueado por Gestión",
-        compute="_compute_fiscal_period_locked",
-        readonly=True,
-    )
-
-    @api.depends("order_id.date_order", "order_id.company_id", "company_id")
-    def _compute_fiscal_period_locked(self):
-        for rec in self:
-            company_id = rec.company_id.id or rec.order_id.company_id.id
-            rec.fiscal_period_locked = rec._is_locked_by_period(company_id, rec.order_id.date_order)
+    period_cut_locked = fields.Boolean(string="Período de Corte Bloqueado", default=False)
 
     @api.model_create_multi
     def create(self, vals_list):
-        SO = self.env["sale.order"]
-        normalized = []
         for vals in vals_list:
-            v = self._normalize_exception_vals(vals)
-            order = SO.browse(v["order_id"]) if v.get("order_id") else False
-            company_id = v.get("company_id") or (order.company_id.id if order else self.env.company.id)
-            date_value = order.date_order if order else fields.Datetime.now()
-            self._raise_if_locked(company_id, date_value, "crear", self._description or self._name, vals=v, parent=order)
-            normalized.append(v)
-        return super().create(normalized)
+            if vals.get("period_cut_locked"):
+                raise ValidationError(_("No se puede crear una línea de pedido con 'Período de Corte Bloqueado' activo."))  
+        return super().create(vals_list)
 
     def write(self, vals):
-        SO = self.env["sale.order"]
-        vals = self._normalize_exception_vals(vals)
         for rec in self:
-            current_company = rec.company_id.id or rec.order_id.company_id.id
-            current_date = rec.order_id.date_order
-            rec._raise_if_locked(current_company, current_date, "modificar", rec._description or rec._name, rec=rec, vals=vals, parent=rec.order_id)
-
-            target_order = SO.browse(vals["order_id"]) if vals.get("order_id") else rec.order_id
-            target_company = vals.get("company_id") or (target_order.company_id.id if target_order else current_company)
-            target_date = target_order.date_order if target_order else current_date
-            rec._raise_if_locked(target_company, target_date, "modificar", rec._description or rec._name, rec=rec, vals=vals, parent=target_order)
+            if vals.get("period_cut_locked") or rec.period_cut_locked:
+                raise ValidationError(_("No se puede modificar una línea de pedido con 'Período de Corte Bloqueado' activo."))
         return super().write(vals)
 
     def unlink(self):
         for rec in self:
-            company_id = rec.company_id.id or rec.order_id.company_id.id
-            rec._raise_if_locked(company_id, rec.order_id.date_order, "eliminar", rec._description or rec._name, rec=rec, parent=rec.order_id)
+            if rec.period_cut_locked:
+                raise ValidationError(_("No se puede eliminar una línea de pedido con 'Período de Corte Bloqueado' activo."))
         return super().unlink()

@@ -11,9 +11,9 @@ _logger = logging.getLogger(__name__)
 
 
 class AccountPaymentGroupInherit(models.Model):
-    _inherit = ["account.payment.group", "fiscal.lock.mixin"]
+    _inherit = "account.payment.group"
 
-    fiscal_period_locked = fields.Boolean(string="Bloqueado por Gestión", compute="_compute_fiscal_period_locked", readonly=True)
+    period_cut_locked = fields.Boolean(string="Período de Corte Bloqueado", default=False)
     executive_id = fields.Many2one(
         'res.users',
         string="Ejecutivo de Cuenta",
@@ -40,34 +40,23 @@ class AccountPaymentGroupInherit(models.Model):
             or (getattr(rec, "date", False) if rec else False)
         )
 
-    def _compute_fiscal_period_locked(self):
-        for rec in self:
-            rec.fiscal_period_locked = rec._is_locked_by_period(rec.company_id.id, self._pg_date(rec=rec))
-
     @api.model_create_multi
     def create(self, vals_list):
-        normalized = []
         for vals in vals_list:
-            v = self._normalize_exception_vals(vals)
-            company_id = v.get("company_id") or self.env.company.id
-            date_value = self._pg_date(vals=v) or fields.Date.context_today(self)
-            self._raise_if_locked(company_id, date_value, "crear", self._description or self._name, vals=v)
-            normalized.append(v)
-        return super().create(normalized)
+            if vals.get("period_cut_locked"):
+                raise ValidationError(_("No se puede crear un grupo de pago con 'Período de Corte Bloqueado' activo."))
+        return super().create(vals_list)
 
     def write(self, vals):
-        vals = self._normalize_exception_vals(vals)
         for rec in self:
-            rec._raise_if_locked(rec.company_id.id, self._pg_date(rec=rec), "modificar", rec._description or rec._name, rec=rec, vals=vals)
-
-            target_company = vals.get("company_id", rec.company_id.id)
-            target_date = self._pg_date(rec=rec, vals=vals)
-            rec._raise_if_locked(target_company, target_date, "modificar", rec._description or rec._name, rec=rec, vals=vals)
+            if vals.get("period_cut_locked") or rec.period_cut_locked:
+                raise ValidationError(_("No se puede modificar un grupo de pago con 'Período de Corte Bloqueado' activo."))
         return super().write(vals)
     
     def un_link(self):
         for record in self:
-            record._raise_if_locked(record.company_id.id, self._pg_date(rec=record), "eliminar", record._description or record._name, rec=record)
+            if record.period_cut_locked:
+                raise ValidationError(_("No se puede eliminar un grupo de pago con 'Período de Corte Bloqueado' activo."))
             to_archive = record.filtered(lambda r: r.state in ('draft', 'cancel'))
             others = record - to_archive
             if others:
@@ -87,6 +76,12 @@ class AccountPaymentGroupInherit(models.Model):
                 'sticky': False,
             }
         }
+        
+    def unlink(self):
+        for record in self:
+            if record.period_cut_locked:
+                raise ValidationError(_("No se puede eliminar un grupo de pago con 'Período de Corte Bloqueado' activo."))
+        return super().unlink()
 
     
     #### ONCHANGE #####

@@ -10,9 +10,8 @@ from odoo.tools.float_utils import float_compare
 _logger = logging.getLogger(__name__)
 
 class AccountPaymentInherit(models.Model):
-    _inherit = ["account.payment", "fiscal.lock.mixin"]
+    _inherit = "account.payment"
 
-    fiscal_period_locked = fields.Boolean(string="Bloqueado por Gestión", compute="_compute_fiscal_period_locked", readonly=True)
     issue_date = fields.Date(string='Fecha de Emisión')
     hide_issue_date = fields.Boolean(default=True)
     no_diferido = fields.Boolean('No diferido', default=False)
@@ -35,37 +34,28 @@ class AccountPaymentInherit(models.Model):
     check_effectiveness_text = fields.Text(compute="_compute_check_effectiveness", store=False)
     index = fields.Integer(string='#')
     archived = fields.Boolean(string='Archivado', related='payment_group_id.archived', store=True)
-    
-    @api.depends("company_id", "date")
-    def _compute_fiscal_period_locked(self):
-        for rec in self:
-            rec.fiscal_period_locked = rec._is_locked_by_period(rec.company_id.id, rec.date)
+    period_cut_locked = fields.Boolean(string="Período de Corte Bloqueado", default=False)
 
     @api.model_create_multi
     def create(self, vals_list):
-        normalized = []
         for vals in vals_list:
-            v = self._normalize_exception_vals(vals)
-            company_id = v.get("company_id") or self.env.company.id
-            date_value = v.get("date") or fields.Date.context_today(self)
-            self._raise_if_locked(company_id, date_value, "crear", self._description or self._name, vals=v)
-            normalized.append(v)
-        return super().create(normalized)
+            if vals.get("period_cut_locked"):
+                raise ValidationError(_("No se puede crear un pago con 'Período de Corte Bloqueado' activo."))
+        return super().create(vals_list)
 
     def write(self, vals):
         vals = self._normalize_exception_vals(vals)
         for payment in self:
-            payment._raise_if_locked(payment.company_id.id, payment.date, "modificar", payment._description or payment._name, rec=payment, vals=vals)
-            target_company = vals.get("company_id", payment.company_id.id)
-            target_date = vals.get("date", payment.date)
-            payment._raise_if_locked(target_company, target_date, "modificar", payment._description or payment._name, rec=payment, vals=vals)
+            if vals.get("period_cut_locked") or payment.period_cut_locked:
+                raise ValidationError(_("No se puede modificar un pago con 'Período de Corte Bloqueado' activo."))
             res = super().write(vals)
             payment._constrains_check_number_length()
         return res
 
     def unlink(self):
         for payment in self:
-            payment._raise_if_locked(payment.company_id.id, payment.date, "eliminar", payment._description or payment._name, rec=payment)
+            if payment.period_cut_locked:
+                raise ValidationError(_("No se puede eliminar un pago con 'Período de Corte Bloqueado' activo."))
             if payment.payment_group_id:                
                 if payment.payment_group_id.partner_type == 'supplier':
                     if payment.l10n_latam_check_current_journal_id:

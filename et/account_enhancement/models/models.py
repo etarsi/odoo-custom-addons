@@ -11,9 +11,8 @@ import base64
 _logger = logging.getLogger(__name__)
 
 class AccountMoveInherit(models.Model):
-    _inherit = ["account.move", "fiscal.lock.mixin"]
+    _inherit = "account.move"
 
-    fiscal_period_locked = fields.Boolean(string="Bloqueado por Gestión", compute="_compute_fiscal_period_locked", readonly=True)
     #transfer_id = fields.Many2one(string="Transferencia", comodel_name="wms.transfer")
     return_move = fields.Many2one(string="Devolución", comodel_name="return.move")
     wms_code = fields.Char(string="Código WMS")
@@ -51,8 +50,7 @@ class AccountMoveInherit(models.Model):
     balance_diff = fields.Float(string="Diferencia Debe - Haber", compute="_compute_balance_diff")
     fiscal_period_config_id = fields.Many2one("account.fiscal.period.config", string="Ejercicio de Cierre/Apertura", copy=False, readonly=True)
     #bloqueo de contabilidad para evitar modificaciones en líneas de asiento relacionadas a los movimientos de cierre y apertura generados por el módulo
-    block_accounting = fields.Boolean(string="Bloqueo de Contabilidad", default=False,
-                                        help="Si está activo, no se podrán crear ni modificar líneas de asiento relacionadas a este movimiento.")
+    period_cut_locked = fields.Boolean(string="Período de Corte Bloqueado", default=False)
 
     # ENVIO DE CORREO---------------------------------------------------------
     def _get_default_invoice_mail_template(self):
@@ -172,41 +170,23 @@ class AccountMoveInherit(models.Model):
         return
     # FIN ENVIO DE CORREO---------------------------------------------------------
     
-
-
-    @api.depends("company_id", "date", "block_accounting")
-    def _compute_fiscal_period_locked(self):
-        for rec in self:
-            by_date = rec._is_locked_by_period(rec.company_id.id, rec.date)
-            by_flag = bool(getattr(rec, "block_accounting", False))
-            rec.fiscal_period_locked = by_date or by_flag
-
     @api.model_create_multi
     def create(self, vals_list):
-        normalized = []
         for vals in vals_list:
-            v = self._normalize_exception_vals(vals)
-            company_id = v.get("company_id") or self.env.company.id
-            date_value = v.get("date") or fields.Date.context_today(self)
-            self._raise_if_locked(company_id, date_value, "crear", self._description or self._name, vals=v)
-            normalized.append(v)
-        return super().create(normalized)
+            if vals.get("period_cut_locked"):
+                raise ValidationError(_("No se puede crear un movimiento con 'Período de Corte Bloqueado' activo."))
+        return super().create(vals_list)
 
     def write(self, vals):
-        vals = self._normalize_exception_vals(vals)
         for rec in self:
-            rec._raise_if_block_accounting(rec, "modificar", rec=rec, vals=vals, parent=rec)
-            rec._raise_if_locked(rec.company_id.id, rec.date, "modificar", rec._description or rec._name, rec=rec, vals=vals, parent=rec)
-
-            target_company = vals.get("company_id", rec.company_id.id)
-            target_date = vals.get("date", rec.date)
-            rec._raise_if_locked(target_company, target_date, "modificar", rec._description or rec._name, rec=rec, vals=vals, parent=rec)
+            if rec.period_cut_locked:
+                raise ValidationError(_("No se puede modificar un movimiento con 'Período de Corte Bloqueado' activo."))    
         return super().write(vals)
 
     def unlink(self):
         for rec in self:
-            rec._raise_if_block_accounting(rec, "eliminar", rec=rec, parent=rec)
-            rec._raise_if_locked(rec.company_id.id, rec.date, "eliminar", rec._description or rec._name, rec=rec, parent=rec)
+            if rec.period_cut_locked:
+                raise ValidationError(_("No se puede eliminar un movimiento con 'Período de Corte Bloqueado' activo."))
             Return = rec.env['return.move']
             returns = Return.search([('credit_notes', 'in', rec.id)])
             if returns:
@@ -552,18 +532,13 @@ class AccountMoveInherit(models.Model):
 
 
 class AccountMoveLineInherit(models.Model):
-    _inherit = ["account.move.line", "fiscal.lock.mixin"]
+    _inherit = "account.move.line"
     _description = "Extensión de account.move.line"
 
 
     lot_id = fields.Many2one('stock.production.lot', string='Nro Lote')
     debit2 = fields.Float(string="Debe")
-
-    fiscal_period_locked = fields.Boolean(
-        string="Bloqueado por Gestión",
-        compute="_compute_fiscal_period_locked",
-        readonly=True,
-    )
+    period_cut_locked = fields.Boolean(string="Período de Corte Bloqueado", default=False)
 
     @api.depends("company_id", "date", "move_id.date", "move_id.company_id", "move_id.block_accounting")
     def _compute_fiscal_period_locked(self):
