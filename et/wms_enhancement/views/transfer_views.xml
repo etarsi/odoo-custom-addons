@@ -91,6 +91,10 @@
                 </header>
                 <sheet>
                     <div class="oe_button_box" name="button_box">
+                        <field name="purchase_id" invisible="1"/>
+                        <field name="preselection_id" invisible="1"/>
+                        <field name="sale_id" invisible="1"/>
+
                         <button name="action_open_purchase"
                                 type="object"
                                 class="oe_stat_button"
@@ -110,7 +114,7 @@
                                 <span class="o_stat_text">Preselección</span>
                             </div>
                         </button>
-
+                        
                         <button name="action_open_sale"
                                 type="object"
                                 class="oe_stat_button"
