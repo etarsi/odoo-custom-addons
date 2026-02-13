@@ -723,8 +723,6 @@ class SaleOrderLineInherit(models.Model):
     is_cancelled = fields.Boolean(default=False)
     disponible_unidades = fields.Integer('Disponible')
     is_compromised = fields.Boolean(default=False)
-    stock_erp = fields.Many2one('stock.erp')
-    stock_moves_erp = fields.Many2one('stock.moves.erp')
     
 
 
