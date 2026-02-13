@@ -110,7 +110,7 @@ class SaleOrderInherit(models.Model):
 
 
 
-class SaleOrderLine(models.Model):
+class SaleOrderLineInherit(models.Model):
     _inherit = ["sale.order.line", "fiscal.lock.mixin"]
 
     fiscal_period_locked = fields.Boolean(
