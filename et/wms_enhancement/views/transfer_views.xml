@@ -148,7 +148,7 @@
                         <group string="Operación">
                             <field name="create_date" string="Fecha Transferencia"/>
                             <field name="operation_type" readonly="1"/>
-                            <field name="sale_type" string="Tipo de Pedido" readonly="1"/>
+                            <field name="sale_type" string="Tipo de Facturación" readonly="1"/>
                         </group>                        
                     </group>
 
@@ -161,7 +161,7 @@
                     <notebook>
                         <page string="Líneas de Transferencia">
                             <field name="available_line_ids">
-                                <tree editable="bottom" string="Líneas de Transferencia">
+                                <tree editable="bottom" string="Líneas de Transferencia" default_order="bultos_available desc, available_percent desc">
                                     <field name="state" widget="badge" decoration-success="state == 'done'" decoration-warning="state == 'pending'" decoration-info="state == 'preparation'"/>
                                     <field name="invoice_state" widget="badge" decoration-success="state == 'total'" decoration-warning="state == 'partial'" decoration-danger="state == 'no'"/>
                                     <field name="product_id"/>
@@ -169,10 +169,11 @@
                                     <field name="bultos"/>
                                     <field name="uxb"/>
                                     <field name="qty_demand"/>
+                                    <field name="qty_pending"/>
                                     <field name="qty_done"/>
-                                    <field name="qty_invoiced"/>     
+                                    <field name="qty_invoiced"/>
                                     <field name="bultos_available"/>                     
-                                    <field name="available_percent"/>                          
+                                    <field name="available_percent"/>                   
                                     <field name="availability"/>
                                     <field name="sale_line_id" optional="hide"/>
                                 </tree>

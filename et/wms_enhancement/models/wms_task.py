@@ -46,18 +46,16 @@ class WMSTask(models.Model):
     assigned_user_id = fields.Many2one(string="Asignado a", comodel_name="res.users")
     task_line_ids = fields.One2many(string="Líneas de Tarea", comodel_name="wms.task.line", inverse_name="task_id")
     transfer_id = fields.Many2one(string="Transferencia", comodel_name="wms.transfer")
-
+    partner_id = fields.Many2one(string="Contacto", rcomodel_name="res.partner")
 
     ## recepcion
 
-    provider_id = fields.Many2one(string="Proveedor", comodel_name="res.partner")
     container = fields.Char(string="Contenedor")
     dispatch = fields.Char(string="N° Despacho")
     license = fields.Char(string="Licencia")
 
     # preparation
 
-    client_id = fields.Many2one(string="Cliente", comodel_name="res.partner")
 
 
 

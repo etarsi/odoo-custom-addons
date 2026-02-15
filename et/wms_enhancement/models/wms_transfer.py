@@ -98,8 +98,7 @@ class WMSTransfer(models.Model):
     def update_availability(self):
         for record in self:
             if record.available_line_ids:
-                for line in record.available_line_ids:
-                    line.update_availability()
+                record.available_line_ids.update_availability()                   
 
 
 
@@ -109,7 +108,82 @@ class WMSTransfer(models.Model):
         for record in self:
             record.update_availability()
 
+            ### TASK CREATION
+
+            while True:
+                selected_lines = self.env['wms.transfer.lines']
+                line_count = 0
+                bulto_count = 0
+                lines_to_split = record.available_line_ids.filtered(lambda m: m.available_percent == 100)
+
+                for line in lines_to_split:
+                    if line_count >= 30 or bulto_count >= 30:
+                        break
+
+                    line_bultos = line.qty_pending / line.uxb
+
+                    if bulto_count + line_bultos > 30:
+                        continue
+                    line_count += 1
+                    bulto_count += line.bultos
+                    selected_lines |= line
+
+                if not selected_lines:
+                    break
+                if len(selected_lines) == len(record.available_line_ids):
+                    break
+
+                new_task = record._split_off_moves(selected_lines)
+                all_new_task |= new_task
+
+            record.update_availability()
+            all_new_task |= record
+        
+
+        all_new_task.update_availability()
+        if all_new_task:
+            return {
+                'name': 'Facturas Divididas',
+                'type': 'ir.actions.act_window',
+                'view_mode': 'tree,form',
+                'res_model': 'stock.picking',
+                'domain': [('id', 'in', all_new_task.ids)],
+            }
+
+
+
+
+
+
+
+
+
+            task_vals = {
+                'transfer_id': record.id,
+                'partner_id':record.partner_id.id,                
+                'state': 'pending',
+            }
+
+            task_id = self.env['wms.task'].create(task_vals)
+
+            transfer_lines_list = []
+            for line in record.order_line:
+               if line.product_id:
+                   transfer_line = {
+                       'transfer_id': transfer_id.id,
+                       'product_id': line.product_id.id,
+                       'state': 'pending',
+                       'invoice_state': 'no',
+                       'sale_line_id': line.id,
+                       'uxb': line.product_packaging_id.qty or False,
+                       'qty_demand': line.product_uom_qty or 0,
+                   }
+
+                   transfer_lines_list.append(transfer_line)
             
+            self.env['wms.transfer.line'].create(transfer_lines_list)
+
+            record.transfer_id = transfer_id.id
 
         return
 
@@ -194,8 +268,9 @@ class WMSTransferLine(models.Model):
     lot_name = fields.Char(string="Lote")
     uxb = fields.Integer(string="UxB")
     availability = fields.Char(string="Disponibilidad")
-    qty_demand = fields.Integer(string="Demanda")
-    qty_done = fields.Integer(string="Hecho")
+    qty_demand = fields.Integer(string="Demanda Inicial")
+    qty_pending = fields.Integer(string="Pendiente")
+    qty_done = fields.Integer(string="Preparado")
     qty_invoiced = fields.Integer(string="Facturado")
     available_percent = fields.Float(string="Disponible Preparación")
     is_available = fields.Boolean(string="Disponible Comercial", compute="_compute_is_available")
@@ -227,6 +302,7 @@ class WMSTransferLine(models.Model):
         else:
             available_percent = 0
 
+        vals['qty_pending'] = demand
         vals['available_percent'] = available_percent
         vals['bultos_available'] = fisico_unidades / uxb
 
@@ -263,11 +339,11 @@ class WMSTransferLine(models.Model):
         else:
             raise UserWarning("No se encontró stock para el producto [{stock_erp.product_code}] {stock_erp.product_name}")
         
-        demand = record.qty_demand
+        pending = record.qty_pending
         uxb = record.uxb
     
-        if demand > 0:
-            ratio = fisico_unidades / demand
+        if pending > 0:
+            ratio = fisico_unidades / pending
             available_percent = min(ratio * 100, 100)
         else:
             available_percent = 0
