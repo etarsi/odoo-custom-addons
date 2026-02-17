@@ -7,6 +7,7 @@ class WMSTask(models.Model):
     name = fields.Char()    
     state_preparation = fields.Selection(string="Estado", selection=[
         ('no', 'No aplica'),
+        ('pending', 'Pendiente'),
         ('preparation', 'En Preparación'),
         ('control', 'Control'),
         ('delivery', 'Entregado'),
@@ -102,6 +103,7 @@ class WMSTaskLine(models.Model):
 
     name = fields.Char()
     task_id = fields.Many2one(string="Tarea", comodel_name="wms.task")
+    transfer_line_id = fields.Many2one(string="Línea de Transferencia", comodel_name="wms.transfer.line")
     product_id = fields.Many2one(string="Producto", comodel_name="product.product")
     quantity = fields.Integer(string="Demanda")
     quantity_picked = fields.Integer(string="Cantidad pickeada")

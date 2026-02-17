@@ -1,4 +1,6 @@
 from odoo import models, fields, api, _
+from odoo.exceptions import UserError
+from odoo.tools.float_utils import float_compare
 
 
 class WMSTransfer(models.Model):
@@ -104,88 +106,141 @@ class WMSTransfer(models.Model):
 
     # ACTIONS
 
-    def action_create_task_digip(self):
-        for record in self:
-            record.update_availability()
+    
+    def action_split_into_tasks(self, max_lines=30, max_bultos=30):
+        """
+        Crea tareas consumiendo qty_pending de las líneas disponibles (available_percent == 100).
+        Soporta partir una misma wms.transfer.line entre múltiples tareas.
+        """
+        self.ensure_one()
 
-            ### TASK CREATION
+        lines = self.line_ids.filtered(lambda l:
+            float_compare(l.available_percent or 0.0, 100.0, precision_digits=6) == 0
+            and (l.qty_pending or 0) > 0
+        )
 
-            while True:
-                selected_lines = self.env['wms.transfer.lines']
-                line_count = 0
-                bulto_count = 0
-                lines_to_split = record.available_line_ids.filtered(lambda m: m.available_percent == 100)
+        if not lines:
+            raise UserError(_("No hay disponibilidad de stock físico para generar tareas."))
 
-                for line in lines_to_split:
-                    if line_count >= 30 or bulto_count >= 30:
-                        break
+        created_tasks = self.env['wms.task']
 
-                    line_bultos = line.qty_pending / line.uxb
+        # Bucket (lo que va a ir a UNA tarea)
+        bucket = []  # lista de dicts: {'line': wtl, 'qty': unidades, 'bultos': bultos}
+        bucket_bultos = 0.0
+        bucket_distinct_lines = set()  # ids de wms.transfer.line usados en esta tarea
 
-                    if bulto_count + line_bultos > 30:
+        def close_bucket():
+            nonlocal bucket, bucket_bultos, bucket_distinct_lines, created_tasks
+            if not bucket:
+                return
+            task = self._wms_create_task_from_bucket(bucket)
+            created_tasks |= task
+            bucket = []
+            bucket_bultos = 0.0
+            bucket_distinct_lines = set()
+
+        for wtl in lines:
+            # Mientras esta línea tenga pendiente, vamos consumiendo en tareas sucesivas
+            while (wtl.qty_pending or 0) > 0:
+                if not wtl.uxb or wtl.uxb <= 0:
+                    raise UserError(_(
+                        "La línea %s (%s) no tiene UxB válido (uxb=%s)."
+                    ) % (wtl.id, wtl.product_id.display_name, wtl.uxb))
+
+                # Si el bucket ya alcanzó el máximo de líneas distintas, cerramos tarea
+                if len(bucket_distinct_lines) >= max_lines and (wtl.id not in bucket_distinct_lines):
+                    close_bucket()
+
+                # Bultos disponibles en el bucket actual
+                remaining_bucket_bultos = max_bultos - bucket_bultos
+                if float_compare(remaining_bucket_bultos, 0.0, precision_digits=6) <= 0:
+                    close_bucket()
+                    remaining_bucket_bultos = max_bultos
+
+                # Bultos pendientes de la línea (derivado de qty_pending / uxb)
+                wtl_pending_bultos = (wtl.qty_pending / float(wtl.uxb))
+
+                # Cuántos bultos tomar de esta línea para esta tarea
+                take_bultos = min(wtl_pending_bultos, remaining_bucket_bultos)
+
+                # Convertimos a unidades enteras (bultos * uxb)
+                # Importante: como qty_pending es int, y uxb es int, normalmente esto da exacto.
+                take_units = take_bultos * wtl.uxb
+
+                # Seguridad: no tomar más que lo pendiente
+                take_units = min(take_units, int(wtl.qty_pending))
+
+                if take_units <= 0:
+                        # No entra nada en este bucket -> cerrar y seguir
+                        close_bucket()
                         continue
-                    line_count += 1
-                    bulto_count += line.bultos
-                    selected_lines |= line
 
-                if not selected_lines:
-                    break
-                if len(selected_lines) == len(record.available_line_ids):
-                    break
+                # Agregar al bucket
+                bucket.append({
+                    'line': wtl,
+                    'qty': take_units,
+                    'bultos': take_bultos,
+                })
+                bucket_bultos += take_bultos
+                bucket_distinct_lines.add(wtl.id)
 
-                new_task = record._split_off_moves(selected_lines)
-                all_new_task |= new_task
+                # Consumir del pendiente (esto es lo que evita duplicar)
+                wtl.qty_pending -= take_units
 
-            record.update_availability()
-            all_new_task |= record
-        
+                # Si llegamos al límite de bultos o líneas, cerramos tarea
+                reached_bultos = float_compare(bucket_bultos, max_bultos, precision_digits=6) >= 0
+                reached_lines = len(bucket_distinct_lines) >= max_lines
+                if reached_bultos or reached_lines:
+                    close_bucket()
 
-        all_new_task.update_availability()
-        if all_new_task:
-            return {
-                'name': 'Facturas Divididas',
-                'type': 'ir.actions.act_window',
-                'view_mode': 'tree,form',
-                'res_model': 'stock.picking',
-                'domain': [('id', 'in', all_new_task.ids)],
-            }
+        close_bucket()
 
+        return {
+            'type': 'ir.actions.act_window',
+            'name': _('Tareas WMS'),
+            'res_model': 'wms.task',
+            'view_mode': 'tree,form',
+            'domain': [('id', 'in', created_tasks.ids)],
+            'target': 'current',
+        }
 
+    def _wms_create_task_from_bucket(self, bucket):
+        """
+        bucket: lista de dicts {'line': wtl, 'qty': unidades, 'bultos': bultos}
+        Crea wms.task + wms.task.line.
+        Ajustá los campos a tu modelo real.
+        """
+        self.ensure_one()
 
+        task = self.env['wms.task'].create({
+            'transfer_id': self.id,
+            'type': 'preparation',
+            'state_preparation': 'pending',
+            'partner_id': self.partner_id,
+        })
 
+        # Si en una misma tarea pudiste agregar la misma transfer.line en 2 "chunks",
+        # conviene consolidar por wtl.id para crear 1 sola task.line.
+        grouped = {}
+        for chunk in bucket:
+            wtl = chunk['line']
+            grouped.setdefault(wtl.id, {'line': wtl, 'qty': 0})
+            grouped[wtl.id]['qty'] += int(chunk['qty'])
 
+        vals_list = []
+        for data in grouped.values():
+            wtl = data['line']
+            qty = data['qty']
+            vals_list.append({
+                'task_id': task.id,
+                'transfer_line_id': wtl.id,
+                'product_id': wtl.product_id.id,
+                'quantity': qty,
+            })
 
-
-
-
-            task_vals = {
-                'transfer_id': record.id,
-                'partner_id':record.partner_id.id,                
-                'state': 'pending',
-            }
-
-            task_id = self.env['wms.task'].create(task_vals)
-
-            transfer_lines_list = []
-            for line in record.order_line:
-               if line.product_id:
-                   transfer_line = {
-                       'transfer_id': transfer_id.id,
-                       'product_id': line.product_id.id,
-                       'state': 'pending',
-                       'invoice_state': 'no',
-                       'sale_line_id': line.id,
-                       'uxb': line.product_packaging_id.qty or False,
-                       'qty_demand': line.product_uom_qty or 0,
-                   }
-
-                   transfer_lines_list.append(transfer_line)
-            
-            self.env['wms.transfer.line'].create(transfer_lines_list)
-
-            record.transfer_id = transfer_id.id
-
-        return
+        self.env['wms.task.line'].create(vals_list)
+        return task
+    
 
     def action_create_task(self):
         return
