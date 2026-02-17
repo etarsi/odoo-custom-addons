@@ -128,7 +128,14 @@
                                 <span class="o_stat_text">Pedido de Venta</span>
                             </div>
                         </button>
-                    
+
+                        <button type="action"
+                                name="%(action_wms_task_from_transfer)d"
+                                class="oe_stat_button"
+                                icon="fa-tasks"
+                                context="{'default_transfer_id': active_id}">
+                            <field name="task_count" widget="statinfo" string="Tareas"/>
+                        </button>
                     </div>
                     <div class="oe_title">
                         <h1>
