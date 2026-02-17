@@ -216,7 +216,7 @@ class WMSTransfer(models.Model):
             'transfer_id': self.id,
             'type': 'preparation',
             'state_preparation': 'pending',
-            'partner_id': self.partner_id,
+            'partner_id': self.partner_id.id,
         })
 
         # Si en una misma tarea pudiste agregar la misma transfer.line en 2 "chunks",

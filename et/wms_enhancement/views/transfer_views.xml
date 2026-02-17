@@ -88,6 +88,8 @@
             <form string="Transferencia WMS">
                 <header>
                     <field name="state" widget="statusbar" statusbar_visible="pending,process,finished"/>
+
+                    <button name="action_split_into_tasks" type="object" string="Crear Tareas" attrs="{'invisible': [('state', '!=', 'finished')]}"/>
                 </header>
                 <sheet>
                     <div class="oe_button_box" name="button_box">
