@@ -34,8 +34,8 @@ class WMSTransfer(models.Model):
     origin = fields.Char(string="Documento")
     
 
-    partner_tag = fields.Many2many()
-    products_categ = fields.Many2many()
+    # partner_tag = fields.Many2many()
+    # products_categ = fields.Many2many()
 
     total_bultos = fields.Float(string="Bultos")
     total_bultos_prepared = fields.Float(string="Bultos Preparados")
