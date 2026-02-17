@@ -195,6 +195,8 @@ class WMSTransfer(models.Model):
 
         close_bucket()
 
+        self.update_availability()
+
         return {
             'type': 'ir.actions.act_window',
             'name': _('Tareas WMS'),
