@@ -216,8 +216,7 @@ class WMSTransfer(models.Model):
         self.ensure_one()
 
         task = self.env['wms.task'].create({
-            'transfer_id': self.id,            
-            'origin': self.origin,
+            'transfer_id': self.id,
             'type': 'preparation',
             'state_preparation': 'pending',
             'partner_id': self.partner_id.id,

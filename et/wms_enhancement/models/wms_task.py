@@ -73,6 +73,20 @@ class WMSTask(models.Model):
     done_at = fields.Datetime(string="Fin")
     preparation_time = fields.Datetime(string="Tiempo de Preparación")
 
+    @api.model
+    def create(self, vals):
+        if vals.get('name', 'New') in (False, 'New', '/'):
+            vals['name'] = self.env['ir.sequence'].next_by_code('wms.task') or 'New'
+
+        transfer_id = vals.get('transfer_id')
+        if transfer_id and 'origin' in self._fields and not vals.get('origin'):
+            transfer = self.env['wms.transfer'].browse(transfer_id)
+            if transfer.exists():
+                vals['origin'] = transfer.name
+
+
+        return super().create(vals)
+
 
     def action_open_wms_transfer(self):
        self.ensure_one()
