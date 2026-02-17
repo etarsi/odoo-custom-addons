@@ -99,7 +99,7 @@
                                 icon="fa-exchange"
                                 attrs="{'invisible': [('transfer_id', '=', False)]}">
                             <div class="o_stat_info">
-                                <span class="o_stat_text">Pedido de Compra</span>
+                                <span class="o_stat_text">Transferencia</span>
                             </div>
                         </button>
                     </div>

@@ -101,7 +101,8 @@ class WMSTransfer(models.Model):
     def update_availability(self):
         for record in self:
             if record.available_line_ids:
-                record.available_line_ids.update_availability()                   
+                for line in record.available_line_ids:
+                    line.update_availability()                   
 
 
 

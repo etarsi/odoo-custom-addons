@@ -82,7 +82,7 @@ class WMSTask(models.Model):
         if transfer_id and 'origin' in self._fields and not vals.get('origin'):
             transfer = self.env['wms.transfer'].browse(transfer_id)
             if transfer.exists():
-                vals['origin'] = transfer.name
+                vals['origin'] = transfer.origin
 
 
         return super().create(vals)
