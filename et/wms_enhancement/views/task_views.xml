@@ -29,7 +29,7 @@
                 
                 <field name="percent_complete"/>                
                 <field name="type" widget="badge"/>
-                <field name="state" widget="badge"/>
+                <!-- <field name="state_preparation" widget="badge" attrs="{'column_invisible': [('type', '!=', 'preparation')]}"/> -->
             </tree>
         </field>
     </record>
