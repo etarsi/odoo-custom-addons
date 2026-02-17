@@ -1,4 +1,4 @@
-from odoo import models, fields, api
+from odoo import models, fields, api, _
 
 
 class WMSTask(models.Model):
@@ -48,6 +48,7 @@ class WMSTask(models.Model):
     task_line_ids = fields.One2many(string="Líneas de Tarea", comodel_name="wms.task.line", inverse_name="task_id")
     transfer_id = fields.Many2one(string="Transferencia", comodel_name="wms.transfer")
     partner_id = fields.Many2one(string="Contacto", comodel_name="res.partner")
+    origin = fields.Char(string="Documento")
 
     ## recepcion
 
@@ -58,11 +59,9 @@ class WMSTask(models.Model):
     # preparation
 
 
-
-
     ## statistics
 
-    percent_complete = fields.Float()
+    percent_complete = fields.Float(string="Completado %")
 
     # category_ids = fields.One2many()
 
@@ -72,30 +71,22 @@ class WMSTask(models.Model):
     # scheduled_at = fields.Datetime()
     started_at = fields.Datetime(string="Inicio")
     done_at = fields.Datetime(string="Fin")
+    preparation_time = fields.Datetime(string="Tiempo de Preparación")
 
 
-    def action_confirm(self):
-        for record in self:
+    def action_open_wms_transfer(self):
+       self.ensure_one()
+       if not self.transfer_id:
+           return False
 
-            if record.type == 'return':
-                
-                lines_to_relocate = []
-                lines_to_scrap = []
-
-                for line in record.line_ids:
-                    if line.is_broken:
-                        lines_to_scrap.append(line.product_id)
-
-                task_vals = {
-                    'type':'relocate',
-                    'priority':1,
-                    'transfer_id':record.transfer_id.id,
-                    
-                }
-
-
-                if lines_to_scrap:
-                    self.env['wms.task'].create(task_vals)
+       return {
+           'type': 'ir.actions.act_window',
+           'name': _('Transferencia WMS'),
+           'res_model': 'wms.transfer',
+           'view_mode': 'form',
+           'res_id': self.transfer_id.id,
+           'target': 'current',
+        }
 
 
 class WMSTaskLine(models.Model):

@@ -35,6 +35,7 @@ class WMSTransfer(models.Model):
     
 
     partner_tag = fields.Many2many()
+    products_categ = fields.Many2many()
 
     total_bultos = fields.Float(string="Bultos")
     total_bultos_prepared = fields.Float(string="Bultos Preparados")
@@ -215,7 +216,8 @@ class WMSTransfer(models.Model):
         self.ensure_one()
 
         task = self.env['wms.task'].create({
-            'transfer_id': self.id,
+            'transfer_id': self.id,            
+            'origin': self.origin,
             'type': 'preparation',
             'state_preparation': 'pending',
             'partner_id': self.partner_id.id,

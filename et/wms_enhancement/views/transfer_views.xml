@@ -40,14 +40,16 @@
         <field name="arch" type="xml">
             <tree string="Transferencias WMS">
                 <field name="create_date" widget="remaining_days" string="Fecha"/>
-                <field name="origin"/>
                 <field name="name" string="Nombre"/>
-                <field name="operation_type" string="Tipo"/>
+                <field name="origin"/>
                 <field name="partner_id" optional="hide"/>
                 <field name="partner_address_id"/>
+                <!-- <field name="partner_tag"/>
+                <field name="partner_tag"/> -->
                 <field name="total_bultos" optional="show"/>
                 <field name="total_bultos_prepared" optional="show"/>
                 <field name="total_available_percentage" optional="show"/>
+                <field name="operation_type" string="Tipo"/>
                 <field name="state"/>
             </tree>
         </field>
@@ -89,7 +91,7 @@
                 <header>
                     <field name="state" widget="statusbar" statusbar_visible="pending,process,finished"/>
 
-                    <button name="action_split_into_tasks" type="object" string="Crear Tareas" attrs="{'invisible': [('state', '!=', 'finished')]}"/>
+                    <button name="action_split_into_tasks" type="object" string="Crear Tareas" attrs="{'invisible': [('state', '=', 'finished')]}"/>
                 </header>
                 <sheet>
                     <div class="oe_button_box" name="button_box">
@@ -127,13 +129,6 @@
                             </div>
                         </button>
                     
-                        <button type="action"
-                                name="%(action_wms_task_from_transfer)d"
-                                class="oe_stat_button"
-                                icon="fa-tasks"
-                                context="{'default_transfer_id': active_id}">
-                            <field name="task_count" widget="statinfo" string="Tareas"/>
-                        </button>
                     </div>
                     <div class="oe_title">
                         <h1>

@@ -19,7 +19,7 @@ class SaleOrderInherit(models.Model):
            'view_mode': 'form',
            'res_id': self.transfer_id.id,
            'target': 'current',
-       }
+        }
     
     
     def action_confirm(self):
@@ -51,7 +51,7 @@ class SaleOrderInherit(models.Model):
                        'sale_line_id': line.id,
                        'uxb': line.product_packaging_id.qty or False,
                        'qty_demand': line.product_uom_qty or 0,
-                   }
+                    }
 
                    transfer_lines_list.append(transfer_line)
             
