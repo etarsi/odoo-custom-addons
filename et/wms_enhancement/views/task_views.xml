@@ -132,7 +132,8 @@
                                     <field name="product_id"/>
                                     <field name="quantity"/>
                                     <field name="quantity_picked"/>
-                                    <field name="quantity_controlled" attrs="{'column_invisible': [('state_preparation', 'in', ('no', 'pending', 'preparation'))]}"/>
+                                    <field name="quantity_controlled"/>
+                                    <!-- <field name="quantity_controlled" attrs="{'column_invisible': [('state_preparation', 'in', ('no', 'pending', 'preparation'))]}"/> -->
                                 </tree>
 
                                 <form string="Línea de Tarea">
