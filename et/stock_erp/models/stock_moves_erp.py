@@ -29,28 +29,28 @@ class StockMovesERP(models.Model):
     type = fields.Selection(selection=[('reserve', 'Reserva'), ('delivery', 'Entrega'), ('preparation', 'Preparación')])
     
     #SOLO PARA SABER QUE TRANSFERENCIAS ESTAN HECHAS O CANCELADAS
-    transfer_picking_ids = fields.Many2many(
-        "stock.picking",
-        compute="_compute_transfers",
-        string="Transferencias (Remitos)",
-        store=False,
-    )
+    # transfer_picking_ids = fields.Many2many(
+    #     "stock.picking",
+    #     compute="_compute_transfers",
+    #     string="Transferencias (Remitos)",
+    #     store=False,
+    # )
 
-    transfer_quantity_done = fields.Integer(
-        compute="_compute_transfers",
-        string="Cantidad Hechas",
-        store=True,
-    )
-    transfer_quantity_cancel = fields.Integer(
-        compute="_compute_transfers",
-        string="Cantidad Canceladas",
-        store=True,
-    )
-    transfer_quantity_comprometida = fields.Integer(
-        compute="_compute_transfers",
-        string="Cantidad Comprometidas",
-        store=True,
-    )
+    # transfer_quantity_done = fields.Integer(
+    #     compute="_compute_transfers",
+    #     string="Cantidad Hechas",
+    #     store=True,
+    # )
+    # transfer_quantity_cancel = fields.Integer(
+    #     compute="_compute_transfers",
+    #     string="Cantidad Canceladas",
+    #     store=True,
+    # )
+    # transfer_quantity_comprometida = fields.Integer(
+    #     compute="_compute_transfers",
+    #     string="Cantidad Comprometidas",
+    #     store=True,
+    # )
 
     # @api.depends(
     #     "sale_line_id",

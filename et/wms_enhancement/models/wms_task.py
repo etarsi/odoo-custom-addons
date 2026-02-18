@@ -1,5 +1,6 @@
 from odoo import models, fields, api, _
 import requests
+from odoo.exceptions import UserError
 
 
 class WMSTask(models.Model):
@@ -141,7 +142,7 @@ class WMSTask(models.Model):
                     product_info['articuloCodigo'] = str(line.product_id.default_code)
                     product_info['unidades'] = line.quantity
                     product_info['linea'] = ""
-                    product_info['lote'] = ""
+                    product_info['lote'] = None
                     product_info['fechaVencimiento'] = None
                     product_info['minimoDiasVencimiento'] = 0
 
@@ -159,7 +160,7 @@ class WMSTask(models.Model):
         if response == 201:
             return True
         else:
-            raise UserWarning(f'Error al enviar a Digip la tarea. ERROR_CODE: {response.status_code} - ERROR: {response.text}')
+            raise UserError(f'Error al enviar a Digip la tarea. ERROR_CODE: {response.status_code} - ERROR: {response.text}')
 
 
 
