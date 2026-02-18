@@ -53,9 +53,9 @@ class TopProductsInvoicedWizard(models.TransientModel):
         data = []
         domain = [("move_id.move_type", "in", ["out_invoice", "out_refund"]), ("move_id.state", "=", "posted")]
         if self.temporada == "t_nino_2025":
-            domain += [("move_id.invoice_date", ">=", date(2024, 11, 1)), ("move_id.invoice_date", "<=", date(2025, 1, 31))]
-        elif self.temporada == "t_nav_2025":
-            domain += [("move_id.invoice_date", ">=", date(2025, 11, 1)), ("move_id.invoice_date", "<=", date(2026, 1, 31))]
+            domain += [('create_date', '>=', date(2025, 3, 1)), ('create_date', '<=', date(2025, 8, 31))]
+        elif self.temporada == 't_nav_2025':
+            domain += [('create_date', '>=', date(2025, 9, 1)), ('create_date', '<=', date(2026, 2, 28))]
             
         account_move_lines = self.env["account.move.line"].search(domain)
         if not account_move_lines:
@@ -72,7 +72,7 @@ class TopProductsInvoicedWizard(models.TransientModel):
                 "product": product.display_name,
                 "sku": product.default_code,
                 "category": product.categ_id.display_name,
-                "uom": line.unit_id.name,
+                "uom": 'Default UoM',  # podrías usar product.uom_id.name o similar
                 "type": "refund" if move.move_type == "out_refund" else "invoice",
                 "qty": line.quantity,
                 "price_unit": line.price_unit,
