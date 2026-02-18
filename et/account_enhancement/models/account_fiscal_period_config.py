@@ -444,14 +444,26 @@ class AccountFiscalPeriodConfig(models.Model):
         self.ensure_one()
         #bloquear periodo anteriores a date_start en modelos relacionados (sale.order, purchase.order, account.payment)
         # Bloquear en sale.order
-        self.env['sale.order'].search([('company_id', '=', self.company_id.id),
-                                            ('date_order', '<' , self.date_start)]).write({'period_cut_locked': True})
+        sql = """
+            UPDATE sale_order SET period_cut_locked = TRUE
+            WHERE company_id = %s AND date_order < %s
+        """
+        self.env.cr.execute(sql, (self.company_id.id, self.date_start))
         # Bloquear en purchase.order
-        self.env['purchase.order'].search([('company_id', '=', self.company_id.id),
-                                            ('date_order', '<' , self.date_start)]).write({'period_cut_locked': True})
-        # Bloquear en account.payment
-        self.env['account.payment'].search([('company_id', '=', self.company_id.id),
-                                            ('payment_date', '<' , self.date_start)]).write({'period_cut_locked': True})
+        sql = """
+            UPDATE purchase_order SET period_cut_locked = TRUE
+            WHERE company_id = %s AND date_order < %s
+        """
+        self.env.cr.execute(sql, (self.company_id.id, self.date_start))
+        # Bloquear en account.payment.group
+        sql = """
+            UPDATE account_payment_group SET period_cut_locked = TRUE
+            WHERE company_id = %s AND payment_date < %s
+        """
+        self.env.cr.execute(sql, (self.company_id.id, self.date_start))
         # Bloquear en account.move
-        self.env['account.move'].search([('company_id', '=', self.company_id.id),
-                                            ('date', '<' , self.date_start)]).write({'period_cut_locked': True})
+        sql = """
+            UPDATE account_move SET period_cut_locked = TRUE
+            WHERE company_id = %s AND date < %s
+        """
+        self.env.cr.execute(sql, (self.company_id.id, self.date_start))
