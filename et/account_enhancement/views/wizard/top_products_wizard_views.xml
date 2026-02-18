@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+  <record id="view_top_products_invoiced_wizard_form" model="ir.ui.view">
+    <field name="name">top.products.invoiced.wizard.form</field>
+    <field name="model">top.products.invoiced.wizard</field>
+    <field name="arch" type="xml">
+      <form string="Top Productos Facturados (Excel)">
+        <group>
+          <group>
+            <field name="temporada"/>
+          </group>
+          <group>
+            <field name="top_n"/>
+            <field name="include_refunds"/>
+          </group>
+        </group>
+        <footer>
+          <button name="action_export_xlsx" type="object" class="oe_highlight"
+                  string="Generar Excel"/>
+          <button string="Cancelar" class="btn-secondary" special="cancel"/>
+        </footer>
+      </form>
+    </field>
+  </record>
+
+  <record id="action_top_products_invoiced_wizard" model="ir.actions.act_window">
+    <field name="name">Top Productos Facturados (Excel)</field>
+    <field name="res_model">top.products.invoiced.wizard</field>
+    <field name="view_mode">form</field>
+    <field name="target">new</field>
+  </record>
+</odoo>
