@@ -125,8 +125,7 @@ class TopProductsInvoicedWizard(models.TransientModel):
         # 00_Parametros
         # -------------------------
         ws_p.write("A1", "Top Productos Facturados (XLSX)", fmt_title)
-        ws_p.write("A3", "Fecha desde", fmt_h); ws_p.write_datetime("B3", fields.Date.to_date(self.date_from), fmt_date)
-        ws_p.write("A4", "Fecha hasta", fmt_h); ws_p.write_datetime("B4", fields.Date.to_date(self.date_to), fmt_date)
+        ws_p.write("A3", "Temporada", fmt_h); ws_p.write("B3", self.temporada, fmt_txt)
         ws_p.write("A5", "Top N", fmt_h); ws_p.write_number("B5", self.top_n or 20, fmt_int)
         ws_p.write("A6", "Incluir NC (netear)", fmt_h); ws_p.write("B6", "Sí" if self.include_refunds else "No", fmt_txt)
         ws_p.write("A8", "Definición: Ventas netas = Subtotal * Signo (Factura=1, NC=-1).", fmt_note)
