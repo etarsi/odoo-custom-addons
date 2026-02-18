@@ -50,7 +50,7 @@ class AccountMoveInherit(models.Model):
     balance_diff = fields.Float(string="Diferencia Debe - Haber", compute="_compute_balance_diff")
     fiscal_period_config_id = fields.Many2one("account.fiscal.period.config", string="Ejercicio de Cierre/Apertura", copy=False, readonly=True)
     #bloqueo de contabilidad para evitar modificaciones en líneas de asiento relacionadas a los movimientos de cierre y apertura generados por el módulo
-    period_cut_locked = fields.Boolean(string="Período de Corte Bloqueado", store=True)
+    period_cut_locked = fields.Boolean(string="Período de Corte Bloqueado", store=True, tracking=True)
 
     # ENVIO DE CORREO---------------------------------------------------------
     def _get_default_invoice_mail_template(self):
@@ -159,10 +159,6 @@ class AccountMoveInherit(models.Model):
                     raise_exception=True,
                     email_values=email_values,
                 )
-                
-            # Marcar como enviada (equivalente al flujo del wizard)
-            if "invoice_sent" in move._fields:
-                move.write({"invoice_sent": True})
 
             # Registrar en chatter y dejar el adjunto visible en la factura
             move.message_post(
@@ -193,6 +189,24 @@ class AccountMoveInherit(models.Model):
                 cmds = [(3, rec.id)]
                 returns.write({'credit_notes': cmds})
         return super().unlink()
+    
+    def action_lock_period_cut(self):
+        self.ensure_one()
+        sql = """
+            UPDATE account_move
+            SET period_cut_locked = TRUE
+            WHERE id = %s
+        """
+        self.env.cr.execute(sql, (self.id,))
+
+    def action_unlock_period_cut(self):
+        self.ensure_one()
+        sql = """
+            UPDATE account_move
+            SET period_cut_locked = FALSE
+            WHERE id = %s
+        """
+        self.env.cr.execute(sql, (self.id,))
     
     def action_post(self):
         for move in self:

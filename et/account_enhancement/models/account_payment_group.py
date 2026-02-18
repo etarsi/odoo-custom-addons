@@ -28,7 +28,7 @@ class AccountPaymentGroupInherit(models.Model):
     is_paid_date_venc_text = fields.Boolean(default=False, copy=False)
     paid_date_venc_text = fields.Text(default='⚠️ EL PAGO A REGISTRAR ESTA FUERA DE FECHA ⚠️')          
     archived = fields.Boolean(string='Archivado', default=False, tracking=True)
-    period_cut_locked = fields.Boolean(string="Período de Corte Bloqueado", default=False)
+    period_cut_locked = fields.Boolean(string="Período de Corte Bloqueado", default=False, tracking=True)
 
 
     def _pg_date(self, rec=None, vals=None):
@@ -82,6 +82,24 @@ class AccountPaymentGroupInherit(models.Model):
             if record.period_cut_locked:
                 raise ValidationError(_("No se puede eliminar un grupo de pago con 'Período de Corte Bloqueado' activo."))
         return super().unlink()
+    
+    def action_lock_period_cut(self):
+        self.ensure_one()
+        sql = """
+            UPDATE account_payment_group
+            SET period_cut_locked = TRUE
+            WHERE id = %s
+        """
+        self.env.cr.execute(sql, (self.id,))
+
+    def action_unlock_period_cut(self):
+        self.ensure_one()
+        sql = """
+            UPDATE account_payment_group
+            SET period_cut_locked = FALSE
+            WHERE id = %s
+        """
+        self.env.cr.execute(sql, (self.id,))
 
     
     #### ONCHANGE #####

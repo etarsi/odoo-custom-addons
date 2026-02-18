@@ -14,7 +14,7 @@ _logger = logging.getLogger(__name__)
 class SaleOrderInherit(models.Model):
     _inherit = "sale.order"
 
-    period_cut_locked = fields.Boolean(string="Período de Corte Bloqueado", default=False)
+    period_cut_locked = fields.Boolean(string="Período de Corte Bloqueado", default=False, tracking=True)
 
     @api.model_create_multi
     def create(self, vals_list):
@@ -34,6 +34,24 @@ class SaleOrderInherit(models.Model):
             if rec.period_cut_locked:
                 raise ValidationError(_("No se puede eliminar un pedido con 'Período de Corte Bloqueado' activo."))
         return super().unlink()
+    
+    def action_lock_period_cut(self):
+        self.ensure_one()
+        sql = """
+            UPDATE sale_order
+            SET period_cut_locked = TRUE
+            WHERE id = %s
+        """
+        self.env.cr.execute(sql, (self.id,))
+
+    def action_unlock_period_cut(self):
+        self.ensure_one()
+        sql = """
+            UPDATE sale_order
+            SET period_cut_locked = FALSE
+            WHERE id = %s
+        """
+        self.env.cr.execute(sql, (self.id,))
 
     def _prepare_invoice(self):
         """
