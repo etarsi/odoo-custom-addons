@@ -18,27 +18,21 @@ class SaleOrderInherit(models.Model):
 
     @api.model_create_multi
     def create(self, vals_list):
-        normalized = []
         for vals in vals_list:
-            v = self._normalize_exception_vals(vals)
-            company_id = v.get("company_id") or self.env.company.id
-            date_value = v.get("date_order") or fields.Datetime.now()
-            self._raise_if_locked(company_id, date_value, "crear", self._description or self._name, vals=v)
-            normalized.append(v)
-        return super().create(normalized)
+            if vals.get("period_cut_locked"):
+                raise ValidationError(_("No se puede crear un pedido con 'Período de Corte Bloqueado' activo."))
+        return super().create(vals_list)
 
     def write(self, vals):
-        vals = self._normalize_exception_vals(vals)
         for rec in self:
-            rec._raise_if_locked(rec.company_id.id, rec.date_order, "modificar", rec._description or rec._name, rec=rec, vals=vals)
-            target_company = vals.get("company_id", rec.company_id.id)
-            target_date = vals.get("date_order", rec.date_order)
-            rec._raise_if_locked(target_company, target_date, "modificar", rec._description or rec._name, rec=rec, vals=vals)
+            if vals.get("period_cut_locked") or rec.period_cut_locked:
+                raise ValidationError(_("No se puede modificar un pedido con 'Período de Corte Bloqueado' activo."))
         return super().write(vals)
 
     def unlink(self):
         for rec in self:
-            rec._raise_if_locked(rec.company_id.id, rec.date_order, "eliminar", rec._description or rec._name, rec=rec)
+            if rec.period_cut_locked:
+                raise ValidationError(_("No se puede eliminar un pedido con 'Período de Corte Bloqueado' activo."))
         return super().unlink()
 
     def _prepare_invoice(self):

@@ -44,7 +44,6 @@ class AccountPaymentInherit(models.Model):
         return super().create(vals_list)
 
     def write(self, vals):
-        vals = self._normalize_exception_vals(vals)
         for payment in self:
             if vals.get("period_cut_locked") or payment.period_cut_locked:
                 raise ValidationError(_("No se puede modificar un pago con 'Período de Corte Bloqueado' activo."))

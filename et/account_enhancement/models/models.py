@@ -543,51 +543,22 @@ class AccountMoveLineInherit(models.Model):
 
     @api.model_create_multi
     def create(self, vals_list):
-        Move = self.env["account.move"]
-        normalized = []
         for vals in vals_list:
-            v = self._normalize_exception_vals(vals)
-            move = Move.browse(v["move_id"]) if v.get("move_id") else False
-
-            self._raise_if_block_accounting(move, "crear", vals=v, parent=move)
-
-            company_id = v.get("company_id") or (move.company_id.id if move else self.env.company.id)
-            date_value = v.get("date") or (move.date if move else fields.Date.context_today(self))
-            self._raise_if_locked(company_id, date_value, "crear", self._description or self._name, vals=v, parent=move)
-
-            normalized.append(v)
-        return super().create(normalized)
+            move = self.env['account.move'].browse(vals.get('move_id'))
+            if move.period_cut_locked:
+                raise ValidationError(_("No se pueden crear líneas para un movimiento con 'Período de Corte Bloqueado' activo."))
+        return super().create(vals_list)
 
     def write(self, vals):
-        Move = self.env["account.move"]
-        vals = self._normalize_exception_vals(vals)
-
         for rec in self:
-            # Estado actual
-            rec._raise_if_block_accounting(rec.move_id, "modificar", rec=rec, vals=vals, parent=rec.move_id)
-
-            current_company = rec.company_id.id or rec.move_id.company_id.id
-            current_date = rec.date or rec.move_id.date
-            rec._raise_if_locked(current_company, current_date, "modificar", rec._description or rec._name, rec=rec, vals=vals, parent=rec.move_id)
-
-            # Estado destino
-            target_move = Move.browse(vals["move_id"]) if vals.get("move_id") else rec.move_id
-            rec._raise_if_block_accounting(target_move, "modificar", rec=rec, vals=vals, parent=target_move)
-
-            target_company = vals.get("company_id") or (target_move.company_id.id if target_move else current_company)
-            target_date = vals.get("date") or (target_move.date if target_move else current_date)
-            rec._raise_if_locked(target_company, target_date, "modificar", rec._description or rec._name, rec=rec, vals=vals, parent=target_move)
-
+            if rec.move_id.period_cut_locked:
+                raise ValidationError(_("No se pueden modificar líneas para un movimiento con 'Período de Corte Bloqueado' activo."))
         return super().write(vals)
 
     def unlink(self):
         for rec in self:
-            rec._raise_if_block_accounting(rec.move_id, "eliminar", rec=rec, parent=rec.move_id)
-
-            company_id = rec.company_id.id or rec.move_id.company_id.id
-            date_value = rec.date or rec.move_id.date
-            rec._raise_if_locked(company_id, date_value, "eliminar", rec._description or rec._name, rec=rec, parent=rec.move_id)
-
+            if rec.move_id.period_cut_locked:
+                raise ValidationError(_("No se pueden eliminar líneas para un movimiento con 'Período de Corte Bloqueado' activo."))
         return super().unlink()
 
     @api.onchange('product_id', 'name', 'move_id.partner_id')
