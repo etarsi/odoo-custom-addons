@@ -11,18 +11,20 @@
             <field name="arch" type="xml">
                 <xpath expr="//sheet/notebook" position="inside">
                     <page string="Control de Periodo" groups="account_enhancement.group_fiscal_lock_exception">
-                        <group>
-                            <field name="period_cut_locked"/>
-                            <button name="action_lock_period_cut" type="object"
-                                    class="oe_highlight"
-                                    attrs="{'invisible': [('period_cut_locked', '=', True)]}"
-                                    string="Bloquear Venta"/>
-                            <button name="action_unlock_period_cut" type="object"
-                                    class="oe_highlight"
-                                    attrs="{'invisible': [('period_cut_locked', '=', False)]}"
-                                    string="Desbloquear Venta"/>
+                        <group name="control_periodo" string="Control de Periodo">
+                            <group>
+                                <field name="period_cut_locked"/>
+                                <button name="action_lock_period_cut" type="object"
+                                        class="oe_highlight"
+                                        attrs="{'invisible': [('period_cut_locked', '=', True)]}"
+                                        string="Bloquear Venta"/>
+                                <button name="action_unlock_period_cut" type="object"
+                                        class="oe_highlight"
+                                        attrs="{'invisible': [('period_cut_locked', '=', False)]}"
+                                        string="Desbloquear Venta"/>
+                            </group>
+                            <group></group>
                         </group>
-                        <group></group>
                     </page>
                 </xpath>
 
@@ -42,18 +44,20 @@
             <field name="arch" type="xml">
                 <xpath expr="//sheet/notebook" position="inside">
                     <page string="Control de Periodo" groups="account_enhancement.group_fiscal_lock_exception">
-                        <group>
-                            <field name="period_cut_locked"/>
-                            <button name="action_lock_period_cut" type="object"
-                                    class="oe_highlight"
-                                    attrs="{'invisible': [('period_cut_locked', '=', True)]}"
-                                    string="Bloquear Compra"/>
-                            <button name="action_unlock_period_cut" type="object"
-                                    class="oe_highlight"
-                                    attrs="{'invisible': [('period_cut_locked', '=', False)]}"
-                                    string="Desbloquear Compra"/>
+                        <group name="control_periodo" string="Control de Periodo">
+                            <group>
+                                <field name="period_cut_locked"/>
+                                <button name="action_lock_period_cut" type="object"
+                                        class="oe_highlight"
+                                        attrs="{'invisible': [('period_cut_locked', '=', True)]}"
+                                        string="Bloquear Compra"/>
+                                <button name="action_unlock_period_cut" type="object"
+                                        class="oe_highlight"
+                                        attrs="{'invisible': [('period_cut_locked', '=', False)]}"
+                                        string="Desbloquear Compra"/>
+                            </group>
+                            <group></group>
                         </group>
-                        <group></group>
                     </page>
                 </xpath>
                 <xpath expr="//field[@name='order_line']/tree" position="inside">
@@ -72,18 +76,20 @@
             <field name="arch" type="xml">
                 <xpath expr="//sheet/notebook" position="inside">
                     <page string="Control de Periodo" groups="account_enhancement.group_fiscal_lock_exception">
-                        <group>
-                            <field name="period_cut_locked"/>
-                            <button name="action_lock_period_cut" type="object"
-                                    class="oe_highlight"
-                                    attrs="{'invisible': [('period_cut_locked', '=', True)]}"
-                                    string="Bloquear Asiento"/>
-                            <button name="action_unlock_period_cut" type="object"
-                                    class="oe_highlight"
-                                    attrs="{'invisible': [('period_cut_locked', '=', False)]}"
-                                    string="Desbloquear Asiento"/>
+                        <group name="control_periodo" string="Control de Periodo">
+                            <group>
+                                <field name="period_cut_locked"/>
+                                <button name="action_lock_period_cut" type="object"
+                                        class="oe_highlight"
+                                        attrs="{'invisible': [('period_cut_locked', '=', True)]}"
+                                        string="Bloquear Asiento"/>
+                                <button name="action_unlock_period_cut" type="object"
+                                        class="oe_highlight"
+                                        attrs="{'invisible': [('period_cut_locked', '=', False)]}"
+                                        string="Desbloquear Asiento"/>
+                            </group>
+                            <group></group>
                         </group>
-                        <group></group>
                     </page>
                 </xpath>
 
@@ -124,17 +130,19 @@
                 <xpath expr="//sheet/notebook" position="inside">
                     <page string="Control de Periodo" groups="account_enhancement.group_fiscal_lock_exception">
                         <group>
-                            <field name="period_cut_locked"/>
-                            <button name="action_lock_period_cut" type="object"
-                                    class="oe_highlight"
-                                    attrs="{'invisible': [('period_cut_locked', '=', True)]}"
-                                    string="Bloquear Recibo"/>
-                            <button name="action_unlock_period_cut" type="object"
-                                    class="oe_highlight"
-                                    attrs="{'invisible': [('period_cut_locked', '=', False)]}"
-                                    string="Desbloquear Recibo"/>
+                            <group>
+                                <field name="period_cut_locked"/>
+                                <button name="action_lock_period_cut" type="object"
+                                        class="oe_highlight"
+                                        attrs="{'invisible': [('period_cut_locked', '=', True)]}"
+                                        string="Bloquear Recibo"/>
+                                <button name="action_unlock_period_cut" type="object"
+                                        class="oe_highlight"
+                                        attrs="{'invisible': [('period_cut_locked', '=', False)]}"
+                                        string="Desbloquear Recibo"/>
+                            </group>
+                            <group></group>
                         </group>
-                        <group></group>
                     </page>
                 </xpath>
             </field>
