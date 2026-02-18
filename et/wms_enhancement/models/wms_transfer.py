@@ -352,7 +352,7 @@ class WMSTransferLine(models.Model):
             fisico_unidades = stock_erp.fisico_unidades
         else:
 
-            raise UserError("No se encontró stock para el producto {product.name}")
+            raise UserError(f"No se encontró stock para el producto {product.name}")
         
         demand = vals.get('qty_demand')
         uxb = stock_erp.uxb
