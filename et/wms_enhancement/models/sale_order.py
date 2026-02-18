@@ -42,6 +42,10 @@ class SaleOrderInherit(models.Model):
             transfer_id = self.env['wms.transfer'].create(transfer_vals)
             transfer_lines_list = []
             for line in record.order_line:
+               qty_demand = line.product_uom_qty
+               if not line.is_available:
+                   qty_demand = 0
+                   
                if line.product_id:
                    transfer_line = {
                        'transfer_id': transfer_id.id,
@@ -50,7 +54,7 @@ class SaleOrderInherit(models.Model):
                        'invoice_state': 'no',
                        'sale_line_id': line.id,
                        'uxb': line.product_packaging_id.qty or False,
-                       'qty_demand': line.product_uom_qty or 0,
+                       'qty_demand': qty_demand,
                     }
 
                    transfer_lines_list.append(transfer_line)
