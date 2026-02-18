@@ -44,10 +44,13 @@ class AccountPaymentInherit(models.Model):
         return super().create(vals_list)
 
     def write(self, vals):
+        if vals.get("period_cut_locked"):
+            raise ValidationError(_("No se puede modificar manualmente 'period_cut_locked'."))
         for payment in self:
-            if vals.get("period_cut_locked") or payment.period_cut_locked:
+            if payment.period_cut_locked:
                 raise ValidationError(_("No se puede modificar un pago con 'Período de Corte Bloqueado' activo."))
-            res = super().write(vals)
+        res = super().write(vals)
+        for payment in self:
             payment._constrains_check_number_length()
         return res
 

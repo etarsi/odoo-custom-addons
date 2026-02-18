@@ -15,8 +15,32 @@ class TopProductsInvoicedWizard(models.TransientModel):
         ('t_nino_2025', 'Temporada Niño 2025'),
         ('t_nav_2025', 'Temporada Navidad 2025'),
     ], required=True, default='t_nav_2025', help='Seleccionar la temporada para el reporte')  
+    date_start = fields.Date(string="Fecha desde", readonly=True)
+    date_end = fields.Date(string="Fecha hasta", readonly=True)
     top_n = fields.Integer(string="Top N", default=20)
     include_refunds = fields.Boolean(string="Incluir Notas de Crédito", default=True)
+
+    def default_get(self, fields):
+        res = super().default_get(fields)
+        if res['temporada'] == 't_nino_2025':
+            res['date_start'] = date(2025, 3, 1)
+            res['date_end'] = date(2025, 8, 31)
+        elif res['temporada'] == 't_nav_2025':
+            res['date_start'] = date(2025, 9, 1)
+            res['date_end'] = date(2026, 2, 28)        
+        return res
+    
+    @api.onchange('temporada')
+    def _onchange_temporada(self):
+        if self.temporada == 't_nino_2025':
+            self.date_start = date(2025, 3, 1)
+            self.date_end = date(2025, 8, 31)
+        elif self.temporada == 't_nav_2025':
+            self.date_start = date(2025, 9, 1)
+            self.date_end = date(2026, 2, 28)        
+        else:
+            self.date_start = False
+            self.date_end = False
 
     def action_export_xlsx(self):
         self.ensure_one()
@@ -64,6 +88,8 @@ class TopProductsInvoicedWizard(models.TransientModel):
         for line in account_move_lines:
             move = line.move_id
             product = line.product_id
+            if not product:
+                continue
             data.append({
                 "invoice_date": move.invoice_date,
                 "invoice_number": move.name,
@@ -99,7 +125,6 @@ class TopProductsInvoicedWizard(models.TransientModel):
         fmt_note = wb.add_format({"font_color": "#555555", "italic": True})
 
         # Sheets
-        ws_p = wb.add_worksheet("00_Parametros")
         ws_d = wb.add_worksheet("01_Datos")
         ws_r = wb.add_worksheet("02_Resumen")
         ws_dash = wb.add_worksheet("03_Dashboard")
@@ -122,25 +147,11 @@ class TopProductsInvoicedWizard(models.TransientModel):
         ws_d.set_column("N:N", 14)
 
         # -------------------------
-        # 00_Parametros
-        # -------------------------
-        ws_p.write("A1", "Top Productos Facturados (XLSX)", fmt_title)
-        ws_p.write("A3", "Temporada", fmt_h); ws_p.write("B3", self.temporada, fmt_txt)
-        ws_p.write("A5", "Top N", fmt_h); ws_p.write_number("B5", self.top_n or 20, fmt_int)
-        ws_p.write("A6", "Incluir NC (netear)", fmt_h); ws_p.write("B6", "Sí" if self.include_refunds else "No", fmt_txt)
-        ws_p.write("A8", "Definición: Ventas netas = Subtotal * Signo (Factura=1, NC=-1).", fmt_note)
-
-        # -------------------------
         # 01_Datos
         # -------------------------
-        headers = [
-            "Fecha", "Nro", "Cliente", "Compañía",
-            "Producto", "SKU", "Categoría", "UoM",
-            "Tipo", "Signo",
-            "Cantidad", "Precio Unit", "% Desc",
-            "Subtotal",
-            "Cantidad Neta", "Ventas Netas",
-        ]
+        headers = ["Fecha", "Nro", "Cliente", "Codigo", "Producto", "Categoría", "Tipo", "Cantidad",
+                   "Precio Unit", "% Desc", "Subtotal", "Compañía"]
+
         for col, h in enumerate(headers):
             ws_d.write(0, col, h, fmt_h)
 
