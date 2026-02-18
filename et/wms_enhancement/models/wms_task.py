@@ -1,5 +1,6 @@
 from odoo import models, fields, api, _
 import requests
+from odoo.exceptions import UserError
 
 
 class WMSTask(models.Model):
@@ -140,6 +141,10 @@ class WMSTask(models.Model):
                     product_info = {}
                     product_info['articuloCodigo'] = str(line.product_id.default_code)
                     product_info['unidades'] = line.quantity
+                    product_info['linea'] = ""
+                    product_info['lote'] = None
+                    product_info['fechaVencimiento'] = None
+                    product_info['minimoDiasVencimiento'] = 0
 
                     product_list.append(product_info)
 
@@ -150,12 +155,12 @@ class WMSTask(models.Model):
         headers = {}
         url = self.env['ir.config_parameter'].sudo().get_param('digipwms-v2.url')
         headers["x-api-key"] = self.env['ir.config_parameter'].sudo().get_param('digipwms.key')        
-        response = requests.post(f'{url}/v2/Pedidos', headers=headers, payload=task)
+        response = requests.post(f'{url}/v2/Pedidos', headers=headers, json=task)
 
         if response == 201:
             return True
         else:
-            raise UserWarning(f'Error al enviar a Digip la tarea. ERROR_CODE: {response.status_code} - ERROR: {response.text}')
+            raise UserError(f'Error al enviar a Digip la tarea. ERROR_CODE: {response.status_code} - ERROR: {response.text}')
 
 
 
