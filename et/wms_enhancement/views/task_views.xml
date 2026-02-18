@@ -87,7 +87,7 @@
             <form string="Tarea WMS">
                 <header>
                     
-                    <field name="state_preparation" widget="statusbar" statusbar_visible="pending,process,control,delivery"/>
+                    <field name="state_preparation" widget="statusbar" statusbar_visible="pending,preparation,control,delivery"/>
                 </header>
                 <sheet>
                     <div class="oe_button_box" name="button_box">
