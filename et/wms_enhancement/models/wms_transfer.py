@@ -397,7 +397,7 @@ class WMSTransferLine(models.Model):
         if stock_erp:
             fisico_unidades = stock_erp.fisico_unidades
         else:
-            raise UserWarning("No se encontró stock para el producto [{stock_erp.product_code}] {stock_erp.product_name}")
+            raise UserError("No se encontró stock para el producto [{stock_erp.product_code}] {stock_erp.product_name}")
         
         pending = record.qty_pending
         uxb = record.uxb
