@@ -37,7 +37,7 @@
 
     <menuitem id="menu_top_products_invoiced"
                 name="Top Productos Facturados"
-                parent="menu_top_products_invoiced_root"
+                parent="account_enhancement.menu_account_report_factura_general"
                 action="action_top_products_invoiced_wizard"
                 sequence="2"/>
 
