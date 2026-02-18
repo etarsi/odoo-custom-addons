@@ -345,13 +345,13 @@ class WMSTransferLine(models.Model):
         product_id = vals.get('product_id')
 
         stock_erp = self.env['stock.erp'].search([
-            ('product_id', '=', product_id.id)
+            ('product_id', '=', product_id)
         ], limit=1)
 
         if stock_erp:
             fisico_unidades = stock_erp.fisico_unidades
         else:
-            raise UserWarning("No se encontró stock para el producto [{stock_erp.product_code}] {stock_erp.product_name}")
+            raise UserError("No se encontró stock para el producto [{stock_erp.product_code}] {stock_erp.product_name}")
         
         demand = vals.get('qty_demand')
         uxb = stock_erp.uxb
