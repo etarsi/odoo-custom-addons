@@ -28,6 +28,9 @@
                     <button name="action_generate_opening_entries" type="object"
                             class="oe_highlight"
                             string="Generar Asiento de Apertura"/>
+                    <button name="action_lock_period_cut" type="object"
+                            class="oe_highlight"
+                            string="Bloquear Periodos Anteriores"/>
                 </header>
                 <sheet>
                     <div name="button_box" class="oe_button_box">

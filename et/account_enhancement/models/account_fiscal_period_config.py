@@ -435,3 +435,23 @@ class AccountFiscalPeriodConfig(models.Model):
                 "line_ids": line_vals,
             }) 
         return account_moves
+    
+    
+    # ---------------------------
+    # Validaciones de bloqueo de Periodo en modelos relacionados
+    # ---------------------------
+    def action_lock_period_cut(self):
+        self.ensure_one()
+        #bloquear periodo anteriores a date_start en modelos relacionados (sale.order, purchase.order, account.payment)
+        # Bloquear en sale.order
+        self.env['sale.order'].search([('company_id', '=', self.company_id.id),
+                                            ('date_order', '<' , self.date_start)]).write({'period_cut_locked': True})
+        # Bloquear en purchase.order
+        self.env['purchase.order'].search([('company_id', '=', self.company_id.id),
+                                            ('date_order', '<' , self.date_start)]).write({'period_cut_locked': True})
+        # Bloquear en account.payment
+        self.env['account.payment'].search([('company_id', '=', self.company_id.id),
+                                            ('payment_date', '<' , self.date_start)]).write({'period_cut_locked': True})
+        # Bloquear en account.move
+        self.env['account.move'].search([('company_id', '=', self.company_id.id),
+                                            ('date', '<' , self.date_start)]).write({'period_cut_locked': True})
