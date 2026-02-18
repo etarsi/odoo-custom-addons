@@ -1,4 +1,6 @@
-from odoo import models, fields, api
+from odoo import models, fields, api, _
+from odoo.exceptions import UserError
+from odoo.tools.float_utils import float_compare
 
 
 class WMSTransfer(models.Model):
@@ -13,25 +15,7 @@ class WMSTransfer(models.Model):
         ('internal', 'Interno'),
         ('outgoing', 'Entrega'),
     ])
-    state_general = fields.Char(string="Estado")
-    state_incoming = fields.Selection(string="Estado", selection=[
-        ('no', 'No aplica'),
-        ('pending', 'Pendiente'),
-        ('process', 'En Proceso'),
-        ('finished', 'Finalizada')
-    ], default='no')
-    state_return = fields.Selection(string="Estado", selection=[
-        ('no', 'No aplica'),
-        ('pending', 'Pendiente'),
-        ('finished', 'Finalizada')
-    ], default='no')
-    state_internal = fields.Selection(string="Estado", selection=[
-        ('no', 'No aplica'),
-        ('pending', 'Pendiente'),
-        ('process', 'En Proceso'),
-        ('finished', 'Finalizada')
-    ], default='no')
-    state_outgoing = fields.Selection(string="Estado", selection=[
+    state = fields.Selection(string="Estado", selection=[
         ('no', 'No aplica'),
         ('pending', 'Pendiente'),
         ('process', 'En Proceso'),
@@ -50,7 +34,8 @@ class WMSTransfer(models.Model):
     origin = fields.Char(string="Documento")
     
 
-    partner_tag = fields.Many2many()
+    # partner_tag = fields.Many2many()
+    # products_categ = fields.Many2many()
 
     total_bultos = fields.Float(string="Bultos")
     total_bultos_prepared = fields.Float(string="Bultos Preparados")
@@ -117,17 +102,149 @@ class WMSTransfer(models.Model):
         for record in self:
             if record.available_line_ids:
                 for line in record.available_line_ids:
-                    line.update_availability()
+                    line.update_availability()                   
 
 
 
     # ACTIONS
 
-    def action_create_task_digip(self):
-        for record in self:
-            record.update_availability()
+    
+    def action_split_into_tasks(self, max_lines=30, max_bultos=30):
+        """
+        Crea tareas consumiendo qty_pending de las líneas disponibles (available_percent == 100).
+        Soporta partir una misma wms.transfer.line entre múltiples tareas.
+        """
+        self.ensure_one()
 
-        return
+        lines = self.line_ids.filtered(lambda l:
+            float_compare(l.available_percent or 0.0, 100.0, precision_digits=6) == 0
+            and (l.qty_pending or 0) > 0
+        )
+
+        if not lines:
+            raise UserError(_("No hay disponibilidad de stock físico para generar tareas."))
+
+        created_tasks = self.env['wms.task']
+
+        # Bucket (lo que va a ir a UNA tarea)
+        bucket = []  # lista de dicts: {'line': wtl, 'qty': unidades, 'bultos': bultos}
+        bucket_bultos = 0.0
+        bucket_distinct_lines = set()  # ids de wms.transfer.line usados en esta tarea
+
+        def close_bucket():
+            nonlocal bucket, bucket_bultos, bucket_distinct_lines, created_tasks
+            if not bucket:
+                return
+            task = self._wms_create_task_from_bucket(bucket)
+            created_tasks |= task
+            bucket = []
+            bucket_bultos = 0.0
+            bucket_distinct_lines = set()
+
+        for wtl in lines:
+            # Mientras esta línea tenga pendiente, vamos consumiendo en tareas sucesivas
+            while (wtl.qty_pending or 0) > 0:
+                if not wtl.uxb or wtl.uxb <= 0:
+                    raise UserError(_(
+                        "La línea %s (%s) no tiene UxB válido (uxb=%s)."
+                    ) % (wtl.id, wtl.product_id.display_name, wtl.uxb))
+
+                # Si el bucket ya alcanzó el máximo de líneas distintas, cerramos tarea
+                if len(bucket_distinct_lines) >= max_lines and (wtl.id not in bucket_distinct_lines):
+                    close_bucket()
+
+                # Bultos disponibles en el bucket actual
+                remaining_bucket_bultos = max_bultos - bucket_bultos
+                if float_compare(remaining_bucket_bultos, 0.0, precision_digits=6) <= 0:
+                    close_bucket()
+                    remaining_bucket_bultos = max_bultos
+
+                # Bultos pendientes de la línea (derivado de qty_pending / uxb)
+                wtl_pending_bultos = (wtl.qty_pending / float(wtl.uxb))
+
+                # Cuántos bultos tomar de esta línea para esta tarea
+                take_bultos = min(wtl_pending_bultos, remaining_bucket_bultos)
+
+                # Convertimos a unidades enteras (bultos * uxb)
+                # Importante: como qty_pending es int, y uxb es int, normalmente esto da exacto.
+                take_units = take_bultos * wtl.uxb
+
+                # Seguridad: no tomar más que lo pendiente
+                take_units = min(take_units, int(wtl.qty_pending))
+
+                if take_units <= 0:
+                        # No entra nada en este bucket -> cerrar y seguir
+                        close_bucket()
+                        continue
+
+                # Agregar al bucket
+                bucket.append({
+                    'line': wtl,
+                    'qty': take_units,
+                    'bultos': take_bultos,
+                })
+                bucket_bultos += take_bultos
+                bucket_distinct_lines.add(wtl.id)
+
+                # Consumir del pendiente (esto es lo que evita duplicar)
+                wtl.qty_pending -= take_units
+
+                # Si llegamos al límite de bultos o líneas, cerramos tarea
+                reached_bultos = float_compare(bucket_bultos, max_bultos, precision_digits=6) >= 0
+                reached_lines = len(bucket_distinct_lines) >= max_lines
+                if reached_bultos or reached_lines:
+                    close_bucket()
+
+        close_bucket()
+
+        self.update_availability()
+
+        return {
+            'type': 'ir.actions.act_window',
+            'name': _('Tareas WMS'),
+            'res_model': 'wms.task',
+            'view_mode': 'tree,form',
+            'domain': [('id', 'in', created_tasks.ids)],
+            'target': 'current',
+        }
+
+    def _wms_create_task_from_bucket(self, bucket):
+        """
+        bucket: lista de dicts {'line': wtl, 'qty': unidades, 'bultos': bultos}
+        Crea wms.task + wms.task.line.
+        Ajustá los campos a tu modelo real.
+        """
+        self.ensure_one()
+
+        task = self.env['wms.task'].create({
+            'transfer_id': self.id,
+            'type': 'preparation',
+            'state_preparation': 'pending',
+            'partner_id': self.partner_id.id,
+        })
+
+        # Si en una misma tarea pudiste agregar la misma transfer.line en 2 "chunks",
+        # conviene consolidar por wtl.id para crear 1 sola task.line.
+        grouped = {}
+        for chunk in bucket:
+            wtl = chunk['line']
+            grouped.setdefault(wtl.id, {'line': wtl, 'qty': 0})
+            grouped[wtl.id]['qty'] += int(chunk['qty'])
+
+        vals_list = []
+        for data in grouped.values():
+            wtl = data['line']
+            qty = data['qty']
+            vals_list.append({
+                'task_id': task.id,
+                'transfer_line_id': wtl.id,
+                'product_id': wtl.product_id.id,
+                'quantity': qty,
+            })
+
+        self.env['wms.task.line'].create(vals_list)
+        return task
+    
 
     def action_create_task(self):
         return
@@ -145,6 +262,47 @@ class WMSTransfer(models.Model):
         return
     
 
+    def action_open_purchase(self):
+        self.ensure_one()
+        if not self.purchase_id:
+            return False
+
+        return {
+            'type': 'ir.actions.act_window',
+            'name': _('Pedido de Compra'),
+            'res_model': 'purchase.order',
+            'view_mode': 'form',
+            'res_id': self.purchase_id.id,
+            'target': 'current',
+        }
+
+    def action_open_preselection(self):
+        self.ensure_one()
+        if not self.preselection_id:
+            return False
+
+        return {
+            'type': 'ir.actions.act_window',
+            'name': _('Pedido de Preselección'),
+            'res_model': 'wms.preselection',
+            'view_mode': 'form',
+            'res_id': self.preselection_id.id,
+            'target': 'current',
+        }
+    
+    def action_open_sale(self):
+        self.ensure_one()
+        if not self.sale_id:
+            return False
+
+        return {
+            'type': 'ir.actions.act_window',
+            'name': _('Pedido de Venta'),
+            'res_model': 'sale.order',
+            'view_mode': 'form',
+            'res_id': self.sale_id.id,
+            'target': 'current',
+        }
 
 
 
@@ -169,11 +327,15 @@ class WMSTransferLine(models.Model):
     lot_name = fields.Char(string="Lote")
     uxb = fields.Integer(string="UxB")
     availability = fields.Char(string="Disponibilidad")
-    qty_demand = fields.Integer(string="Demanda")
-    qty_done = fields.Integer(string="Hecho")
+    qty_demand = fields.Integer(string="Demanda Inicial")
+    qty_pending = fields.Integer(string="Pendiente")
+    qty_done = fields.Integer(string="Preparado")
     qty_invoiced = fields.Integer(string="Facturado")
     available_percent = fields.Float(string="Disponible Preparación")
-    is_available = fields.Boolean(string="Disponible Comercial", compute="_compute_is_available")
+    is_available = fields.Boolean(string="Disponible Comercial", compute="_compute_is_available", store=True)
+
+    bultos = fields.Float(string="Bultos", compute="_compute_bultos", store=True)
+    bultos_available = fields.Float(string="Bultos Disponible")
 
 
     @api.model
@@ -191,6 +353,7 @@ class WMSTransferLine(models.Model):
             raise UserWarning("No se encontró stock para el producto [{stock_erp.product_code}] {stock_erp.product_name}")
         
         demand = vals.get('qty_demand')
+        uxb = stock_erp.uxb
 
         if demand > 0:
             ratio = fisico_unidades / demand
@@ -198,7 +361,9 @@ class WMSTransferLine(models.Model):
         else:
             available_percent = 0
 
+        vals['qty_pending'] = demand
         vals['available_percent'] = available_percent
+        vals['bultos_available'] = fisico_unidades / uxb
 
 
         return super().create(vals)
@@ -213,6 +378,15 @@ class WMSTransferLine(models.Model):
                 record.is_available = True
 
 
+    @api.depends('qty_demand', 'uxb', 'product_id')
+    def _compute_bultos(self):
+        for record in self:
+            if record.qty_demand > 0 and record.uxb > 0 and record.product_id:
+                record.bultos = record.qty_demand / record.uxb
+            else:
+                record.bultos = 0
+
+
     def update_availability(self):
         for record in self:
             stock_erp = self.env['stock.erp'].search([
@@ -224,12 +398,14 @@ class WMSTransferLine(models.Model):
         else:
             raise UserWarning("No se encontró stock para el producto [{stock_erp.product_code}] {stock_erp.product_name}")
         
-        demand = record.qty_demand
+        pending = record.qty_pending
+        uxb = record.uxb
     
-        if demand > 0:
-            ratio = fisico_unidades / demand
+        if pending > 0:
+            ratio = fisico_unidades / pending
             available_percent = min(ratio * 100, 100)
         else:
             available_percent = 0
 
         record.available_percent = available_percent
+        record.bultos_available = fisico_unidades / uxb

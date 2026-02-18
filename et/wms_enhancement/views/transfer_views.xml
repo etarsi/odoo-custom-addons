@@ -40,15 +40,17 @@
         <field name="arch" type="xml">
             <tree string="Transferencias WMS">
                 <field name="create_date" widget="remaining_days" string="Fecha"/>
-                <field name="origin"/>
                 <field name="name" string="Nombre"/>
-                <field name="operation_type" string="Tipo"/>
+                <field name="origin"/>
                 <field name="partner_id" optional="hide"/>
                 <field name="partner_address_id"/>
+                <!-- <field name="partner_tag"/>
+                <field name="partner_tag"/> -->
                 <field name="total_bultos" optional="show"/>
                 <field name="total_bultos_prepared" optional="show"/>
                 <field name="total_available_percentage" optional="show"/>
-                <field name="state_general"/>
+                <field name="operation_type" string="Tipo"/>
+                <field name="state"/>
             </tree>
         </field>
     </record>
@@ -86,8 +88,47 @@
         <field name="model">wms.transfer</field>
         <field name="arch" type="xml">
             <form string="Transferencia WMS">
+                <header>
+                    <field name="state" widget="statusbar" statusbar_visible="pending,process,finished"/>
+
+                    <button name="action_split_into_tasks" type="object" string="Crear Tareas" attrs="{'invisible': [('state', '=', 'finished')]}"/>
+                </header>
                 <sheet>
                     <div class="oe_button_box" name="button_box">
+                        <field name="purchase_id" invisible="1"/>
+                        <field name="preselection_id" invisible="1"/>
+                        <field name="sale_id" invisible="1"/>
+
+                        <button name="action_open_purchase"
+                                type="object"
+                                class="oe_stat_button"
+                                icon="fa-shopping-cart"
+                                attrs="{'invisible': [('purchase_id', '=', False)]}">
+                            <div class="o_stat_info">
+                                <span class="o_stat_text">Pedido de Compra</span>
+                            </div>
+                        </button>
+
+                        <button name="action_open_preselection"
+                                type="object"
+                                class="oe_stat_button"
+                                icon="fa-shopping-cart"
+                                attrs="{'invisible': [('preselection_id', '=', False)]}">
+                            <div class="o_stat_info">
+                                <span class="o_stat_text">Preselección</span>
+                            </div>
+                        </button>
+                        
+                        <button name="action_open_sale"
+                                type="object"
+                                class="oe_stat_button"
+                                icon="fa-shopping-cart"
+                                attrs="{'invisible': [('sale_id', '=', False)]}">
+                            <div class="o_stat_info">
+                                <span class="o_stat_text">Pedido de Venta</span>
+                            </div>
+                        </button>
+
                         <button type="action"
                                 name="%(action_wms_task_from_transfer)d"
                                 class="oe_stat_button"
@@ -103,42 +144,41 @@
                     </div>
 
                     <group>
-                        <group string="Operación">
-                            <field name="operation_type"/>
-                            <field name="sale_type"/>
+                        <group string="Cliente / Entrega">
+                            <field name="partner_id" readonly="1"/>
+                            <field name="partner_address_id" readonly="1"/>
                         </group>
 
-                        <group string="Cliente / Entrega">
-                            <field name="partner_id" options="{'no_create_edit': False}"/>
-                            <field name="partner_address_id"
-                                   domain="[('parent_id','=',partner_id)]"
-                                   context="{'default_parent_id': partner_id}"/>
-                        </group>
+                        <group string="Operación">
+                            <field name="create_date" string="Fecha Transferencia"/>
+                            <field name="operation_type" readonly="1"/>
+                            <field name="sale_type" string="Tipo de Facturación" readonly="1"/>
+                        </group>                        
                     </group>
 
-                    <group string="Documentos Origen">
+                    <group string="Origen">
                         <group>
-                            <field name="sale_id"/>
-                        </group>
-                        <group>
-                            <field name="purchase_id"/>
+                            <field name="origin"/>
                         </group>
                     </group>
 
                     <notebook>
-                        <page string="Líneas">
+                        <page string="Líneas de Transferencia">
                             <field name="available_line_ids">
-                                <tree editable="bottom" string="Líneas de Transferencia">
-                                    <field name="state"/>
-                                    <field name="invoice_state"/>
+                                <tree editable="bottom" string="Líneas de Transferencia" default_order="bultos_available desc, available_percent desc">
+                                    <field name="state" widget="badge" decoration-success="state == 'done'" decoration-warning="state == 'pending'" decoration-info="state == 'preparation'"/>
+                                    <field name="invoice_state" widget="badge" decoration-success="state == 'total'" decoration-warning="state == 'partial'" decoration-danger="state == 'no'"/>
                                     <field name="product_id"/>
                                     <field name="lot_name"/>
+                                    <field name="bultos"/>
                                     <field name="uxb"/>
-                                    <field name="availability"/>
-                                    <field name="available_percent"/>
                                     <field name="qty_demand"/>
+                                    <field name="qty_pending"/>
                                     <field name="qty_done"/>
                                     <field name="qty_invoiced"/>
+                                    <field name="bultos_available"/>                     
+                                    <field name="available_percent"/>                   
+                                    <field name="availability"/>
                                     <field name="sale_line_id" optional="hide"/>
                                 </tree>
 
