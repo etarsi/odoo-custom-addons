@@ -96,15 +96,15 @@ class StockMovesERP(models.Model):
     #         rec.transfer_quantity_cancel = quantity_cancel
     #         rec.transfer_quantity_comprometida = quantity_comprometida
 
-    def action_view_transfers(self):
-        self.ensure_one()
-        return {
-            "name": "Transferencias",
-            "type": "ir.actions.act_window",
-            "res_model": "stock.picking",
-            "view_mode": "tree,form",
-            "domain": [("id", "in", self.transfer_picking_ids.ids)],
-        }
+    # def action_view_transfers(self):
+    #     self.ensure_one()
+    #     return {
+    #         "name": "Transferencias",
+    #         "type": "ir.actions.act_window",
+    #         "res_model": "stock.picking",
+    #         "view_mode": "tree,form",
+    #         "domain": [("id", "in", self.transfer_picking_ids.ids)],
+    #     }
 
     @api.model
     def create(self, vals):
