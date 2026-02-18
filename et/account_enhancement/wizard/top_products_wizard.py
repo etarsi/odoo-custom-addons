@@ -87,17 +87,16 @@ class TopProductsInvoicedWizard(models.TransientModel):
         for line in account_move_lines:
             move = line.move_id
             product = line.product_id
-            if not product:
+            if not product or not product.default_code:
                 continue
             data.append({
                 "invoice_date": move.invoice_date,
                 "invoice_number": move.name,
                 "partner": move.partner_id.display_name,
                 "company": move.company_id.display_name,
-                "product": product.display_name,
+                "product": product.name,
                 "default_code": product.default_code,
                 "category": product.categ_id.display_name,
-                "uom": 'Default UoM',  # podrías usar product.uom_id.name o similar
                 "type": "refund" if move.move_type == "out_refund" else "invoice",
                 "qty": line.quantity,
                 "price_unit": line.price_unit,
@@ -191,7 +190,7 @@ class TopProductsInvoicedWizard(models.TransientModel):
         if self.date_end:
             ws_r.write_datetime("G3", fields.Date.to_date(self.date_end), fmt_date)
 
-        headers = ["Rank", "Producto", "SKU", "Categoría", "Ventas Netas", "Cantidad Neta", "% sobre total", "% acumulado"]
+        headers = ["Rank", "Producto", "SKU", "Categoría", "Ventas Totales", "Cantidad Total"]
         header_row = 4
         for c, h in enumerate(headers):
             ws_r.write(header_row, c, h, fmt_h)
@@ -207,13 +206,11 @@ class TopProductsInvoicedWizard(models.TransientModel):
             acum += pct_total
 
             ws_r.write_number(row, 0, i, fmt_int)
-            ws_r.write(row, 1, r["product"], fmt_txt)
-            ws_r.write(row, 2, r["default_code"], fmt_txt)
+            ws_r.write(row, 1, r["default_code"], fmt_txt)
+            ws_r.write(row, 2, r["product"], fmt_txt)
             ws_r.write(row, 3, r["category"], fmt_txt)
             ws_r.write_number(row, 4, ventas, fmt_money)
             ws_r.write_number(row, 5, qty, fmt_int)
-            ws_r.write_number(row, 6, pct_total, fmt_pct)
-            ws_r.write_number(row, 7, acum, fmt_pct)
 
         total_row = data_start_row + len(ordered) + 1
         ws_r.write(total_row, 3, "TOTAL", fmt_h)
