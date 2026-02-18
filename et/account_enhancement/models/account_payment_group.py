@@ -13,7 +13,6 @@ _logger = logging.getLogger(__name__)
 class AccountPaymentGroupInherit(models.Model):
     _inherit = "account.payment.group"
 
-    period_cut_locked = fields.Boolean(string="Período de Corte Bloqueado", default=False)
     executive_id = fields.Many2one(
         'res.users',
         string="Ejecutivo de Cuenta",
@@ -29,6 +28,7 @@ class AccountPaymentGroupInherit(models.Model):
     is_paid_date_venc_text = fields.Boolean(default=False, copy=False)
     paid_date_venc_text = fields.Text(default='⚠️ EL PAGO A REGISTRAR ESTA FUERA DE FECHA ⚠️')          
     archived = fields.Boolean(string='Archivado', default=False, tracking=True)
+    period_cut_locked = fields.Boolean(string="Período de Corte Bloqueado", default=False)
 
 
     def _pg_date(self, rec=None, vals=None):

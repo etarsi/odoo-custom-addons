@@ -34,7 +34,7 @@ class AccountPaymentInherit(models.Model):
     check_effectiveness_text = fields.Text(compute="_compute_check_effectiveness", store=False)
     index = fields.Integer(string='#')
     archived = fields.Boolean(string='Archivado', related='payment_group_id.archived', store=True)
-    period_cut_locked = fields.Boolean(string="Período de Corte Bloqueado", default=False)
+    period_cut_locked = fields.Boolean(string="Período de Corte Bloqueado", related='payment_group_id.period_cut_locked', store=True)
 
     @api.model_create_multi
     def create(self, vals_list):

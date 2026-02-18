@@ -104,7 +104,7 @@ class SaleOrderInherit(models.Model):
 class SaleOrderLineInherit(models.Model):
     _inherit = "sale.order.line"
 
-    period_cut_locked = fields.Boolean(string="Período de Corte Bloqueado", default=False)
+    period_cut_locked = fields.Boolean(string="Período de Corte Bloqueado", related='order_id.period_cut_locked', store=True, readonly=True)
 
     @api.model_create_multi
     def create(self, vals_list):

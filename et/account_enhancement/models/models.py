@@ -50,7 +50,7 @@ class AccountMoveInherit(models.Model):
     balance_diff = fields.Float(string="Diferencia Debe - Haber", compute="_compute_balance_diff")
     fiscal_period_config_id = fields.Many2one("account.fiscal.period.config", string="Ejercicio de Cierre/Apertura", copy=False, readonly=True)
     #bloqueo de contabilidad para evitar modificaciones en líneas de asiento relacionadas a los movimientos de cierre y apertura generados por el módulo
-    period_cut_locked = fields.Boolean(string="Período de Corte Bloqueado", default=False)
+    period_cut_locked = fields.Boolean(string="Período de Corte Bloqueado", store=True)
 
     # ENVIO DE CORREO---------------------------------------------------------
     def _get_default_invoice_mail_template(self):
@@ -538,16 +538,8 @@ class AccountMoveLineInherit(models.Model):
 
     lot_id = fields.Many2one('stock.production.lot', string='Nro Lote')
     debit2 = fields.Float(string="Debe")
-    period_cut_locked = fields.Boolean(string="Período de Corte Bloqueado", default=False)
+    period_cut_locked = fields.Boolean(string="Período de Corte Bloqueado", related='move_id.period_cut_locked', store=True)
 
-    @api.depends("company_id", "date", "move_id.date", "move_id.company_id", "move_id.block_accounting")
-    def _compute_fiscal_period_locked(self):
-        for rec in self:
-            company_id = rec.company_id.id or rec.move_id.company_id.id
-            date_value = rec.date or rec.move_id.date
-            by_date = rec._is_locked_by_period(company_id, date_value)
-            by_flag = bool(getattr(rec.move_id, "block_accounting", False))
-            rec.fiscal_period_locked = by_date or by_flag
 
     @api.model_create_multi
     def create(self, vals_list):
