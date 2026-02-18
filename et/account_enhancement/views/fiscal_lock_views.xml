@@ -12,19 +12,13 @@
                 <xpath expr="//sheet/notebook" position="inside">
                     <page string="Control Gestión" groups="account_enhancement.group_fiscal_lock_exception">
                         <group>
-                            <field name="fiscal_period_locked" readonly="1"/>
-                            <field name="fiscal_lock_exception"/>
-                            <field name="fiscal_lock_exception_reason"
-                                   attrs="{'required': [('fiscal_lock_exception', '=', True)]}"/>
-                            <field name="fiscal_lock_exception_user_id" readonly="1"/>
-                            <field name="fiscal_lock_exception_date" readonly="1"/>
+                            <field name="period_cut_locked"/>
                         </group>
                     </page>
                 </xpath>
 
                 <xpath expr="//field[@name='order_line']/tree" position="inside">
-                    <field name="fiscal_period_locked" optional="hide"/>
-                    <field name="fiscal_lock_exception" groups="account_enhancement.group_fiscal_lock_exception" optional="hide"/>
+                    <field name="period_cut_locked" optional="hide"/>
                 </xpath>
             </field>
         </record>
@@ -40,19 +34,12 @@
                 <xpath expr="//sheet/notebook" position="inside">
                     <page string="Control Gestión" groups="account_enhancement.group_fiscal_lock_exception">
                         <group>
-                            <field name="fiscal_period_locked" readonly="1"/>
-                            <field name="fiscal_lock_exception"/>
-                            <field name="fiscal_lock_exception_reason"
-                                   attrs="{'required': [('fiscal_lock_exception', '=', True)]}"/>
-                            <field name="fiscal_lock_exception_user_id" readonly="1"/>
-                            <field name="fiscal_lock_exception_date" readonly="1"/>
+                            <field name="period_cut_locked"/>
                         </group>
                     </page>
                 </xpath>
-
                 <xpath expr="//field[@name='order_line']/tree" position="inside">
-                    <field name="fiscal_period_locked" optional="hide"/>
-                    <field name="fiscal_lock_exception" groups="account_enhancement.group_fiscal_lock_exception" optional="hide"/>
+                    <field name="period_cut_locked" optional="hide"/>
                 </xpath>
             </field>
         </record>
@@ -68,25 +55,16 @@
                 <xpath expr="//sheet/notebook" position="inside">
                     <page string="Control Gestión" groups="account_enhancement.group_fiscal_lock_exception">
                         <group>
-                            <field name="fiscal_period_locked" readonly="1"/>
-                            <field name="block_accounting"/>
-                            <field name="fiscal_lock_exception"/>
-                            <field name="fiscal_lock_exception_reason"
-                                   attrs="{'required': [('fiscal_lock_exception', '=', True)]}"/>
-                            <field name="fiscal_lock_exception_user_id" readonly="1"/>
-                            <field name="fiscal_lock_exception_date" readonly="1"/>
+                            <field name="period_cut_locked"/>
                         </group>
                     </page>
                 </xpath>
 
                 <xpath expr="//field[@name='line_ids']/tree" position="inside">
-                    <field name="fiscal_period_locked" optional="hide"/>
-                    <field name="fiscal_lock_exception" groups="account_enhancement.group_fiscal_lock_exception" optional="hide"/>
+                    <field name="period_cut_locked" optional="hide"/>
                 </xpath>
-
                 <xpath expr="//field[@name='invoice_line_ids']/tree" position="inside">
-                    <field name="fiscal_period_locked" optional="hide"/>
-                    <field name="fiscal_lock_exception" groups="account_enhancement.group_fiscal_lock_exception" optional="hide"/>
+                    <field name="period_cut_locked" optional="hide"/>
                 </xpath>
             </field>
         </record>
@@ -101,12 +79,7 @@
             <field name="arch" type="xml">
                 <xpath expr="//sheet" position="inside">
                     <group string="Control Gestión" groups="account_enhancement.group_fiscal_lock_exception">
-                        <field name="fiscal_period_locked" readonly="1"/>
-                        <field name="fiscal_lock_exception"/>
-                        <field name="fiscal_lock_exception_reason"
-                               attrs="{'required': [('fiscal_lock_exception', '=', True)]}"/>
-                        <field name="fiscal_lock_exception_user_id" readonly="1"/>
-                        <field name="fiscal_lock_exception_date" readonly="1"/>
+                        <field name="period_cut_locked"/>
                     </group>
                 </xpath>
             </field>
@@ -123,12 +96,7 @@
             <field name="arch" type="xml">
                 <xpath expr="//sheet" position="inside">
                     <group string="Control Gestión" groups="account_enhancement.group_fiscal_lock_exception">
-                        <field name="fiscal_period_locked" readonly="1"/>
-                        <field name="fiscal_lock_exception"/>
-                        <field name="fiscal_lock_exception_reason"
-                               attrs="{'required': [('fiscal_lock_exception', '=', True)]}"/>
-                        <field name="fiscal_lock_exception_user_id" readonly="1"/>
-                        <field name="fiscal_lock_exception_date" readonly="1"/>
+                        <field name="period_cut_locked"/>
                     </group>
                 </xpath>
             </field>

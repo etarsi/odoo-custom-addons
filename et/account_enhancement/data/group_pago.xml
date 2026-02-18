@@ -8,7 +8,7 @@
 
     <!-- Grupo que puede habilitar/deshabilitar excepciones -->
     <record id="group_fiscal_lock_exception" model="res.groups">
-        <field name="name">Excepción Bloqueo Gestión</field>
+        <field name="name">Excepción Bloqueo Periodo</field>
         <field name="category_id" ref="base.module_category_accounting_accounting"/>
     </record>
 </odoo>
