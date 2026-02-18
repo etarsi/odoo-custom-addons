@@ -1,4 +1,5 @@
 from odoo import models, fields, api, _
+import requests
 
 
 class WMSTask(models.Model):
@@ -49,6 +50,11 @@ class WMSTask(models.Model):
     transfer_id = fields.Many2one(string="Transferencia", comodel_name="wms.transfer")
     partner_id = fields.Many2one(string="Contacto", comodel_name="res.partner")
     origin = fields.Char(string="Documento")
+    digip_state = fields.Selection(string="Digip", selection=[
+        ('no', 'No enviado'),
+        ('sent', 'Enviado'),
+        ('received', 'Recibido')
+    ])
 
     ## recepcion
 
@@ -89,11 +95,11 @@ class WMSTask(models.Model):
 
 
     def action_open_wms_transfer(self):
-       self.ensure_one()
-       if not self.transfer_id:
+        self.ensure_one()
+        if not self.transfer_id:
            return False
 
-       return {
+        return {
            'type': 'ir.actions.act_window',
            'name': _('Transferencia WMS'),
            'res_model': 'wms.transfer',
@@ -101,6 +107,56 @@ class WMSTask(models.Model):
            'res_id': self.transfer_id.id,
            'target': 'current',
         }
+    
+    def action_send_task_to_digip(self):    
+        for record in self:
+            
+            task = {
+                "codigo": record.name,
+                "clienteUbicacionCodigo": "u"+str(record.partner_id.id),
+                "fecha": str(fields.Date.context_today(self)),
+                "estado": "Pendiente",
+                "observacion": record.name,
+                "servicioDeEnvioTipo": "Propio",
+                "codigoDeEnvio": record.transfer_id.sale_id.name or "",
+            }
+
+            product_list = record.get_product_list()
+
+            task["items"] = product_list
+
+            posted = record.post_digip(task)
+
+            if posted:
+                record.digip_state = 'sent'
+
+
+
+    def get_product_list(self):
+        for record in self:
+            product_list = []
+            if record.task_line_ids:
+                for line in record.task_line_ids:
+                    product_info = {}
+                    product_info['articuloCodigo'] = str(line.product_id.default_code)
+                    product_info['unidades'] = line.quantity
+
+                    product_list.append(product_info)
+
+            return product_list
+        
+
+    def post_digip(self, task):
+        headers = {}
+        url = self.env['ir.config_parameter'].sudo().get_param('digipwms-v2.url')
+        headers["x-api-key"] = self.env['ir.config_parameter'].sudo().get_param('digipwms.key')        
+        response = requests.post(f'{url}/v2/Pedidos', headers=headers, payload=task)
+
+        if response == 201:
+            return True
+        else:
+            raise UserWarning(f'Error al enviar a Digip la tarea. ERROR_CODE: {response.status_code} - ERROR: {response.text}')
+
 
 
 class WMSTaskLine(models.Model):
