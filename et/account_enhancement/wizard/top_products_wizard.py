@@ -20,16 +20,15 @@ class TopProductsInvoicedWizard(models.TransientModel):
     top_n = fields.Integer(string="Top N", default=20)
     include_refunds = fields.Boolean(string="Incluir Notas de Crédito", default=True)
 
-    def default_get(self, fields):
-        res = super().default_get(fields)
-        if res['temporada'] == 't_nino_2025':
-            res['date_start'] = date(2025, 3, 1)
-            res['date_end'] = date(2025, 8, 31)
-        elif res['temporada'] == 't_nav_2025':
-            res['date_start'] = date(2025, 9, 1)
-            res['date_end'] = date(2026, 2, 28)        
+    def default_get(self, fields_list):
+        res = super().default_get(fields_list)
+        temporada = res.get("temporada") or "t_nav_2025"
+        if temporada == "t_nino_2025":
+            res.update({"date_start": date(2025, 3, 1), "date_end": date(2025, 8, 31)})
+        elif temporada == "t_nav_2025":
+            res.update({"date_start": date(2025, 9, 1), "date_end": date(2026, 2, 28)})
         return res
-    
+        
     @api.onchange('temporada')
     def _onchange_temporada(self):
         if self.temporada == 't_nino_2025':
