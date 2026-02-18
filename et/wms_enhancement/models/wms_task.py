@@ -140,6 +140,10 @@ class WMSTask(models.Model):
                     product_info = {}
                     product_info['articuloCodigo'] = str(line.product_id.default_code)
                     product_info['unidades'] = line.quantity
+                    product_info['linea'] = ""
+                    product_info['lote'] = ""
+                    product_info['fechaVencimiento'] = None
+                    product_info['minimoDiasVencimiento'] = 0
 
                     product_list.append(product_info)
 
