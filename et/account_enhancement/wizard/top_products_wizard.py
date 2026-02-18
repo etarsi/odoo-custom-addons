@@ -53,9 +53,9 @@ class TopProductsInvoicedWizard(models.TransientModel):
         data = []
         domain = [("move_id.move_type", "in", ["out_invoice", "out_refund"]), ("move_id.state", "=", "posted")]
         if self.temporada == "t_nino_2025":
-            domain += [("move_id.invoice_date", ">=", date(2024, 11, 1)), ("move_id.invoice_date", "<=", date(2025, 1, 31))]
-        elif self.temporada == "t_nav_2025":
-            domain += [("move_id.invoice_date", ">=", date(2025, 11, 1)), ("move_id.invoice_date", "<=", date(2026, 1, 31))]
+            domain += [('create_date', '>=', date(2025, 3, 1)), ('create_date', '<=', date(2025, 8, 31))]
+        elif self.temporada == 't_nav_2025':
+            domain += [('create_date', '>=', date(2025, 9, 1)), ('create_date', '<=', date(2026, 2, 28))]
             
         account_move_lines = self.env["account.move.line"].search(domain)
         if not account_move_lines:
@@ -72,7 +72,7 @@ class TopProductsInvoicedWizard(models.TransientModel):
                 "product": product.display_name,
                 "sku": product.default_code,
                 "category": product.categ_id.display_name,
-                "uom": line.unit_id.name,
+                "uom": 'Default UoM',  # podrías usar product.uom_id.name o similar
                 "type": "refund" if move.move_type == "out_refund" else "invoice",
                 "qty": line.quantity,
                 "price_unit": line.price_unit,
@@ -125,8 +125,7 @@ class TopProductsInvoicedWizard(models.TransientModel):
         # 00_Parametros
         # -------------------------
         ws_p.write("A1", "Top Productos Facturados (XLSX)", fmt_title)
-        ws_p.write("A3", "Fecha desde", fmt_h); ws_p.write_datetime("B3", fields.Date.to_date(self.date_from), fmt_date)
-        ws_p.write("A4", "Fecha hasta", fmt_h); ws_p.write_datetime("B4", fields.Date.to_date(self.date_to), fmt_date)
+        ws_p.write("A3", "Temporada", fmt_h); ws_p.write("B3", self.temporada, fmt_txt)
         ws_p.write("A5", "Top N", fmt_h); ws_p.write_number("B5", self.top_n or 20, fmt_int)
         ws_p.write("A6", "Incluir NC (netear)", fmt_h); ws_p.write("B6", "Sí" if self.include_refunds else "No", fmt_txt)
         ws_p.write("A8", "Definición: Ventas netas = Subtotal * Signo (Factura=1, NC=-1).", fmt_note)
