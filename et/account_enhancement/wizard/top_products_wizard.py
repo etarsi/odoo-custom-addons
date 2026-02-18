@@ -104,6 +104,16 @@ class TopProductsInvoicedWizard(models.TransientModel):
                 "subtotal": line.price_subtotal,  # sin impuestos
             })
         return data
+    
+    def _normalize_code_for_report(self, code):
+        code = (code or "").strip()
+
+        # Regla automática: quitar prefijo legal '9' en códigos numéricos
+        # Variante "agresiva": si empieza con 9 y lo que sigue es numérico, lo quita
+        if code.startswith("9") and code[1:].isdigit():
+            return code[1:]
+
+        return code
 
     # ---------------------------
     # 2) XLSX builder
@@ -127,7 +137,7 @@ class TopProductsInvoicedWizard(models.TransientModel):
         ws_dash = wb.add_worksheet("Grafico")
 
         # -------------------------
-        # 1) Agregación (desde lines)
+        # 1) Agregación (desde lines) con código normalizado
         # -------------------------
         agg = defaultdict(lambda: {
             "product": "",
@@ -135,6 +145,7 @@ class TopProductsInvoicedWizard(models.TransientModel):
             "category": "",
             "ventas": 0.0,
             "qty": 0.0,
+            "name_count": defaultdict(int),  # para elegir nombre más repetido
         })
 
         for ln in lines:
@@ -146,14 +157,22 @@ class TopProductsInvoicedWizard(models.TransientModel):
             signo = -1 if is_refund else 1
 
             product = (ln.get("product") or "").strip()
-            if not product:
+            raw_code = (ln.get("default_code") or "").strip()
+            if not raw_code:
                 continue
 
-            key = product  # si querés diferenciar por SKU: key = (product, ln.get("default_code"))
+            # 👇 unión masiva: 9xxxx -> xxxx
+            group_code = self._normalize_code_for_report(raw_code)
+
+            key = group_code
             rec = agg[key]
-            rec["product"] = product
-            rec["default_code"] = (ln.get("default_code") or "").strip()
+
+            rec["default_code"] = group_code
             rec["category"] = (ln.get("category") or "").strip()
+
+            # elegimos el nombre más frecuente dentro del grupo
+            if product:
+                rec["name_count"][product] += 1
 
             qty = float(ln.get("qty") or 0.0) * signo
             subtotal = float(ln.get("subtotal") or 0.0) * signo
@@ -164,24 +183,37 @@ class TopProductsInvoicedWizard(models.TransientModel):
         if not agg:
             raise UserError(_("No hay datos luego de aplicar filtros (ej. excluir NC)."))
 
-        ordered = sorted(agg.values(), key=lambda x: x["ventas"], reverse=True)
+        # consolidar nombre por grupo: el más repetido
+        ordered = []
+        for rec in agg.values():
+            if rec["name_count"]:
+                rec["product"] = max(rec["name_count"].items(), key=lambda kv: kv[1])[0]
+            else:
+                rec["product"] = rec["default_code"]
+            ordered.append(rec)
+
+        ordered = sorted(ordered, key=lambda x: x["ventas"], reverse=True)
 
         total_ventas = sum(r["ventas"] for r in ordered)
         total_qty = sum(r["qty"] for r in ordered)
 
         # -------------------------
-        # 2) Resumen
+        # 2) Resumen (con % y acumulado)
         # -------------------------
         ws_r.set_column("A:A", 6)   # Rank
-        ws_r.set_column("B:B", 20)  # Codigo
+        ws_r.set_column("B:B", 20)  # Código
         ws_r.set_column("C:C", 60)  # Producto
         ws_r.set_column("D:D", 40)  # Categoría
         ws_r.set_column("E:E", 20)  # Ventas
         ws_r.set_column("F:F", 20)  # Qty
-        ws_r.set_column("G:G", 20)  # % total
-        ws_r.set_column("H:H", 20)  # % acum
+        ws_r.set_column("G:G", 14)  # % total
+        ws_r.set_column("H:H", 14)  # % acum
 
-        ws_r.merge_range("A1:H1", "Resumen de Productos Facturados - %s" % dict(self._fields["temporada"].selection).get(self.temporada, self.temporada), fmt_title)
+        ws_r.merge_range(
+            "A1:H1",
+            "Resumen de Productos Facturados - %s" % dict(self._fields["temporada"].selection).get(self.temporada, self.temporada),
+            fmt_title
+        )
 
         ws_r.write("D3", "Fecha desde", fmt_h)
         if self.date_start:
@@ -190,12 +222,12 @@ class TopProductsInvoicedWizard(models.TransientModel):
         if self.date_end:
             ws_r.write_datetime("G3", fields.Date.to_date(self.date_end), fmt_date)
 
-        headers = ["Rank", "Producto", "SKU", "Categoría", "Ventas Totales", "Cantidad Total"]
+        headers = ["Rank", "Código", "Producto", "Categoría", "Ventas Totales", "Cantidad Total", "% sobre total", "% acumulado"]
         header_row = 4
         for c, h in enumerate(headers):
             ws_r.write(header_row, c, h, fmt_h)
 
-        data_start_row = header_row + 1  # fila donde empieza la data (0-based)
+        data_start_row = header_row + 1
         acum = 0.0
         for i, r in enumerate(ordered, start=1):
             row = data_start_row + (i - 1)
@@ -211,73 +243,57 @@ class TopProductsInvoicedWizard(models.TransientModel):
             ws_r.write(row, 3, r["category"], fmt_txt)
             ws_r.write_number(row, 4, ventas, fmt_money)
             ws_r.write_number(row, 5, qty, fmt_int)
+            ws_r.write_number(row, 6, pct_total, fmt_pct)
+            ws_r.write_number(row, 7, acum, fmt_pct)
 
         total_row = data_start_row + len(ordered) + 1
         ws_r.write(total_row, 3, "TOTAL", fmt_h)
         ws_r.write_number(total_row, 4, total_ventas, fmt_money)
         ws_r.write_number(total_row, 5, total_qty, fmt_int)
-        ws_r.write(total_row, 6, "", fmt_h)
-        ws_r.write(total_row, 7, "", fmt_h)
 
         # -------------------------
-        # 3) DASHBOARD
+        # 3) Gráficos (arreglado: índices correctos)
         # -------------------------
-        ws_dash.hide_gridlines(2)
-        ws_dash.set_column("A:A", 2)
-        ws_dash.set_column("B:B", 40)
-        ws_dash.set_column("C:D", 24)
-        ws_dash.set_column("E:J", 2)
-        ws_dash.set_column("K:Q", 18)
-
-        ws_dash.merge_range("B1:Q1", "Productos Facturados - %s" % dict(self._fields["temporada"].selection).get(self.temporada, self.temporada), fmt_title)
-
-        ws_dash.write("B3", "Ventas totales", fmt_h)
-        ws_dash.write_number("C3", total_ventas, fmt_money)
-
-        ws_dash.write("B4", "Unidades totales", fmt_h)
-        ws_dash.write_number("C4", total_qty, fmt_int)
-
-        # Top N para gráficos (máximo = cantidad de items)
         top_n = max(int(self.top_n or 20), 1)
         top_n = min(top_n, len(ordered))
 
         first = data_start_row
         last = data_start_row + top_n - 1
 
-        # --- Chart 1: Top Ventas (bar horizontal)
+        # Top ventas: categorías = Producto (col C -> idx 2), valores = Ventas (col E -> idx 4)
         chart_v = wb.add_chart({"type": "bar"})
         chart_v.add_series({
-            "name": "Ventas Netas",
-            "categories": ["Resumen", first, 1, last, 1],  # Etiqueta
-            "values": ["Resumen", first, 5, last, 5],      # Ventas
+            "name": "Ventas",
+            "categories": ["Resumen", first, 2, last, 2],
+            "values": ["Resumen", first, 4, last, 4],
         })
-        chart_v.set_title({"name": f"Top {top_n} por Ventas Netas"})
+        chart_v.set_title({"name": f"Top {top_n} por Ventas"})
         chart_v.set_legend({"none": True})
         chart_v.set_size({"width": 700, "height": 320})
 
-        # --- Chart 2: Top Cantidad (bar horizontal)
+        # Top cantidad: valores = Qty (col F -> idx 5)
         chart_q = wb.add_chart({"type": "bar"})
         chart_q.add_series({
-            "name": "Cantidad Neta",
-            "categories": ["Resumen", first, 1, last, 1],
-            "values": ["Resumen", first, 6, last, 6],      # Cantidad
+            "name": "Cantidad",
+            "categories": ["Resumen", first, 2, last, 2],
+            "values": ["Resumen", first, 5, last, 5],
         })
-        chart_q.set_title({"name": f"Top {top_n} por Cantidad Neta"})
+        chart_q.set_title({"name": f"Top {top_n} por Cantidad"})
         chart_q.set_legend({"none": True})
         chart_q.set_size({"width": 700, "height": 320})
 
-        # --- Chart 3: Pareto (ventas + % acumulado)
+        # Pareto: % acumulado (col H -> idx 7)
         chart_p = wb.add_chart({"type": "column"})
         chart_p.add_series({
-            "name": "Ventas Netas",
-            "categories": ["Resumen", first, 1, last, 1],
-            "values": ["Resumen", first, 5, last, 5],
+            "name": "Ventas",
+            "categories": ["Resumen", first, 2, last, 2],
+            "values": ["Resumen", first, 4, last, 4],
         })
         chart_line = wb.add_chart({"type": "line"})
         chart_line.add_series({
             "name": "% acumulado",
-            "categories": ["Resumen", first, 1, last, 1],
-            "values": ["Resumen", first, 8, last, 8],  # % acumulado
+            "categories": ["Resumen", first, 2, last, 2],
+            "values": ["Resumen", first, 7, last, 7],
             "y2_axis": True,
         })
         chart_p.combine(chart_line)
@@ -285,7 +301,6 @@ class TopProductsInvoicedWizard(models.TransientModel):
         chart_p.set_y2_axis({"min": 0, "max": 1})
         chart_p.set_size({"width": 560, "height": 320})
 
-        # POSICIONES (para que NO se peguen)
         ws_dash.insert_chart("B7", chart_v, {"x_offset": 10, "y_offset": 5})
         ws_dash.insert_chart("B27", chart_q, {"x_offset": 10, "y_offset": 5})
         ws_dash.insert_chart("K7", chart_p, {"x_offset": 10, "y_offset": 5})
