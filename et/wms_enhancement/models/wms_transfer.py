@@ -345,7 +345,7 @@ class WMSTransferLine(models.Model):
         product_id = vals.get('product_id')
 
         stock_erp = self.env['stock.erp'].search([
-            ('product_id', '=', product_id)
+            ('product_id', '=', product_id.id)
         ], limit=1)
 
         if stock_erp:
