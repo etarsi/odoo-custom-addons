@@ -129,7 +129,7 @@ class AccountMoveInherit(models.Model):
             base_url = self.env["ir.config_parameter"].sudo().get_param("web.base.url")
             template = self.env.ref("account_enhancement.mail_template_invoice_facture_client").with_context(base_url=base_url)
             report = self.env.ref("account.account_invoices_without_payment")  # ir.actions.report
-            pdf_bytes, _ = report._render_qweb_pdf([move.id])
+            pdf_bytes, render = report._render_qweb_pdf([move.id])
             filename = "%s.pdf" % ((move.name or "Factura").replace("/", "_"))
             attachment = move._get_or_create_invoice_pdf_attachment(pdf_bytes, filename)
 
