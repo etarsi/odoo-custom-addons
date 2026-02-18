@@ -4,7 +4,7 @@
     <field name="name">top.products.invoiced.wizard.form</field>
     <field name="model">top.products.invoiced.wizard</field>
     <field name="arch" type="xml">
-      <form string="Top Productos Facturados (Excel)">
+      <form string="Top Productos Facturados">
         <group>
           <group>
             <field name="temporada"/>
@@ -24,7 +24,7 @@
   </record>
 
   <record id="action_top_products_invoiced_wizard" model="ir.actions.act_window">
-    <field name="name">Top Productos Facturados (Excel)</field>
+    <field name="name">Top Productos Facturados</field>
     <field name="res_model">top.products.invoiced.wizard</field>
     <field name="view_mode">form</field>
     <field name="target">new</field>
