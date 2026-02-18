@@ -13,7 +13,7 @@
                     <page string="Control de Periodo" groups="account_enhancement.group_fiscal_lock_exception">
                         <group name="control_periodo" string="Control de Periodo">
                             <group>
-                                <field name="period_cut_locked"/>
+                                <field name="period_cut_locked" readonly="1"/>
                                 <button name="action_lock_period_cut" type="object"
                                         class="oe_highlight"
                                         attrs="{'invisible': [('period_cut_locked', '=', True)]}"
@@ -46,7 +46,7 @@
                     <page string="Control de Periodo" groups="account_enhancement.group_fiscal_lock_exception">
                         <group name="control_periodo" string="Control de Periodo">
                             <group>
-                                <field name="period_cut_locked"/>
+                                <field name="period_cut_locked" readonly="1"/>
                                 <button name="action_lock_period_cut" type="object"
                                         class="oe_highlight"
                                         attrs="{'invisible': [('period_cut_locked', '=', True)]}"
@@ -78,7 +78,7 @@
                     <page string="Control de Periodo" groups="account_enhancement.group_fiscal_lock_exception">
                         <group name="control_periodo" string="Control de Periodo">
                             <group>
-                                <field name="period_cut_locked"/>
+                                <field name="period_cut_locked" readonly="1"/>
                                 <button name="action_lock_period_cut" type="object"
                                         class="oe_highlight"
                                         attrs="{'invisible': [('period_cut_locked', '=', True)]}"
@@ -112,7 +112,7 @@
             <field name="arch" type="xml">
                 <xpath expr="//sheet" position="inside">
                     <group string="Control de Periodo" groups="account_enhancement.group_fiscal_lock_exception">
-                        <field name="period_cut_locked"/>
+                        <field name="period_cut_locked" readonly="1"/>
                     </group>
                 </xpath>
             </field>
@@ -131,7 +131,7 @@
                     <page string="Control de Periodo" groups="account_enhancement.group_fiscal_lock_exception">
                         <group>
                             <group>
-                                <field name="period_cut_locked"/>
+                                <field name="period_cut_locked" readonly="1"/>
                                 <button name="action_lock_period_cut" type="object"
                                         class="oe_highlight"
                                         attrs="{'invisible': [('period_cut_locked', '=', True)]}"
