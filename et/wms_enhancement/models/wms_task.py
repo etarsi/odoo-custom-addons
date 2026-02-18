@@ -150,7 +150,7 @@ class WMSTask(models.Model):
         headers = {}
         url = self.env['ir.config_parameter'].sudo().get_param('digipwms-v2.url')
         headers["x-api-key"] = self.env['ir.config_parameter'].sudo().get_param('digipwms.key')        
-        response = requests.post(f'{url}/v2/Pedidos', headers=headers, payload=task)
+        response = requests.post(f'{url}/v2/Pedidos', headers=headers, json=task)
 
         if response == 201:
             return True
