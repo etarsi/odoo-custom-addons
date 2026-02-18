@@ -86,7 +86,8 @@
         <field name="arch" type="xml">
             <form string="Tarea WMS">
                 <header>
-                    
+                    <button name="action_send_task_to_digip" type="object" string="Enviar a Digip" attrs="{'invisible': [('digip_state', '!=', 'no')]}"/>
+
                     <field name="state_preparation" widget="statusbar" statusbar_visible="pending,preparation,control,delivery"/>
                 </header>
                 <sheet>
