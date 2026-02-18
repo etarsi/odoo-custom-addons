@@ -332,7 +332,7 @@ class WMSTransferLine(models.Model):
     qty_done = fields.Integer(string="Preparado")
     qty_invoiced = fields.Integer(string="Facturado")
     available_percent = fields.Float(string="Disponible Preparación")
-    is_available = fields.Boolean(string="Disponible Comercial", compute="_compute_is_available")
+    is_available = fields.Boolean(string="Disponible Comercial", compute="_compute_is_available", store=True)
 
     bultos = fields.Float(string="Bultos", compute="_compute_bultos", store=True)
     bultos_available = fields.Float(string="Bultos Disponible")
