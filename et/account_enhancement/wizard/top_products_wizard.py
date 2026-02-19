@@ -210,20 +210,20 @@ class TopProductsInvoicedWizard(models.TransientModel):
         ws_r.set_column("H:H", 14)  # % acum
 
         ws_r.merge_range(
-            "A1:H1",
+            "A1:F1",
             "Resumen de Productos Facturados - %s" % dict(self._fields["temporada"].selection).get(self.temporada, self.temporada),
             fmt_title
         )
+        if self.date_start or self.date_end:
+            ws_r.write("D3", "Fecha desde", fmt_h)
+            if self.date_start:
+                ws_r.write_datetime("E3", fields.Date.to_date(self.date_start), fmt_date)
+            ws_r.write("D4", "Fecha hasta", fmt_h)
+            if self.date_end:
+                ws_r.write_datetime("E4", fields.Date.to_date(self.date_end), fmt_date)
 
-        ws_r.write("D3", "Fecha desde", fmt_h)
-        if self.date_start:
-            ws_r.write_datetime("E3", fields.Date.to_date(self.date_start), fmt_date)
-        ws_r.write("F3", "Fecha hasta", fmt_h)
-        if self.date_end:
-            ws_r.write_datetime("G3", fields.Date.to_date(self.date_end), fmt_date)
-
-        headers = ["Rank", "Código", "Producto", "Categoría", "Ventas Totales", "Cantidad Total", "% sobre total", "% acumulado"]
-        header_row = 4
+        headers = ["Rank", "Código", "Producto", "Categoría", "Ventas Totales", "Cantidad Total"]
+        header_row = 5
         for c, h in enumerate(headers):
             ws_r.write(header_row, c, h, fmt_h)
 
@@ -243,8 +243,6 @@ class TopProductsInvoicedWizard(models.TransientModel):
             ws_r.write(row, 3, r["category"], fmt_txt)
             ws_r.write_number(row, 4, ventas, fmt_money)
             ws_r.write_number(row, 5, qty, fmt_int)
-            ws_r.write_number(row, 6, pct_total, fmt_pct)
-            ws_r.write_number(row, 7, acum, fmt_pct)
 
         total_row = data_start_row + len(ordered) + 1
         ws_r.write(total_row, 3, "TOTAL", fmt_h)
@@ -269,7 +267,7 @@ class TopProductsInvoicedWizard(models.TransientModel):
         })
         chart_v.set_title({"name": f"Top {top_n} por Ventas"})
         chart_v.set_legend({"none": True})
-        chart_v.set_size({"width": 700, "height": 320})
+        chart_v.set_size({"width": 1000, "height": 450})
 
         # Top cantidad: valores = Qty (col F -> idx 5)
         chart_q = wb.add_chart({"type": "bar"})
@@ -280,7 +278,7 @@ class TopProductsInvoicedWizard(models.TransientModel):
         })
         chart_q.set_title({"name": f"Top {top_n} por Cantidad"})
         chart_q.set_legend({"none": True})
-        chart_q.set_size({"width": 700, "height": 320})
+        chart_q.set_size({"width": 1000, "height": 450})
 
         # Pareto: % acumulado (col H -> idx 7)
         chart_p = wb.add_chart({"type": "column"})
