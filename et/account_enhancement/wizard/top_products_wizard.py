@@ -87,7 +87,7 @@ class TopProductsInvoicedWizard(models.TransientModel):
         for line in account_move_lines:
             move = line.move_id
             product = line.product_id
-            if not product or not product.default_code:
+            if (not product or not product.default_code) or (product.categ_id.parent_id.name == "Conceptos NC" or product.categ_id.name == "Conceptos NC"):
                 continue
             data.append({
                 "invoice_date": move.invoice_date,
@@ -126,11 +126,9 @@ class TopProductsInvoicedWizard(models.TransientModel):
         fmt_title = wb.add_format({"bold": True, "font_size": 16, "align": "center", "valign": "vcenter"})
         fmt_h = wb.add_format({"bold": True, "bg_color": "#D9E1F2", "border": 1})
         fmt_txt = wb.add_format({"border": 1})
-        fmt_int = wb.add_format({"num_format": "0", "border": 1})
-        fmt_money = wb.add_format({"num_format": "#,##0.00", "border": 1})
-        fmt_pct = wb.add_format({"num_format": "0.00%", "border": 1})
+        fmt_int = wb.add_format({"num_format": "#,##0;[Red]-#,##0", "border": 1})
+        fmt_money = wb.add_format({'border': 1, 'align': 'center', 'valign': 'vcenter', 'num_format': '_($* #,##0_);_($* (#,##0);_($* "-"??_);_(@_)'})
         fmt_date = wb.add_format({"num_format": "yyyy-mm-dd", "border": 1})
-        fmt_note = wb.add_format({"font_color": "#555555", "italic": True})
 
         # Sheets
         ws_r = wb.add_worksheet("Resumen")
@@ -192,7 +190,7 @@ class TopProductsInvoicedWizard(models.TransientModel):
                 rec["product"] = rec["default_code"]
             ordered.append(rec)
 
-        ordered = sorted(ordered, key=lambda x: x["ventas"], reverse=True)
+        ordered = sorted(ordered, key=lambda x: x["qty"], reverse=True)
 
         total_ventas = sum(r["ventas"] for r in ordered)
         total_qty = sum(r["qty"] for r in ordered)
@@ -201,8 +199,8 @@ class TopProductsInvoicedWizard(models.TransientModel):
         # 2) Resumen (con % y acumulado)
         # -------------------------
         ws_r.set_column("A:A", 6)   # Rank
-        ws_r.set_column("B:B", 20)  # Código
-        ws_r.set_column("C:C", 60)  # Producto
+        ws_r.set_column("B:B", 15)  # Código
+        ws_r.set_column("C:C", 65)  # Producto
         ws_r.set_column("D:D", 40)  # Categoría
         ws_r.set_column("E:E", 20)  # Ventas
         ws_r.set_column("F:F", 20)  # Qty
@@ -267,7 +265,7 @@ class TopProductsInvoicedWizard(models.TransientModel):
         })
         chart_v.set_title({"name": f"Top {top_n} por Ventas"})
         chart_v.set_legend({"none": True})
-        chart_v.set_size({"width": 1000, "height": 450})
+        chart_v.set_size({"width": 1000, "height": 600})
 
         # Top cantidad: valores = Qty (col F -> idx 5)
         chart_q = wb.add_chart({"type": "bar"})
@@ -278,7 +276,7 @@ class TopProductsInvoicedWizard(models.TransientModel):
         })
         chart_q.set_title({"name": f"Top {top_n} por Cantidad"})
         chart_q.set_legend({"none": True})
-        chart_q.set_size({"width": 1000, "height": 450})
+        chart_q.set_size({"width": 1000, "height": 600})
 
         # Pareto: % acumulado (col H -> idx 7)
         chart_p = wb.add_chart({"type": "column"})
@@ -297,11 +295,11 @@ class TopProductsInvoicedWizard(models.TransientModel):
         chart_p.combine(chart_line)
         chart_p.set_title({"name": f"Pareto Top {top_n}"})
         chart_p.set_y2_axis({"min": 0, "max": 1})
-        chart_p.set_size({"width": 560, "height": 320})
+        chart_p.set_size({"width": 800, "height": 600})
 
         ws_dash.insert_chart("B7", chart_v, {"x_offset": 10, "y_offset": 5})
-        ws_dash.insert_chart("B27", chart_q, {"x_offset": 10, "y_offset": 5})
-        ws_dash.insert_chart("K7", chart_p, {"x_offset": 10, "y_offset": 5})
+        ws_dash.insert_chart("B60", chart_q, {"x_offset": 10, "y_offset": 5})
+        ws_dash.insert_chart("T7", chart_p, {"x_offset": 10, "y_offset": 5})
 
         wb.close()
         output.seek(0)
