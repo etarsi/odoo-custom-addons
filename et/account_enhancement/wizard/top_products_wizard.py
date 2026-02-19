@@ -214,7 +214,7 @@ class TopProductsInvoicedWizard(models.TransientModel):
         ws_r.set_column("H:H", 14)  # % acum
 
         ws_r.merge_range(
-            "A1:H1",
+            "A1:F1",
             "Resumen de Productos Facturados - %s" % dict(self._fields["temporada"].selection).get(self.temporada, self.temporada),
             fmt_title
         )
@@ -249,15 +249,11 @@ class TopProductsInvoicedWizard(models.TransientModel):
             ws_r.write(row, 3, r["category"], fmt_txt)
             ws_r.write_number(row, 4, ventas, fmt_money)
             ws_r.write_number(row, 5, qty, fmt_int)
-            ws_r.write_number(row, 6, pct_total, fmt_decimal)
-            ws_r.write_number(row, 7, acum, fmt_decimal)
 
         total_row = data_start_row + len(ordered)
         ws_r.write(total_row, 3, "TOTAL", fmt_h)
         ws_r.write_number(total_row, 4, total_ventas, fmt_money)
         ws_r.write_number(total_row, 5, total_qty, fmt_int)
-        ws_r.write_number(total_row, 6, 1.0, fmt_decimal)
-        ws_r.write_number(total_row, 7, 1.0, fmt_decimal)
 
         # -------------------------
         # 3) Gráficos (arreglado: índices correctos)
