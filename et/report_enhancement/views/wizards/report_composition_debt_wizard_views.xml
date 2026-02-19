@@ -9,7 +9,7 @@
                 <group name="reporte_stock_picking" string="Reporte de Pendientes">
                     <group>
                         <field name="partner_id" options="{'no_create': True}"/>
-                        <field name="partner_ids" options="{'no_create': True}" widget="many2many_tags"/>
+                        <field name="parent_ids" options="{'no_create': True}" widget="many2many_tags"/>
                     </group>        
                 </group>
                 <footer>
