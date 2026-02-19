@@ -77,7 +77,7 @@ class ReportCompositionDebtWizard(models.TransientModel):
                 "date": move.invoice_date,
                 "debit": debit,
                 "credit": credit,
-                "subtotal": move.amount_total,
+                "subtotal": move.amount_total if move.move_type == "out_invoice" else -move.amount_total,
                 "company": move.company_id.display_name
             })
             
