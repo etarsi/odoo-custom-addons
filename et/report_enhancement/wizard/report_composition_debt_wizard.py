@@ -69,12 +69,14 @@ class ReportCompositionDebtWizard(models.TransientModel):
             raise ValidationError(_("No se encontraron líneas de factura para el período seleccionado."))   
         
         for move in account_moves:
+            debit= move.amount_total if move.move_type == "out_invoice" else 0.0
+            credit = move.amount_total if move.move_type == "out_refund" else 0.0
             data.append({
                 "partner": move.partner_id.display_name,
                 "invoice_number": move.name,
                 "date": move.invoice_date,
-                "debit": move.amount_total,
-                "credit": 0.0,
+                "debit": debit,
+                "credit": credit,
                 "subtotal": move.amount_total,
                 "company": move.company_id.display_name
             })
@@ -174,9 +176,9 @@ class ReportCompositionDebtWizard(models.TransientModel):
         ws_composition_debt.set_column(0, 0, 60)      # Cliente
         ws_composition_debt.set_column(1, 1, 15)      # Fecha
         ws_composition_debt.set_column(2, 2, 30)      # Documento
-        ws_composition_debt.set_column(3, 3, 15)      # Debe
-        ws_composition_debt.set_column(4, 4, 10)      # Haber
-        ws_composition_debt.set_column(5, 5, 15)      # Total Documento
+        ws_composition_debt.set_column(3, 3, 25)      # Debe
+        ws_composition_debt.set_column(4, 4, 25)      # Haber
+        ws_composition_debt.set_column(5, 5, 30)      # Total Documento
         ws_composition_debt.set_column(6, 6, 30)      # Empresa
         # Alto de filas de título/encabezado
         ws_composition_debt.set_row(0, 20)
