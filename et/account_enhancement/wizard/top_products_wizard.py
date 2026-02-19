@@ -310,8 +310,8 @@ class TopProductsInvoicedWizard(models.TransientModel):
         chart_p.set_size({"width": 800, "height": 600})
 
         ws_dash.insert_chart("B7", chart_v, {"x_offset": 10, "y_offset": 5})
-        ws_dash.insert_chart("B40", chart_q, {"x_offset": 10, "y_offset": 5})
-        ws_dash.insert_chart("T7", chart_p, {"x_offset": 10, "y_offset": 5})
+        #ws_dash.insert_chart("B40", chart_q, {"x_offset": 10, "y_offset": 5})
+        ws_dash.insert_chart("T7", chart_q, {"x_offset": 10, "y_offset": 5})
 
         wb.close()
         output.seek(0)
