@@ -127,7 +127,12 @@ class TopProductsInvoicedWizard(models.TransientModel):
         fmt_h = wb.add_format({"bold": True, "bg_color": "#D9E1F2", "border": 1})
         fmt_txt = wb.add_format({"border": 1})
         fmt_int = wb.add_format({"num_format": "#,##0;[Red]-#,##0", "border": 1})
-        fmt_money = wb.add_format({'border': 1, 'align': 'center', 'valign': 'vcenter', 'num_format': '_($* #,##0_);_($* (#,##0);_($* "-"??_);_(@_)'})
+        fmt_money = wb.add_format({
+            "border": 1,
+            "align": "center",
+            "valign": "vcenter",
+            "num_format": '_($* #,##0_);[Red]_($* -#,##0_);_($* "-"??_);_(@_)'
+        })
         fmt_date = wb.add_format({"num_format": "yyyy-mm-dd", "border": 1})
 
         # Sheets
@@ -208,19 +213,21 @@ class TopProductsInvoicedWizard(models.TransientModel):
         ws_r.set_column("H:H", 14)  # % acum
 
         ws_r.merge_range(
-            "A1:F1",
+            "A1:H1",
             "Resumen de Productos Facturados - %s" % dict(self._fields["temporada"].selection).get(self.temporada, self.temporada),
             fmt_title
         )
         if self.date_start or self.date_end:
+            fecha_desde = self.date_start.strftime("%d/%m/%Y") if self.date_start else "N/A"
+            fecha_hasta = self.date_end.strftime("%d/%m/%Y") if self.date_end else "N/A"
             ws_r.write("D3", "Fecha desde", fmt_h)
             if self.date_start:
-                ws_r.write_datetime("E3", fields.Date.to_date(self.date_start), fmt_date)
+                ws_r.write("E3", fecha_desde, fmt_date)
             ws_r.write("D4", "Fecha hasta", fmt_h)
             if self.date_end:
-                ws_r.write_datetime("E4", fields.Date.to_date(self.date_end), fmt_date)
+                ws_r.write("E4", fecha_hasta, fmt_date)
 
-        headers = ["Rank", "Código", "Producto", "Categoría", "Ventas Totales", "Cantidad Total"]
+        headers = ["Rank", "Código", "Producto", "Categoría", "Ventas Totales", "Cantidad Total", "% Total", "% Acumulado"]
         header_row = 5
         for c, h in enumerate(headers):
             ws_r.write(header_row, c, h, fmt_h)
@@ -241,11 +248,15 @@ class TopProductsInvoicedWizard(models.TransientModel):
             ws_r.write(row, 3, r["category"], fmt_txt)
             ws_r.write_number(row, 4, ventas, fmt_money)
             ws_r.write_number(row, 5, qty, fmt_int)
+            ws_r.write_number(row, 6, pct_total, fmt_money)
+            ws_r.write_number(row, 7, acum, fmt_money)
 
-        total_row = data_start_row + len(ordered) + 1
+        total_row = data_start_row + len(ordered)
         ws_r.write(total_row, 3, "TOTAL", fmt_h)
         ws_r.write_number(total_row, 4, total_ventas, fmt_money)
         ws_r.write_number(total_row, 5, total_qty, fmt_int)
+        ws_r.write_number(total_row, 6, 1.0, fmt_money)
+        ws_r.write_number(total_row, 7, 1.0, fmt_money)
 
         # -------------------------
         # 3) Gráficos (arreglado: índices correctos)
@@ -298,7 +309,7 @@ class TopProductsInvoicedWizard(models.TransientModel):
         chart_p.set_size({"width": 800, "height": 600})
 
         ws_dash.insert_chart("B7", chart_v, {"x_offset": 10, "y_offset": 5})
-        ws_dash.insert_chart("B60", chart_q, {"x_offset": 10, "y_offset": 5})
+        ws_dash.insert_chart("B40", chart_q, {"x_offset": 10, "y_offset": 5})
         ws_dash.insert_chart("T7", chart_p, {"x_offset": 10, "y_offset": 5})
 
         wb.close()
