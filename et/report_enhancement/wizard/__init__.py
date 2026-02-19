@@ -1,1 +1,1 @@
-from . import report_balance_addition_wizard
+from . import report_balance_addition_wizard, report_composition_debt_wizard

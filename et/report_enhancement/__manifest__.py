@@ -20,7 +20,7 @@
     'version': '0.1',
 
     # any module necessary for this one to work correctly
-    'depends': ['base', 'account_enhancement', 'report_xlsx'],
+    'depends': ['base', 'account_enhancement', 'report_xlsx', 'sale'],
     'assets': {
         'web.assets_backend': [
             'report_enhancement/static/src/js/action_report_xlsx.js',
@@ -36,7 +36,9 @@
         'report/report_balance_addition_reports.xml',
         'views/report_factura_rubros_temp_views.xml',
         'views/report_factura_rubros_temp_nav_views.xml',
-        'wizard/report_balance_addition_wizard_views.xml',
+        'views/wizards/report_balance_addition_wizard_views.xml',
+        'views/wizards/report_composition_debt_wizard_views.xml',
+        'views/menu.xml',
         'views/templates.xml',
     ],
     # only loaded in demonstration mode

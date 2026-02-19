@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+    <!-- TRIAL BALANCE -->
+    <record id="report_composition_debt_wizard_view" model="ir.ui.view">
+        <field name="name">Report Composition Debt Wizard</field>
+        <field name="model">report.composition.debt.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Reporte de Facturas-Devoluciones" create="false" edit="false">
+                <group name="reporte_stock_picking" string="Reporte de Pendientes">
+                    <group>
+                        <field name="parent_id" options="{'no_create': True}"/>
+                        <field name="partner_ids" options="{'no_create': True}" widget="many2many_tags"/>
+                    </group>        
+                </group>
+                <footer>
+                    <button name="action_export_xlsx" type="object" string="Generar Excel" class="btn-primary"/>
+                    <button string="Cancelar" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+    <record id="action_report_composition_debt_wizard" model="ir.actions.act_window">
+        <field name="name">Composición de Deuda</field>
+        <field name="res_model">report.composition.debt.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="view_id" ref="report_composition_debt_wizard_view" />
+        <field name="target">new</field>
+    </record>
+</odoo>

@@ -1,0 +1,13 @@
+<odoo>
+    <!-- MENU VENTAS -->
+    <menuitem id="menu_root_informes_enhancement"
+                name="Informes"
+                parent="sale.sale_menu_root"
+                sequence="7"/>
+    <!-- SUBMENU INFORME -->
+    <menuitem id="menu_report_composition_debt_wizard"
+              name="Composición de Deuda"
+              parent="menu_root_informes_enhancement"
+              action="action_report_composition_debt_wizard"
+              sequence="1"/>
+</odoo>
