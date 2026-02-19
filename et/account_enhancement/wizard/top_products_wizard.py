@@ -127,6 +127,7 @@ class TopProductsInvoicedWizard(models.TransientModel):
         fmt_h = wb.add_format({"bold": True, "bg_color": "#D9E1F2", "border": 1})
         fmt_txt = wb.add_format({"border": 1})
         fmt_int = wb.add_format({"num_format": "#,##0;[Red]-#,##0", "border": 1})
+        fmt_decimal = wb.add_format({"num_format": "#,##0.00;[Red]-#,##0.00", "border": 1})
         fmt_money = wb.add_format({
             "border": 1,
             "align": "center",
@@ -248,15 +249,15 @@ class TopProductsInvoicedWizard(models.TransientModel):
             ws_r.write(row, 3, r["category"], fmt_txt)
             ws_r.write_number(row, 4, ventas, fmt_money)
             ws_r.write_number(row, 5, qty, fmt_int)
-            ws_r.write_number(row, 6, pct_total, fmt_int)
-            ws_r.write_number(row, 7, acum, fmt_int)
+            ws_r.write_number(row, 6, pct_total, fmt_decimal)
+            ws_r.write_number(row, 7, acum, fmt_decimal)
 
         total_row = data_start_row + len(ordered)
         ws_r.write(total_row, 3, "TOTAL", fmt_h)
         ws_r.write_number(total_row, 4, total_ventas, fmt_money)
         ws_r.write_number(total_row, 5, total_qty, fmt_int)
-        ws_r.write_number(total_row, 6, 1.0, fmt_int)
-        ws_r.write_number(total_row, 7, 1.0, fmt_int)
+        ws_r.write_number(total_row, 6, 1.0, fmt_decimal)
+        ws_r.write_number(total_row, 7, 1.0, fmt_decimal)
 
         # -------------------------
         # 3) Gráficos (arreglado: índices correctos)
