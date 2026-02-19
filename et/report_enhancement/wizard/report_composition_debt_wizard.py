@@ -38,7 +38,7 @@ class ReportCompositionDebtWizard(models.TransientModel):
         #ordenar por fecha ascendente
         lines = sorted(lines, key=lambda x: x['date'])
         xlsx_data = self._build_xlsx(lines)
-        filename = f"Top_Productos_{self.temporada}.xlsx"
+        filename = f"Reporte-composicion-deuda-{self.partner_id.display_name}.xlsx"
         attachment = self.env["ir.attachment"].create({
             "name": filename,
             "type": "binary",
