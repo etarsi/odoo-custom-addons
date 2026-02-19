@@ -73,7 +73,7 @@ class ReportCompositionDebtWizard(models.TransientModel):
             })
             
         # añadir los recibos de cliente
-        account_payment_domain = [("payment_type", "=", "inbound"), ("state", "=", "posted")]
+        account_payment_domain = [("partner_type", "=", "customer"), ("state", "=", "posted")]
         if partner_ids:
             account_payment_domain += [("partner_id", "in", partner_ids)]
         account_payment_groups = self.env["account.payment.group"].search(account_payment_domain)
