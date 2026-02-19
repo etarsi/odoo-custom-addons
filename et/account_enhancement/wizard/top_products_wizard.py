@@ -248,8 +248,8 @@ class TopProductsInvoicedWizard(models.TransientModel):
             ws_r.write(row, 3, r["category"], fmt_txt)
             ws_r.write_number(row, 4, ventas, fmt_money)
             ws_r.write_number(row, 5, qty, fmt_int)
-            ws_r.write_number(row, 6, pct_total, fmt_money)
-            ws_r.write_number(row, 7, acum, fmt_money)
+            ws_r.write_number(row, 6, pct_total, fmt_int)
+            ws_r.write_number(row, 7, acum, fmt_int)
 
         total_row = data_start_row + len(ordered)
         ws_r.write(total_row, 3, "TOTAL", fmt_h)
