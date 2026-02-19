@@ -38,12 +38,19 @@ class ReportCompositionDebtWizard(models.TransientModel):
         #ordenar por fecha ascendente
         lines = sorted(lines, key=lambda x: x['date'])
         xlsx_data = self._build_xlsx(lines)
+        filename = f"Top_Productos_{self.temporada}.xlsx"
+        attachment = self.env["ir.attachment"].create({
+            "name": filename,
+            "type": "binary",
+            "datas": base64.b64encode(xlsx_data),
+            "mimetype": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        })
+
         return {
-            'type': 'ir.actions.act_url',
-            'url': f"data:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;base64,{xlsx_data.encode().decode('utf-8')}",
-            'target': 'new',
-        }   
-        
+            "type": "ir.actions.act_url",
+            "url": f"/web/content/{attachment.id}?download=true",
+            "target": "self",
+        }
         
         
     # ---------------------------
