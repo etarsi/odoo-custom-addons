@@ -60,7 +60,7 @@
                         <field name="alert_sent" readonly="1"/>
                         <field name="last_alert_sent" readonly="1"/>
                     </group>
-                    <group>
+                    <group string="Movimientos Relacionados" colspan="2">
                       <notebook>
                         <page string="Comprometido En">
                             <field name="move_lines_reserved" mode="tree" readonly="1">
