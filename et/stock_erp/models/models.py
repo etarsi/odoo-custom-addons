@@ -56,7 +56,7 @@ class StockERP(models.Model):
 
     # --- NUEVO: umbral y alertas ---
     stock_limit_unidades = fields.Float(
-        string='Límite de stock (unidades)',
+        string='Límite de stock',
         digits=(99, 0),
         default=0,
         tracking=True,
@@ -422,8 +422,8 @@ class StockERP(models.Model):
         """Arma email_to con los emails de los usuarios del grupo."""
         emails = []
         for u in users:
-            if u.partner_id and u.partner_id.email:
-                emails.append(u.partner_id.email.strip())
+            if u.login and '@' in u.login:
+                emails.append(u.login.strip())
         # dedupe manteniendo orden
         seen = set()
         uniq = []
