@@ -779,26 +779,17 @@ class SaleOrderLineInherit(models.Model):
 
     def update_stock_erp(self):
         for record in self:
-            if not record.is_available:
-                default_code = record.product_id.default_code
+            disponible = 0
+            default_code = record.product_id.default_code
 
-                if default_code:
-                    if default_code.startswith('9'):
-                        search_code = default_code[1:]
-                    else:
-                        search_code = default_code
+            if default_code:
+                search_code = default_code[1:] if default_code.startswith('9') else default_code
+                stock_erp = self.env['stock.erp'].search([
+                    ('product_id.default_code', '=', search_code)
+                ], limit=1)
+                disponible = int(stock_erp.disponible_unidades) if stock_erp else 0
 
-                    stock_erp = self.env['stock.erp'].search([
-                        ('product_id.default_code', '=', search_code)
-                    ], limit=1)
-
-                    if stock_erp:
-                        record.disponible_unidades = stock_erp.disponible_unidades
-                    else:
-                        record.disponible_unidades = 0.0
-                else:
-                    record.disponible_unidades = 0.0
-
+            record.disponible_unidades = disponible
         
 
     def check_client_purchase_intent(self):
@@ -888,27 +879,41 @@ class SaleOrderLineInherit(models.Model):
                 record.is_compromised = True
 
     # COMPUTED
+    # @api.depends('disponible_unidades', 'product_uom_qty')
+    # def _compute_is_available(self):
+    #     for record in self:
+    #             if not record.is_available:
+    #                 stock_moves_erp = self.env['stock.moves.erp'].search([('sale_line_id', '=', record.id), ('type', '=', 'reserve')], limit=1)
+
+    #                 if stock_moves_erp: # esta comprometido
+    #                     disponible_real = stock_moves_erp.quantity + record.disponible_unidades
+    #                     if record.product_uom_qty <= disponible_real:
+    #                         record.is_available = True
+    #                     else:
+    #                         record.is_available = False
+
+
+    #                 else: # no esta comprometido
+    #                     if record.product_uom_qty <= record.disponible_unidades:
+    #                         record.is_available = True
+    #                     else:
+    #                         record.is_available = False
 
     @api.depends('disponible_unidades', 'product_uom_qty')
     def _compute_is_available(self):
+        stock_moves_erp = self.env['stock.moves.erp']
         for record in self:
-                if not record.is_available:
-                    stock_moves_erp = self.env['stock.moves.erp'].search([('sale_line_id', '=', record.id), ('type', '=', 'reserve')], limit=1)
+            if getattr(record, 'display_type', False):
+                record.is_available = True
+                continue
 
-                    if stock_moves_erp: # esta comprometido
-                        disponible_real = stock_moves_erp.quantity + record.disponible_unidades
-                        if record.product_uom_qty <= disponible_real:
-                            record.is_available = True
-                        else:
-                            record.is_available = False
+            reserve = stock_moves_erp.search([
+                ('sale_line_id', '=', record.id),
+                ('type', '=', 'reserve')
+            ], limit=1)
 
-
-                    else: # no esta comprometido
-                        if record.product_uom_qty <= record.disponible_unidades:
-                            record.is_available = True
-                        else:
-                            record.is_available = False
-
+            disponible_real = record.disponible_unidades + (reserve.quantity if reserve else 0.0)
+            record.is_available = bool(record.product_uom_qty <= disponible_real)
     
 
 

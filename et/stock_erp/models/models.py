@@ -13,6 +13,8 @@ from datetime import timedelta
 
 class StockERP(models.Model):
     _name = 'stock.erp'
+    _description = 'Stock ERP'
+    _inherit = ['mail.thread', 'mail.activity.mixin'] 
 
     name = fields.Char(compute='_compute_name')
     move_lines = fields.One2many('stock.moves.erp', 'stock_erp')
@@ -51,6 +53,41 @@ class StockERP(models.Model):
 
     pdl = fields.Float(string="Precio de Lista")
     valor = fields.Float(string="Valor")
+
+    # --- NUEVO: umbral y alertas ---
+    stock_limit_unidades = fields.Float(
+        string='Límite de stock (unidades)',
+        digits=(99, 0),
+        default=0,
+        tracking=True,
+        help="Si Disponible Unidades baja de este valor, dispara alerta."
+    )
+
+    alert_group_id = fields.Many2one(
+        'res.groups',
+        string='Grupo a notificar',
+        tracking=True,
+        help="Usuarios de este grupo recibirán mail + actividad interna."
+    )
+
+    below_limit = fields.Boolean(
+        string='Stock bajo límite',
+        compute='_compute_below_limit',
+        store=True,
+        index=True
+    )
+
+    alert_sent = fields.Boolean(
+        string='Alerta enviada',
+        default=False,
+        copy=False,
+        index=True
+    )
+
+    last_alert_sent = fields.Datetime(
+        string='Última alerta',
+        copy=False
+    )
 
     def calculate_stock_value(self):
         for record in self:
@@ -365,6 +402,118 @@ class StockERP(models.Model):
 
     def set_to_zero(self):
         self.fisico_unidades = 0
+
+
+    @api.depends('disponible_unidades', 'stock_limit_unidades')
+    def _compute_below_limit(self):
+        for rec in self:
+            limit_val = rec.stock_limit_unidades or 0
+            rec.below_limit = bool(limit_val > 0 and (rec.disponible_unidades or 0) < limit_val)
+
+    def _get_alert_users(self):
+        """Usuarios a notificar."""
+        self.ensure_one()
+        group = self.alert_group_id
+        if not group:
+            return self.env['res.users']
+        return group.users.filtered(lambda u: u.active)
+
+    def _build_alert_email_to(self, users):
+        """Arma email_to con los emails de los usuarios del grupo."""
+        emails = []
+        for u in users:
+            if u.partner_id and u.partner_id.email:
+                emails.append(u.partner_id.email.strip())
+        # dedupe manteniendo orden
+        seen = set()
+        uniq = []
+        for e in emails:
+            if e and e not in seen:
+                uniq.append(e)
+                seen.add(e)
+        return ",".join(uniq)
+
+    @api.model
+    def _cron_stock_limit_alerts(self):
+        """
+        Cron: envía mail + crea actividades internas para stock bajo el límite.
+        Evita spam usando alert_sent, y lo resetea al recuperar stock.
+        """
+        # 1) reset: si recuperó stock, habilito futuras alertas
+        recovered = self.search([('alert_sent', '=', True), ('below_limit', '=', False)])
+        if recovered:
+            recovered.write({'alert_sent': False})
+
+        # 2) candidatos a alertar
+        records = self.search([
+            ('below_limit', '=', True),
+            ('alert_sent', '=', False),
+            ('stock_limit_unidades', '>', 0),
+        ])
+
+        if not records:
+            return True
+
+        template = self.env.ref('stock_erp.mail_template_stock_erp_below_limit', raise_if_not_found=False)
+        todo_type = self.env.ref('mail.mail_activity_data_todo', raise_if_not_found=False)
+
+        now = fields.Datetime.now()
+
+        for rec in records:
+            users = rec._get_alert_users()
+            if not users:
+                # si no hay grupo o no hay usuarios, marcá o dejalo sin marcar según tu preferencia
+                continue
+
+            # --- A) correo ---
+            email_to = rec._build_alert_email_to(users)
+            if template and email_to:
+                template.send_mail(
+                    rec.id,
+                    force_send=True,
+                    email_values={'email_to': email_to}
+                )
+
+            # --- B) alerta interna (Actividades) ---
+            if todo_type:
+                for user in users:
+                    # opcional: evitar duplicadas si ya hay una actividad abierta igual
+                    existing = self.env['mail.activity'].search([
+                        ('res_model', '=', rec._name),
+                        ('res_id', '=', rec.id),
+                        ('user_id', '=', user.id),
+                        ('activity_type_id', '=', todo_type.id),
+                        ('state', '=', 'planned'),
+                    ], limit=1)
+                    if not existing:
+                        self.env['mail.activity'].create({
+                            'activity_type_id': todo_type.id,
+                            'res_model_id': self.env['ir.model']._get_id(rec._name),
+                            'res_id': rec.id,
+                            'user_id': user.id,
+                            'summary': _('Stock bajo límite'),
+                            'note': _(
+                                'Producto: %s\nDisponible: %s\nLímite: %s'
+                            ) % (rec.product_id.display_name, rec.disponible_unidades, rec.stock_limit_unidades),
+                            'date_deadline': fields.Date.today(),
+                        })
+
+            # --- C) mensaje en chatter (visible en el registro) ---
+            rec.message_post(
+                body=_(
+                    "<b>Alerta de stock</b><br/>"
+                    "Producto: %s<br/>"
+                    "Disponible: %s<br/>"
+                    "Límite: %s"
+                ) % (rec.product_id.display_name, rec.disponible_unidades, rec.stock_limit_unidades),
+                subtype_xmlid='mail.mt_note'
+            )
+
+            # --- D) marcar como alertado ---
+            rec.write({'alert_sent': True, 'last_alert_sent': now})
+
+        return True
+
 
 
 class StockPickingInherit(models.Model):

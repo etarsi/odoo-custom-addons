@@ -210,8 +210,6 @@ class TopProductsInvoicedWizard(models.TransientModel):
         ws_r.set_column("D:D", 40)  # Categoría
         ws_r.set_column("E:E", 20)  # Ventas
         ws_r.set_column("F:F", 20)  # Qty
-        ws_r.set_column("G:G", 14)  # % total
-        ws_r.set_column("H:H", 14)  # % acum
 
         ws_r.merge_range(
             "A1:F1",
@@ -228,7 +226,7 @@ class TopProductsInvoicedWizard(models.TransientModel):
             if self.date_end:
                 ws_r.write("E4", fecha_hasta, fmt_date)
 
-        headers = ["Rank", "Código", "Producto", "Categoría", "Ventas Totales", "Cantidad Total", "% Total", "% Acumulado"]
+        headers = ["Rank", "Código", "Producto", "Categoría", "Ventas Totales", "Cantidad Total"]
         header_row = 5
         for c, h in enumerate(headers):
             ws_r.write(header_row, c, h, fmt_h)

@@ -19,12 +19,14 @@
     'version': '0.1',
 
     # any module necessary for this one to work correctly
-    'depends': ['base', 'product', 'stock', 'sale', 'digipwms-mainv2'],
+    'depends': ['base', 'product', 'stock', 'sale', 'digipwms-mainv2', 'mail'],
 
     # always loaded
     'data': [
         'security/ir.model.access.csv',
         'data/actions.xml',
+        'data/groups.xml',
+        'data/stock_erp_alert.xml',
         'views/stock_season_views.xml',
         'views/product_template_views.xml',
         'views/views.xml',

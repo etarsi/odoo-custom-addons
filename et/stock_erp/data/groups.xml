@@ -1,0 +1,8 @@
+<?xml version='1.0' encoding='utf-8'?>
+<odoo>
+    <!-- Grupo para recibir alertas de stock bajo -->
+    <record id="group_alert_stock" model="res.groups">
+        <field name="name">Alerta de Stock</field>
+        <field name="category_id" ref="base.module_category_inventory"/>
+    </record>
+</odoo>

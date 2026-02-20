@@ -28,6 +28,10 @@
                 <field name="disponible_bultos" optional="hide"/>
                 <field name="entregable_bultos" optional="hide"/>
                 <field name="digip_unidades" optional="hide"/>
+                <!-- LIMITE DE STOCK Y NOTIFICACION -->
+                <field name="stock_limit_unidades"/>
+                <field name="below_limit" invisible="1"/>
+                <field name="alert_sent" invisible="1"/>
             </tree>
         </field>
     </record>
@@ -48,6 +52,13 @@
                     <field name="uxb"/>
                     <field name="comprometido_unidades"/>
                     <field name="disponible_unidades"/>
+                  </group>
+                  <group string="Alertas de Stock" groups="stock_erp.group_alert_stock">
+                      <field name="stock_limit_unidades"/>
+                      <field name="alert_group_id"/>
+                      <field name="below_limit" readonly="1"/>
+                      <field name="alert_sent" readonly="1"/>
+                      <field name="last_alert_sent" readonly="1"/>
                   </group>
                   <group>
                     <notebook>
@@ -93,6 +104,12 @@
                     </notebook>
                   </group>
                 </sheet>
+                <!-- chatter -->
+                <div class="oe_chatter">
+                    <field name="message_follower_ids"/>
+                    <field name="activity_ids"/>
+                    <field name="message_ids"/>
+                </div>
             </form>
         </field>
     </record>

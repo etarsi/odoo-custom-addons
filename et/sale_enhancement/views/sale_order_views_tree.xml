@@ -38,6 +38,20 @@
                     <field name="global_discount" string="Descuento"/>
                     <field name="special_price" attrs="{'readonly': [('state', '=', 'sale')]}"/>
                 </xpath>
+                <!-- Poner en rojo cuando NO está disponible (y no sea sección/nota) -->
+                <xpath expr="//field[@name='order_line']/tree" position="attributes">
+                    <attribute name="decoration-danger">not is_available and not display_type</attribute>
+                </xpath>
+                <!-- Asegurar que el campo exista en la vista (aunque sea invisible) -->
+                <xpath expr="//field[@name='order_line']/tree" position="inside">
+                    <field name="is_available" invisible="1"/>
+                    <field name="display_type" invisible="1"/>
+                    <field name="disponible_unidades" invisible="1"/>
+                </xpath>
+                <xpath expr="//field[@name='order_line']/tree/field[@name='product_uom_qty']" position="after">
+                    <field name="disponible_unidades" string="Disponible" optional="hide"/>
+                    <field name="is_compromised" string="Comprom." optional="hide"/>
+                </xpath>
             </field>
         </record>
 
