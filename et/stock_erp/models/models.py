@@ -454,7 +454,7 @@ class StockERP(models.Model):
         if not records:
             return True
 
-        template = self.env.ref('stock_erp.mail_template_stock_erp_below_limit', raise_if_not_found=False)
+        template = self.env.ref('stock_erp.mail_template_stock_erp_below_limit_small', raise_if_not_found=False)
         todo_type = self.env.ref('mail.mail_activity_data_todo', raise_if_not_found=False)
 
         now = fields.Datetime.now()

@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+  <data>
+
+    <record id="mail_template_stock_erp_below_limit_small" model="mail.template">
+      <field name="name">SEBIGUS - Alerta Stock Bajo (Mini)</field>
+
+      <!-- IMPORTANTE: reemplazar TU_MODULO por tu módulo -->
+      <field name="model_id" ref="stock_erp.model_stock_erp"/>
+
+      <field name="email_from">{{ (object.product_id.company_id.email or user.company_id.email or '') }}</field>
+
+      <!-- Si tu CRON setea email_to por email_values, podés dejarlo vacío -->
+      <field name="email_to">{{ ','.join([u.partner_id.email for u in object.alert_group_id.users if u.partner_id.email]) if object.alert_group_id else '' }}</field>
+
+      <field name="subject">[ALERTA STOCK] {{ object.product_id.display_name }} (Disp: {{ object.disponible_unidades }})</field>
+      <field name="auto_delete" eval="True"/>
+
+      <field name="body_html" type="html">
+        <div style="margin:0; padding:0; background:#f6f7fb;">
+          <div style="max-width:560px; margin:0 auto; padding:12px;">
+
+            <div style="border-radius:12px; overflow:hidden; border:1px solid #EAECF0; background:#ffffff;">
+
+              <!-- Header mini -->
+              <div style="background:#FEF3F2; padding:10px 14px;">
+                <span style="font-family:Arial, sans-serif; font-size:13px; font-weight:700; color:#B42318; letter-spacing:.4px;">
+                  ALERTA DE STOCK
+                </span>
+              </div>
+
+              <!-- Body -->
+              <div style="padding:14px;">
+                <div style="font-family:Arial, sans-serif; font-size:14px; color:#101828;">
+                  Producto: <b><t t-out="object.product_id.display_name"/></b>
+                </div>
+
+                <t t-if="object.product_code">
+                  <div style="font-family:Arial, sans-serif; font-size:12px; color:#475467; margin-top:4px;">
+                    Código: <b><t t-out="object.product_code"/></b>
+                  </div>
+                </t>
+
+                <div style="font-family:Arial, sans-serif; font-size:12px; line-height:1.6; color:#344054; margin-top:10px;">
+                  Disponible: <b><t t-out="object.disponible_unidades"/></b><br/>
+                  Límite configurado: <b><t t-out="object.stock_limit_unidades"/></b>
+                </div>
+
+                <div style="margin-top:12px;">
+                  <t t-set="base_url" t-value="ctx.get('base_url')"/>
+                  <a t-att-href="base_url + '/web#id=%s&amp;model=stock.erp&amp;view_type=form' % object.id"
+                     style="display:inline-block; padding:8px 12px; border-radius:10px; background:#101828; color:#ffffff; text-decoration:none; font-family:Arial, sans-serif; font-size:12px; font-weight:600;">
+                    Ver en Odoo
+                  </a>
+                </div>
+
+                <div style="font-family:Arial, sans-serif; font-size:11px; color:#667085; margin-top:12px;">
+                  Si ya se repuso stock, podés ignorar este aviso.
+                </div>
+              </div>
+
+              <!-- Footer mini -->
+              <div style="padding:10px 14px; background:#F9FAFB; font-family:Arial, sans-serif; font-size:11px; color:#98A2B3;">
+                Mensaje automático - Equipo Sebigus.
+              </div>
+
+            </div>
+
+          </div>
+        </div>
+      </field>
+    </record>
+
+  </data>
+</odoo>
