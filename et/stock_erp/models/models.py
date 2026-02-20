@@ -413,7 +413,7 @@ class StockERP(models.Model):
     def _get_alert_users(self):
         """Usuarios a notificar."""
         self.ensure_one()
-        group = self.alert_group_id
+        group = self.env.ref('stock_erp.group_alert_stock', raise_if_not_found=False)
         if not group:
             return self.env['res.users']
         return group.users.filtered(lambda u: u.active)

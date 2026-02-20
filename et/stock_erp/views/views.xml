@@ -43,65 +43,66 @@
             <form>
                 <sheet>
                   <group>
-                    <field name="product_id"/>
-                    <field name="product_category"/>
-                    <field name="digip_unidades"/>
-                    <field name="fisico_unidades"/>
-                    <field name="entregable_unidades"/>
-                    <field name="enelagua_unidades" readonly="1"/>
-                    <field name="uxb"/>
-                    <field name="comprometido_unidades"/>
-                    <field name="disponible_unidades"/>
-                  </group>
-                  <group string="Alertas de Stock" groups="stock_erp.group_alert_stock">
-                      <field name="stock_limit_unidades"/>
-                      <field name="alert_group_id"/>
-                      <field name="below_limit" readonly="1"/>
-                      <field name="alert_sent" readonly="1"/>
-                      <field name="last_alert_sent" readonly="1"/>
-                  </group>
-                  <group>
-                    <notebook>
-                      <page string="Comprometido En">
-                          <field name="move_lines_reserved" mode="tree" readonly="1">
-                            <tree string="Return Items">
-                                <field name="sale_id" string="Pedido"/>
-                                <field name="partner_id" string="Cliente"/>
-                                <field name="quantity" string="Cantidad" sum="Total"/>
-                                <field name="quantity_delivered" string="Cantidad Entregada" sum="Total"/>
-                                <field name="uxb" string="UxB"/>
-                                <field name="bultos" string="Bultos" sum="Total"/>      
-                                <!-- <field name="transfer_picking_ids" string="Transferencias" widget="many2many_tags" optional="hide"/> -->
-                                <!-- <field name="transfer_quantity_comprometida" string="Cantidad Comprometida" optional="hide"/> -->
-                                <!-- <field name="transfer_quantity_done" string="Cantidad Hechas" optional="hide"/> -->
-                                <!-- <field name="transfer_quantity_cancel" string="Cantidad Canceladas" optional="hide"/> -->
-                                <button name="unreserve_stock" type="object" string="Liberar"/>               
-                            </tree>
-                          </field>
-                      </page>
-                      <page string="Preparado En">
-                          <field name="move_lines_prepared" mode="tree" readonly="1">
-                            <tree editable="bottom" string="Delivered Items">
-                                <field name="picking_id" string="Transferencia"/>
-                                <field name="partner_id" string="Cliente"/>
-                                <field name="quantity" string="Cantidad" sum="Total"/>
-                                <field name="uxb" string="UxB"/>
-                                <field name="bultos" string="Bultos" sum="Total"/>                
-                            </tree>
-                          </field>
-                      </page>
-                      <page string="Entregado En">
-                          <field name="move_lines_delivered" mode="tree" readonly="1">
-                            <tree editable="bottom" string="Delivered Items">
-                                <field name="picking_id" string="Transferencia"/>
-                                <field name="partner_id" string="Cliente"/>
-                                <field name="quantity" string="Cantidad" sum="Total"/>
-                                <field name="uxb" string="UxB"/>
-                                <field name="bultos" string="Bultos" sum="Total"/>                
-                            </tree>
-                          </field>
-                      </page>
-                    </notebook>
+                    <group name="general_info" string="Información General">
+                      <field name="product_id"/>
+                      <field name="product_category"/>
+                      <field name="digip_unidades"/>
+                      <field name="fisico_unidades"/>
+                      <field name="entregable_unidades"/>
+                      <field name="enelagua_unidades" readonly="1"/>
+                      <field name="uxb"/>
+                      <field name="comprometido_unidades"/>
+                      <field name="disponible_unidades"/>
+                    </group>
+                    <group string="Alertas de Stock" groups="stock_erp.group_alert_stock">
+                        <field name="stock_limit_unidades"/>
+                        <field name="below_limit" readonly="1"/>
+                        <field name="alert_sent" readonly="1"/>
+                        <field name="last_alert_sent" readonly="1"/>
+                    </group>
+                    <group>
+                      <notebook>
+                        <page string="Comprometido En">
+                            <field name="move_lines_reserved" mode="tree" readonly="1">
+                              <tree string="Return Items">
+                                  <field name="sale_id" string="Pedido"/>
+                                  <field name="partner_id" string="Cliente"/>
+                                  <field name="quantity" string="Cantidad" sum="Total"/>
+                                  <field name="quantity_delivered" string="Cantidad Entregada" sum="Total"/>
+                                  <field name="uxb" string="UxB"/>
+                                  <field name="bultos" string="Bultos" sum="Total"/>      
+                                  <!-- <field name="transfer_picking_ids" string="Transferencias" widget="many2many_tags" optional="hide"/> -->
+                                  <!-- <field name="transfer_quantity_comprometida" string="Cantidad Comprometida" optional="hide"/> -->
+                                  <!-- <field name="transfer_quantity_done" string="Cantidad Hechas" optional="hide"/> -->
+                                  <!-- <field name="transfer_quantity_cancel" string="Cantidad Canceladas" optional="hide"/> -->
+                                  <button name="unreserve_stock" type="object" string="Liberar"/>               
+                              </tree>
+                            </field>
+                        </page>
+                        <page string="Preparado En">
+                            <field name="move_lines_prepared" mode="tree" readonly="1">
+                              <tree editable="bottom" string="Delivered Items">
+                                  <field name="picking_id" string="Transferencia"/>
+                                  <field name="partner_id" string="Cliente"/>
+                                  <field name="quantity" string="Cantidad" sum="Total"/>
+                                  <field name="uxb" string="UxB"/>
+                                  <field name="bultos" string="Bultos" sum="Total"/>                
+                              </tree>
+                            </field>
+                        </page>
+                        <page string="Entregado En">
+                            <field name="move_lines_delivered" mode="tree" readonly="1">
+                              <tree editable="bottom" string="Delivered Items">
+                                  <field name="picking_id" string="Transferencia"/>
+                                  <field name="partner_id" string="Cliente"/>
+                                  <field name="quantity" string="Cantidad" sum="Total"/>
+                                  <field name="uxb" string="UxB"/>
+                                  <field name="bultos" string="Bultos" sum="Total"/>                
+                              </tree>
+                            </field>
+                        </page>
+                      </notebook>
+                    </group>
                   </group>
                 </sheet>
                 <!-- chatter -->
