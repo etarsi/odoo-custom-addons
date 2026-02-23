@@ -45,10 +45,6 @@
                                 <field name="preheader"/>
                                 <field name="template_id" readonly="1"/>
                             </group>
-
-                            <group string="Destinatarios">
-                                <field name="partner_domain" widget="domain" options="{'model': 'res.partner'}"/>
-                            </group>
                         </group>
 
                         <notebook>
