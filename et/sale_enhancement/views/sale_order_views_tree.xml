@@ -41,6 +41,7 @@
                 <!-- Poner en rojo cuando NO está disponible (y no sea sección/nota) -->
                 <xpath expr="//field[@name='order_line']/tree" position="attributes">
                     <attribute name="decoration-danger">not is_available and not display_type</attribute>
+                    <attribute name="default_order">is_available asc, sequence asc, id asc</attribute>
                 </xpath>
                 <!-- Asegurar que el campo exista en la vista (aunque sea invisible) -->
                 <xpath expr="//field[@name='order_line']/tree" position="inside">
