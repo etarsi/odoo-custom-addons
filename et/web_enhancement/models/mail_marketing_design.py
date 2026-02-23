@@ -170,8 +170,6 @@ class MailMarketingDesign(models.Model):
         # Seguridad: forzamos email != False
         domain = list(domain)
         partners = self.env["res.partner"].search(domain)
-        # opcional: filtrar duplicados por email
-        partners = partners.filtered(lambda p: p.mail_alternative or p.mail_alternative_b).sorted(key=lambda p: p.email or "").filtered(lambda p: p.email)
         return partners
 
     def _compute_recipient_count(self):
@@ -199,7 +197,7 @@ class MailMarketingDesign(models.Model):
 
             wa_btn_url = False
             if rec.whatsapp_button_image:
-                wa_att = rec._ensure_public_attachment(rec.whatsapp_button_image, rec.whatsapp_button_filename or "btn_whatsapp.png")
+                wa_att = rec._ensure_public_attachment(rec.whatsapp_button_image, "btn_whatsapp.png")
                 wa_btn_url = rec._public_image_url(wa_att)
 
             body = rec._build_html(hero_url=hero_url, wa_url=wa_url, wa_btn_url=wa_btn_url)
