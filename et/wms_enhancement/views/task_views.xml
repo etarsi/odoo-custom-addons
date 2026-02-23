@@ -8,7 +8,7 @@
         <field name="name">wms.task.tree</field>
         <field name="model">wms.task</field>
         <field name="arch" type="xml">
-            <tree string="Tareas WMS" default_order="create_date desc">
+            <tree string="Tareas WMS">
                 <header>
                     <button name="action_send_task_to_digip" type="object" string="Enviar a Digip"/>
                 </header>        
