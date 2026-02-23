@@ -52,8 +52,8 @@
                 <field name="total_bultos" sum="total" optional="show"/>
                 <field name="total_bultos_prepared" sum="total" optional="show"/>
                 <field name="total_available_percentage" string="Disponible" optional="show" widget="percentage"/>
-                <field name="operation_type" string="Tipo" widget="badge" decoration-info="operation_type='ingoing'" decoration-danger="operation_type='return'" decoration-primary="operation_type='outgoing'"/>
-                <field name="state" widget="badge" decoration-danger="state='no'" decoration-warning="state='pending'" decoration-info="state='process'" decoration-success="state='finished'"/>
+                <field name="operation_type" string="Tipo" widget="badge" decoration-info="operation_type=='ingoing'" decoration-danger="operation_type=='return'" decoration-primary="operation_type=='outgoing'"/>
+                <field name="state" widget="badge" decoration-danger="state=='no'" decoration-warning="state=='pending'" decoration-info="state=='process'" decoration-success="state=='finished'"/>
             </tree>
         </field>
     </record>
