@@ -33,13 +33,7 @@
                 
                 <field name="percent_complete" widget="progress_bar_widget"/> 
 
-                <field name="type" widget="badge" 
-                    decoration-danger="type=='return'" 
-                    decoration-info="type=='reception'" 
-                    decoration-primary="type=='fraction'" 
-                    decoration-success="type=='preparation'" 
-                    decoration-warning="type=='replenish'" 
-                    decoration-secondary="type=='relocate'"/>
+                <field name="type" widget="badge" decoration-danger="type=='return'" decoration-info="type=='reception'" decoration-primary="type=='fraction'" decoration-success="type=='preparation'" decoration-warning="type=='replenish'" decoration-secondary="type=='relocate'"/>
                 <field name="digip_state" widget="badge" decoration-warning="digip_state == 'sent'" decoration-success="digip_state == 'received'"/>
                 <!-- <field name="state_preparation" widget="badge" attrs="{'column_invisible': [('type', '!=', 'preparation')]}"/> -->
             </tree>
