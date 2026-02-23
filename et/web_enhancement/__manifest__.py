@@ -27,6 +27,7 @@
         'views/views.xml',
         'views/res_config_views.xml',
         'views/product_download_mark_views.xml',
+        'views/mail_marketing_design_views.xml',
         'views/menu_stock.xml',
         'views/templates.xml',
     ],
