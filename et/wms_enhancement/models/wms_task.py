@@ -50,6 +50,7 @@ class WMSTask(models.Model):
     task_line_ids = fields.One2many(string="Líneas de Tarea", comodel_name="wms.task.line", inverse_name="task_id")
     transfer_id = fields.Many2one(string="Transferencia", comodel_name="wms.transfer")
     partner_id = fields.Many2one(string="Contacto", comodel_name="res.partner")
+    partner_address_id = fields.Many2one(string="Dirección de Entrega", comodel_name="res.partner")
     origin = fields.Char(string="Documento")
     digip_state = fields.Selection(string="Digip", selection=[
         ('no', 'No enviado'),
@@ -161,6 +162,16 @@ class WMSTask(models.Model):
             return True
         else:
             raise UserError(f'Error al enviar a Digip la tarea. ERROR_CODE: {response.status_code} - ERROR: {response.text}')
+        
+
+    # @api.depends('task_line_ids.available_percent')
+    # def _compute_total_available_percentage(self):
+    #     for record in self:
+    #         if record.available_line_ids:
+    #             total = sum(record.available_line_ids.mapped('available_percent'))
+    #             record.total_available_percentage = total / len(record.available_line_ids)
+    #         else:
+    #             record.total_available_percentage = 0
 
 
 

@@ -8,16 +8,20 @@
         <field name="name">wms.task.tree</field>
         <field name="model">wms.task</field>
         <field name="arch" type="xml">
-            <tree string="Tareas WMS">            
+            <tree string="Tareas WMS" default_order="desc create_date">
+                <header>
+                    <button name="action_send_task_to_digip" type="object" string="Enviar a Digip"/>
+                </header>        
                 <field name="create_date" widget="remaining_days" string="Fecha"/>
                 <field name="name" string="Tarea"/>                
                 <field name="partner_id" string="Contacto"/>
+                <field name="partner_address_id" string="Dirección de Entrega" optional="hide"/>
                 <field name="assigned_user_id"/>
                 <field name="transfer_id"/>
                 <field name="origin"/>
     
                 <field name="priority" optional="hide"/>
-                <field name="bultos_count" optional="hide"/>
+                <field name="bultos_count" optional="show"/>
 
                 <field name="started_at" optional="hide"/>
                 <field name="done_at" optional="hide"/>
@@ -27,8 +31,16 @@
                 <field name="license" optional="hide" widget="badge"/>
                 
                 
-                <field name="percent_complete"/>                
-                <field name="type" widget="badge"/>
+                <field name="percent_complete" widget="progress_bar_widget"/> 
+
+                <field name="type" widget="badge" 
+                    decoration-danger="type= 'return'" 
+                    decoration-info="type='reception'" 
+                    decoration-primary="type='fraction'" 
+                    decoration-success="type='preparation'" 
+                    decoration-warning="type='replenish'" 
+                    decoration-secondary="type='relocate'"/>
+                <field name="digip_state" widget="badge" decoration-warning="digip_state == 'sent'" decoration-success="digip_state == 'received'"/>
                 <!-- <field name="state_preparation" widget="badge" attrs="{'column_invisible': [('type', '!=', 'preparation')]}"/> -->
             </tree>
         </field>
@@ -72,6 +84,7 @@
                     <!-- <filter string="Estado" name="group_state" context="{'group_by':'state'}"/> -->
                     <filter string="Asignado a" name="group_user" context="{'group_by':'assigned_user_id'}"/>
                     <filter string="Transferencia" name="group_transfer" context="{'group_by':'transfer_id'}"/>
+                    <filter string="Pedido" name="group_order" context="{'group_by':'origin'}"/>
                 </group>
             </search>
         </field>

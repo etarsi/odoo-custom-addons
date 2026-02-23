@@ -37,9 +37,9 @@ class WMSTransfer(models.Model):
     # partner_tag = fields.Many2many()
     # products_categ = fields.Many2many()
 
-    total_bultos = fields.Float(string="Bultos")
-    total_bultos_prepared = fields.Float(string="Bultos Preparados")
-    total_available_percentage = fields.Float(string="Porcentaje Disponible")
+    total_bultos = fields.Float(string="Bultos", compute="_compute_total_bultos", store=True)
+    total_bultos_prepared = fields.Float(string="Bultos Preparados", compute="_compute_total_bultos_prepared", store=True)
+    total_available_percentage = fields.Float(string="Porcentaje Disponible", compute="_compute_total_available_percentage", store=True)
 
 
     @api.model
@@ -90,6 +90,38 @@ class WMSTransfer(models.Model):
                 ('is_available', '=', True)
             ])
 
+    
+    @api.depends('available_line_ids.bultos')
+    def _compute_total_bultos(self):
+        for record in self:
+            if record.available_line_ids:
+                record.total_bultos = sum(record.available_line_ids.mapped('bultos'))
+            else:
+                record.total_bultos = 0
+
+    
+    @api.depends('available_line_ids.qty_done')
+    def _compute_total_bultos_prepared(self):
+        for record in self:
+            if record.available_line_ids:
+                total_bultos_prepared = 0
+                for line in record.available_line_ids:
+                    bultos_prepared = line.qty_done / line.uxb
+                    total_bultos_prepared += bultos_prepared                
+                record.total_bultos_prepared = total_bultos_prepared
+            else:
+                record.total_bultos_prepared = 0
+
+
+    @api.depends('available_line_ids.available_percent')
+    def _compute_total_available_percentage(self):
+        for record in self:
+            if record.available_line_ids:
+                total = sum(record.available_line_ids.mapped('available_percent'))
+                record.total_available_percentage = total / len(record.available_line_ids)
+            else:
+                record.total_available_percentage = 0
+
 
     @api.onchange('line_ids.bultos')
     def _onchange_bultos(self):
@@ -122,7 +154,7 @@ class WMSTransfer(models.Model):
         )
 
         if not lines:
-            raise UserError(_("No hay disponibilidad de stock físico para generar tareas."))
+            raise UserError(_("No hay disponibilidad de stock físico para generar tareas o las mismas ya fueron creadas."))
 
         created_tasks = self.env['wms.task']
 
@@ -222,6 +254,7 @@ class WMSTransfer(models.Model):
             'state_preparation': 'pending',
             'digip_state': 'no',
             'partner_id': self.partner_id.id,
+            'partner_address_id': self.partner_address_id.id,
         })
 
         # Si en una misma tarea pudiste agregar la misma transfer.line en 2 "chunks",

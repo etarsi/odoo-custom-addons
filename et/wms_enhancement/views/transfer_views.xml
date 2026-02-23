@@ -38,7 +38,10 @@
         <field name="name">wms.transfer.tree</field>
         <field name="model">wms.transfer</field>
         <field name="arch" type="xml">
-            <tree string="Transferencias WMS">
+            <tree string="Transferencias WMS" default_order="desc create_date">
+                <header>
+                    <button name="action_split_into_tasks" type="object" string="Crear Tareas"/>
+                </header>
                 <field name="create_date" widget="remaining_days" string="Fecha"/>
                 <field name="name" string="Nombre"/>
                 <field name="origin"/>
@@ -46,11 +49,11 @@
                 <field name="partner_address_id"/>
                 <!-- <field name="partner_tag"/>
                 <field name="partner_tag"/> -->
-                <field name="total_bultos" optional="show"/>
-                <field name="total_bultos_prepared" optional="show"/>
-                <field name="total_available_percentage" optional="show"/>
-                <field name="operation_type" string="Tipo"/>
-                <field name="state"/>
+                <field name="total_bultos" sum="total" optional="show"/>
+                <field name="total_bultos_prepared" sum="total" optional="show"/>
+                <field name="total_available_percentage" string="Disponible" optional="show" widget="percentage"/>
+                <field name="operation_type" string="Tipo" widget="badge" decoration-info="operation_type='ingoing'" decoration-danger="operation_type='return'" decoration-primary="operation_type='outgoing'"/>
+                <field name="state" widget="badge" decoration-danger="state='no'" decoration-warning="state='pending'" decoration-info="state='process'" decoration-success="state='finished'"/>
             </tree>
         </field>
     </record>
@@ -63,18 +66,21 @@
         <field name="model">wms.transfer</field>
         <field name="arch" type="xml">
             <search string="Buscar Transferencias">
-                <field name="name"/>
+                <field name="name" string="Transferencia"/>
                 <field name="partner_id"/>
                 <field name="partner_address_id"/>
                 <field name="sale_id"/>
                 <field name="purchase_id"/>
 
+
                 <filter string="Ingreso" name="incoming" domain="[('operation_type','=','incoming')]"/>
                 <filter string="Entrega" name="outgoing" domain="[('operation_type','=','outgoing')]"/>
 
                 <group expand="0" string="Agrupar por">
-                    <filter string="Operación" name="group_operation" context="{'group_by':'operation_type'}"/>
+                    <filter string="Tipo" name="group_operation" context="{'group_by':'operation_type'}"/>
+                    <filter string="Estado" name="group_state" context="{'group_by':'state'}"/>
                     <filter string="Cliente" name="group_partner" context="{'group_by':'partner_id'}"/>
+                    <filter string="Pedido" name="group_origin" context="{'group_by':'origin'}"/>
                 </group>
             </search>
         </field>
