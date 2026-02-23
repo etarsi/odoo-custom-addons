@@ -173,6 +173,38 @@ class WMSTask(models.Model):
     #         else:
     #             record.total_available_percentage = 0
 
+    
+
+    def action_receive_task_digip(self):
+        for record in self:
+            record.get_digip(record)
+            return
+
+    
+    def get_digip(self, task):
+        for record in self:
+            product_list = []
+            headers = {}
+            params = {
+                'PedidoCodigo': task.name,
+            }
+            url = self.env['ir.config_parameter'].sudo().get_param('digipwms-v2.url')
+            headers["x-api-key"] = self.env['ir.config_parameter'].sudo().get_param('digipwms.key')
+            
+            response = requests.get(f'{url}/v2/Pedidos', headers=headers, params=params)
+
+            if response.status_code == 200:
+                data = response.json()
+                if data['estado'] == 'RemitidoExterno':
+                    if data['items']:
+                        for item in data['items']:
+                            product_info = {}
+                            product_info['qty_picked'] = item.unidades
+                            product_info['product_code'] = item['articulo']['codigo']
+
+                            
+                else:
+                    raise UserError('El pedido todavía no fué preparado')
 
 
 class WMSTaskLine(models.Model):
