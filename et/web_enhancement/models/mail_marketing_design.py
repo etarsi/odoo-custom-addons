@@ -13,7 +13,7 @@ class MailMarketingDesign(models.Model):
     _inherit = ["mail.thread", "mail.activity.mixin"]
 
     name = fields.Char(required=True, tracking=True)
-    active = fields.Boolean(default=True)
+    active = fields.Boolean(default=True, string="Activo", tracking=True)
 
     use_case = fields.Selection(
         [("sales", "Ventas"), ("purchase", "Compras"), ("marketing", "Marketing")],
@@ -22,20 +22,15 @@ class MailMarketingDesign(models.Model):
         tracking=True,
     )
 
-    subject = fields.Char(required=True, default="Promo Sebigus", tracking=True)
-    email_from = fields.Char(
-        required=True,
-        default=lambda self: self.env.company.email or self.env.user.email_formatted or "",
+    subject = fields.Char(string="Asunto", required=True, default="Promo Sebigus", tracking=True)
+    mail_from_id = fields.Many2one(
+        string="Servidor de correo saliente",
+        comodel_name="ir.mail_server",
+        ondelete='restrict',
         tracking=True,
     )
-    reply_to = fields.Char(tracking=True)
-
-    # Destinatarios
-    partner_domain = fields.Char(
-        string="Filtro de clientes (Dominio)",
-        default="[('email','!=',False), ('customer_rank','>',0)]",
-        help="Dominio Python para buscar res.partner destinatarios.",
-    )
+    
+    reply_to = fields.Char(string="Responder a", tracking=True)
     recipient_count = fields.Integer(compute="_compute_recipient_count", string="Destinatarios")
 
     # Contenido
@@ -50,9 +45,7 @@ class MailMarketingDesign(models.Model):
         tracking=True,
     )
     whatsapp_text = fields.Char(string="Mensaje precargado (opcional)")
-    whatsapp_button_image = fields.Binary(string="Imagen botón WhatsApp (opcional)")
-    whatsapp_button_filename = fields.Char()
-
+    whatsapp_button_image = fields.Binary(string="Imagen botón WhatsApp", tracking=True, required=True)
     extra_html = fields.Html(string="Texto/Contenido adicional", sanitize=False)
 
     # Infra
@@ -170,27 +163,23 @@ class MailMarketingDesign(models.Model):
     def _get_recipients(self):
         self.ensure_one()
         try:
-            domain = safe_eval(self.partner_domain or "[]")
+            domain = safe_eval("['|', ('mail_alternative','!=',False), ('mail_alternative_b','!=',False)]")
         except Exception as e:
             raise UserError(_("Dominio inválido: %s") % e)
 
         # Seguridad: forzamos email != False
         domain = list(domain)
-        if ("email", "!=", False) not in domain and ("email", "!=", "") not in domain:
-            domain.append(("email", "!=", False))
-
         partners = self.env["res.partner"].search(domain)
         # opcional: filtrar duplicados por email
-        partners = partners.filtered(lambda p: p.email)
+        partners = partners.filtered(lambda p: p.mail_alternative or p.mail_alternative_b).sorted(key=lambda p: p.email or "").filtered(lambda p: p.email)
         return partners
 
     @api.depends("partner_domain")
     def _compute_recipient_count(self):
         for rec in self:
             try:
-                domain = safe_eval(rec.partner_domain or "[]")
+                domain = safe_eval("['|', ('mail_alternative','!=',False), ('mail_alternative_b','!=',False)]")
                 domain = list(domain)
-                domain.append(("email", "!=", False))
                 rec.recipient_count = self.env["res.partner"].search_count(domain)
             except Exception:
                 rec.recipient_count = 0
@@ -220,7 +209,7 @@ class MailMarketingDesign(models.Model):
                 "name": f"Sebigus | {rec.name}",
                 "model_id": self.env.ref("base.model_res_partner").id,
                 "subject": rec.subject,
-                "email_from": rec.email_from,
+                "email_from": rec.mail_from_id.smtp_user if rec.mail_from_id else (self.env.company.email or self.env.user.email_formatted or ""),
                 "reply_to": rec.reply_to or False,
                 "body_html": body,
                 "auto_delete": False,
@@ -251,7 +240,7 @@ class MailMarketingDesign(models.Model):
                     force_send=False,
                     email_values={
                         # opcional: override dinámicos por envío
-                        "email_to": p.email,
+                        "email_to": p.mail_alternative or p.mail_alternative_b,
                     },
                     raise_exception=False,
                 )
