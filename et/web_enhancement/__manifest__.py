@@ -14,7 +14,7 @@
     'website': "http://www.one.sebigus.com.ar",
     'category': 'Uncategorized',
     'version': '0.1',
-    'depends': ['base', 'web', 'website', 'product', 'base_setup', 'stock', 'website_sale', 'stock_enhancement2'],
+    'depends': ['base', 'web', 'website', 'product', 'base_setup', 'stock', 'mail', 'mass_mailing', 'website_sale', 'stock_enhancement2', 'account', 'account_enhancement'],
 
     # always loaded
     'data': [

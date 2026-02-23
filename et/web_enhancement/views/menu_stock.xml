@@ -9,4 +9,9 @@
                 name="Productos sin Google Drive Folder ID" parent="menu_marketing" 
                 action="action_web_product_template_tree"
                 sequence="20"/>
+    <menuitem id="menu_mail_marketing_design"
+                name="Diseños de Mail Marketing"
+                parent="menu_marketing"
+                action="action_mail_marketing_design"
+                sequence="30"/>
 </odoo>

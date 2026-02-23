@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <record id="view_mail_marketing_design_tree" model="ir.ui.view">
+            <field name="name">mail.marketing.design.tree</field>
+            <field name="model">mail.marketing.design</field>
+            <field name="arch" type="xml">
+                <tree>
+                    <field name="name"/>
+                    <field name="use_case"/>
+                    <field name="subject"/>
+                    <field name="recipient_count"/>
+                    <field name="last_sent"/>
+                    <field name="sent_qty"/>
+                    <field name="active"/>
+                </tree>
+            </field>
+        </record>
+
+        <record id="view_mail_marketing_design_form" model="ir.ui.view">
+            <field name="name">mail.marketing.design.form</field>
+            <field name="model">mail.marketing.design</field>
+            <field name="arch" type="xml">
+                <form string="Diseño de Marketing">
+                    <header>
+                        <button name="action_sync_template" type="object" string="Actualizar plantilla" class="btn-secondary"/>
+                        <button name="action_send_mail" type="object" string="Enviar correo" class="btn-primary"/>
+                    </header>
+
+                    <sheet>
+                        <div class="oe_button_box" name="button_box">
+                            <button type="object" name="action_open_recipients" class="oe_stat_button" icon="fa-users">
+                            <field name="recipient_count" widget="statinfo" string="Destinatarios"/>
+                            </button>
+                        </div>
+
+                        <group>
+                            <group>
+                                <field name="name"/>
+                                <field name="use_case"/>
+                                <field name="active"/>
+                                <field name="subject"/>
+                                <field name="email_from"/>
+                                <field name="reply_to"/>
+                                <field name="preheader"/>
+                                <field name="template_id" readonly="1"/>
+                            </group>
+
+                            <group string="Destinatarios">
+                                <field name="partner_domain" widget="domain" options="{'model': 'res.partner'}"/>
+                            </group>
+                        </group>
+
+                        <notebook>
+                            <page string="Contenido">
+                                <group>
+                                    <field name="hero_image" widget="image"/>
+                                    <field name="hero_filename"/>
+                                    <field name="hero_link"/>
+                                </group>
+
+                                <group string="WhatsApp">
+                                    <field name="whatsapp_number"/>
+                                    <field name="whatsapp_text"/>
+                                    <field name="whatsapp_button_image" widget="image"/>
+                                    <field name="whatsapp_button_filename"/>
+                                </group>
+
+                                <group string="Texto adicional">
+                                    <field name="extra_html" widget="html"/>
+                                </group>
+                            </page>
+
+                            <page string="Historial">
+                                <group>
+                                    <field name="last_sent" readonly="1"/>
+                                    <field name="sent_qty" readonly="1"/>
+                                </group>
+                            </page>
+                        </notebook>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <record id="action_mail_marketing_design" model="ir.actions.act_window">
+            <field name="name">Diseños de Mail Marketing</field>
+            <field name="res_model">mail.marketing.design</field>
+            <field name="view_mode">tree,form</field>
+        </record>
+    </data>
+</odoo>
