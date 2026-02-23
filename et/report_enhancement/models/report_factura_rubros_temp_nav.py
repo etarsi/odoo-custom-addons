@@ -31,7 +31,7 @@ class ReportFacturaRubrosTempNav(models.Model):
         self._cr.execute("""
             CREATE OR REPLACE VIEW %s AS (
                 SELECT
-                    row_number() OVER () AS id,
+                    row_number() OVER (ORDER BY am.partner_id, am.invoice_user_id, am.currency_id) AS id,
                     am.partner_id,
                     am.invoice_user_id AS comercial_id,
                     am.currency_id AS currency_id,
@@ -203,6 +203,25 @@ class ReportFacturaRubrosTempNav(models.Model):
                 FROM account_move_line aml
                 JOIN account_move am
                     ON aml.move_id = am.id
+                LEFT JOIN account_move am_orig
+                    ON am_orig.id = am.reversed_entry_id
+                LEFT JOIN account_move am_base
+                ON am_base.id = (
+                    CASE
+                    -- NC: si revierte algo, la base es:
+                    --   * si revierte una ND con debit_origin_id -> la factura origen de esa ND
+                    --   * si no -> el documento revertido (factura o ND sin origen)
+                    WHEN am.move_type = 'out_refund' AND am.reversed_entry_id IS NOT NULL
+                        THEN COALESCE(am_orig.debit_origin_id, am.reversed_entry_id)
+
+                    -- ND: si tiene origen, base = factura origen
+                    WHEN am.move_type = 'out_invoice' AND am.debit_origin_id IS NOT NULL
+                        THEN am.debit_origin_id
+
+                    -- Documento suelto: base = él mismo (así filtra por su propia fecha)
+                    ELSE am.id
+                    END
+                )
                 LEFT JOIN product_product pp
                     ON aml.product_id = pp.id
                 LEFT JOIN product_template pt
@@ -218,8 +237,28 @@ class ReportFacturaRubrosTempNav(models.Model):
                     am.state = 'posted'
                     AND am.move_type IN ('out_invoice', 'out_refund')      -- solo facturas y notas de crédito de cliente
                     AND aml.product_id IS NOT null
-                    AND am.invoice_date >= '2025-09-01'
-                    AND am.invoice_date <= '2026-02-28'
+                    AND (
+                        -- Facturas: por su propia fecha
+                        (am.move_type = 'out_invoice'
+                        AND am.invoice_date >= DATE '2025-09-01'
+                        AND am.invoice_date <= DATE '2025-12-31')
+
+                        OR
+
+                        -- Notas de crédito: si están enlazadas, por la fecha de la factura original
+                        (am.move_type = 'out_refund'
+                        AND am.reversed_entry_id IS NOT NULL
+                        AND am_base.invoice_date >= DATE '2025-09-01'
+                        AND am_base.invoice_date <= DATE '2025-12-31')
+
+                        OR
+
+                        -- Notas de crédito manuales
+                        (am.move_type = 'out_refund'
+                        AND am.reversed_entry_id IS NULL
+                        AND am.invoice_date >= DATE '2025-09-01'
+                        AND am.invoice_date <= DATE '2025-12-31')
+                    )
                     AND parent_categ.id IS NOT null 
 	                AND aml.price_total <> 0
                 GROUP BY

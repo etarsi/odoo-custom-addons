@@ -166,6 +166,8 @@ class ReportResumenStockWizard(models.TransientModel):
             domain_container += [('eta', '>=', date(2025, 3, 1)), ('eta', '<=', date(2025, 8, 31))]
         elif self.temporada == 't_nav_2025':
             domain_container += [('eta', '>=', date(2025, 9, 1)), ('eta', '<=', date(2026, 2, 28))] 
+        elif self.temporada == 't_nino_2026':
+            domain_container += [('eta', '>=', date(2026, 3, 1)), ('eta', '<=', date(2026, 8, 31))]
 
         containers = self.env['container'].search(domain_container)
         # =========================

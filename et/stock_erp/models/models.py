@@ -409,6 +409,7 @@ class StockERP(models.Model):
         for rec in self:
             limit_val = rec.stock_limit_unidades or 0
             rec.below_limit = bool(limit_val > 0 and (rec.disponible_unidades or 0) < limit_val)
+            rec.alert_sent = rec.alert_sent if rec.below_limit else False  # resetea alerta si ya no está bajo límite
 
     def _get_alert_users(self):
         """Usuarios a notificar."""
