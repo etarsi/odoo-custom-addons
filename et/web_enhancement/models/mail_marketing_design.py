@@ -174,7 +174,6 @@ class MailMarketingDesign(models.Model):
         partners = partners.filtered(lambda p: p.mail_alternative or p.mail_alternative_b).sorted(key=lambda p: p.email or "").filtered(lambda p: p.email)
         return partners
 
-    @api.depends("partner_domain")
     def _compute_recipient_count(self):
         for rec in self:
             try:
