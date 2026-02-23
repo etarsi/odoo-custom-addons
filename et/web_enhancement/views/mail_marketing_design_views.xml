@@ -40,7 +40,7 @@
                                 <field name="use_case"/>
                                 <field name="active"/>
                                 <field name="subject"/>
-                                <field name="email_from"/>
+                                <field name="mail_from_id"/>
                                 <field name="reply_to"/>
                                 <field name="preheader"/>
                                 <field name="template_id" readonly="1"/>
