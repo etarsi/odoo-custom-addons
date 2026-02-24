@@ -537,8 +537,8 @@ class WMSTask(models.Model):
     def action_create_invoice_from_picking(self):
         self.ensure_one()
 
-        SaleOrder = self.transfer_id.sale_id
-        if not SaleOrder:
+        sale_id = self.transfer_id.sale_id
+        if not sale_id:
             raise UserError("La transferencia no está vinculada a ningún pedido de venta.")
 
         tipo = self.invoicing_type
@@ -592,7 +592,7 @@ class WMSTask(models.Model):
             vals_blanco = self._prepare_invoice_base_vals(company_blanca)
 
             vals_blanco['invoice_line_ids'] = invoice_lines_blanco
-            vals_blanco['invoice_user_id'] = self.sale_id.user_id
+            vals_blanco['invoice_user_id'] = sale_id.user_id
             vals_blanco['partner_bank_id'] = False            
             vals_blanco['company_id'] = company_blanca.id
 
@@ -611,7 +611,7 @@ class WMSTask(models.Model):
         if invoice_lines_negro:
             vals_negro = self._prepare_invoice_base_vals(company_negra)
             vals_negro['invoice_line_ids'] = invoice_lines_negro
-            vals_negro['invoice_user_id'] = self.sale_id.user_id                        
+            vals_negro['invoice_user_id'] = sale_id.user_id                        
             vals_negro['company_id'] = company_negra
 
             # Asignar journal correcto
