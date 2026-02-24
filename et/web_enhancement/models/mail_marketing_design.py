@@ -152,7 +152,7 @@ class MailMarketingDesign(models.Model):
 
       <div style="padding:18px 18px 6px 18px;">
         <div style="font-family:Arial, sans-serif; font-size:18px; font-weight:700; color:#101828;">
-          Hola, {{{object.name}}}
+          Hola, {{object.name}}
         </div>
 
         <div style="font-family:Arial, sans-serif; font-size:14px; line-height:1.6; color:#344054; margin-top:10px;">
