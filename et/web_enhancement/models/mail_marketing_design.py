@@ -155,20 +155,27 @@ class MailMarketingDesign(models.Model):
         {wa_block}
 
         <div style="font-size:11px; line-height:1.4; color:#98A2B3; margin-top:18px;">
-            Este e-mail es una publicidad de www.one.sebigus.com.ar SEBIGUS S.A. CUIT: 30-7080770-34. Domicilio Legal Lavalle 2540, C.A.B.A. 
+            Este e-mail es una publicidad de 
+            <a href="https://one.sebigus.com.ar" target="_blank" rel="noopener noreferrer" style="color:#98A2B3; text-decoration:underline;">
+                https://one.sebigus.com.ar
+            </a> 
+            SEBIGUS S.A. CUIT: 30-7080770-34. Domicilio Legal Lavalle 2540, C.A.B.A. 
             Si no desea recibir esta información contáctenos a través de nuestro Centro de Ayuda de su vendedor. 
             El titular podrá en cualquier momento solicitar el retiro o bloqueo de su nombre de los bancos de datos a los que se refiere el presente artículo. 
             decreto 1558/01- art. 27 3er párrafo: en toda comunicación con fines de publicidad que se realice por correo, teléfono, correo electrónico, 
             internet u otro medio a distancia a conocer, se deberá indicar, en forma expresa y destacada la posibilidad del titular del dato de solicitar 
             el retiro o bloqueo, total o parcial, de su nombre de la base de datos. a pedido del interesado, se deberá informar el nombre del responsable o usuario 
-            del banco de datos que proveyó la información. www.one.sebigus.com.ar no vende ni distribuye medicamentos a través de este sitio web. 
+            del banco de datos que proveyó la información. 
+            <a href="https://one.sebigus.com.ar" target="_blank" rel="noopener noreferrer" style="color:#98A2B3; text-decoration:underline;">
+                https://one.sebigus.com.ar
+            </a> 
+            a través de este sitio web. 
             El titular de los datos personales tiene la facultad de ejercer el derecho de acceso a los mismos en forma gratuita a intervalos no inferiores a seis meses,
             salvo que se acredite un interés legítimo al efecto conforme lo establecido en el artículo 14, inciso 3 de la Ley 25.326. 
             La DIRECCION NACIONAL DE PROTECCION DE DATOS PERSONALES, Órgano de Control de la Ley 25.326, 
             tiene la atribución de atender las denuncias y reclamos que se interpongan con relación al incumplimiento de las normas sobre protección de datos personales. 
         </div>
       </div>
-
     </div>
   </div>
 </div>
