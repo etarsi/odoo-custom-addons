@@ -65,3 +65,90 @@ class WMSTaskController(http.Controller):
             'TIPO 4': (0.25, 0.75),
         }
         return proportions.get(type, (1.0, 0.0))
+    
+
+    @http.route('/nremito/auto/<int:task_id>', type='http', auth='user')
+    def new_remito_auto(self, task_id, **kwargs):
+        task = request.env['wms.task'].browse(task_id)
+        if not task.exists():
+            return request.not_found()
+
+        tipo = task.invoicing_type
+        blanco_pct, negro_pct = self._get_type_proportion(tipo)
+
+        html = """
+        <html><head><title>Generando remitos...</title></head>
+        <body>
+        <script>
+            function abrir(url, delay) {
+                setTimeout(function() {
+                    window.open(url, '_blank');
+                }, delay);
+            }
+        """
+        if blanco_pct > 0:
+            html += f"abrir('/nremito/a/{task.id}', 50);"
+        if negro_pct > 0:
+            html += f"abrir('/nremito/b/{task.id}', 200);"
+
+        html += """
+        </script>
+        <p>Puede cerrar esta pagina.</p>
+        </body></html>
+        """
+
+        return request.make_response(html, headers=[('Content-Type', 'text/html')])
+    
+
+    @http.route('/nremito/a/<int:task_id>', type='http', auth='user')
+    def new_remito_a(self, task_id, **kwargs):
+        task = request.env['wms.task'].browse(task_id)
+        if not task.exists():
+            return request.not_found()
+
+        type = 'a'
+        tipo = task.invoicing_type
+        proportion, _ = self._get_type_proportion(tipo)
+
+        if proportion == 0:
+            return request.not_found()
+
+        company_id = task.company_id
+
+        pdf = task._build_remito_pdf(task, proportion, company_id, type)
+
+        return request.make_response(
+            pdf,
+            headers=[
+                ('Content-Type', 'application/pdf'),
+                ('Content-Disposition', f'inline; filename="REM_{task.name.replace("/", "-")}.pdf"')
+            ]
+        )
+
+    @http.route('/nremito/b/<int:task_id>', type='http', auth='user')
+    def new_remito_b(self, task_id, **kwargs):
+        task = request.env['wms.task'].browse(task_id)
+        if not task.exists():
+            return request.not_found()
+
+        type = 'b'
+        tipo = task.invoicing_type
+        _, proportion = self._get_type_proportion(tipo)
+
+        if proportion == 0:
+            return request.not_found()
+        
+        if tipo == 'TIPO 3':
+            company_id = request.env['res.company'].browse(1)
+        else:
+            company_id = task.company_id
+
+        pdf = task._build_remito_pdf(task, proportion, company_id, type)
+        
+        return request.make_response(
+            pdf,
+            headers=[
+                ('Content-Type', 'application/pdf'),
+                ('Content-Disposition', f'inline; filename="REM_{task.name.replace("/", "-")}.pdf"')
+            ]
+        )
