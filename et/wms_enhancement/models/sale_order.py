@@ -37,6 +37,7 @@ class SaleOrderInherit(models.Model):
                 'sale_type':record.condicion_m2m.name,
                 'sale_id':record.id,
                 'state': 'pending',
+                'company_id': record.company_id.id,
             }
 
             transfer_id = self.env['wms.transfer'].create(transfer_vals)

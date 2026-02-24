@@ -32,6 +32,7 @@ class WMSTransfer(models.Model):
     task_count = fields.Integer(string="Tareas", compute="_compute_task_count")
     lines_count = fields.Integer(string="Cantidad de Líneas", compute="_compute_lines_count")
     origin = fields.Char(string="Documento")
+    company_id = fields.Many2one(string="Compañía", comodel_name="res.company")
     
 
     # partner_tag = fields.Many2many()
@@ -258,10 +259,12 @@ class WMSTransfer(models.Model):
         task = self.env['wms.task'].create({
             'transfer_id': self.id,
             'type': 'preparation',
+            'invoicing_type': self.sale_type,
             'state_preparation': 'pending',
             'digip_state': 'no',
             'partner_id': self.partner_id.id,
             'partner_address_id': self.partner_address_id.id,
+            'company_id': self.company_id.id,
         })
 
         # Si en una misma tarea pudiste agregar la misma transfer.line en 2 "chunks",
@@ -281,6 +284,7 @@ class WMSTransfer(models.Model):
                 'transfer_line_id': wtl.id,
                 'product_id': wtl.product_id.id,
                 'quantity': qty,
+                'lot': wtl.lot_name,
             })
 
         self.env['wms.task.line'].create(vals_list)

@@ -10,7 +10,7 @@
         <field name="arch" type="xml">
             <tree string="Tareas WMS" default_order="create_date desc">
                 <header>
-                    <button name="action_send_task_to_digip" type="object" string="Enviar a Digip"/>
+                    <button name="send_and_receive_digip" type="object" string="Enviar y Recibir Digip"/>             
                 </header>        
                 <field name="create_date" widget="remaining_days" string="Fecha"/>
                 <field name="name" string="Tarea"/>                
@@ -94,6 +94,7 @@
             <form string="Tarea WMS">
                 <header>
                     <button name="action_send_task_to_digip" type="object" string="Enviar a Digip" attrs="{'invisible': [('digip_state', '!=', 'no')]}"/>
+                    <button name="action_receive_task_digip" type="object" string="Recibir de Digip" attrs="{'invisible': [('digip_state', '!=', 'sent')]}"/>
 
                     <field name="state_preparation" widget="statusbar" statusbar_visible="pending,preparation,control,delivery"/>
                 </header>
