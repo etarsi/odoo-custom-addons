@@ -529,7 +529,7 @@ class WMSTask(models.Model):
     def action_create_invoice_from_picking(self):
         self.ensure_one()
 
-        SaleOrder = self.sale_id
+        SaleOrder = self.transfer_id.sale_id
         if not SaleOrder:
             raise UserError("La transferencia no está vinculada a ningún pedido de venta.")
 

@@ -319,14 +319,15 @@ class WMSTransfer(models.Model):
                     line.qty_pending = 0
 
                 task_lines = self.env['wms.task.line'].create(product_list)
+                task.update_availability()
             else:
                 raise UserError('No hay líneas disponibles para crear una tarea')
         return {
             'type': 'ir.actions.act_window',
-            'name': _('Tareas WMS'),
+            'name': _('Tarea WMS'),
             'res_model': 'wms.task',
-            'view_mode': 'tree,form',
-            'domain': [('id', 'in', record.task_ids.ids)],
+            'view_mode': 'form',
+            'res_id': task.id,
             'target': 'current',
         }
   
