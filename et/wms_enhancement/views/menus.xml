@@ -91,4 +91,12 @@
     />
               <!-- action="action_wms_role"/> -->
 
+
+    <!-- Lotes -->
+    <menuitem id="wms_menu_config_lots"
+              name="Lotes"
+              parent="wms_menu_config"
+              sequence="50"    
+              action="action_wms_product_lot"/>    
+
 </odoo>
