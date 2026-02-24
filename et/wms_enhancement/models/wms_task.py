@@ -187,7 +187,7 @@ class WMSTask(models.Model):
 
     def action_receive_task_digip(self):
         for task in self:
-            if task.state != 'sent':
+            if task.digip_state != 'sent':
                 continue
             task.get_digip()
         return True
