@@ -6,13 +6,13 @@
             <field name="model">mail.marketing.design</field>
             <field name="arch" type="xml">
                 <tree>
-                    <field name="name"/>
-                    <field name="use_case"/>
+                    <field name="name" />
+                    <field name="use_case" optional="hide"/>
                     <field name="subject"/>
                     <field name="recipient_count"/>
                     <field name="last_sent"/>
                     <field name="sent_qty"/>
-                    <field name="active"/>
+                    <field name="active" optional="hide"/>
                 </tree>
             </field>
         </record>
@@ -37,8 +37,7 @@
                         <group>
                             <group>
                                 <field name="name"/>
-                                <field name="use_case"/>
-                                <field name="active"/>
+                                <field name="active" invisible="1"/>
                                 <field name="subject"/>
                                 <field name="mail_from_id"/>
                                 <field name="reply_to"/>

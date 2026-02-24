@@ -14,15 +14,12 @@ class MailMarketingDesign(models.Model):
     _description = "Diseño de campaña de marketing por email"
     _inherit = ["mail.thread", "mail.activity.mixin"]
 
-    name = fields.Char(required=True, tracking=True)
+    name = fields.Char(string="Descripción", required=True, tracking=True)
     active = fields.Boolean(default=True, string="Activo", tracking=True)
 
-    use_case = fields.Selection(
-        [("sales", "Ventas"), ("purchase", "Compras"), ("marketing", "Marketing")],
-        default="marketing",
-        required=True,
-        tracking=True,
-    )
+    use_case = fields.Selection(string="Caso de uso", selection=[
+        ("sales", "Ventas"), ("purchase", "Compras"), ("marketing", "Marketing")
+    ], default="marketing", required=True, tracking=True)
 
     subject = fields.Char(string="Asunto", required=True, default="Promo Sebigus", tracking=True)
     mail_from_id = fields.Many2one(
