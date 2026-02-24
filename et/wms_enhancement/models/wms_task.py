@@ -462,7 +462,7 @@ class WMSTask(models.Model):
             'line_lines': lines,
             'total_bultos': "",
             'total_units': "",
-            # 'total_value': total_value,
+            'total_value': 0,
             'company_name': company_id.name,
         }
 
