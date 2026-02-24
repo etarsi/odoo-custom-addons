@@ -54,6 +54,7 @@ class WMSTask(models.Model):
     ])
     invoicing_type = fields.Char(string="Tipo de Facturación")
     invoice_ids = fields.One2many(string="Facturas", comodel_name="account.move", inverse_name="task_id")
+    invoice_count = fields.Integer(string="Facturas", compute="_compute_invoice_count")
     priority = fields.Integer(string="Prioridad")
     assigned_user_id = fields.Many2one(string="Asignado a", comodel_name="res.users")
     task_line_ids = fields.One2many(string="Líneas de Tarea", comodel_name="wms.task.line", inverse_name="task_id")
@@ -108,6 +109,12 @@ class WMSTask(models.Model):
 
         return super().create(vals)
 
+    
+    @api.depends('invoice_ids')
+    def _compute_invoice_count(self):
+        for rec in self:
+            rec.invoice_count = len(rec.invoice_ids)
+    
 
     def action_open_wms_transfer(self):
         self.ensure_one()
@@ -122,6 +129,7 @@ class WMSTask(models.Model):
            'res_id': self.transfer_id.id,
            'target': 'current',
         }
+    
     
     def action_send_task_to_digip(self):    
         for record in self:
