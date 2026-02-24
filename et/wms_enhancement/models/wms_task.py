@@ -130,7 +130,7 @@ class WMSTask(models.Model):
            'target': 'current',
         }
     
-    
+
     def action_send_task_to_digip(self):    
         for record in self:
             
@@ -559,7 +559,7 @@ class WMSTask(models.Model):
         for line in self.task_line_ids:
             base_vals = line.sale_line_id._prepare_invoice_line(sequence=sequence)
 
-            qty_total = line.quantity_done
+            qty_total = line.quantity_picked
             qty_blanco = math.floor(qty_total * proportion_blanco)
             qty_negro = qty_total - qty_blanco
 
