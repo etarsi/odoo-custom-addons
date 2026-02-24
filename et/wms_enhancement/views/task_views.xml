@@ -23,8 +23,8 @@
                 <field name="priority" optional="hide"/>
                 <field name="bultos_count" optional="show"/>
 
-                <field name="started_at" optional="hide"/>
-                <field name="done_at" optional="hide"/>
+                <field name="date_start" optional="hide"/>
+                <field name="date_done" optional="hide"/>
 
                 <field name="container" optional="hide"/>
                 <field name="dispatch" optional="hide"/>
@@ -129,8 +129,8 @@
                         <group string="Tiempos / KPIs">
                             <field name="percent_complete"/>
                             <field name="bultos_count"/>
-                            <field name="started_at"/>
-                            <field name="done_at"/>
+                            <field name="date_start"/>
+                            <field name="date_done"/>
                             <field name="preparation_time"/>
                         </group>
                     </group>
