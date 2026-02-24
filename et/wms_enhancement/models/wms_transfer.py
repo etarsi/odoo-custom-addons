@@ -282,6 +282,7 @@ class WMSTransfer(models.Model):
             vals_list.append({
                 'task_id': task.id,
                 'transfer_line_id': wtl.id,
+                'sale_line_id': wtl.sale_line_id.id,
                 'product_id': wtl.product_id.id,
                 'quantity': qty,
                 'lot': wtl.lot_name,

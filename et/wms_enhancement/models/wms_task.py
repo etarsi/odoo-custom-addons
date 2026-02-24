@@ -1,3 +1,4 @@
+from datetime import timedelta
 from io import BytesIO
 import math
 from tkinter import Canvas
@@ -52,6 +53,7 @@ class WMSTask(models.Model):
         ('relocate', 'Reubicación')
     ])
     invoicing_type = fields.Char(string="Tipo de Facturación")
+    invoice_ids = fields.One2many(string="Facturas", comodel_name="account.move", inverse_name="task_id")
     priority = fields.Integer(string="Prioridad")
     assigned_user_id = fields.Many2one(string="Asignado a", comodel_name="res.users")
     task_line_ids = fields.One2many(string="Líneas de Tarea", comodel_name="wms.task.line", inverse_name="task_id")
@@ -428,7 +430,7 @@ class WMSTask(models.Model):
 
                 
                 lines.append({
-                    'bultos': 1,
+                    'bultos': bultos,
                     'code': product_code,
                     'description': product_description,
                     'nombre': product_name,
@@ -518,12 +520,189 @@ class WMSTask(models.Model):
                 'valor_declarado_y': remito_coords.valor_declarado_y,
             }
 
+    # INVOICE
+
+    def action_create_invoice_from_picking(self):
+        self.ensure_one()
+
+        SaleOrder = self.sale_id
+        if not SaleOrder:
+            raise UserError("La transferencia no está vinculada a ningún pedido de venta.")
+
+        tipo = self.invoicing_type
+        proportion_blanco, proportion_negro = {
+            'TIPO 1': (1.0, 0.0),
+            'TIPO 2': (0.5, 0.5),
+            'TIPO 3': (0.0, 1.0),
+            'TIPO 4': (0.25, 0.75),
+        }.get(tipo, (1.0, 0.0))
+
+        company_blanca = self.company_id
+        company_negra = self.env['res.company'].browse(1)
+
+        invoice_lines_blanco = []
+        invoice_lines_negro = []
+        sequence = 1
+
+        for line in self.task_line_ids:
+            base_vals = line.sale_line_id._prepare_invoice_line(sequence=sequence)
+
+            qty_total = line.quantity_done
+            qty_blanco = math.floor(qty_total * proportion_blanco)
+            qty_negro = qty_total - qty_blanco
+
+            if proportion_blanco > 0:
+                blanco_vals = base_vals.copy()
+                blanco_vals['quantity'] = qty_blanco
+                blanco_vals['company_id'] = company_blanca.id
+                taxes = line.sale_line_id.tax_id
+                blanco_vals['tax_ids'] = [(6, 0, taxes.ids)] if taxes else False
+                invoice_lines_blanco.append((0, 0, blanco_vals))
+
+            if proportion_negro > 0:
+                negro_vals = base_vals.copy()
+                negro_vals['quantity'] = qty_negro
+                negro_vals['company_id'] = company_negra.id
+                if tipo == 'TIPO 3':
+                    negro_vals['price_unit'] *= 1
+                else:
+                    negro_vals['price_unit'] *= 1.21
+                
+                negro_vals['tax_ids'] = False
+                invoice_lines_negro.append((0, 0, negro_vals))
+
+            sequence += 1
+
+        invoices = self.env['account.move']
+
+        # Crear factura blanca
+        if invoice_lines_blanco:            
+            vals_blanco = self._prepare_invoice_base_vals(company_blanca)
+
+            vals_blanco['invoice_line_ids'] = invoice_lines_blanco
+            vals_blanco['invoice_user_id'] = self.sale_id.user_id
+            vals_blanco['partner_bank_id'] = False            
+            vals_blanco['company_id'] = company_blanca.id
+
+            if not vals_blanco.get('journal_id'):
+                journal = self.env['account.journal'].search([
+                    ('type', '=', 'sale'),
+                    ('company_id', '=', company_blanca.id)
+                ], limit=1)
+                if not journal:
+                    raise UserError(f"No se encontr\u00f3 un diario de ventas para la compa\u00f1\u00eda {self.company_id.name}.")
+                vals_blanco['journal_id'] = journal.id
+
+            invoices += self.env['account.move'].with_company(company_blanca).create(vals_blanco)
+
+        # Crear factura negra
+        if invoice_lines_negro:
+            vals_negro = self._prepare_invoice_base_vals(company_negra)
+            vals_negro['invoice_line_ids'] = invoice_lines_negro
+            vals_negro['invoice_user_id'] = self.sale_id.user_id                        
+            vals_negro['company_id'] = company_negra
+
+            # Asignar journal correcto
+            journal = self.env['account.journal'].search([
+                ('type', '=', 'sale'),
+                ('company_id', '=', company_negra.id)
+            ], limit=1)
+            if not journal:
+                raise UserError("No se encontró un diario de ventas para Producción B.")
+            vals_negro['journal_id'] = journal.id
+            vals_negro['partner_bank_id'] = False
+
+            invoices += self.env['account.move'].with_company(company_negra).create(vals_negro)
+
+        # Relacionar con la transferencia
+        invoices.write({
+            'invoice_origin': self.origin or self.name,
+        })
+
+        self.invoice_ids = [(6, 0, invoices.ids)]
+
+        for line in self.task_line_ids.filtered(lambda m: m.sale_line_id):
+            line.sale_line_id.qty_invoiced += line.quantity_picked
+            line.transfer_line_id.qty_invoiced += line.quantity_picked
+            
+        #sacar todas las facturas
+        #Enviar el invoice_id al tms_stock_picking
+        # tms_stock = self.env['tms.stock.picking'].search([('codigo_wms', '=', self.codigo_wms)], limit=1)
+        # if tms_stock:
+        #     invoices = self.env['account.move'].browse(self.invoice_ids.ids)
+        #     rubros_ids = []
+        #     amount_total = 0
+        #     amount_nc_total = 0
+        #     for invoice in invoices:
+        #         #separar facturas de cliente y notas de credito
+        #         if invoice.line_type == 'out_refund' and invoice.state != 'cancel':
+        #             amount_nc_total += invoice.amount_total
+        #         elif invoice.line_type == 'out_invoice' and invoice.state != 'cancel':
+        #             amount_total += invoice.amount_total
+        #         items = invoice.invoice_line_ids.mapped('product_id.categ_id.parent_id')
+        #         items = items.filtered(lambda c: c and c.id).ids
+        #         rubros_ids = list(set(rubros_ids + items))
+            
+        #     #quitar los rubros duplicados
+        #     rube_ids_final = list(set(rubros_ids))
+        #     tms_stock.write({'account_line_ids': self.invoice_ids.ids, 'amount_totals': amount_total, 'amount_nc_totals': amount_nc_total, 'items_ids': rube_ids_final})
+
+        if len(self.invoice_ids) == 1:
+            return {
+                'name': "Factura generada",
+                'type': 'ir.actions.act_window',
+                'res_model': 'account.move',
+                'view_mode': 'form',
+                'res_id': self.invoice_ids[0].id,
+            }
+        else:
+            return {
+                'name': "Facturas generadas",
+                'type': 'ir.actions.act_window',
+                'res_model': 'account.move',
+                'view_mode': 'tree,form',
+                'domain': [('id', 'in', self.invoice_ids.ids)],
+            }
+    
+
+    def _prepare_invoice_base_vals(self, company):
+        invoice_date_due = fields.Date.context_today(self)
+
+        if self.sale_id.payment_term_id:
+            extra_days = max(self.sale_id.payment_term_id.line_ids.mapped('days') or [0])
+            invoice_date_due = self.set_due_date_plus_x(extra_days)
+        
+        
+        return {
+            'line_type': 'out_invoice',
+            'partner_id': self.sale_id.partner_invoice_id,
+            'partner_shipping_id': self.sale_id.partner_shipping_id,
+            'invoice_date': fields.Date.context_today(self),
+            'invoice_date_due': invoice_date_due,
+            'company_id': self.sale_id.company_id.id,
+            'currency_id': self.sale_id.company_id.currency_id.id,
+            'invoice_origin': self.origin or self.name,
+            'payment_reference': self.name,
+            'fiscal_position_id': self.sale_id.partner_invoice_id.property_account_position_id.id,
+            'invoice_payment_term_id': self.sale_id.payment_term_id,
+            'wms_code': self.name,
+            'pricelist_id': self.sale_id.pricelist_id.id,
+            'special_price': self.sale_id.special_price,
+        }
+    
+    def set_due_date_plus_x(self, x):
+        today = fields.Date.context_today(self)
+        new_date = today + timedelta(days=x)
+        return new_date
+
+
 class WMSTaskLine(models.Model):
     _name = 'wms.task.line'
 
     name = fields.Char()
     task_id = fields.Many2one(string="Tarea", comodel_name="wms.task")
     transfer_line_id = fields.Many2one(string="Línea de Transferencia", comodel_name="wms.transfer.line")
+    sale_line_id = fields.Many2one(string="Línea de Pedido de Venta", comodel_name="sale.order.line")
     product_id = fields.Many2one(string="Producto", comodel_name="product.product")
     quantity = fields.Integer(string="Demanda")
     quantity_picked = fields.Integer(string="Cantidad pickeada")
