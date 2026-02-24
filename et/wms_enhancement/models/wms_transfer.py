@@ -326,7 +326,7 @@ class WMSTransfer(models.Model):
             'name': _('Tareas WMS'),
             'res_model': 'wms.task',
             'view_mode': 'tree,form',
-            'domain': [('id', 'in', task_lines.ids)],
+            'domain': [('id', 'in', record.task_ids.ids)],
             'target': 'current',
         }
   
