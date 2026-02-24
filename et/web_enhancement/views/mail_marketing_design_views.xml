@@ -50,9 +50,9 @@
                         <notebook>
                             <page string="Contenido">
                                 <group>
-                                    <field name="hero_image" widget="image"/>
-                                    <field name="hero_filename"/>
-                                    <field name="hero_link"/>
+                                    <field name="main_img" widget="image"/>
+                                    <field name="main_filename"/>
+                                    <field name="main_link"/>
                                 </group>
 
                                 <group string="WhatsApp">
