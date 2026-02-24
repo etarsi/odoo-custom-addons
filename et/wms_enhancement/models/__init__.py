@@ -2,4 +2,4 @@
 
 # from . import wms_config, wms_history, wms_stats, wms_stock_resume, wms_stock_location, wms_task, wms_inventory_adjustment, wms_transfer
 # from . import wms_transfer, wms_task
-from . import wms_task, wms_transfer, account_move, sale_order, wms_product_lot, wms_google_sheets_client
+from . import wms_task, wms_transfer, account_move, sale_order, wms_product_lot, wms_preselection, wms_google_sheets_client

@@ -293,14 +293,44 @@ class WMSTransfer(models.Model):
     
 
     def action_create_task(self):
-        return
+        for record in self:
+            if record.available_line_ids:
+                task = self.env['wms.task'].create({
+                        'transfer_id': self.id,
+                        'type': 'preparation',
+                        'invoicing_type': self.sale_type,
+                        'state_preparation': 'pending',
+                        'digip_state': 'no',
+                        'partner_id': self.partner_id.id,
+                        'partner_address_id': self.partner_address_id.id,
+                        'company_id': self.company_id.id,
+                    })
+                product_list = []
+                for line in record.available_line_ids:
+                    product_info = {                        
+                        'task_id': task.id,
+                        'transfer_line_id': line.id,
+                        'sale_line_id': line.sale_line_id.id,
+                        'product_id': line.product_id.id,
+                        'quantity': line.qty_demand,
+                        'lot': line.lot_name,
+                    }
+                    product_list.append(product_info)
+                    line.qty_pending = 0
 
-    def action_create_tasks_auto(self):
-
-        return
-    
-
-
+                task_lines = self.env['wms.task.line'].create(product_list)
+                task.update_availability()
+            else:
+                raise UserError('No hay líneas disponibles para crear una tarea')
+        return {
+            'type': 'ir.actions.act_window',
+            'name': _('Tarea WMS'),
+            'res_model': 'wms.task',
+            'view_mode': 'form',
+            'res_id': task.id,
+            'target': 'current',
+        }
+  
 
 
 
@@ -362,12 +392,12 @@ class WMSTransferLine(models.Model):
         ('pending', 'Pendiente'),
         ('preparation', 'En Preparación'),
         ('done', 'Hecho'),
-    ])
+    ], compute="_compute_invoice_state", store=True)
     invoice_state = fields.Selection(string="Estado de Facturación", selection=[
         ('no', 'No Facturado'),
         ('partial', 'Parcial'),
         ('total', 'Facturado'),
-    ])
+    ], compute="_compute_invoice_state", store=True)
     product_id = fields.Many2one(string="Producto", comodel_name="product.product")
     sale_line_id = fields.Many2one(string="Línea del Pedido de Venta", comodel_name="sale.order.line")
     lot_name = fields.Char(string="Lote")
@@ -433,6 +463,27 @@ class WMSTransferLine(models.Model):
             else:
                 record.bultos = 0
 
+
+    @api.depends('qty_invoiced')
+    def _compute_invoice_state(self):
+        for record in self:
+            if record.qty_invoiced > 0 and record.qty_invoiced < record.qty_demand:
+                record.invoice_state = 'partial'
+            elif record.qty_invoiced == record.qty_demand:
+                record.invoice_state = 'total'
+            else:
+                record.invoice_state = 'no'
+
+
+    @api.depends('qty_pending')
+    def _compute_state(self):
+        for record in self:
+            if record.qty_pending < record.qty_demand:
+                record.state = 'preparation'
+            elif record.qty_pending == record.qty_demand:
+                record.state = 'done'
+            else:
+                record.state = 'pending'
 
     def update_availability(self):
         for record in self:

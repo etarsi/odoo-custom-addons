@@ -54,6 +54,7 @@ class WMSTask(models.Model):
     ])
     invoicing_type = fields.Char(string="Tipo de Facturación")
     invoice_ids = fields.One2many(string="Facturas", comodel_name="account.move", inverse_name="task_id")
+    invoice_count = fields.Integer(string="Facturas", compute="_compute_invoice_count")
     priority = fields.Integer(string="Prioridad")
     assigned_user_id = fields.Many2one(string="Asignado a", comodel_name="res.users")
     task_line_ids = fields.One2many(string="Líneas de Tarea", comodel_name="wms.task.line", inverse_name="task_id")
@@ -110,6 +111,12 @@ class WMSTask(models.Model):
 
         return super().create(vals)
 
+    
+    @api.depends('invoice_ids')
+    def _compute_invoice_count(self):
+        for rec in self:
+            rec.invoice_count = len(rec.invoice_ids)
+    
 
     def action_open_wms_transfer(self):
         self.ensure_one()
@@ -125,6 +132,7 @@ class WMSTask(models.Model):
            'target': 'current',
         }
     
+
     def action_send_task_to_digip(self):    
         for record in self:
             
@@ -531,8 +539,8 @@ class WMSTask(models.Model):
     def action_create_invoice_from_picking(self):
         self.ensure_one()
 
-        SaleOrder = self.sale_id
-        if not SaleOrder:
+        sale_id = self.transfer_id.sale_id
+        if not sale_id:
             raise UserError("La transferencia no está vinculada a ningún pedido de venta.")
 
         tipo = self.invoicing_type
@@ -553,7 +561,7 @@ class WMSTask(models.Model):
         for line in self.task_line_ids:
             base_vals = line.sale_line_id._prepare_invoice_line(sequence=sequence)
 
-            qty_total = line.quantity_done
+            qty_total = line.quantity_picked
             qty_blanco = math.floor(qty_total * proportion_blanco)
             qty_negro = qty_total - qty_blanco
 
@@ -586,14 +594,15 @@ class WMSTask(models.Model):
             vals_blanco = self._prepare_invoice_base_vals(company_blanca)
 
             vals_blanco['invoice_line_ids'] = invoice_lines_blanco
-            vals_blanco['invoice_user_id'] = self.sale_id.user_id
+            vals_blanco['invoice_user_id'] = sale_id.user_id
             vals_blanco['partner_bank_id'] = False            
             vals_blanco['company_id'] = company_blanca.id
 
             if not vals_blanco.get('journal_id'):
                 journal = self.env['account.journal'].search([
                     ('type', '=', 'sale'),
-                    ('company_id', '=', company_blanca.id)
+                    ('company_id', '=', company_blanca.id),                    
+                    ('code', '=', '00010')
                 ], limit=1)
                 if not journal:
                     raise UserError(f"No se encontr\u00f3 un diario de ventas para la compa\u00f1\u00eda {self.company_id.name}.")
@@ -605,13 +614,14 @@ class WMSTask(models.Model):
         if invoice_lines_negro:
             vals_negro = self._prepare_invoice_base_vals(company_negra)
             vals_negro['invoice_line_ids'] = invoice_lines_negro
-            vals_negro['invoice_user_id'] = self.sale_id.user_id                        
+            vals_negro['invoice_user_id'] = sale_id.user_id                        
             vals_negro['company_id'] = company_negra
 
             # Asignar journal correcto
             journal = self.env['account.journal'].search([
                 ('type', '=', 'sale'),
-                ('company_id', '=', company_negra.id)
+                ('company_id', '=', company_negra.id),
+                ('code', '=', '00010')
             ], limit=1)
             if not journal:
                 raise UserError("No se encontró un diario de ventas para Producción B.")
@@ -674,26 +684,28 @@ class WMSTask(models.Model):
     def _prepare_invoice_base_vals(self, company):
         invoice_date_due = fields.Date.context_today(self)
 
-        if self.sale_id.payment_term_id:
-            extra_days = max(self.sale_id.payment_term_id.line_ids.mapped('days') or [0])
+        sale_id = self.transfer_id.sale_id
+
+        if sale_id.payment_term_id:
+            extra_days = max(sale_id.payment_term_id.line_ids.mapped('days') or [0])
             invoice_date_due = self.set_due_date_plus_x(extra_days)
         
         
         return {
-            'line_type': 'out_invoice',
-            'partner_id': self.sale_id.partner_invoice_id,
-            'partner_shipping_id': self.sale_id.partner_shipping_id,
+            'move_type': 'out_invoice',
+            'partner_id': sale_id.partner_invoice_id,
+            'partner_shipping_id': sale_id.partner_shipping_id,
             'invoice_date': fields.Date.context_today(self),
             'invoice_date_due': invoice_date_due,
-            'company_id': self.sale_id.company_id.id,
-            'currency_id': self.sale_id.company_id.currency_id.id,
+            'company_id': sale_id.company_id.id,
+            'currency_id': sale_id.company_id.currency_id.id,
             'invoice_origin': self.origin or self.name,
             'payment_reference': self.name,
-            'fiscal_position_id': self.sale_id.partner_invoice_id.property_account_position_id.id,
-            'invoice_payment_term_id': self.sale_id.payment_term_id,
+            'fiscal_position_id': sale_id.partner_invoice_id.property_account_position_id.id,
+            'invoice_payment_term_id': sale_id.payment_term_id,
             'wms_code': self.name,
-            'pricelist_id': self.sale_id.pricelist_id.id,
-            'special_price': self.sale_id.special_price,
+            'pricelist_id': sale_id.pricelist_id.id,
+            'special_price': sale_id.special_price,
         }
     
     def set_due_date_plus_x(self, x):
