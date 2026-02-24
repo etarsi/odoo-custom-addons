@@ -52,7 +52,6 @@
                                 <group>
                                     <group string="Imagen principal">
                                         <field name="main_img" widget="image"/>
-                                        <field name="main_filename"/>
                                         <field name="main_link"/>
                                     </group>
 

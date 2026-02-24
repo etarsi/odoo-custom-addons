@@ -39,7 +39,7 @@ class MailMarketingDesign(models.Model):
     preheader = fields.Char(default="Promo Sebigus - mirá los destacados")
     main_img = fields.Binary(string="Imagen principal", tracking=True)
     main_filename = fields.Char()
-    main_link = fields.Char(string="Link del Hero")
+    main_link = fields.Char(string="Link de la imagen principal (opcional)", tracking=True)
     
     main_file = fields.Char(readonly=True, copy=False)
     wa_button_file = fields.Char(readonly=True, copy=False)
@@ -49,9 +49,9 @@ class MailMarketingDesign(models.Model):
         help="Ej AR móvil: 54911xxxxxxxx (sin +, sin espacios).",
         tracking=True,
     )
-    whatsapp_text = fields.Char(string="Mensaje precargado (opcional)")
+    whatsapp_text = fields.Char(string="Mensaje precargado (opcional)", tracking=True)
     whatsapp_button_image = fields.Binary(string="Imagen botón WhatsApp", tracking=True, required=True)
-    extra_html = fields.Html(string="Texto/Contenido adicional", sanitize=False)
+    extra_html = fields.Html(string="Texto/Contenido adicional", sanitize=False, tracking=True)
 
     # Infra
     template_id = fields.Many2one("mail.template", string="Plantilla vinculada", readonly=True, copy=False)
@@ -106,15 +106,15 @@ class MailMarketingDesign(models.Model):
         # Hero clickeable si hay link
         if self.main_link:
             hero_block = f"""
-              <a href="{self.main_link}" target="_blank" style="text-decoration:none;">
+            <a href="{self.main_link}" target="_blank" style="text-decoration:none; display:block;">
                 <img src="{main_url}" alt="Promo"
-                     style="display:block; border:0; width:100%; max-width:600px; height:auto; margin:0 auto;"/>
-              </a>
+                    style="display:block; border:0; width:100%; height:auto; margin:0; padding:0;"/>
+            </a>
             """
         else:
             hero_block = f"""
               <img src="{main_url}" alt="Promo"
-                   style="display:block; border:0; width:100%; max-width:600px; height:auto; margin:0 auto;"/>
+                   style="display:block; border:0; width:100%; height:auto; margin:0; padding:0;"/>
             """
 
         # WhatsApp como imagen o como link
@@ -139,12 +139,12 @@ class MailMarketingDesign(models.Model):
 
         html = f"""
 <div style="margin:0; padding:0; background:#f6f7fb;">
-  <div style="max-width:720px; margin:0 auto; padding:18px;">
+    <div style="max-width:720px; margin:0 auto; padding:0;">
     <div style="display:none; max-height:0; overflow:hidden; opacity:0; color:transparent;">
       {preheader}
     </div>
 
-    <div style="border-radius:16px; overflow:hidden; border:1px solid #EAECF0; background:#ffffff;">
+    <div style="overflow:hidden; background:#ffffff;">
 
       <div style="padding:0; margin:0;">
         {hero_block}
@@ -158,7 +158,7 @@ class MailMarketingDesign(models.Model):
 
         {wa_block}
 
-        <div style="font-family:Arial, sans-serif; font-size:12px; color:#98A2B3; margin-top:18px;">
+        <div style="font-size:11px; line-height:1.4; color:#98A2B3; margin-top:18px;">
             Este e-mail es una publicidad de www.once.sebigus.com.ar SEBIGUS S.A. CUIT: 30-7080770-34. Domicilio Legal Lavalle 2540, C.A.B.A. 
             Si no desea recibir esta información contáctenos a través de nuestro Centro de Ayuda de su vendedor. 
             El titular podrá en cualquier momento solicitar el retiro o bloqueo de su nombre de los bancos de datos a los que se refiere el presente artículo. 
