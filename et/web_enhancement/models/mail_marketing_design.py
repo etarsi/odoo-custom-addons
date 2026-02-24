@@ -159,13 +159,13 @@ class MailMarketingDesign(models.Model):
         {wa_block}
 
         <div style="font-size:11px; line-height:1.4; color:#98A2B3; margin-top:18px;">
-            Este e-mail es una publicidad de www.once.sebigus.com.ar SEBIGUS S.A. CUIT: 30-7080770-34. Domicilio Legal Lavalle 2540, C.A.B.A. 
+            Este e-mail es una publicidad de www.one.sebigus.com.ar SEBIGUS S.A. CUIT: 30-7080770-34. Domicilio Legal Lavalle 2540, C.A.B.A. 
             Si no desea recibir esta información contáctenos a través de nuestro Centro de Ayuda de su vendedor. 
             El titular podrá en cualquier momento solicitar el retiro o bloqueo de su nombre de los bancos de datos a los que se refiere el presente artículo. 
             decreto 1558/01- art. 27 3er párrafo: en toda comunicación con fines de publicidad que se realice por correo, teléfono, correo electrónico, 
             internet u otro medio a distancia a conocer, se deberá indicar, en forma expresa y destacada la posibilidad del titular del dato de solicitar 
             el retiro o bloqueo, total o parcial, de su nombre de la base de datos. a pedido del interesado, se deberá informar el nombre del responsable o usuario 
-            del banco de datos que proveyó la información. www.once.sebigus.com.ar no vende ni distribuye medicamentos a través de este sitio web. 
+            del banco de datos que proveyó la información. www.one.sebigus.com.ar no vende ni distribuye medicamentos a través de este sitio web. 
             El titular de los datos personales tiene la facultad de ejercer el derecho de acceso a los mismos en forma gratuita a intervalos no inferiores a seis meses,
             salvo que se acredite un interés legítimo al efecto conforme lo establecido en el artículo 14, inciso 3 de la Ley 25.326. 
             La DIRECCION NACIONAL DE PROTECCION DE DATOS PERSONALES, Órgano de Control de la Ley 25.326, 
@@ -236,6 +236,14 @@ class MailMarketingDesign(models.Model):
                 rec.template_id = self.env["mail.template"].create(vals_tmpl)
 
         return True
+    
+    def _get_email_from_header(self):
+        self.ensure_one()
+        name = ("SEBIGUS").replace('"', "").strip()
+        email = (self.mail_from_id.smtp_user).strip()
+        if not email:
+            raise UserError(_("Definí Email remitente o company email."))
+        return f"\"{name}\" <{email}>"
 
     def action_send_mail(self):
         """Envía a todos los partners que matchean el domain. No wizard."""
@@ -256,15 +264,23 @@ class MailMarketingDesign(models.Model):
                     email_values={
                         # opcional: override dinámicos por envío
                         "email_to": p.mail_alternative or p.mail_alternative_b,
+                        "email_from": rec._get_email_from_header(),
+                        "mail_server_id": rec.mail_from_id.id,
                     },
                     raise_exception=False,
                 )
                 sent += 1
-
             rec.last_sent = fields.Datetime.now()
             rec.sent_qty = (rec.sent_qty or 0) + sent
-
-        return True
+        return {
+            "type": "ir.actions.client",
+            "tag": "display_notification",
+            "params": {
+                "title": _("¡Envío en proceso!"),
+                "message": _("Los correos se están enviando en segundo plano. Total destinatarios: %s") % sent,
+                "sticky": False,
+            },
+        }
 
     def action_open_recipients(self):
         self.ensure_one()
