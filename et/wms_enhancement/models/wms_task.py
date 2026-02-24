@@ -680,26 +680,28 @@ class WMSTask(models.Model):
     def _prepare_invoice_base_vals(self, company):
         invoice_date_due = fields.Date.context_today(self)
 
-        if self.sale_id.payment_term_id:
-            extra_days = max(self.sale_id.payment_term_id.line_ids.mapped('days') or [0])
+        sale_id = self.transfer_id.sale_id
+
+        if sale_id.payment_term_id:
+            extra_days = max(sale_id.payment_term_id.line_ids.mapped('days') or [0])
             invoice_date_due = self.set_due_date_plus_x(extra_days)
         
         
         return {
             'line_type': 'out_invoice',
-            'partner_id': self.sale_id.partner_invoice_id,
-            'partner_shipping_id': self.sale_id.partner_shipping_id,
+            'partner_id': sale_id.partner_invoice_id,
+            'partner_shipping_id': sale_id.partner_shipping_id,
             'invoice_date': fields.Date.context_today(self),
             'invoice_date_due': invoice_date_due,
-            'company_id': self.sale_id.company_id.id,
-            'currency_id': self.sale_id.company_id.currency_id.id,
+            'company_id': sale_id.company_id.id,
+            'currency_id': sale_id.company_id.currency_id.id,
             'invoice_origin': self.origin or self.name,
             'payment_reference': self.name,
-            'fiscal_position_id': self.sale_id.partner_invoice_id.property_account_position_id.id,
-            'invoice_payment_term_id': self.sale_id.payment_term_id,
+            'fiscal_position_id': sale_id.partner_invoice_id.property_account_position_id.id,
+            'invoice_payment_term_id': sale_id.payment_term_id,
             'wms_code': self.name,
-            'pricelist_id': self.sale_id.pricelist_id.id,
-            'special_price': self.sale_id.special_price,
+            'pricelist_id': sale_id.pricelist_id.id,
+            'special_price': sale_id.special_price,
         }
     
     def set_due_date_plus_x(self, x):
