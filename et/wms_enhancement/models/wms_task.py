@@ -398,7 +398,9 @@ class WMSTask(models.Model):
 
 
     def _prepare_remito_data(self, task, proportion, company_id, type):
-        partner = task.partner_shipping_id
+        partner = task.partner_id
+        partner_shipping = task.partner_shipping_id
+
 
         lines = []
         total_bultos = 0
@@ -457,13 +459,13 @@ class WMSTask(models.Model):
         # if total_value == 0:
         #     total_value = False
         
-        client_location = f"{partner.city}, {partner.state_id.name}"
+        client_location = f"{partner_shipping.city}, {partner_shipping.state_id.name}"
 
         remito = {
             'date': date,
             'client': {
                 'name': partner_name,
-                'address': partner.street[:54] or '',
+                'address': partner_shipping.street[:54] or '',
                 'location': client_location[:54] or '',
                 'cuit': partner.vat,
                 'iva': partner.l10n_ar_afip_responsibility_type_id.name if partner.l10n_ar_afip_responsibility_type_id else '',
