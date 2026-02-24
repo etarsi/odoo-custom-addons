@@ -316,6 +316,7 @@ class WMSTransfer(models.Model):
                         'lot': line.lot_name,
                     }
                     product_list.append(product_info)
+                    line.qty_pending = 0
 
                 task_lines = self.env['wms.task.line'].create(product_list)
             else:
