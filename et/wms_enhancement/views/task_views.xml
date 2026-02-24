@@ -52,7 +52,7 @@
                 <field name="origin"/>
     
                 <field name="priority" optional="hide"/>
-                <field name="bultos_count" optional="show"/>
+                <field name="bultos_count" string="Bultos" optional="show"/>
 
                 <field name="date_start" optional="hide"/>
                 <field name="date_done" optional="hide"/>
