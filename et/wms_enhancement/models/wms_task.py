@@ -416,7 +416,7 @@ class WMSTask(models.Model):
 
 
             if qty > 0:
-                uxb = line.uxb
+                uxb = line.transfer_line_id.uxb
                 bultos = qty / uxb if uxb else 1
                 lote = line.lot
                 product_code = line.product_id.default_code
@@ -460,8 +460,8 @@ class WMSTask(models.Model):
                 'address': f"{partner.property_delivery_carrier_id.address or ''}",
             },
             'line_lines': lines,
-            'total_bultos': 0,
-            'total_units': 0,
+            'total_bultos': total_bultos,
+            'total_units': total_unidades,
             'total_value': 0,
             'company_name': company_id.name,
         }
