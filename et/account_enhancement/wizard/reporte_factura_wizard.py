@@ -178,6 +178,34 @@ class ReporteFacturaWizard(models.TransientModel):
                 if move.move_type in ('out_refund', 'in_refund'):
                     quantity = -abs(line.quantity)
                     subtotal = -abs(line.price_subtotal) if line.price_subtotal > 0 else line.price_subtotal
+                    
+                    
+                #VALIDAR SI EL PRODUCTO TIENE PROPIEDAD 
+                if product:
+                    #buscamos si es producto con default code comienze con 9
+                    if product.default_code and product.default_code.startswith('9'):
+                        #buscamos en productos el mismo default code sin el 9 al inicio
+                        prod_con_propiedad = self.env['product.product'].search([('default_code', '=', product.default_code[1:])], limit=1)
+                        if prod_con_propiedad and prod_con_propiedad.x_property_id:
+                            property_id = prod_con_propiedad.x_property_id
+                            x_contract_id = prod_con_propiedad.x_contract_id
+                            x_subcontract_id = prod_con_propiedad.x_subcontract_id
+                            x_character_id = prod_con_propiedad.x_character_id
+                        else:
+                            property_id = False
+                            x_contract_id = False
+                            x_subcontract_id = False
+                            x_character_id = False
+                    else:
+                        property_id = product.x_property_id if product.x_property_id else False
+                        x_contract_id = product.x_contract_id if product.x_contract_id else False
+                        x_subcontract_id = product.x_subcontract_id if product.x_subcontract_id else False
+                        x_character_id = product.x_character_id if product.x_character_id else False
+                else:
+                    property_id = False
+                    x_contract_id = False
+                    x_subcontract_id = False
+                    x_character_id = False
 
                 worksheet.write(row, 0, move.name or '', formato_celdas_izquierda)
                 worksheet.write(row, 1, date_facture, formato_celdas_derecha)
@@ -202,10 +230,10 @@ class ReporteFacturaWizard(models.TransientModel):
                 worksheet.write(row, 17, (product.categ_id.name or '') if product.categ_id else '', formato_celdas_izquierda)
                 worksheet.write(row, 18, (product.product_brand_id.name or '') if product.product_brand_id else '', formato_celdas_izquierda)
 
-                worksheet.write(row, 19, product.x_contract_id.x_name if getattr(product, 'x_contract_id', False) else '', formato_celdas_izquierda)
-                worksheet.write(row, 20, product.x_subcontract_id.x_name if getattr(product, 'x_subcontract_id', False) else '', formato_celdas_izquierda)
-                worksheet.write(row, 21, product.x_character_id.x_name if getattr(product, 'x_character_id', False) else '', formato_celdas_izquierda)
-                worksheet.write(row, 22, product.x_property_id.x_name if getattr(product, 'x_property_id', False) else '', formato_celdas_izquierda)
+                worksheet.write(row, 19, x_contract_id.x_name if x_contract_id else '', formato_celdas_izquierda)
+                worksheet.write(row, 20, x_subcontract_id.x_name if x_subcontract_id else '', formato_celdas_izquierda)
+                worksheet.write(row, 21, x_character_id.x_name if x_character_id else '', formato_celdas_izquierda)
+                worksheet.write(row, 22, property_id.x_name if property_id else '', formato_celdas_izquierda)
 
                 row += 1
 
