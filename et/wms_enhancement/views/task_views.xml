@@ -2,6 +2,37 @@
 <odoo>
 
     <!-- =========================================================
+        WMS TASK - ACTION
+    ========================================================== -->
+    <record id="action_wms_task" model="ir.actions.act_window">
+        <field name="name">Tareas</field>
+        <field name="res_model">wms.task</field>
+        <field name="view_mode">tree,form</field>
+        <field name="search_view_id" ref="view_wms_task_search"/>
+        <field name="context">{}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Creá tu primera Tarea WMS
+            </p>
+        </field>
+    </record>
+
+
+    <record id="action_wms_invoice_from_task" model="ir.actions.act_window">
+      <field name="name">Facturas</field>
+      <field name="res_model">account.move</field>
+      <field name="view_mode">tree,form</field>
+      <field name="domain">[('task_id', '=', active_id)]</field>
+      <field name="context">
+          {
+              'default_task_id': active_id,
+              'search_default_task_id': active_id
+          }
+      </field>
+    </record>
+
+
+    <!-- =========================================================
         WMS TASK - TREE
     ========================================================== -->
     <record id="view_wms_task_tree" model="ir.ui.view">
@@ -115,7 +146,7 @@
                         </button>
 
                         <button type="action"
-                                name="action_wms_invoice_from_task"
+                                name="%(action_wms_invoice_from_task)d"
                                 class="oe_stat_button"
                                 icon="fa-shopping-cart"
                                 context="{'default_task_id': active_id}">
@@ -205,35 +236,7 @@
         </field>
     </record>
 
-    <!-- =========================================================
-        WMS TASK - ACTION
-    ========================================================== -->
-    <record id="action_wms_task" model="ir.actions.act_window">
-        <field name="name">Tareas</field>
-        <field name="res_model">wms.task</field>
-        <field name="view_mode">tree,form</field>
-        <field name="search_view_id" ref="view_wms_task_search"/>
-        <field name="context">{}</field>
-        <field name="help" type="html">
-            <p class="o_view_nocontent_smiling_face">
-                Creá tu primera Tarea WMS
-            </p>
-        </field>
-    </record>
 
-
-    <record id="action_wms_invoice_from_task" model="ir.actions.act_window">
-      <field name="name">Facturas</field>
-      <field name="res_model">account.move</field>
-      <field name="view_mode">tree,form</field>
-      <field name="domain">[('task_id', '=', active_id)]</field>
-      <field name="context">
-          {
-              'default_task_id': active_id,
-              'search_default_task_id': active_id
-          }
-      </field>
-    </record>
 
 
     <!-- =========================================================
