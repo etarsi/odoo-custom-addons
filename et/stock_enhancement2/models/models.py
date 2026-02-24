@@ -1067,7 +1067,7 @@ class StockPickingInherit(models.Model):
         self.ensure_one()
         return {
             'type': 'ir.actions.act_url',
-            'url': f'/rem/auto/{self.id}',
+            'url': f'/remito/auto/{self.id}',
             'target': 'new', # abrir en nueva pestaña
         }
     
