@@ -152,10 +152,6 @@ class MailMarketingDesign(models.Model):
 
       <div style="padding:18px 18px 6px 18px;">
 
-        <div style="font-family:Arial, sans-serif; font-size:14px; line-height:1.6; color:#344054; margin-top:10px;">
-          {extra}
-        </div>
-
         {wa_block}
 
         <div style="font-size:11px; line-height:1.4; color:#98A2B3; margin-top:18px;">

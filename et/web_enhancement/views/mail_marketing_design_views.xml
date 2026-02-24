@@ -60,10 +60,6 @@
                                         <field name="whatsapp_text"/>
                                         <field name="whatsapp_button_image" widget="image"/>
                                     </group>
-
-                                    <group string="Texto adicional">
-                                        <field name="extra_html" widget="html"/>
-                                    </group>
                                 </group>
                             </page>
 
