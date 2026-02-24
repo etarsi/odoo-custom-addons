@@ -405,7 +405,7 @@ class WMSTask(models.Model):
         
 
         for line in task.task_line_ids:
-            qty = line.picked * proportion
+            qty = line.quantity_picked * proportion
 
             # redeondeo unidades con decimal según blanco/negro el remito
             if qty % 1 != 0:
@@ -460,8 +460,8 @@ class WMSTask(models.Model):
                 'address': f"{partner.property_delivery_carrier_id.address or ''}",
             },
             'line_lines': lines,
-            'total_bultos': "",
-            'total_units': "",
+            'total_bultos': 0,
+            'total_units': 0,
             'total_value': 0,
             'company_name': company_id.name,
         }

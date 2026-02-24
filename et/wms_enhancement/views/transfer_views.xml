@@ -40,7 +40,7 @@
         <field name="arch" type="xml">
             <tree string="Transferencias WMS" default_order="create_date desc">
                 <header>
-                    <button name="action_split_into_tasks" type="object" string="Crear Tareas"/>
+                    <button name="action_split_into_tasks" type="object" string="Crear Tareas" class="oe_highlight"/>
                 </header>
                 <field name="create_date" widget="remaining_days" string="Fecha"/>
                 <field name="name" string="Nombre"/>
@@ -97,7 +97,7 @@
                 <header>
                     <field name="state" widget="statusbar" statusbar_visible="pending,process,finished"/>
 
-                    <button name="action_split_into_tasks" type="object" string="Crear Tareas" attrs="{'invisible': [('state', '=', 'finished')]}"/>
+                    <button name="action_split_into_tasks" type="object" string="Crear Tareas" attrs="{'invisible': [('state', '=', 'finished')]}" class="oe_highlight"/>
                 </header>
                 <sheet>
                     <div class="oe_button_box" name="button_box">
