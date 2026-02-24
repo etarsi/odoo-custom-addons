@@ -115,7 +115,7 @@
                         </button>
 
                         <button type="action"
-                                name="%(action_wms_invoice_from_task)d"
+                                name="action_wms_invoice_from_task"
                                 class="oe_stat_button"
                                 icon="fa-shopping-cart"
                                 context="{'default_task_id': active_id}">
