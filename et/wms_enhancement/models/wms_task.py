@@ -87,8 +87,11 @@ class WMSTask(models.Model):
 
 
     # scheduled_at = fields.Datetime()
+
     date_start = fields.Datetime(string="Inicio")
+
     date_done = fields.Datetime(string="Fin")
+
     preparation_time = fields.Datetime(string="Tiempo de Preparación")
 
     @api.model
@@ -260,6 +263,7 @@ class WMSTask(models.Model):
                     })
                     created += 1
             task.digip_state = "received"
+            task.date_done = fields.Date.context_today(self)
         return True
 
 
