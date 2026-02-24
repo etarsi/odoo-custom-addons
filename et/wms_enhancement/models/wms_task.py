@@ -5,7 +5,7 @@ from tkinter import Canvas
 
 from odoo import models, fields, api, _
 import requests
-from odoo.exceptions import UserError
+from odoo.exceptions import UserError, ValidationError
 from reportlab.lib.pagesizes import A4
 from reportlab.pdfgen import canvas
 
@@ -93,6 +93,8 @@ class WMSTask(models.Model):
     date_done = fields.Datetime(string="Fin")
 
     preparation_time = fields.Datetime(string="Tiempo de Preparación")
+    
+    shared_route = fields.Selection([('no', 'No Enviado HDR'), ('si', 'Enviado HDR')], default='no', string='Ruteo HDR', copy=False)
 
     @api.model
     def create(self, vals):
@@ -698,6 +700,104 @@ class WMSTask(models.Model):
         today = fields.Date.context_today(self)
         new_date = today + timedelta(days=x)
         return new_date
+
+
+    ### TITO CODIGO COMPARTIDO ###
+    def _fmt_dt_local(self, dt):
+        """datetime -> string en zona del usuario."""
+        if not dt:
+            return ""
+        dt_local = fields.Datetime.context_timestamp(self, dt)  # tz del usuario
+        return dt_local.strftime('%d/%m/%Y')
+
+    def action_forzar_envio_compartido(self):
+        for record in self:
+            record.action_enviar_compartido(envio_forzar=True)
+    
+    def action_enviar_compartido(self, envio_forzar=False):
+        for record in self:
+            if record.state_preparation != 'preparation' and not envio_forzar:
+                raise ValidationError(_("El remito %s, debe estar en preparación para enviarlo al compartido.") % record.name)
+            if record.shared_route == 'si' and not envio_forzar:
+                raise ValidationError(_("El remito con el Código WMS %s, ya fue enviado al compartido anteriormente.") % record.codigo_wms)
+            direccion_entrega = ""
+            cliente = ""
+            #if record.carrier_id:
+            #    if record.carrier_id.name == 'Reparto Propio':
+            #        direccion_entrega = f"{record.partner_id.street or '-'}, {record.partner_id.zip or '-'}, {record.partner_id.city or '-' }"
+            #    else:
+            #        direccion_entrega = record.carrier_id.address
+            if record.partner_id:
+                if record.partner_id.parent_id:
+                    cliente = f"{record.partner_id.parent_id.name}, {record.partner_id.name}"
+                else:
+                    cliente = record.partner_id.name
+            try:
+                values = [
+                    "",                                          # A
+                    record._fmt_dt_local(record.transfer_id.create_date),   # B
+                    record.codigo_wms or "",                     # C
+                    record.origin or "",                         # D
+                    record.name or "",                           # E
+                    cliente,                                    # F
+                    (round(record.packaging_qty, 2) or ""),     # G
+                    len(record.move_ids_without_package) or 0,   # H
+                    "",                                          # I
+                    "",                                          # J
+                    "", "", "", "",                              # K L M N
+                    "", "",                                      # O P
+                    record.partner_id.industry_id.name or "",    # Q
+                    record.carrier_id.name or "",                # R
+                    direccion_entrega,                           # S
+                    record.partner_id.street or "",              # T
+                    record.partner_id.zip or "",                 # U
+                    record.partner_id.city or "",                # V
+                    "0",                                         # W
+                    record.company_id.name or "",                # X
+                ]
+                enviado = record.env["google.sheets.client"].append_row(values)
+                if enviado == 200 and record.shared_route == 'no':
+                    record._crear_tms_stock_picking()
+                    record.write({'shared_route': 'si'})
+            except Exception as e:
+                raise ValidationError(_("Fallo enviando a Google Sheets para picking %s: %s") % (record.name, e))
+
+    def _crear_tms_stock_picking(self):
+        tms = self.env['tms.stock.picking'].search([('picking_ids', 'in', self.id)], limit=1)
+        if not tms:
+            direccion_entrega = ""
+            if self.carrier_id:
+                if self.carrier_id.name == 'Reparto Propio':
+                    direccion_entrega = f"{self.partner_id.street or '-'}, {self.partner_id.zip or '-'}, {self.partner_id.city or '-' }"
+                else:
+                    direccion_entrega = self.carrier_id.address
+            vals = {
+                'picking_ids': [(4, self.id)],
+                'fecha_entrega': False,
+                'fecha_envio_wms': self.scheduled_date,
+                'codigo_wms': self.codigo_wms,
+                'doc_origen': self.origin,
+                'partner_id': self.partner_id.id,
+                'cantidad_bultos': self.packaging_qty,
+                'cantidad_lineas': len(self.move_ids_without_package) or 0,
+                'carrier_id': self.carrier_id.id,
+                'observaciones': '',
+                'industry_id': self.partner_id.industry_id.id,
+                'ubicacion': '',
+                'estado_digip': self.state_wms,
+                'estado_despacho': 'in_preparation',
+                'delivery_state': self.delivery_state,
+                'sale_id': self.sale_id.id if self.sale_id else False,
+                'fecha_despacho': False,
+                'observacion_despacho': False,
+                'contacto_calle': self.partner_id.street or False,
+                'direccion_entrega': direccion_entrega,
+                'contacto_cp': self.partner_id.zip or False,
+                'contacto_ciudad': self.partner_id.city or False,
+                'company_id': self.company_id.id,
+                'user_id': self.env.user.id,
+            }
+            tms = self.env['tms.stock.picking'].create(vals)
 
 
 class WMSTaskLine(models.Model):
