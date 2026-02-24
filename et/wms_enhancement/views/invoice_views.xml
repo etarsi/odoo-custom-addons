@@ -4,7 +4,7 @@
     <record id="invoice_form_inherit_wms_task_button" model="ir.ui.view">
         <field name="name">account.move.form.inherit.wms.task.button</field>
         <field name="model">account.move</field>
-        <field name="inherit_id" ref="account.view_order_form"/>
+        <field name="inherit_id" ref="account.view_move_form"/>
         <field name="arch" type="xml">
             <xpath expr="//sheet/div[@name='button_box']" position="inside">
 
