@@ -427,11 +427,11 @@ class WMSTask(models.Model):
 
                 
                 lines.append({
-                    'bultos': bultos,
+                    'bultos': 1,
                     'code': product_code,
                     'description': product_description,
                     'nombre': product_name,
-                    'lote': 123,
+                    'lote': '123',
                     'unidades': qty,
                 })
 
