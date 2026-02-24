@@ -690,7 +690,7 @@ class WMSTask(models.Model):
         
         
         return {
-        #     'line_type': 'out_invoice',
+            'move_type': 'out_invoice',
             'partner_id': sale_id.partner_invoice_id,
             'partner_shipping_id': sale_id.partner_shipping_id,
             'invoice_date': fields.Date.context_today(self),
