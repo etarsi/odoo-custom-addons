@@ -704,7 +704,6 @@ class WMSTask(models.Model):
             'wms_code': self.name,
             'pricelist_id': sale_id.pricelist_id.id,
             'special_price': sale_id.special_price,
-            'task_id': self.id,
         }
     
     def set_due_date_plus_x(self, x):
