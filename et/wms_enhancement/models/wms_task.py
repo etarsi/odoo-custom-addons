@@ -398,7 +398,7 @@ class WMSTask(models.Model):
 
 
     def _prepare_remito_data(self, task, proportion, company_id, type):
-        partner = task.partner_id
+        partner = task.partner_shipping_id
 
         lines = []
         total_bultos = 0
