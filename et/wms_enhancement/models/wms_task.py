@@ -431,7 +431,7 @@ class WMSTask(models.Model):
                     'code': product_code,
                     'description': product_description,
                     'nombre': product_name,
-                    'lote': lote,
+                    'lote': 123,
                     'unidades': qty,
                 })
 
