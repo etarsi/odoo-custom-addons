@@ -42,7 +42,7 @@ class StockPickingController(http.Controller):
     #    """
     #    return request.make_response(html, headers=[('Content-Type', 'text/html')])
 
-    @http.route('/remito/auto/<int:picking_id>', type='http', auth='user', website=False)
+    @http.route('/rem/auto/<int:picking_id>', type='http', auth='user', website=False)
     def remito_auto(self, picking_id, **kwargs):
         picking = request.env['stock.picking'].browse(picking_id)
         if not picking.exists():

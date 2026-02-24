@@ -53,35 +53,7 @@ class WMSTaskController(http.Controller):
             ('Pragma', 'no-cache'),
         ]
         return request.make_response(pdf_bytes, headers=headers)
-    
-
-    @http.route('/backend/remito/pdf/<int:task_id>', type='http', auth='user', website=False)
-    def remito_pdf(self, task_id, **kwargs):
-        task = request.env['stock.task'].browse(task_id)
-        if not task.exists():
-            return request.not_found()
-
-        
-        company_id = task.company_id
-        type = 'a'
-        if company_id.id == 1:
-            type = 'b'
-
-        proportion = 1.0
-
-        pdf = task._build_remito_pdf2(task, proportion, company_id, type)
-
-        # if company_id.id == 4:
-        #     pdf = task._build_remito_pdf(task, proportion, company_id, type)
-
-        return request.make_response(
-            pdf,
-            headers=[
-                ('Content-Type', 'application/pdf'),
-                ('Content-Disposition', f'inline; filename="REM_{task.name.replace("/", "-")}.pdf"')
-            ]
-        )
-    
+       
     
     def _get_type_proportion(self, type):
         type = str(type or '').strip().upper()
