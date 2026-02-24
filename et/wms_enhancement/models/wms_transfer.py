@@ -70,6 +70,13 @@ class WMSTransfer(models.Model):
         return super().create(vals)
 
 
+    @api.onchange('task_count')
+    def _onchange_state(self):
+        for record in self:
+            if record.task_count > 0 and record.state == 'pending':
+                record.state = 'process'                
+
+
     @api.depends('task_ids')
     def _compute_task_count(self):
         for rec in self:
