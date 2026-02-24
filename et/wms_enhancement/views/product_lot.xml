@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- =========================================================
+        WMS PRODUCT LOT - TREE
+    ========================================================== -->
+    <record id="view_wms_product_lot_tree" model="ir.ui.view">
+        <field name="name">wms.product.lot.tree</field>
+        <field name="model">wms.product.lot</field>
+        <field name="arch" type="xml">
+            <tree string="Lotes WMS">
+                <header>
+                    <!-- <button name="send_and_receive_digip" type="object" string="Enviar y Recibir Digip"/>              -->
+                </header>     
+                <field name="product_id"/>
+                <field name="lot_name"/>
+            </tree>
+        </field>
+    </record>
+
+    <!-- =========================================================
+        WMS PRODUCT LOT - SEARCH
+    ========================================================== -->
+    <record id="view_wms_product_lot_search" model="ir.ui.view">
+        <field name="name">wms.product.lot.search</field>
+        <field name="model">wms.product.lot</field>
+        <field name="arch" type="xml">
+            <search string="Buscar Lotes">
+                <field name="product_id"/>
+                <field name="lot_name"/>
+            </search>
+        </field>
+    </record>
+
+    <!-- =========================================================
+        WMS PRODUCT LOT - FORM
+    ========================================================== -->
+    <record id="view_wms_product_lot_form" model="ir.ui.view">
+        <field name="name">wms.product.lot.form</field>
+        <field name="model">wms.product.lot</field>
+        <field name="arch" type="xml">
+            <form string="Lotes WMS">
+                <sheet>                  
+
+                    <group>
+                        <group string="PRODUCTO">                        
+                            <field name="product_id" required="1"/>
+                        </group>
+                        <group string="LOTE">
+                            <field name="lot_name" required="1"/>
+                        </group>
+                    </group>                    
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- =========================================================
+        WMS TASK - ACTION
+    ========================================================== -->
+    <record id="action_wms_product_lot" model="ir.actions.act_window">
+        <field name="name">Lotes</field>
+        <field name="res_model">wms.product.lot</field>
+        <field name="view_mode">tree,form</field>
+        <field name="search_view_id" ref="view_wms_product_lot_search"/>
+        <field name="context">{}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Creá tu primera Tarea WMS
+            </p>
+        </field>
+    </record>
+
+</odoo>

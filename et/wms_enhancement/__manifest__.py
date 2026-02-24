@@ -28,6 +28,7 @@
         'views/transfer_views.xml',
         'views/task_views.xml',
         'views/sale_order_views.xml',
+        'views/prduct_lot.xml',
         # 'views/preselection_views.xml',
         'views/menus.xml',
     ],
