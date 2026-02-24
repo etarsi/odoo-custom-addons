@@ -154,7 +154,7 @@ class MailMarketingDesign(models.Model):
         <div style="font-size:11px; line-height:1.4; color:#98A2B3; margin-top:18px;">
             Este e-mail es una publicidad de 
             <a href="https://one.sebigus.com.ar" target="_blank" rel="noopener noreferrer" style="color:#98A2B3; text-decoration:underline;">
-                https://one.sebigus.com.ar
+                www.one.sebigus.com.ar
             </a> 
             SEBIGUS S.A. CUIT: 30-7080770-34. Domicilio Legal Lavalle 2540, C.A.B.A. 
             Si no desea recibir esta información contáctenos a través de nuestro Centro de Ayuda de su vendedor. 
@@ -164,7 +164,7 @@ class MailMarketingDesign(models.Model):
             el retiro o bloqueo, total o parcial, de su nombre de la base de datos. a pedido del interesado, se deberá informar el nombre del responsable o usuario 
             del banco de datos que proveyó la información. 
             <a href="https://one.sebigus.com.ar" target="_blank" rel="noopener noreferrer" style="color:#98A2B3; text-decoration:underline;">
-                https://one.sebigus.com.ar
+                www.one.sebigus.com.ar
             </a> 
             a través de este sitio web. 
             El titular de los datos personales tiene la facultad de ejercer el derecho de acceso a los mismos en forma gratuita a intervalos no inferiores a seis meses,
