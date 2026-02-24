@@ -50,19 +50,21 @@
                         <notebook>
                             <page string="Contenido">
                                 <group>
-                                    <field name="main_img" widget="image"/>
-                                    <field name="main_filename"/>
-                                    <field name="main_link"/>
-                                </group>
+                                    <group string="Imagen principal">
+                                        <field name="main_img" widget="image"/>
+                                        <field name="main_filename"/>
+                                        <field name="main_link"/>
+                                    </group>
 
-                                <group string="WhatsApp">
-                                    <field name="whatsapp_number"/>
-                                    <field name="whatsapp_text"/>
-                                    <field name="whatsapp_button_image" widget="image"/>
-                                </group>
+                                    <group string="WhatsApp">
+                                        <field name="whatsapp_number"/>
+                                        <field name="whatsapp_text"/>
+                                        <field name="whatsapp_button_image" widget="image"/>
+                                    </group>
 
-                                <group string="Texto adicional">
-                                    <field name="extra_html" widget="html"/>
+                                    <group string="Texto adicional">
+                                        <field name="extra_html" widget="html"/>
+                                    </group>
                                 </group>
                             </page>
 
