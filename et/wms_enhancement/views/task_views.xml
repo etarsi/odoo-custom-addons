@@ -95,6 +95,8 @@
                 <header>
                     <button name="action_send_task_to_digip" type="object" string="Enviar a Digip" attrs="{'invisible': [('digip_state', '!=', 'no')]}"/>
                     <button name="action_receive_task_digip" type="object" string="Recibir de Digip" attrs="{'invisible': [('digip_state', '!=', 'sent')]}"/>
+                    <button name="action_print_remito" type="object" string="Imprimir REMITO" attrs="{'invisible': [('digip_state', '!=', 'received')]}"/>
+
 
                     <field name="state_preparation" widget="statusbar" statusbar_visible="pending,preparation,control,delivery"/>
                 </header>

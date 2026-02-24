@@ -262,9 +262,9 @@ class WMSTask(models.Model):
 
     def send_and_receive_digip(self):
         for record in self:
-            if record.state == 'no':
+            if record.digip_state == 'no':
                 record.action_send_task_to_digip()
-            elif record.state == 'sent':
+            elif record.digip_state == 'sent':
                 record.action_receive_task_digip()
 
 
