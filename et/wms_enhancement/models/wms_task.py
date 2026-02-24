@@ -198,7 +198,7 @@ class WMSTask(models.Model):
                 raise UserError(_("Digip no devolvió resultados para PedidoCodigo=%s") % task.name)
 
             pedido = data[0]
-            if pedido.get("estado") != "RemitidoExterno":
+            if pedido.get("estado") not in ("RemitidoExterno", "Completo"):
                 raise UserError(_("El pedido todavía no fue preparado (estado: %s).") % (pedido.get("estado"),))
 
             items = pedido.get("items") or []
