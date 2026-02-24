@@ -181,94 +181,66 @@ class WMSTask(models.Model):
         return True
 
     def get_digip(self):
-        """
-        Trae el estado del pedido en Digip y actualiza quantity_picked de las líneas.
-        """
         for task in self:
             url = self.env['ir.config_parameter'].sudo().get_param('digipwms-v2.url')
             api_key = self.env['ir.config_parameter'].sudo().get_param('digipwms.key')
 
-            if not url or not api_key:
-                raise UserError(_("Falta configurar digipwms-v2.url o digipwms.key en Parámetros del sistema."))
-
             headers = {"x-api-key": api_key}
             params = {"PedidoCodigo": task.name}
 
-            try:
-                response = requests.get(f"{url}/v2/Pedidos", headers=headers, params=params, timeout=30)
-            except Exception as e:
-                raise UserError(_("Error conectando con Digip: %s") % (str(e),))
-
+            response = requests.get(f"{url}/v2/Pedidos", headers=headers, params=params, timeout=30)
             if response.status_code != 200:
                 raise UserError(_("Digip devolvió %s: %s") % (response.status_code, response.text))
 
             data = response.json()
 
-            # Validaciones de negocio
-            estado = data[4]
-            if estado != "RemitidoExterno":
-                raise UserError(_("El pedido todavía no fue preparado (estado: %s).") % (estado,))
+            if not data:
+                raise UserError(_("Digip no devolvió resultados para PedidoCodigo=%s") % task.name)
 
-            items = data.get("items") or []
+            pedido = data[0]
+            if pedido.get("estado") != "RemitidoExterno":
+                raise UserError(_("El pedido todavía no fue preparado (estado: %s).") % (pedido.get("estado"),))
+
+            items = pedido.get("items") or []
             if not items:
                 raise UserError(_("El pedido en Digip no tiene items."))
 
             picked_by_code = {}
             for item in items:
-                articulo = item.get("articulo") or {}
-                code = articulo.get("codigo")
-                qty = item.get("unidades", 0)
-
+                code = ((item.get("articulo") or {}).get("codigo") or "").strip()
+                qty_picked = int(item.get("unidadesSatisfecha") or 0)
                 if not code:
                     continue
+                picked_by_code[code] = picked_by_code.get(code, 0) + qty_picked
 
-                picked_by_code[code] = picked_by_code.get(code, 0) + int(qty or 0)
-
-            if not picked_by_code:
-                raise UserError(_("No se pudo obtener ningún código de artículo desde Digip."))
-            
             line_by_code = {}
             for line in task.task_line_ids:
                 code = (line.product_id.default_code or "").strip()
                 if code:
                     line_by_code[code] = line
 
-            TaskLine = self.env["wms.task.line"]
-            Product = self.env["product.product"]
-
-            created = 0
             updated = 0
-            not_found_products = []
-
             for code, qty_picked in picked_by_code.items():
-                code = (code or "").strip()
-                if not code:
-                    continue
-
                 line = line_by_code.get(code)
                 if line:
                     line.write({"quantity_picked": qty_picked})
                     updated += 1
-                    continue
 
+            Product = self.env["product.product"]
+            TaskLine = self.env["wms.task.line"]
+            created = 0
+            for code, qty_picked in picked_by_code.items():
+                if code in line_by_code:
+                    continue
                 product = Product.search([("default_code", "=", code)], limit=1)
-                if not product:
-                    continue
-
-                TaskLine.create({
-                    "task_id": task.id,
-                    "product_id": product.id,
-                    "quantity": 0,  # si no sabés la demanda, dejalo 0
-                    "quantity_picked": qty_picked,
-                    # "transfer_line_id": ...  # si tenés forma de mapearlo, lo seteás acá
-                })
-                created += 1
-
-            # 4) Mensajito útil (chatter)
-            msg = _("Actualización Digip OK.<br/>Actualizadas: %s<br/>Creadas: %s") % (updated, created)
-            if not_found_products:
-                msg += _("<br/><br/><b>Sin producto en Odoo para códigos:</b> %s") % (", ".join(not_found_products))
-            task.message_post(body=msg)
+                if product:
+                    TaskLine.create({
+                        "task_id": task.id,
+                        "product_id": product.id,
+                        "quantity": 0,
+                        "quantity_picked": qty_picked,
+                    })
+                    created += 1
 
         return True
 
