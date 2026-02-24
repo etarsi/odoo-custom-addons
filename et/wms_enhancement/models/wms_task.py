@@ -6,6 +6,7 @@ from odoo import models, fields, api, _
 import requests
 from odoo.exceptions import UserError
 from reportlab.lib.pagesizes import A4
+from reportlab.pdfgen import canvas
 
 
 class WMSTask(models.Model):
@@ -287,7 +288,7 @@ class WMSTask(models.Model):
         bottom = int(config_param.sudo().get_param('remito_margen_bottom'))
 
         buffer = BytesIO()
-        c = Canvas.Canvas(buffer, pagesize=A4)
+        c = canvas.Canvas(buffer, pagesize=A4)
 
         # ----------- FUNCIONES PARA HEADER Y TABLA -----------
         def draw_header():
