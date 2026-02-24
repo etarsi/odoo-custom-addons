@@ -205,7 +205,7 @@ class WMSTask(models.Model):
             data = response.json()
 
             # Validaciones de negocio
-            estado = data.get("estado")
+            estado = data[4]
             if estado != "RemitidoExterno":
                 raise UserError(_("El pedido todavía no fue preparado (estado: %s).") % (estado,))
 
