@@ -5,7 +5,9 @@ from urllib.parse import quote
 from odoo import api, fields, models, _
 from odoo.exceptions import UserError
 from odoo.tools.safe_eval import safe_eval
+import base64, os, hashlib, mimetypes
 
+MAIL_IMG_DIR = "/opt/odoo15/mail_image"
 
 class MailMarketingDesign(models.Model):
     _name = "mail.marketing.design"
@@ -35,9 +37,12 @@ class MailMarketingDesign(models.Model):
 
     # Contenido
     preheader = fields.Char(default="Promo Sebigus - mirá los destacados")
-    hero_image = fields.Binary(string="Imagen principal (Hero)", tracking=True)
-    hero_filename = fields.Char()
-    hero_link = fields.Char(string="Link del Hero (opcional)")
+    main_img = fields.Binary(string="Imagen principal", tracking=True)
+    main_filename = fields.Char()
+    main_link = fields.Char(string="Link del Hero")
+    
+    main_file = fields.Char(readonly=True, copy=False)
+    wa_button_file = fields.Char(readonly=True, copy=False)
 
     whatsapp_number = fields.Char(
         string="WhatsApp (E.164)",
@@ -87,21 +92,28 @@ class MailMarketingDesign(models.Model):
         })
         return att
 
-    def _build_html(self, hero_url, wa_url, wa_btn_url=None):
+    def _build_html(self, main_url, wa_url, wa_btn_url=None):
         preheader = (self.preheader or "").strip()
         extra = self.extra_html or ""
 
+        base_url = self.env["ir.config_parameter"].sudo().get_param("web.base.url") or ""
+        if not base_url:
+            raise UserError(_("No está configurado web.base.url"))
+        if self.main_file:
+            main_url = f"{base_url}/mail_image/{self.main_file}"
+        wa_btn_url = f"{base_url}/mail_image/{self.wa_button_file}" if self.wa_button_file else False
+
         # Hero clickeable si hay link
-        if self.hero_link:
+        if self.main_link:
             hero_block = f"""
-              <a href="{self.hero_link}" target="_blank" style="text-decoration:none;">
-                <img src="{hero_url}" alt="Promo"
+              <a href="{self.main_link}" target="_blank" style="text-decoration:none;">
+                <img src="{main_url}" alt="Promo"
                      style="display:block; border:0; width:100%; max-width:600px; height:auto; margin:0 auto;"/>
               </a>
             """
         else:
             hero_block = f"""
-              <img src="{hero_url}" alt="Promo"
+              <img src="{main_url}" alt="Promo"
                    style="display:block; border:0; width:100%; max-width:600px; height:auto; margin:0 auto;"/>
             """
 
@@ -140,7 +152,7 @@ class MailMarketingDesign(models.Model):
 
       <div style="padding:18px 18px 6px 18px;">
         <div style="font-family:Arial, sans-serif; font-size:18px; font-weight:700; color:#101828;">
-          Hola, {{ object.name }}
+          Hola, {{{object.name}}}
         </div>
 
         <div style="font-family:Arial, sans-serif; font-size:14px; line-height:1.6; color:#344054; margin-top:10px;">
@@ -186,21 +198,20 @@ class MailMarketingDesign(models.Model):
     # -------------------------
     def action_sync_template(self):
         for rec in self:
-            if not rec.hero_image:
-                raise UserError(_("Tenés que cargar la imagen principal (Hero)."))
+            if not rec.main_img:
+                raise UserError(_("Tenés que cargar la imagen principal."))
             wa_url = rec._wa_link()
             if not wa_url:
                 raise UserError(_("Tenés que completar el WhatsApp (E.164)."))
 
-            hero_att = rec._ensure_public_attachment(rec.hero_image, rec.hero_filename or "hero.png")
-            hero_url = rec._public_image_url(hero_att)
+            # Asegurar archivos
+            if not rec.main_file:
+                rec.main_file = rec._bin_to_file(rec.main_img, rec.main_filename or "main.png", prefix="main")
+            if not rec.wa_button_file and rec.whatsapp_button_image:
+                rec.wa_button_file = rec._bin_to_file(rec.whatsapp_button_image, "btn_whatsapp.png", prefix="wa")
 
-            wa_btn_url = False
-            if rec.whatsapp_button_image:
-                wa_att = rec._ensure_public_attachment(rec.whatsapp_button_image, "btn_whatsapp.png")
-                wa_btn_url = rec._public_image_url(wa_att)
-
-            body = rec._build_html(hero_url=hero_url, wa_url=wa_url, wa_btn_url=wa_btn_url)
+            # Construir HTML (main_url se resuelve adentro si main_file existe)
+            body = rec._build_html(main_url="", wa_url=wa_url, wa_btn_url=False)
 
             vals_tmpl = {
                 "name": f"Sebigus | {rec.name}",
@@ -259,3 +270,42 @@ class MailMarketingDesign(models.Model):
             "domain": [("id", "in", partners.ids)],
             "target": "current",
         }
+
+    def _bin_to_file(self, b64, filename_hint="image.png", prefix="img"):
+        self.ensure_one()
+        if not b64:
+            return False
+
+        raw = base64.b64decode(b64)
+        digest = hashlib.sha1(raw).hexdigest()[:16]  # corto
+        ext = os.path.splitext(filename_hint or "")[1].lower() or ".png"
+        if ext not in [".png", ".jpg", ".jpeg", ".gif", ".webp"]:
+            ext = ".png"
+
+        fname = f"{prefix}_{self.id}_{digest}{ext}"
+        path = os.path.join(MAIL_IMG_DIR, fname)
+
+        # escribir
+        with open(path, "wb") as f:
+            f.write(raw)
+
+        return fname
+    
+    def write(self, vals):
+        res = super().write(vals)
+        for rec in self:
+            if "main_img" in vals and rec.main_img:
+                rec.main_file = rec._bin_to_file(rec.main_img, rec.main_filename or "main.png", prefix="main")
+            if "whatsapp_button_image" in vals and rec.whatsapp_button_image:
+                rec.wa_button_file = rec._bin_to_file(rec.whatsapp_button_image, "btn_whatsapp.png", prefix="wa")
+        return res
+    
+    @api.model_create_multi
+    def create(self, vals_list):
+        records = super().create(vals_list)
+        for rec, vals in zip(records, vals_list):
+            if vals.get("main_img") and rec.main_img:
+                rec.main_file = rec._bin_to_file(rec.main_img, rec.main_filename or "main.png", prefix="main")
+            if vals.get("whatsapp_button_image") and rec.whatsapp_button_image:
+                rec.wa_button_file = rec._bin_to_file(rec.whatsapp_button_image, "btn_whatsapp.png", prefix="wa")
+        return records
