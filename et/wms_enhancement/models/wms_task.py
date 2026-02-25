@@ -620,8 +620,7 @@ class WMSTask(models.Model):
             # Asignar journal correcto
             journal = self.env['account.journal'].search([
                 ('type', '=', 'sale'),
-                ('company_id', '=', company_negra.id),
-                ('code', '=', '00010')
+                ('company_id', '=', company_negra.id)
             ], limit=1)
             if not journal:
                 raise UserError("No se encontró un diario de ventas para Producción B.")
