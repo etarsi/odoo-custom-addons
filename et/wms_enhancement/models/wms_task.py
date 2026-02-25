@@ -288,7 +288,7 @@ class WMSTask(models.Model):
         self.ensure_one()
         return {
             'type': 'ir.actions.act_url',
-            'url': f'/nremito/auto/{self.id}',
+            'url': f'/newremito/auto/{self.id}',
             'target': 'new',
         }
 
