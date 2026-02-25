@@ -31,7 +31,9 @@ class ReportCompositionDebtWizard(models.TransientModel):
         partner_ids = self.parent_ids.ids if self.parent_ids else []
         partner_ids = partner_ids + [self.partner_id.id] if self.partner_id else partner_ids
  
-        
+        lines = self._get_lines(partner_ids) 
+        if not lines: 
+            raise UserError(_("No hay datos para el rango seleccionado."))
         #ordenar por fecha ascendente
         lines = sorted(lines, key=lambda x: x['date'])
         xlsx_data = self._build_xlsx(lines)
