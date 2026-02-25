@@ -42,7 +42,6 @@
             <tree string="Tareas WMS" default_order="create_date desc">
                 <header>
                     <button name="send_and_receive_digip" type="object" string="Enviar y Recibir Digip"/>   
-                    <button name="action_enviar_compartido" type="object" string="Enviar a Compartido"/>      
                 </header>        
                 <field name="create_date" widget="remaining_days" string="Fecha"/>
                 <field name="name" string="Tarea"/>                
@@ -129,7 +128,7 @@
                     <button name="action_receive_task_digip" type="object" string="Recibir de Digip" attrs="{'invisible': [('digip_state', '!=', 'sent')]}"/>
                     <button name="action_print_remito" class="oe_highlight" type="object" string="IMPRIMIR REMITO" attrs="{'invisible': [('digip_state', '!=', 'received')]}"/>
                     <button name="action_create_invoice_from_picking" class="oe_highlight" type="object" string="CREAR FACTURA" attrs="{'invisible': [('digip_state', '!=', 'received')]}"/>
-
+                    <button name="action_enviar_compartido" type="object" string="Enviar a Compartido"/>      
                     <field name="state_preparation" widget="statusbar" statusbar_visible="pending,preparation,control,delivery"/>
                 </header>
                 <sheet>
