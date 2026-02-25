@@ -89,7 +89,7 @@ class WMSTask(models.Model):
 
     # category_ids = fields.One2many()
 
-    bultos_count = fields.Float(string="Bultos", compute="_compute_bultos_count", store=True)
+    bultos_count = fields.Float(string="Bultos")
     bultos_prepared = fields.Float(string="Bultos Preparados")
     packages_count = fields.Float(string="Paquetes")
 
@@ -135,6 +135,7 @@ class WMSTask(models.Model):
                 line_bultos = line.quantity / line.transfer_line_id.uxb
                 total_bultos += line_bultos
 
+            record.bultos_count = total_bultos
 
     def action_open_wms_transfer(self):
         self.ensure_one()
