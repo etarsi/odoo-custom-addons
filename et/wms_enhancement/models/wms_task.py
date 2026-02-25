@@ -81,6 +81,7 @@ class WMSTask(models.Model):
 
     # preparation
 
+    declared_value = fields.Float(string="Valor Declarado", default=0)
 
     ## statistics
 
@@ -88,7 +89,8 @@ class WMSTask(models.Model):
 
     # category_ids = fields.One2many()
 
-    bultos_count = fields.Float()
+    bultos_count = fields.Float(string="Bultos")
+    packages_count = fields.Float(string="Paquetes")
 
 
     # scheduled_at = fields.Datetime()
@@ -213,6 +215,7 @@ class WMSTask(models.Model):
             if task.digip_state != 'sent':
                 continue
             task.get_digip()
+            task.get_digip_preparations()
         return True
     
 
@@ -281,7 +284,35 @@ class WMSTask(models.Model):
                     created += 1
             task.digip_state = "received"
             task.date_done = fields.Date.context_today(self)
-        return True
+        return True   
+
+    def get_digip_preparations(self):
+        for task in self:
+            url = self.env['ir.config_parameter'].sudo().get_param('digipwms-v2.url')
+            api_key = self.env['ir.config_parameter'].sudo().get_param('digipwms.key')
+
+            headers = {"x-api-key": api_key}
+            params = {"PedidoCodigo": task.name}
+
+            response = requests.get(f"{url}/v2/Preparaciones/ContenedoresDetalle", headers=headers, params=params, timeout=30)
+            if response.status_code != 200:
+                raise UserError(_("Digip devolvió %s: %s") % (response.status_code, response.text))
+
+            data = response.json()
+
+            total_bultos = 0
+
+            for line in task.task_line_ids:
+                total_bultos += line.qty_picked / line.uxb
+
+
+            total_packages = sum(
+                cont.get("cantidadBulto", 0)
+                for cont in data.get("contenedores", [])
+            )
+            
+            task.bultos_count = total_bultos
+            task.packages_count = total_packages
 
 
     def send_and_receive_digip(self):
@@ -486,9 +517,9 @@ class WMSTask(models.Model):
                 'address': f"{partner.property_delivery_carrier_id.address or ''}",
             },
             'line_lines': lines,
-            'total_bultos': total_bultos,
-            'total_units': total_unidades,
-            'total_value': 0,
+            'total_bultos': task.packages_count,
+            'total_units': task.bultos_count,
+            'total_value': task.declared_value,
             'company_name': company_id.name,
         }
 
