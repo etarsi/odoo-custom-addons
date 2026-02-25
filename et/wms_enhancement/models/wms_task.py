@@ -96,6 +96,9 @@ class WMSTask(models.Model):
     preparation_time = fields.Datetime(string="Tiempo de Preparación")
     
     shared_route = fields.Selection([('no', 'No Enviado HDR'), ('si', 'Enviado HDR')], default='no', string='Ruteo HDR', copy=False)
+    
+    # transporte
+    carrier_id = fields.Many2one(string="Transporte", related='partner_id.property_delivery_carrier_id', store=True)
 
     @api.model
     def create(self, vals):
@@ -734,11 +737,11 @@ class WMSTask(models.Model):
                 raise ValidationError(_("El remito con el Código WMS %s, ya fue enviado al compartido anteriormente.") % record.codigo_wms)
             direccion_entrega = ""
             cliente = ""
-            #if record.carrier_id:
-            #    if record.carrier_id.name == 'Reparto Propio':
-            #        direccion_entrega = f"{record.partner_id.street or '-'}, {record.partner_id.zip or '-'}, {record.partner_id.city or '-' }"
-            #    else:
-            #        direccion_entrega = record.carrier_id.address
+            if record.carrier_id:
+                if record.carrier_id.name == 'Reparto Propio':
+                    direccion_entrega = f"{record.partner_id.street or '-'}, {record.partner_id.zip or '-'}, {record.partner_id.city or '-' }"
+                else:
+                    direccion_entrega = record.carrier_id.address
             if record.partner_id:
                 if record.partner_id.parent_id:
                     cliente = f"{record.partner_id.parent_id.name}, {record.partner_id.name}"
@@ -748,8 +751,8 @@ class WMSTask(models.Model):
                 values = [
                     "",                                          # A
                     record._fmt_dt_local(record.transfer_id.create_date),   # B
-                    record.codigo_wms or "",                     # C
-                    record.origin or "",                         # D
+                    record.name or "",                     # C
+                    record.transfer_id.origin or "",                         # D
                     record.name or "",                           # E
                     cliente,                                    # F
                     (round(record.packaging_qty, 2) or ""),     # G
@@ -765,7 +768,7 @@ class WMSTask(models.Model):
                     record.partner_id.zip or "",                 # U
                     record.partner_id.city or "",                # V
                     "0",                                         # W
-                    record.company_id.name or "",                # X
+                    "",                                          # X
                 ]
                 enviado = record.env["google.sheets.client"].append_row(values)
                 if enviado == 200 and record.shared_route == 'no':
@@ -786,12 +789,12 @@ class WMSTask(models.Model):
             vals = {
                 'picking_ids': [(4, self.id)],
                 'fecha_entrega': False,
-                'fecha_envio_wms': self.scheduled_date,
-                'codigo_wms': self.codigo_wms,
+                'fecha_envio_wms': self.transfer_id.create_date,
+                'codigo_wms': self.name,
                 'doc_origen': self.origin,
                 'partner_id': self.partner_id.id,
-                'cantidad_bultos': self.packaging_qty,
-                'cantidad_lineas': len(self.move_ids_without_package) or 0,
+                'cantidad_bultos': self.bultos_count,
+                'cantidad_lineas': len(self.task_line_ids) or 0,
                 'carrier_id': self.carrier_id.id,
                 'observaciones': '',
                 'industry_id': self.partner_id.industry_id.id,
@@ -799,14 +802,14 @@ class WMSTask(models.Model):
                 'estado_digip': self.state_wms,
                 'estado_despacho': 'in_preparation',
                 'delivery_state': self.delivery_state,
-                'sale_id': self.sale_id.id if self.sale_id else False,
+                'sale_id': self.transfer_id.sale_id.id if self.transfer_id.sale_id else False,
                 'fecha_despacho': False,
                 'observacion_despacho': False,
                 'contacto_calle': self.partner_id.street or False,
                 'direccion_entrega': direccion_entrega,
                 'contacto_cp': self.partner_id.zip or False,
                 'contacto_ciudad': self.partner_id.city or False,
-                'company_id': self.company_id.id,
+                'company_id': False,
                 'user_id': self.env.user.id,
             }
             tms = self.env['tms.stock.picking'].create(vals)

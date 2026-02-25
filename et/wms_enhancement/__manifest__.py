@@ -20,7 +20,7 @@
     'version': '0.1',
 
     # any module necessary for this one to work correctly
-    'depends': ['base', 'sale', 'purchase', 'account', 'product', 'stock_erp'],
+    'depends': ['base', 'sale', 'purchase', 'account', 'product', 'stock_erp', 'tms_service'],
 
     # always loaded
     'data': [
@@ -30,6 +30,7 @@
         'views/sale_order_views.xml',
         'views/invoice_views.xml',
         'views/product_lot.xml',
+        'views/res_config_settings_views.xml',
         # 'views/preselection_views.xml',
         'views/menus.xml',
     ],
