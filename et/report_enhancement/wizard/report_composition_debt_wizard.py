@@ -30,9 +30,7 @@ class ReportCompositionDebtWizard(models.TransientModel):
         self.ensure_one()
         partner_ids = self.parent_ids.ids if self.parent_ids else []
         partner_ids = partner_ids + [self.partner_id.id] if self.partner_id else partner_ids
-        lines = self._get_lines(partner_ids)
-        if not lines:
-            raise UserError(_("No hay datos para el rango seleccionado."))
+ 
         
         #ordenar por fecha ascendente
         lines = sorted(lines, key=lambda x: x['date'])
@@ -83,7 +81,7 @@ class ReportCompositionDebtWizard(models.TransientModel):
             signed_amount = move.amount_total if move.move_type == "out_invoice" else -move.amount_total
 
             lines.append({
-                "key": (move.partner_id.id, move.company_id.id, move.currency_id.id),
+                "key": (move.partner_id.id, move.currency_id.id),
                 "sort_date": d or pydate.min,
                 "partner": move.partner_id.display_name,
                 "invoice_number": move.name,
@@ -104,15 +102,15 @@ class ReportCompositionDebtWizard(models.TransientModel):
         groups = self.env["account.payment.group"].search(pay_domain, order="payment_date") #ordenar por fecha de pago de forma ascendente
         for group in groups:
             d = group.payment_date
-
-            # en general payments_amount reduce deuda
-            signed_amount = -group.payments_amount
+            ptype = getattr(group, "payment_type", "inbound")  # inbound/outbound (en many OCA modules existe)
+            sign = -1.0 if ptype == "inbound" else 1.0
+            signed_amount = sign * group.payments_amount
 
             # ojo: si payment group tiene moneda, úsala; si no, caer a company currency
             currency = getattr(group, "currency_id", False) or group.company_id.currency_id
 
             lines.append({
-                "key": (group.partner_id.id, group.company_id.id, currency.id),
+                "key": (group.partner_id.id, currency.id),
                 "sort_date": d or pydate.min,
                 "partner": group.partner_id.display_name,
                 "invoice_number": group.display_name,
@@ -242,10 +240,10 @@ class ReportCompositionDebtWizard(models.TransientModel):
             ws_composition_debt.write(row, 7, line['company'], fmt_text_l)
             row += 1
         #totales
-        ws_composition_debt.write(row, 3, 'TOTAL', fmt_text_bold_l)
-        ws_composition_debt.write(row, 4, total_debe, fmt_total_contab)
-        ws_composition_debt.write(row, 5, total_haber, fmt_total_contab)
-        ws_composition_debt.write(row, 6, total_subtotal, fmt_total_contab)
+        ws_composition_debt.write(row, 2, 'TOTAL', fmt_text_bold_l)
+        ws_composition_debt.write(row, 3, total_debe, fmt_total_contab)
+        ws_composition_debt.write(row, 4, total_haber, fmt_total_contab)
+        ws_composition_debt.write(row, 5, total_subtotal, fmt_total_contab)
         workbook.close()
         output.seek(0)
         return output.read()
