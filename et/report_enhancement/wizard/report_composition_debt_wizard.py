@@ -68,7 +68,7 @@ class ReportCompositionDebtWizard(models.TransientModel):
         if partner_ids:
             move_domain += [("partner_id", "in", partner_ids)]
 
-        moves = self.env["account.move"].search(move_domain, order="partner_id, company_id, currency_id, invoice_date, id")
+        moves = self.env["account.move"].search(move_domain, order="invoice_date") #ordenar por fecha de factura de forma ascendente
         if not moves:
             raise ValidationError(_("No se encontraron líneas de factura para el período seleccionado."))
 
@@ -101,7 +101,7 @@ class ReportCompositionDebtWizard(models.TransientModel):
         if partner_ids:
             pay_domain += [("partner_id", "in", partner_ids)]
 
-        groups = self.env["account.payment.group"].search(pay_domain, order="partner_id, company_id, payment_date, id")
+        groups = self.env["account.payment.group"].search(pay_domain, order="payment_date") #ordenar por fecha de pago de forma ascendente
         for group in groups:
             d = group.payment_date
 
