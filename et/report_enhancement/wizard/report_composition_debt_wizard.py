@@ -1,10 +1,9 @@
 # -*- coding: utf-8 -*-
 import io, xlsxwriter, base64
 from collections import defaultdict
-from datetime import date
 from odoo import api, fields, models, _
 from odoo.exceptions import UserError, ValidationError
-
+from datetime import date as pydate
 
 class ReportCompositionDebtWizard(models.TransientModel):
     """Reporte de composicion de deuda Cliente."""
@@ -59,46 +58,86 @@ class ReportCompositionDebtWizard(models.TransientModel):
     # 
     # ---------------------------
     def _get_lines(self, partner_ids):
-        data = []
-        domain = [("move_type", "in", ["out_invoice", "out_refund"]), ("state", "=", "posted")]
+        lines = []
+
+        # FACTURAS / NC CLIENTE
+        move_domain = [
+            ("move_type", "in", ["out_invoice", "out_refund"]),
+            ("state", "=", "posted"),
+        ]
         if partner_ids:
-            domain += [("partner_id", "in", partner_ids)]
-            
-        account_moves = self.env["account.move"].search(domain)
-        if not account_moves:
-            raise ValidationError(_("No se encontraron líneas de factura para el período seleccionado."))   
-        
-        for move in account_moves:
-            debit= move.amount_total if move.move_type == "out_invoice" else 0.0
+            move_domain += [("partner_id", "in", partner_ids)]
+
+        moves = self.env["account.move"].search(move_domain, order="partner_id, company_id, currency_id, invoice_date, id")
+        if not moves:
+            raise ValidationError(_("No se encontraron líneas de factura para el período seleccionado."))
+
+        for move in moves:
+            # fecha consistente
+            d = move.invoice_date or move.date
+
+            debit = move.amount_total if move.move_type == "out_invoice" else 0.0
             credit = move.amount_total if move.move_type == "out_refund" else 0.0
-            data.append({
+
+            # importe con signo para saldo acumulado (en moneda del documento)
+            signed_amount = move.amount_total if move.move_type == "out_invoice" else -move.amount_total
+
+            lines.append({
+                "key": (move.partner_id.id, move.company_id.id, move.currency_id.id),
+                "sort_date": d or pydate.min,
                 "partner": move.partner_id.display_name,
                 "invoice_number": move.name,
-                "date": move.invoice_date,
+                "date": d,
                 "debit": debit,
                 "credit": credit,
-                "subtotal": move.amount_total if move.move_type == "out_invoice" else -move.amount_total,
-                "company": move.company_id.display_name
+                "subtotal": signed_amount,
+                "company": move.company_id.display_name,
+                # auxiliares internos
+                "_signed_amount": signed_amount,
             })
-            
-        # añadir los recibos de cliente
-        account_payment_domain = [("partner_type", "=", "customer"), ("state", "=", "posted")]
+
+        # RECIBOS (PAYMENT GROUP)
+        pay_domain = [("partner_type", "=", "customer"), ("state", "=", "posted")]
         if partner_ids:
-            account_payment_domain += [("partner_id", "in", partner_ids)]
-        account_payment_groups = self.env["account.payment.group"].search(account_payment_domain)
-        if account_payment_groups:
-            for group in account_payment_groups:
-                data.append({
-                    "partner": group.partner_id.display_name,
-                    "invoice_number": group.display_name,
-                    "date": group.payment_date,
-                    "debit": 0.0,
-                    "credit": group.payments_amount,
-                    "subtotal": -group.payments_amount,
-                    "company": group.company_id.display_name
-                })
+            pay_domain += [("partner_id", "in", partner_ids)]
+
+        groups = self.env["account.payment.group"].search(pay_domain, order="partner_id, company_id, payment_date, id")
+        for group in groups:
+            d = group.payment_date
+
+            # en general payments_amount reduce deuda
+            signed_amount = -group.payments_amount
+
+            # ojo: si payment group tiene moneda, úsala; si no, caer a company currency
+            currency = getattr(group, "currency_id", False) or group.company_id.currency_id
+
+            lines.append({
+                "key": (group.partner_id.id, group.company_id.id, currency.id),
+                "sort_date": d or pydate.min,
+                "partner": group.partner_id.display_name,
+                "invoice_number": group.display_name,
+                "date": d,
+                "debit": 0.0,
+                "credit": group.payments_amount,
+                "subtotal": signed_amount,
+                "company": group.company_id.display_name,
+                "_signed_amount": signed_amount,
+            })
+
+        # ORDEN + SALDO ACUMULADO
+        lines.sort(key=lambda x: (x["key"], x["sort_date"]))
+
+        running = defaultdict(float)
+        data = []
+        for ln in lines:
+            k = ln.pop("key")
+            amt = ln.pop("_signed_amount")
+            running[k] += amt
+            ln["pending_balance"] = running[k]   # <- saldo gradual/acumulado
+            ln.pop("sort_date", None)
+            data.append(ln)
+
         return data
-    
     
     
     # ---------------------------
@@ -179,11 +218,12 @@ class ReportCompositionDebtWizard(models.TransientModel):
         ws_composition_debt.set_column(3, 3, 25)      # Debe
         ws_composition_debt.set_column(4, 4, 25)      # Haber
         ws_composition_debt.set_column(5, 5, 30)      # Total Documento
-        ws_composition_debt.set_column(6, 6, 30)      # Empresa
+        ws_composition_debt.set_column(6, 6, 30)      # Saldo Pendiente
+        ws_composition_debt.set_column(7, 7, 30)      # Empresa
         # Alto de filas de título/encabezado
         ws_composition_debt.set_row(0, 20)
         ws_composition_debt.set_row(1, 18)
-        headers_salida = ['CLIENTE', 'FECHA', 'DOCUMENTO', 'DEBE', 'HABER', 'TOTAL DOCUMENTO', 'EMPRESA']
+        headers_salida = ['CLIENTE', 'FECHA', 'DOCUMENTO', 'DEBE', 'HABER', 'TOTAL DOCUMENTO', 'SALDO PENDIENTE', 'EMPRESA']
         for col, h in enumerate(headers_salida):
             ws_composition_debt.write(1, col, h, fmt_header)
         row = 2
@@ -198,13 +238,14 @@ class ReportCompositionDebtWizard(models.TransientModel):
             ws_composition_debt.write(row, 3, line['debit'], fmt_contab)
             ws_composition_debt.write(row, 4, line['credit'], fmt_contab)
             ws_composition_debt.write(row, 5, line['subtotal'], fmt_money)
-            ws_composition_debt.write(row, 6, line['company'], fmt_text_l)
+            ws_composition_debt.write(row, 6, line['pending_balance'], fmt_money)
+            ws_composition_debt.write(row, 7, line['company'], fmt_text_l)
             row += 1
         #totales
-        ws_composition_debt.write(row, 2, 'TOTAL', fmt_text_bold_l)
-        ws_composition_debt.write(row, 3, total_debe, fmt_total_contab)
-        ws_composition_debt.write(row, 4, total_haber, fmt_total_contab)
-        ws_composition_debt.write(row, 5, total_subtotal, fmt_total_contab)
+        ws_composition_debt.write(row, 3, 'TOTAL', fmt_text_bold_l)
+        ws_composition_debt.write(row, 4, total_debe, fmt_total_contab)
+        ws_composition_debt.write(row, 5, total_haber, fmt_total_contab)
+        ws_composition_debt.write(row, 6, total_subtotal, fmt_total_contab)
         workbook.close()
         output.seek(0)
         return output.read()
