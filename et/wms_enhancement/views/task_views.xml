@@ -41,7 +41,8 @@
         <field name="arch" type="xml">
             <tree string="Tareas WMS" default_order="create_date desc">
                 <header>
-                    <button name="send_and_receive_digip" type="object" string="Enviar y Recibir Digip"/>             
+                    <button name="send_and_receive_digip" type="object" string="Enviar y Recibir Digip"/>   
+                    <button name="action_enviar_compartido" type="object" string="Enviar a Compartido"/>      
                 </header>        
                 <field name="create_date" widget="remaining_days" string="Fecha"/>
                 <field name="name" string="Tarea"/>                
