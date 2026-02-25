@@ -66,6 +66,7 @@
 
                 <field name="type" widget="badge" decoration-danger="type=='return'" decoration-info="type=='reception'" decoration-primary="type=='fraction'" decoration-success="type=='preparation'" decoration-warning="type=='replenish'" decoration-bf="type=='relocate'"/>
                 <field name="digip_state" widget="badge" decoration-warning="digip_state == 'sent'" decoration-success="digip_state == 'received'"/>
+                <field name="invoice_state" widget="badge" decoration-success="invoice_state== 'invoiced'"/>
                 <!-- <field name="state_preparation" widget="badge" attrs="{'column_invisible': [('type', '!=', 'preparation')]}"/> -->
             </tree>
         </field>
