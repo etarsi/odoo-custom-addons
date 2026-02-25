@@ -124,6 +124,8 @@
         <field name="arch" type="xml">
             <form string="Tarea WMS">
                 <header>
+                    <field name="invoice_state" invisible="1"/>
+
                     <button name="action_send_task_to_digip" type="object" string="Enviar a Digip" attrs="{'invisible': [('digip_state', '!=', 'no')]}"/>
                     <button name="action_receive_task_digip" type="object" string="Recibir de Digip" attrs="{'invisible': [('digip_state', '!=', 'sent')]}"/>
                     <button name="action_print_remito" class="oe_highlight" type="object" string="IMPRIMIR REMITO" attrs="{'invisible': [('digip_state', '!=', 'received')]}"/>
