@@ -55,6 +55,10 @@ class WMSTask(models.Model):
     invoicing_type = fields.Char(string="Tipo de Facturación")
     invoice_ids = fields.One2many(string="Facturas", comodel_name="account.move", inverse_name="task_id")
     invoice_count = fields.Integer(string="Facturas", compute="_compute_invoice_count")
+    invoice_state = fields.Selection(string="Estado de Facturación", selection=[
+        ('no', 'No Facturado'),
+        ('invoiced', 'Facturado')
+    ], default='no')
     priority = fields.Integer(string="Prioridad")
     assigned_user_id = fields.Many2one(string="Asignado a", comodel_name="res.users")
     task_line_ids = fields.One2many(string="Líneas de Tarea", comodel_name="wms.task.line", inverse_name="task_id")
@@ -635,6 +639,7 @@ class WMSTask(models.Model):
         })
 
         self.invoice_ids = [(6, 0, invoices.ids)]
+        self.invoice_state = 'invoiced'
 
         for line in self.task_line_ids.filtered(lambda m: m.sale_line_id):
             line.sale_line_id.qty_invoiced += line.quantity_picked
