@@ -143,7 +143,7 @@ class WMSTask(models.Model):
 
             task = {
                 "codigo": record.name,
-                "clienteUbicacionCodigo": "u"+str(record.partner_id.id),
+                "clienteUbicacionCodigo": "u"+str(record.partner_address_id.id),
                 "fecha": str(fields.Date.context_today(self)),
                 "estado": "Pendiente",
                 "observacion": record.name,
