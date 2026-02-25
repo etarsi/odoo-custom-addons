@@ -737,10 +737,10 @@ class WMSTask(models.Model):
     
     def action_enviar_compartido(self, envio_forzar=False):
         for record in self:
-            if record.state_preparation != 'preparation' and not envio_forzar:
+            if record.digip_state != 'sent' and not envio_forzar:
                 raise ValidationError(_("El remito %s, debe estar en preparación para enviarlo al compartido.") % record.name)
             if record.shared_route == 'si' and not envio_forzar:
-                raise ValidationError(_("El remito con el Código WMS %s, ya fue enviado al compartido anteriormente.") % record.codigo_wms)
+                raise ValidationError(_("El remito con la Tarea %s, ya fue enviado al compartido anteriormente.") % record.name)
             direccion_entrega = ""
             cliente = ""
             if record.carrier_id:
@@ -761,8 +761,8 @@ class WMSTask(models.Model):
                     record.transfer_id.origin or "",                         # D
                     record.name or "",                           # E
                     cliente,                                    # F
-                    (round(record.packaging_qty, 2) or ""),     # G
-                    len(record.move_ids_without_package) or 0,   # H
+                    (round(record.bultos_count, 2) or ""),     # G
+                    len(record.task_line_ids) or 0,   # H
                     "",                                          # I
                     "",                                          # J
                     "", "", "", "",                              # K L M N
