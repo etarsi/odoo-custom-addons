@@ -138,15 +138,6 @@ class WMSTask(models.Model):
     def action_send_task_to_digip(self):    
         for record in self:
             
-
-
-            a = "u"+str(record.partner_address_id.id)
-
-            raise UserError(a)
-
-
-
-
             if record.digip_state != 'no':
                 continue
 
