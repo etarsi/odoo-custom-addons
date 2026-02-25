@@ -11,48 +11,48 @@ _logger = logging.getLogger(__name__)
 class WMSTaskController(http.Controller):
     
 
-    # @http.route('/remito/auto/<int:task_id>', type='http', auth='user', website=False)
-    # def remito_auto(self, task_id, **kwargs):
-    #     task = request.env['wms.task'].browse(task_id)
-    #     if not task.exists():
-    #         return request.not_found()
+    @http.route('/nremito/auto/<int:task_id>', type='http', auth='user', website=False)
+    def new_remito_auto(self, task_id, **kwargs):
+        task = request.env['wms.task'].browse(task_id)
+        if not task.exists():
+            return request.not_found()
 
-    #     tipo = str(task.invoicing_type or '').strip().upper()
-    #     blanco_pct, negro_pct = self._get_type_proportion(tipo)
+        tipo = task.invoicing_type
+        blanco_pct, negro_pct = self._get_type_proportion(tipo)
 
-    #     pdf_parts = []
+        pdf_parts = []
 
-    #     # --- Remito A (blanco) ---
-    #     if blanco_pct > 0:
-    #         company_a = task.company_id
-    #         # si tenés alguna lógica especial para A, aplicala acá
-    #         pdf_a = task._build_remito_pdf(task, blanco_pct, company_a, 'a')
-    #         if pdf_a:
-    #             pdf_parts.append(pdf_a)
+        # --- Remito A (blanco) ---
+        if blanco_pct > 0:
+            company_a = task.company_id
+            # si tenés alguna lógica especial para A, aplicala acá
+            pdf_a = task._build_remito_pdf(task, blanco_pct, company_a, 'a')
+            if pdf_a:
+                pdf_parts.append(pdf_a)
 
-    #     # --- Remito B (negro) ---
-    #     if negro_pct > 0:
-    #         # tu excepción para TIPO 3
-    #         company_b = request.env['res.company'].browse(1) if tipo == 'TIPO 3' else task.company_id
-    #         pdf_b = task._build_remito_pdf(task, negro_pct, company_b, 'b')
-    #         if pdf_b:
-    #             pdf_parts.append(pdf_b)
+        # --- Remito B (negro) ---
+        if negro_pct > 0:
+            # tu excepción para TIPO 3
+            company_b = request.env['res.company'].browse(1) if tipo == 'TIPO 3' else task.company_id
+            pdf_b = task._build_remito_pdf(task, negro_pct, company_b, 'b')
+            if pdf_b:
+                pdf_parts.append(pdf_b)
 
-    #     if not pdf_parts:
-    #         return request.make_response("Nada para imprimir", headers=[('Content-Type', 'text/plain')])
+        if not pdf_parts:
+            return request.make_response("Nada para imprimir", headers=[('Content-Type', 'text/plain')])
 
-    #     pdf_bytes = pdf_parts[0] if len(pdf_parts) == 1 else merge_pdf(pdf_parts)
+        pdf_bytes = pdf_parts[0] if len(pdf_parts) == 1 else merge_pdf(pdf_parts)
 
-    #     filename = 'REM_%s.pdf' % (task.name or str(task_id)).replace('/', '-')
-    #     headers = [
-    #         ('Content-Type', 'application/pdf'),
-    #         ('Content-Length', str(len(pdf_bytes))),
-    #         ('Content-Disposition', 'inline; filename="%s"' % filename),
-    #         # Opcional: evitar caches raros del navegador
-    #         ('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0'),
-    #         ('Pragma', 'no-cache'),
-    #     ]
-    #     return request.make_response(pdf_bytes, headers=headers)
+        filename = 'REM_%s.pdf' % (task.name or str(task_id)).replace('/', '-')
+        headers = [
+            ('Content-Type', 'application/pdf'),
+            ('Content-Length', str(len(pdf_bytes))),
+            ('Content-Disposition', 'inline; filename="%s"' % filename),
+            # Opcional: evitar caches raros del navegador
+            ('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0'),
+            ('Pragma', 'no-cache'),
+        ]
+        return request.make_response(pdf_bytes, headers=headers)
        
     
     def _get_type_proportion(self, type):
@@ -67,7 +67,7 @@ class WMSTaskController(http.Controller):
         return proportions.get(type, (1.0, 0.0))
     
 
-    @http.route('/nremito/auto/<int:task_id>', type='http', auth='user')
+    @http.route('/newremito/auto/<int:task_id>', type='http', auth='user')
     def new_remito_auto(self, task_id, **kwargs):
         task = request.env['wms.task'].browse(task_id)
         if not task.exists():

@@ -55,6 +55,10 @@ class WMSTask(models.Model):
     invoicing_type = fields.Char(string="Tipo de Facturación")
     invoice_ids = fields.One2many(string="Facturas", comodel_name="account.move", inverse_name="task_id")
     invoice_count = fields.Integer(string="Facturas", compute="_compute_invoice_count")
+    invoice_state = fields.Selection(string="Estado de Facturación", selection=[
+        ('no', 'No Facturado'),
+        ('invoiced', 'Facturado')
+    ], default='no')
     priority = fields.Integer(string="Prioridad")
     assigned_user_id = fields.Many2one(string="Asignado a", comodel_name="res.users")
     task_line_ids = fields.One2many(string="Líneas de Tarea", comodel_name="wms.task.line", inverse_name="task_id")
@@ -144,7 +148,7 @@ class WMSTask(models.Model):
 
             task = {
                 "codigo": record.name,
-                "clienteUbicacionCodigo": "u"+str(record.partner_id.id),
+                "clienteUbicacionCodigo": "u"+str(record.partner_address_id.id),
                 "fecha": str(fields.Date.context_today(self)),
                 "estado": "Pendiente",
                 "observacion": record.name,
@@ -293,7 +297,7 @@ class WMSTask(models.Model):
         self.ensure_one()
         return {
             'type': 'ir.actions.act_url',
-            'url': f'/nremito/auto/{self.id}',
+            'url': f'/newremito/auto/{self.id}',
             'target': 'new',
         }
 
@@ -404,6 +408,8 @@ class WMSTask(models.Model):
 
     def _prepare_remito_data(self, task, proportion, company_id, type):
         partner = task.partner_id
+        partner_shipping = task.partner_address_id
+
 
         lines = []
         total_bultos = 0
@@ -468,7 +474,7 @@ class WMSTask(models.Model):
             'date': date,
             'client': {
                 'name': partner_name,
-                'address': partner.street[:54] or '',
+                'address': partner_shipping.street[:54] or '',
                 'location': client_location[:54] or '',
                 'cuit': partner.vat,
                 'iva': partner.l10n_ar_afip_responsibility_type_id.name if partner.l10n_ar_afip_responsibility_type_id else '',
@@ -623,8 +629,7 @@ class WMSTask(models.Model):
             # Asignar journal correcto
             journal = self.env['account.journal'].search([
                 ('type', '=', 'sale'),
-                ('company_id', '=', company_negra.id),
-                ('code', '=', '00010')
+                ('company_id', '=', company_negra.id)
             ], limit=1)
             if not journal:
                 raise UserError("No se encontró un diario de ventas para Producción B.")
@@ -639,6 +644,7 @@ class WMSTask(models.Model):
         })
 
         self.invoice_ids = [(6, 0, invoices.ids)]
+        self.invoice_state = 'invoiced'
 
         for line in self.task_line_ids.filtered(lambda m: m.sale_line_id):
             line.sale_line_id.qty_invoiced += line.quantity_picked
