@@ -88,7 +88,7 @@ class WMSTask(models.Model):
 
     # category_ids = fields.One2many()
 
-    bultos_count = fields.Float()
+    bultos_count = fields.Float(string="Cantidad de Bultos", compute="_compute_bultos_count")
 
 
     # scheduled_at = fields.Datetime()
@@ -103,6 +103,17 @@ class WMSTask(models.Model):
     
     # transporte
     carrier_id = fields.Many2one(string="Transporte", related='partner_id.property_delivery_carrier_id', store=True)
+    
+    #COMPUTADOS
+    def _compute_bultos_count(self):
+        for record in self:
+            bultos = 0
+            for line in record.task_line_ids:
+                if line.transfer_line_id.uxb:
+                    bultos += line.quantity / line.transfer_line_id.uxb
+                else:
+                    bultos += line.quantity
+            record.bultos_count = bultos
 
     @api.model
     def create(self, vals):
@@ -759,7 +770,7 @@ class WMSTask(models.Model):
                     record._fmt_dt_local(record.transfer_id.create_date),   # B
                     record.name or "",                     # C
                     record.transfer_id.origin or "",                         # D
-                    record.name or "",                           # E
+                    record.transfer_id.name or "",                           # E
                     cliente,                                    # F
                     (round(record.bultos_count, 2) or ""),     # G
                     len(record.task_line_ids) or 0,   # H
