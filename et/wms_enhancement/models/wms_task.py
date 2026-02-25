@@ -303,7 +303,7 @@ class WMSTask(models.Model):
             total_bultos = 0
 
             for line in task.task_line_ids:
-                total_bultos += line.qty_picked / line.uxb
+                total_bultos += line.quantity_picked / line.uxb
 
 
             total_packages = sum(
