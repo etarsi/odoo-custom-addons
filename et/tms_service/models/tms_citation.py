@@ -31,6 +31,14 @@ class TmsCitation(models.Model):
     observations = fields.Text(string="Observaciones", tracking=True)
     # En la planilla 'Btos G.C' viene con decimales (ej 35.67), por eso Float.
     bulto_count = fields.Float(string="Cantidad de Bultos", tracking=True)
+    tms_stock_picking_id = fields.Many2one(
+        "tms.stock.picking",
+        string="Remito Asociado",
+        required=False,
+        ondelete="restrict",
+        index=True,
+        tracking=True,
+    )
     state = fields.Selection(
         [
             ("draft", "Borrador"),
@@ -109,14 +117,6 @@ class TmsRoadmap(models.Model):
     in_ruta = fields.Integer(string="Indice de Vuelta-Ruta", store=True, tracking=True)
     partner_id = fields.Many2one("res.partner", string="Titulo", store=True, tracking=True)
     direction = fields.Char(string="Dirección", store=True, tracking=True)
-    tms_stock_picking_id = fields.Many2one(
-        "tms.stock.picking",
-        string="Remito Asociado",
-        required=False,
-        ondelete="restrict",
-        index=True,
-        tracking=True,
-    )
 
 
     @api.model_create_multi
