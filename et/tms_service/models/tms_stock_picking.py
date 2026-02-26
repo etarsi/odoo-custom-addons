@@ -1,4 +1,4 @@
-from odoo import models, fields, api
+from odoo import models, fields, api, _
 from odoo.exceptions import ValidationError
 import logging
 _logger = logging.getLogger(__name__)
@@ -8,6 +8,7 @@ class TmsStockPicking(models.Model):
     _name = 'tms.stock.picking'
     _description = 'Ruteo Stock Picking'
 
+    name = fields.Char(string='Referencia', required=True, copy=False, index=True, default=lambda self: _("New"))
     picking_ids = fields.Many2many(
         'stock.picking',
         'tms_stock_picking_rel',   
@@ -209,3 +210,10 @@ class TmsStockPicking(models.Model):
                 'sticky': False,
             }
         }
+        
+    @api.model_create_multi
+    def create(self, vals_list):
+        for vals in vals_list:
+            if vals.get("name", _("New")) == _("New"):
+                vals["name"] = self.env["ir.sequence"].next_by_code("tms.stock.picking") or _("New")
+        return super().create(vals_list)
