@@ -20,7 +20,6 @@
                 <field name="partner_id"/>
                 <field name="direction"/>
                 <field name="bulto_count"/>
-                <field name="wms_task_id"/>
                 <field name="bulto_count_verified"/>
                 <field name="state"/>
             </tree>
