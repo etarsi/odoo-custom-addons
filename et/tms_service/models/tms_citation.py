@@ -9,7 +9,7 @@ class TmsCitation(models.Model):
     _order = "date desc, id desc"
 
     name = fields.Char(string="Referencia", required=True, copy=False, index=True, default=lambda self: _("New"), tracking=True)
-    roadmap_ids = fields.One2many("tms.roadmap", "citation_id", string="Hojas de Rutas", index=True, tracking=True)
+    tms_roadmap_ids = fields.One2many("tms.roadmap", "citation_id", string="Hojas de Rutas", index=True, tracking=True)
     date = fields.Datetime(string="Fecha", required=True, default=fields.Datetime.now, index=True, tracking=True)
     mes = fields.Char(string="Mes", compute="_compute_mes", store=True, index=True, tracking=True)
     empresa_id = fields.Many2one("delivery.carrier", string="Empresa", required=True, index=True, tracking=True)
