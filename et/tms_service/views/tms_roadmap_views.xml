@@ -11,17 +11,17 @@
                 decoration-warning="state == 'pending'"
                 decoration-success="state == 'completed'"
                 decoration-danger="state == 'canceled'">
-                <field name="name"/>
-                <field name="date"/>
-                <field name="transport_id"/>
-                <field name="assistants"/>
-                <field name="patente"/>
-                <field name="in_ruta"/>
-                <field name="partner_id"/>
-                <field name="direction"/>
-                <field name="bulto_count"/>
-                <field name="bulto_count_verified"/>
-                <field name="state"/>
+                <field name="name" optional="show"/>
+                <field name="date" optional="show"/>
+                <field name="transport_id" optional="show"/>
+                <field name="assistants" optional="show"/>
+                <field name="patente" optional="show"/>
+                <field name="in_ruta" optional="show"/>
+                <field name="partner_id" optional="show"/>
+                <field name="direction" optional="show"/>
+                <field name="bulto_count" optional="show"/>
+                <field name="bulto_count_verified" optional="show"/>
+                <field name="state" optional="show"/>
             </tree>
         </field>
     </record>
@@ -60,6 +60,12 @@
                         </group>
                     </group>
                 </sheet>
+                <!-- Chatter -->
+                <div class="oe_chatter">
+                    <field name="message_follower_ids" groups="base.group_user"/>
+                    <field name="activity_ids"/>
+                    <field name="message_ids"/>
+                </div>
             </form>
         </field>
     </record>

@@ -823,13 +823,13 @@ class WMSTask(models.Model):
                 ]
                 enviado = record.env["google.sheets.client"].append_row(values)
                 if enviado == 200 and record.shared_route == 'no':
-                    #record._crear_tms_stock_picking()
+                    record._crear_tms_stock_picking()
                     record.write({'shared_route': 'si'})
             except Exception as e:
                 raise ValidationError(_("Fallo enviando a Google Sheets para picking %s: %s") % (record.name, e))
 
     def _crear_tms_stock_picking(self):
-        tms = self.env['tms.stock.picking'].search([('picking_ids', 'in', self.id)], limit=1)
+        tms = self.env['tms.stock.picking'].search([('wms_task_id', '=', self.id)], limit=1)
         if not tms:
             direccion_entrega = ""
             if self.carrier_id:

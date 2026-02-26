@@ -6,68 +6,72 @@ _logger = logging.getLogger(__name__)
 
 class TmsStockPicking(models.Model):
     _name = 'tms.stock.picking'
+    _inherit = ['mail.thread', 'mail.activity.mixin']
     _description = 'Ruteo Stock Picking'
 
-    name = fields.Char(string='Referencia', required=True, copy=False, index=True, default=lambda self: _("New"))
+    name = fields.Char(string='Referencia', required=True, copy=False, index=True, default=lambda self: _("New"), tracking=True)
     picking_ids = fields.Many2many(
         'stock.picking',
         'tms_stock_picking_rel',   
         'tms_id',
         'picking_id',
         string='Referencias',
-        help='Referencias de transferencias relacionadas'
+        help='Referencias de transferencias relacionadas',
+        tracking=True
     )
-    fecha_entrega = fields.Datetime(string='Fecha de Carga')
-    fecha_envio_wms = fields.Datetime(string='Fecha de Envío WMS')
-    codigo_wms = fields.Char(string='Código WMS')
-    doc_origen = fields.Char( string='Doc. Origen')
-    partner_id = fields.Many2one('res.partner', string='Cliente')
-    cantidad_bultos = fields.Float(string='Cantidad de Bultos')
-    cantidad_lineas = fields.Integer(string='Linea de Pedido')
-    carrier_id = fields.Many2one('delivery.carrier', string='Transportista')
-    observaciones = fields.Text(string='Obs. de Operaciones')
-    industry_id = fields.Many2one('res.partner.industry', string='Despacho')
-    ubicacion = fields.Char(string='Ubicación')
+    fecha_entrega = fields.Datetime(string='Fecha de Carga', index=True, tracking=True)
+    fecha_envio_wms = fields.Datetime(string='Fecha de Envío WMS', tracking=True)
+    codigo_wms = fields.Char(string='Código WMS', tracking=True)
+    doc_origen = fields.Char( string='Doc. Origen', tracking=True)
+    partner_id = fields.Many2one('res.partner', string='Cliente', tracking=True)
+    cantidad_bultos = fields.Float(string='Cantidad de Bultos', tracking=True)
+    cantidad_lineas = fields.Integer(string='Linea de Pedido', tracking=True)
+    carrier_id = fields.Many2one('delivery.carrier', string='Transportista', tracking=True)
+    observaciones = fields.Text(string='Obs. de Operaciones', tracking=True)
+    industry_id = fields.Many2one('res.partner.industry', string='Despacho', tracking=True)
+    ubicacion = fields.Char(string='Ubicación', tracking=True)
     estado_digip = fields.Selection([('closed','Enviado y recibido'),
                                         ('done','Enviado'),
                                         ('no','No enviado'),
                                         ('error','Error envio'),
                                         ('pending','Pendiente')
-                                    ], string='Estado WMS', default='no')
+                                    ], string='Estado WMS', default='no', tracking=True)
     estado_despacho = fields.Selection([('void', 'Anulado'),
                                         ('pending', 'Pendiente'),
                                         ('in_preparation', 'En Preparación'),
                                         ('prepared', 'Preparado'),
                                         ('delivered', 'Despachado'),
-                                    ], string='Estado Despacho', default='pending')
-    fecha_despacho = fields.Datetime(string='Fecha Despacho')
-    observacion_despacho = fields.Text(string='Observaciones Despacho')
-    contacto_calle = fields.Char(string='Contacto Calle')
-    direccion_entrega = fields.Char(string='Dirección Entrega')
-    contacto_cp = fields.Char(string='Contacto CP')
-    contacto_ciudad = fields.Char(string='Contacto Ciudad')
-    carrier_address = fields.Char(string='Transportista/Carrier Address')
-    company_id = fields.Many2one('res.company', string='Compañia', default=lambda self: self.env.company)
-    user_id = fields.Many2one('res.users', string='Usuario', default=lambda self: self.env.user)
-    sale_id = fields.Many2one('sale.order', string='Pedido de Venta')
-    delivery_state= fields.Selection([('no', 'No entregado'), ('delivered', 'Entregado'), ('returned', 'Devuelto')], default='no', copy=False, string='Estado de Entrega')
+                                    ], string='Estado Despacho', default='pending', tracking=True)
+    fecha_despacho = fields.Datetime(string='Fecha Despacho', tracking=True)
+    observacion_despacho = fields.Text(string='Observaciones Despacho', tracking=True)
+    contacto_calle = fields.Char(string='Contacto Calle', tracking=True)
+    direccion_entrega = fields.Char(string='Dirección Entrega', tracking=True)
+    contacto_cp = fields.Char(string='Contacto CP', tracking=True)
+    contacto_ciudad = fields.Char(string='Contacto Ciudad', tracking=True)
+    carrier_address = fields.Char(string='Transportista/Carrier Address', tracking=True)
+    company_id = fields.Many2one('res.company', string='Compañia', default=lambda self: self.env.company, tracking=True)
+    user_id = fields.Many2one('res.users', string='Usuario', default=lambda self: self.env.user, tracking=True)
+    sale_id = fields.Many2one('sale.order', string='Pedido de Venta', tracking=True)
+    delivery_state= fields.Selection([('no', 'No entregado'), 
+                                        ('delivered', 'Entregado'), 
+                                        ('returned', 'Devuelto')], default='no', copy=False, string='Estado de Entrega', tracking=True)
     
     #contador
-    picking_count = fields.Integer(compute="_compute_counts", string="Transferencias")
-    sale_count = fields.Integer(compute="_compute_counts", string="Venta")
-    account_move_ids = fields.Many2many('account.move', string='Facturas')
-    amount_totals = fields.Monetary(string='Total Facturado', store=True)
-    amount_nc_totals = fields.Monetary(string='Total N. Crédito', store=True)
-    items_ids = fields.Many2many('product.category', string='Rubros')
+    picking_count = fields.Integer(compute="_compute_counts", string="Transferencias", tracking=True)
+    sale_count = fields.Integer(compute="_compute_counts", string="Venta", tracking=True)
+    account_move_ids = fields.Many2many('account.move', string='Facturas', tracking=True)
+    amount_totals = fields.Monetary(string='Total Facturado', store=True, tracking=True)
+    amount_nc_totals = fields.Monetary(string='Total N. Crédito', store=True, tracking=True)
+    items_ids = fields.Many2many('product.category', string='Rubros', tracking=True)
     currency_id = fields.Many2one('res.currency', string='Moneda', default=lambda self: self.env.company.currency_id)
-    account_move_count = fields.Integer(compute="_compute_account_move_count", string="Facturas")
+    account_move_count = fields.Integer(compute="_compute_account_move_count", string="Facturas", tracking=True)
     invoice_status = fields.Selection([
         ('no_invoice', 'Sin factura'),
         ('draft', 'Solo borrador'),
         ('posted', 'Solo confirmadas'),
         ('cancel', 'Solo canceladas'),
         ('mixed', 'Mixto'),
-    ], string='Estado Facturas', compute='_compute_invoice_status', store=True)
+    ], string='Estado Facturas', compute='_compute_invoice_status', store=True, tracking=True)
     
     
     @api.depends('account_move_ids', 'account_move_ids.state')

@@ -6,13 +6,6 @@
     <!-- Submenu de Ruteo de Inventario-->
     <menuitem id="menu_tms_inventario" name="Ruteo de Inventario" parent="tms_root_logo"
               action="action_tms_stock_picking" sequence="10"/>
-
-    <!-- Submenu de Citaciones-->
-    <menuitem id="menu_tms_citation"
-              name="Citaciones"
-              parent="tms_root_logo"
-              action="action_tms_citation"
-              sequence="20"/>
     
     <!-- SUBMENU DE HOJA DE RUTA-->
     <menuitem id="menu_tms_roadmap"
@@ -21,9 +14,16 @@
               action="action_tms_roadmap"
               sequence="30"/>
 
+    <!-- Submenu de Citaciones-->
+    <menuitem id="menu_tms_citation"
+              name="Citaciones"
+              parent="tms_root_logo"
+              action="action_tms_citation"
+              sequence="50"/>
+
     <!-- Submenu de Transporte-->
     <menuitem id="menu_tms_transporte" name="Transportes" parent="tms_root_logo"
-              action="delivery.action_delivery_carrier_form" sequence="40"/>
+              action="delivery.action_delivery_carrier_form" sequence="70"/>
 
 
 

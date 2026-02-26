@@ -93,6 +93,12 @@
                         </page>
                     </notebook>
                 </sheet>
+                <!-- Chatter -->
+                <div class="oe_chatter">
+                    <field name="message_follower_ids" groups="base.group_user"/>
+                    <field name="activity_ids"/>
+                    <field name="message_ids"/>
+                </div>
             </form>
         </field>
     </record>
@@ -102,6 +108,7 @@
         <field name="model">tms.stock.picking</field>
         <field name="arch" type="xml">
             <tree edit="true" default_order="fecha_envio_wms desc" js_class="selection_sum_list">
+                <field name="name" optional="show"/>
                 <field name="fecha_entrega" optional="show"/>
                 <field name="fecha_envio_wms" widget="date" optional="show"/>
                 <field name="codigo_wms" optional="show"/>
