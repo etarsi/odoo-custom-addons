@@ -154,90 +154,90 @@ class WMSTransfer(models.Model):
         Crea tareas consumiendo qty_pending de las líneas disponibles (available_percent == 100).
         Soporta partir una misma wms.transfer.line entre múltiples tareas.
         """
-        self.ensure_one()
+        for record in self:
 
-        lines = self.line_ids.filtered(lambda l:
-            float_compare(l.available_percent or 0.0, 100.0, precision_digits=6) == 0
-            and (l.qty_pending or 0) > 0
-        )
+            lines = record.line_ids.filtered(lambda l:
+                float_compare(l.available_percent or 0.0, 100.0, precision_digits=6) == 0
+                and (l.qty_pending or 0) > 0
+            )
 
-        if not lines:
-            raise UserError(_("No hay disponibilidad de stock físico para generar tareas o las mismas ya fueron creadas."))
+            if not lines:
+                raise UserError(_("No hay disponibilidad de stock físico para generar tareas o las mismas ya fueron creadas."))
 
-        created_tasks = self.env['wms.task']
+            created_tasks = self.env['wms.task']
 
-        # Bucket (lo que va a ir a UNA tarea)
-        bucket = []  # lista de dicts: {'line': wtl, 'qty': unidades, 'bultos': bultos}
-        bucket_bultos = 0.0
-        bucket_distinct_lines = set()  # ids de wms.transfer.line usados en esta tarea
-
-        def close_bucket():
-            nonlocal bucket, bucket_bultos, bucket_distinct_lines, created_tasks
-            if not bucket:
-                return
-            task = self._wms_create_task_from_bucket(bucket)
-            created_tasks |= task
-            bucket = []
+            # Bucket (lo que va a ir a UNA tarea)
+            bucket = []  # lista de dicts: {'line': wtl, 'qty': unidades, 'bultos': bultos}
             bucket_bultos = 0.0
-            bucket_distinct_lines = set()
+            bucket_distinct_lines = set()  # ids de wms.transfer.line usados en esta tarea
 
-        for wtl in lines:
-            # Mientras esta línea tenga pendiente, vamos consumiendo en tareas sucesivas
-            while (wtl.qty_pending or 0) > 0:
-                if not wtl.uxb or wtl.uxb <= 0:
-                    raise UserError(_(
-                        "La línea %s (%s) no tiene UxB válido (uxb=%s)."
-                    ) % (wtl.id, wtl.product_id.display_name, wtl.uxb))
+            def close_bucket():
+                nonlocal bucket, bucket_bultos, bucket_distinct_lines, created_tasks
+                if not bucket:
+                    return
+                task = record._wms_create_task_from_bucket(bucket)
+                created_tasks |= task
+                bucket = []
+                bucket_bultos = 0.0
+                bucket_distinct_lines = set()
 
-                # Si el bucket ya alcanzó el máximo de líneas distintas, cerramos tarea
-                if len(bucket_distinct_lines) >= max_lines and (wtl.id not in bucket_distinct_lines):
-                    close_bucket()
+            for wtl in lines:
+                # Mientras esta línea tenga pendiente, vamos consumiendo en tareas sucesivas
+                while (wtl.qty_pending or 0) > 0:
+                    if not wtl.uxb or wtl.uxb <= 0:
+                        raise UserError(_(
+                            "La línea %s (%s) no tiene UxB válido (uxb=%s)."
+                        ) % (wtl.id, wtl.product_id.display_name, wtl.uxb))
 
-                # Bultos disponibles en el bucket actual
-                remaining_bucket_bultos = max_bultos - bucket_bultos
-                if float_compare(remaining_bucket_bultos, 0.0, precision_digits=6) <= 0:
-                    close_bucket()
-                    remaining_bucket_bultos = max_bultos
-
-                # Bultos pendientes de la línea (derivado de qty_pending / uxb)
-                wtl_pending_bultos = (wtl.qty_pending / float(wtl.uxb))
-
-                # Cuántos bultos tomar de esta línea para esta tarea
-                take_bultos = min(wtl_pending_bultos, remaining_bucket_bultos)
-
-                # Convertimos a unidades enteras (bultos * uxb)
-                # Importante: como qty_pending es int, y uxb es int, normalmente esto da exacto.
-                take_units = take_bultos * wtl.uxb
-
-                # Seguridad: no tomar más que lo pendiente
-                take_units = min(take_units, int(wtl.qty_pending))
-
-                if take_units <= 0:
-                        # No entra nada en este bucket -> cerrar y seguir
+                    # Si el bucket ya alcanzó el máximo de líneas distintas, cerramos tarea
+                    if len(bucket_distinct_lines) >= max_lines and (wtl.id not in bucket_distinct_lines):
                         close_bucket()
-                        continue
 
-                # Agregar al bucket
-                bucket.append({
-                    'line': wtl,
-                    'qty': take_units,
-                    'bultos': take_bultos,
-                })
-                bucket_bultos += take_bultos
-                bucket_distinct_lines.add(wtl.id)
+                    # Bultos disponibles en el bucket actual
+                    remaining_bucket_bultos = max_bultos - bucket_bultos
+                    if float_compare(remaining_bucket_bultos, 0.0, precision_digits=6) <= 0:
+                        close_bucket()
+                        remaining_bucket_bultos = max_bultos
 
-                # Consumir del pendiente (esto es lo que evita duplicar)
-                wtl.qty_pending -= take_units
+                    # Bultos pendientes de la línea (derivado de qty_pending / uxb)
+                    wtl_pending_bultos = (wtl.qty_pending / float(wtl.uxb))
 
-                # Si llegamos al límite de bultos o líneas, cerramos tarea
-                reached_bultos = float_compare(bucket_bultos, max_bultos, precision_digits=6) >= 0
-                reached_lines = len(bucket_distinct_lines) >= max_lines
-                if reached_bultos or reached_lines:
-                    close_bucket()
+                    # Cuántos bultos tomar de esta línea para esta tarea
+                    take_bultos = min(wtl_pending_bultos, remaining_bucket_bultos)
 
-        close_bucket()
+                    # Convertimos a unidades enteras (bultos * uxb)
+                    # Importante: como qty_pending es int, y uxb es int, normalmente esto da exacto.
+                    take_units = take_bultos * wtl.uxb
 
-        self.update_availability()
+                    # Seguridad: no tomar más que lo pendiente
+                    take_units = min(take_units, int(wtl.qty_pending))
+
+                    if take_units <= 0:
+                            # No entra nada en este bucket -> cerrar y seguir
+                            close_bucket()
+                            continue
+
+                    # Agregar al bucket
+                    bucket.append({
+                        'line': wtl,
+                        'qty': take_units,
+                        'bultos': take_bultos,
+                    })
+                    bucket_bultos += take_bultos
+                    bucket_distinct_lines.add(wtl.id)
+
+                    # Consumir del pendiente (esto es lo que evita duplicar)
+                    wtl.qty_pending -= take_units
+
+                    # Si llegamos al límite de bultos o líneas, cerramos tarea
+                    reached_bultos = float_compare(bucket_bultos, max_bultos, precision_digits=6) >= 0
+                    reached_lines = len(bucket_distinct_lines) >= max_lines
+                    if reached_bultos or reached_lines:
+                        close_bucket()
+
+            close_bucket()
+
+            record.update_availability()
 
         return {
             'type': 'ir.actions.act_window',
