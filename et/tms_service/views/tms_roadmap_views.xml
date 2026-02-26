@@ -52,7 +52,6 @@
                             <field name="patente"/>
                             <field name="in_ruta"/>
                             <field name="direction"/>
-                            <field name="wms_task_id"/>
                         </group>
                         <group>
                             <field name="date"/>
