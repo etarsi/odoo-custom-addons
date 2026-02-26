@@ -81,7 +81,7 @@
                             <field name="tms_roadmap_ids" context="{'default_citation_id': active_id}" mode="tree,form">
                                 <tree string="Hojas de Ruta">
                                     <field name="name"/>
-                                    <field name="destination"/>
+                                    <field name="partner_id"/>
                                     <field name="bulto_count"/>
                                     <field name="bulto_count_verified"/>
                                 </tree>
