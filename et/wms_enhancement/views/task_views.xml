@@ -54,7 +54,7 @@
     
                 <field name="priority" optional="hide"/>
                 <field name="bultos_count" string="Bultos" optional="show"/>
-                <field name="bultos_prepared" string="Bultos Preparados" optional="show"/>
+                <field name="bultos_prepared" string="Bultos Preparados" optional="show" decoration-danger="bultos_count!=bultos_prepared"/>
 
                 <field name="date_start" optional="hide"/>
                 <field name="date_done" optional="hide"/>
