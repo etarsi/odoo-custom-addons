@@ -154,6 +154,8 @@ class WMSTransfer(models.Model):
         Crea tareas consumiendo qty_pending de las líneas disponibles (available_percent == 100).
         Soporta partir una misma wms.transfer.line entre múltiples tareas.
         """
+        total_created_tasks = self.env['wms.task']
+
         for record in self:
 
             lines = record.line_ids.filtered(lambda l:
@@ -177,6 +179,7 @@ class WMSTransfer(models.Model):
                     return
                 task = record._wms_create_task_from_bucket(bucket)
                 created_tasks |= task
+                total_created_tasks |= task
                 bucket = []
                 bucket_bultos = 0.0
                 bucket_distinct_lines = set()
@@ -244,7 +247,7 @@ class WMSTransfer(models.Model):
             'name': _('Tareas WMS'),
             'res_model': 'wms.task',
             'view_mode': 'tree,form',
-            'domain': [('id', 'in', created_tasks.ids)],
+            'domain': [('id', 'in', total_created_tasks.ids)],
             'target': 'current',
         }
 
