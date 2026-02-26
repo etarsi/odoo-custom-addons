@@ -11,7 +11,7 @@ class WMSContainer(models.Model):
     uxb = fields.Integer(string="UxB")
     
     # area = fields.Many2one(string="Area")
-    # warehouse = fields.Many2one(string="Almacen")
+    warehouse = fields.Many2one(string="Almacen", comodel_name="wms.warehouse")
     rubro = fields.Char(string="Rubro")
     
     
