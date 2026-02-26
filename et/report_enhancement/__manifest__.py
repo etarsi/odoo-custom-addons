@@ -38,6 +38,7 @@
         'views/report_factura_rubros_temp_nav_views.xml',
         'views/wizards/report_balance_addition_wizard_views.xml',
         'views/wizards/report_composition_debt_wizard_views.xml',
+        'views/report_factura_rubros_temp_dn_views.xml',
         'views/menu.xml',
         'views/templates.xml',
     ],
