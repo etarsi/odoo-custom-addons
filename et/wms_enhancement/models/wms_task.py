@@ -81,13 +81,16 @@ class WMSTask(models.Model):
 
     # preparation
 
+    pending_task_line_ids = fields.One2many(string="Pendiente", comodel_name="wms.task.line", compute="_compute_pending_task_lines")
     declared_value = fields.Float(string="Valor Declarado", default=0)
+    next_location_id = fields.Many2one(string="Siguiente Ubicación", comodel_name="wms.stock.location", compute="_compute_next_location")
 
     ## statistics
 
     percent_complete = fields.Float(string="Completado %")
 
     # category_ids = fields.One2many()
+
     bultos_count = fields.Float(string="Bultos")
     bultos_prepared = fields.Float(string="Bultos Preparados")
     packages_count = fields.Float(string="Paquetes")
@@ -105,7 +108,6 @@ class WMSTask(models.Model):
     
     # transporte
     carrier_id = fields.Many2one(string="Transporte", related='partner_id.property_delivery_carrier_id', store=True)
-
 
     @api.model
     def create(self, vals):
@@ -137,6 +139,21 @@ class WMSTask(models.Model):
 
             record.bultos_count = total_bultos
 
+
+    @api.depends('task_line_ids.has_pending')
+    def _compute_pending_task_lines(self):
+        for record in self:            
+            record.pending_task_line_ids = self.env['wms.task.line'].search([
+                ('task_id', '=', record.id),
+                ('has_pending', '=', True)
+            ])
+
+
+    # @api.depends('pending_task_lines')
+    # def _compute_next_location(self):
+    #     for record in self:
+            
+
     def action_open_wms_transfer(self):
         self.ensure_one()
         if not self.transfer_id:
@@ -151,6 +168,31 @@ class WMSTask(models.Model):
            'target': 'current',
         }
     
+
+    # OMITIR CODIGO durante el picking
+
+    # def omitir_codigo(self):
+
+
+    # def lanzar_pedido(self):
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     def action_send_task_to_digip(self):    
         for record in self:
@@ -794,19 +836,15 @@ class WMSTask(models.Model):
                     cliente = f"{record.partner_id.parent_id.name}, {record.partner_id.name}"
                 else:
                     cliente = record.partner_id.name
-            #Cantidad de bultos
-            total_bultos = 0
-            for line in record.task_line_ids:
-                total_bultos += line.quantity_picked / line.uxb if line.uxb else 0
             try:
                 values = [
                     "",                                          # A
                     record._fmt_dt_local(record.transfer_id.create_date),   # B
                     record.name or "",                     # C
                     record.transfer_id.origin or "",                         # D
-                    record.transfer_id.name or "",                           # E
+                    record.name or "",                           # E
                     cliente,                                    # F
-                    (round(total_bultos, 2) or ""),     # G
+                    (round(record.bultos_count, 2) or ""),     # G
                     len(record.task_line_ids) or 0,   # H
                     "",                                          # I
                     "",                                          # J
@@ -837,18 +875,15 @@ class WMSTask(models.Model):
                     direccion_entrega = f"{self.partner_id.street or '-'}, {self.partner_id.zip or '-'}, {self.partner_id.city or '-' }"
                 else:
                     direccion_entrega = self.carrier_id.address
-            #Cantidad de bultos
-            total_bultos = 0
-            for line in self.task_line_ids:
-                total_bultos += line.quantity_picked / line.uxb if line.uxb else 0
             vals = {
                 'wms_task_id': self.id,
+                'picking_ids': [(4, self.id)],
                 'fecha_entrega': False,
                 'fecha_envio_wms': self.transfer_id.create_date,
                 'codigo_wms': self.name,
                 'doc_origen': self.origin,
                 'partner_id': self.partner_id.id,
-                'cantidad_bultos': total_bultos,
+                'cantidad_bultos': self.bultos_count,
                 'cantidad_lineas': len(self.task_line_ids) or 0,
                 'carrier_id': self.carrier_id.id,
                 'observaciones': '',
@@ -884,3 +919,14 @@ class WMSTaskLine(models.Model):
     lot = fields.Char(string="Lote")
 
     is_broken = fields.Boolean(string="¿Está roto?")
+    has_pending = fields.Boolean(string="Tiene pendiente", compute="_compute_has_pending", store=True, default=False)
+    location_id = fields.Many2one(string="Ubicación de Picking")
+
+
+    @api.depends('quantity_picked')
+    def _compute_has_pending(self):
+        for record in self:
+            if record.quantity_picked < record.quantity:
+                record.has_pending = True
+            else:
+                record.has_pending = False
