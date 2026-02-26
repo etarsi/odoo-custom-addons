@@ -44,6 +44,7 @@
                         <h1>
                             <field name="name" readonly="1"/>
                         </h1>
+                    </div>
                     <!-- tu layout existente -->
                     <group name="group_top" string="Información General">
                         <group>
