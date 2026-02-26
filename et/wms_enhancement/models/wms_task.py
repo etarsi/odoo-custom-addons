@@ -876,6 +876,7 @@ class WMSTask(models.Model):
                 else:
                     direccion_entrega = self.carrier_id.address
             vals = {
+                'name': self.transfer_id.name,
                 'wms_task_id': self.id,
                 'picking_ids': [(4, self.id)],
                 'fecha_entrega': False,
@@ -889,9 +890,8 @@ class WMSTask(models.Model):
                 'observaciones': '',
                 'industry_id': self.partner_id.industry_id.id,
                 'ubicacion': '',
-                'estado_digip': self.name,
+                'estado_digip': self.digip_state,
                 'estado_despacho': 'in_preparation',
-                'delivery_state': self.delivery_state,
                 'sale_id': self.transfer_id.sale_id.id if self.transfer_id.sale_id else False,
                 'fecha_despacho': False,
                 'observacion_despacho': False,
