@@ -889,7 +889,7 @@ class WMSTask(models.Model):
                 'observaciones': '',
                 'industry_id': self.partner_id.industry_id.id,
                 'ubicacion': '',
-                'estado_digip': self.state_wms,
+                'estado_digip': self.name,
                 'estado_despacho': 'in_preparation',
                 'delivery_state': self.delivery_state,
                 'sale_id': self.transfer_id.sale_id.id if self.transfer_id.sale_id else False,
