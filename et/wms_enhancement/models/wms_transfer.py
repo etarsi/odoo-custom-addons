@@ -289,6 +289,7 @@ class WMSTransfer(models.Model):
             })
 
         self.env['wms.task.line'].create(vals_list)
+        task.calculate_bultos_demand()
         return task
     
 

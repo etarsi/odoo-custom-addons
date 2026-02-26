@@ -89,6 +89,7 @@ class WMSTask(models.Model):
 
     # category_ids = fields.One2many()
     bultos_count = fields.Float(string="Bultos")
+    bultos_prepared = fields.Float(string="Bultos Preparados")
     packages_count = fields.Float(string="Paquetes")
 
 
@@ -126,6 +127,15 @@ class WMSTask(models.Model):
         for rec in self:
             rec.invoice_count = len(rec.invoice_ids)
     
+
+    def calculate_bultos_demand(self):
+        for record in self:
+            total_bultos = 0
+            for line in record.task_line_ids:
+                line_bultos = line.quantity / line.transfer_line_id.uxb
+                total_bultos += line_bultos
+
+            record.bultos_count = total_bultos
 
     def action_open_wms_transfer(self):
         self.ensure_one()
@@ -303,7 +313,7 @@ class WMSTask(models.Model):
             total_bultos = 0
 
             for line in task.task_line_ids:
-                total_bultos += line.quantity_picked / line.uxb
+                total_bultos += line.quantity_picked / line.transfer_line_id.uxb
 
 
             total_packages = sum(
@@ -311,7 +321,7 @@ class WMSTask(models.Model):
                 for cont in data.get("contenedores", [])
             )
             
-            task.bultos_count = total_bultos
+            task.bultos_prepared = total_bultos
             task.packages_count = total_packages
 
 
