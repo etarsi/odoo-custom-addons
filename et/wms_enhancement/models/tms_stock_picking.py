@@ -9,4 +9,4 @@ class TmsStockPicking(models.Model):
     _description = 'Ruteo Stock Picking'
     
     #agregar campo relacionado con wms_task
-    wms_task_id = fields.Many2one('wms.task', string='Tarea WMS', ondelete='set null', index=True)
+    wms_task_id = fields.Many2one('wms.task', string='Tarea WMS', ondelete='set null', index=True, tracking=True)

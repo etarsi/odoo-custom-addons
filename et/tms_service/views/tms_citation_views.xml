@@ -11,21 +11,21 @@
                   decoration-warning="state == 'pending'"
                   decoration-success="state == 'completed'"
                   decoration-danger="state == 'canceled'">
-                <field name="name"/>
-                <field name="date"/>
-                <field name="mes"/>
-                <field name="empresa_id"/>
-                <field name="transport_id"/>
-                <field name="transport_type_id"/>
-                <field name="patente_tractor"/>
-                <field name="patente_semi"/>
-                <field name="service_id"/>
-                <field name="area"/>
-                <field name="hour_citation" widget="float_time"/>
-                <field name="hour_arrival" widget="float_time"/>
-                <field name="hiring_id"/>
-                <field name="bulto_count"/>
-                <field name="state"/>
+                <field name="name" optional="show"/>
+                <field name="date" optional="show"/>
+                <field name="mes" optional="show"/>
+                <field name="empresa_id" optional="show"/>
+                <field name="transport_id" optional="show"/>
+                <field name="transport_type_id" optional="show"/>
+                <field name="patente_tractor" optional="show"/>
+                <field name="patente_semi" optional="show"/>
+                <field name="service_id" optional="show"/>
+                <field name="area" optional="show"/>
+                <field name="hour_citation" widget="float_time" optional="show"/>
+                <field name="hour_arrival" widget="float_time" optional="show"/>
+                <field name="hiring_id" optional="show"/>
+                <field name="bulto_count" optional="show"/>
+                <field name="state" optional="show"/>
             </tree>
         </field>
     </record>
@@ -43,30 +43,17 @@
                 </header>
 
                 <sheet>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="name" readonly="1"/>
+                        </h1>
+                    </div>
                     <group>
                         <group>
-                            <field name="name"/>
-                            <field name="date"/>
-                            <field name="mes" readonly="1"/>
-
-                            <!-- OJO: es delivery.carrier según tu modelo -->
-                            <field name="empresa_id"/>
-
-                            <field name="tms_stock_picking_id"/>
-                        </group>
-
-                        <group>
-                            <!-- OJO: es tms.transport según tu modelo -->
                             <field name="transport_id"/>
-
-                            <field name="transport_type_id"/>
-                            <field name="patente_tractor"/>
-                            <field name="patente_semi"/>
-                        </group>
-                    </group>
-
-                    <group>
-                        <group>
+                            <field name="mes" readonly="1"/>
+                            <field name="empresa_id"/>
+                            <field name="tms_stock_picking_id"/>
                             <field name="service_id"/>
                             <field name="area"/>
                             <field name="hiring_id"/>
@@ -74,17 +61,43 @@
                         </group>
 
                         <group>
+                            <field name="date"/>
                             <field name="hour_citation" widget="float_time"/>
                             <field name="hour_arrival" widget="float_time"/>
+                            <field name="transport_type_id"/>
+                            <field name="patente_tractor"/>
+                            <field name="patente_semi"/>
                         </group>
                     </group>
-
                     <notebook>
-                        <page string="Observaciones">
+                        <page name="tms_roadmap_ids_page" string="Hojas de Ruta">
+                            <group>
+                                <button name="%(action_tms_citation_link_roadmap_wizard)d"
+                                        type="action"
+                                        string="Vincular hojas de Ruta"
+                                        class="btn-secondary"/>
+                            </group>
+
+                            <field name="tms_roadmap_ids" context="{'default_citation_id': active_id}" mode="tree,form">
+                                <tree string="Hojas de Ruta">
+                                    <field name="name"/>
+                                    <field name="partner_id"/>
+                                    <field name="bulto_count"/>
+                                    <field name="bulto_count_verified"/>
+                                </tree>
+                            </field>
+                        </page>
+                        <page string="Observaciones" name="observations_page">
                             <field name="observations"/>
                         </page>
                     </notebook>
                 </sheet>
+                <!-- Chatter -->
+                <div class="oe_chatter">
+                    <field name="message_follower_ids" groups="base.group_user"/>
+                    <field name="activity_ids"/>
+                    <field name="message_ids"/>
+                </div>
             </form>
         </field>
     </record>

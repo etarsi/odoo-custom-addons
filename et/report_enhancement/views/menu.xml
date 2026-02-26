@@ -10,4 +10,30 @@
               parent="menu_root_informes_enhancement"
               action="action_report_composition_debt_wizard"
               sequence="1"/>
+
+    <!--MENU PADRE -->
+    <menuitem id="menu_report_report_nico"
+        name="Reportes Nico"
+        parent="base.menu_board_root"
+        sequence="30"/> 
+
+    <!-- Menús bajo “Reportes Nico” (ajustá el padre) -->
+    <menuitem id="menu_report_factura_rubros_temp_nino_2025"
+        name="Facturación Día del Niño 2025"
+        parent="menu_report_report_nico"
+        action="action_report_factura_rubros_temp_nino_2025"
+        sequence="10"/>
+
+    <menuitem id="menu_report_factura_rubros_temp_nav"
+        name="Facturación Temporada Navidad 2025"
+        parent="menu_report_report_nico"
+        action="action_report_factura_rubros_temp_nav"
+        sequence="20"/>
+
+    <!-- Menús bajo “Reportes Nico” (ajustá el padre) -->
+    <menuitem id="menu_report_factura_rubros_temp_nino_2026"
+        name="Facturación Día del Niño 2026"
+        parent="menu_report_report_nico"
+        action="action_report_factura_rubros_temp_nino_2026"
+        sequence="30"/>
 </odoo>

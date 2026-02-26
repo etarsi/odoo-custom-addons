@@ -26,9 +26,12 @@
     # always loaded
     'data': [
         'security/ir.model.access.csv',
+        'data/tms_sequences.xml',
         'data/tms_stock_picking_server_actions.xml',
+        'views/wizards/tms_citation_link_roadmap_wizard_views.xml',
         'views/tms_stock_picking_views.xml',
         'views/tms_citation_views.xml',
+        'views/tms_roadmap_views.xml',
         'views/menu.xml',
     ],
     'assets': {

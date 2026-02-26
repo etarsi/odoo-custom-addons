@@ -1,10 +1,10 @@
 # models/report_customer_rubro.py
 from odoo import models, fields, tools
- 
 
-class ReportFacturaRubrosTempNav(models.Model):
-    _name = 'report.factura.rubros.temp.nav'
-    _description = 'Reporte de Facturas por Rubros Temporada Navidad 2025'
+
+class ReportFacturaRubrosTempDc(models.Model):
+    _name = 'report.factura.rubros.temp.dn'
+    _description = 'Reporte de Facturas por Rubros Temporada Día del Niño 2026'
     _auto = False
     _order = 'id asc, partner_id asc, comercial_id asc'
     
@@ -19,10 +19,9 @@ class ReportFacturaRubrosTempNav(models.Model):
     amount_vehiculos_b = fields.Monetary('Vehículos a Batería', readonly=True, currency_field='currency_id')
     amount_rodados_inf = fields.Monetary('Rodados Infantiles', readonly=True, currency_field='currency_id')
     amount_caballitos_slt = fields.Monetary('Caballitos Saltarines', readonly=True, currency_field='currency_id')
-    amount_otros = fields.Monetary('Otros Rubros', readonly=True, currency_field='currency_id') 
+    amount_otros = fields.Monetary('Otros Rubros', readonly=True, currency_field='currency_id')
     total_amount_rubro = fields.Monetary('Total', readonly=True, currency_field='currency_id')
     currency_id = fields.Many2one('res.currency', 'Moneda', readonly=True)
-
 
 
 
@@ -31,7 +30,7 @@ class ReportFacturaRubrosTempNav(models.Model):
         self._cr.execute("""
             CREATE OR REPLACE VIEW %s AS (
                 SELECT
-                    row_number() OVER (ORDER BY am.partner_id, am.invoice_user_id, am.currency_id) AS id,
+                    row_number() OVER () AS id,
                     am.partner_id,
                     am.invoice_user_id AS comercial_id,
                     am.currency_id AS currency_id,
@@ -240,24 +239,24 @@ class ReportFacturaRubrosTempNav(models.Model):
                     AND (
                         -- Facturas: por su propia fecha
                         (am.move_type = 'out_invoice'
-                        AND am.invoice_date >= DATE '2025-09-01'
-                        AND am.invoice_date <= DATE '2025-12-31')
+                        AND am.invoice_date >= DATE '2026-01-01'
+                        AND am.invoice_date <= DATE '2026-08-31')
 
                         OR
 
                         -- Notas de crédito: si están enlazadas, por la fecha de la factura original
                         (am.move_type = 'out_refund'
                         AND am.reversed_entry_id IS NOT NULL
-                        AND am_base.invoice_date >= DATE '2025-09-01'
-                        AND am_base.invoice_date <= DATE '2025-12-31')
+                        AND am_base.invoice_date >= DATE '2026-01-01'
+                        AND am_base.invoice_date <= DATE '2026-08-31')
 
                         OR
 
                         -- Notas de crédito manuales
                         (am.move_type = 'out_refund'
                         AND am.reversed_entry_id IS NULL
-                        AND am.invoice_date >= DATE '2025-09-01'
-                        AND am.invoice_date <= DATE '2025-12-31')
+                        AND am.invoice_date >= DATE '2026-01-01'
+                        AND am.invoice_date <= DATE '2026-08-31')
                     )
                     AND parent_categ.id IS NOT null 
 	                AND aml.price_total <> 0

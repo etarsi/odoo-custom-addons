@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- TREE -->
+    <record id="view_tms_roadmap_tree" model="ir.ui.view">
+        <field name="name">tms.roadmap.tree</field>
+        <field name="model">tms.roadmap</field>
+        <field name="arch" type="xml">
+            <tree string="Hoja de Ruta"
+                decoration-info="state == 'draft'"
+                decoration-warning="state == 'pending'"
+                decoration-success="state == 'completed'"
+                decoration-danger="state == 'canceled'">
+                <field name="name" optional="show"/>
+                <field name="date" optional="show"/>
+                <field name="transport_id" optional="show"/>
+                <field name="assistants" optional="show"/>
+                <field name="patente" optional="show"/>
+                <field name="in_ruta" optional="show"/>
+                <field name="partner_id" optional="show"/>
+                <field name="direction" optional="show"/>
+                <field name="bulto_count" optional="show"/>
+                <field name="bulto_count_verified" optional="show"/>
+                <field name="state" optional="show"/>
+            </tree>
+        </field>
+    </record>
+
+    <!-- FORM -->
+    <record id="view_tms_roadmap_form" model="ir.ui.view">
+        <field name="name">tms.roadmap.form</field>
+        <field name="model">tms.roadmap</field>
+        <field name="arch" type="xml">
+            <form string="Hoja de Ruta">
+                <header>
+                    <field name="state"
+                           widget="statusbar"
+                           statusbar_visible="draft,pending,completed,canceled"/>
+                </header>
+
+                <sheet>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="name" readonly="1"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="partner_id"/>
+                            <field name="transport_id"/>
+                            <field name="patente"/>
+                            <field name="in_ruta"/>
+                            <field name="direction"/>
+                        </group>
+                        <group>
+                            <field name="date"/>
+                            <field name="assistants"/>
+                            <field name="bulto_count"/>
+                            <field name="bulto_count_verified"/>
+                        </group>
+                    </group>
+                </sheet>
+                <!-- Chatter -->
+                <div class="oe_chatter">
+                    <field name="message_follower_ids" groups="base.group_user"/>
+                    <field name="activity_ids"/>
+                    <field name="message_ids"/>
+                </div>
+            </form>
+        </field>
+    </record>
+
+    <!-- SEARCH -->
+    <record id="view_tms_roadmap_search" model="ir.ui.view">
+        <field name="name">tms.roadmap.search</field>
+        <field name="model">tms.roadmap</field>
+        <field name="arch" type="xml">
+            <search string="Buscar Hoja de Ruta">
+                <field name="name"/>
+                <field name="partner_id"/>
+                <field name="transport_id"/>
+                <separator/>
+                <filter string="Borrador" name="draft" domain="[('state','=','draft')]"/>
+                <filter string="Pendiente" name="pending" domain="[('state','=','pending')]"/>
+                <filter string="Completada" name="completed" domain="[('state','=','completed')]"/>
+                <filter string="Cancelada" name="canceled" domain="[('state','=','canceled')]"/>
+                <separator/>
+                <group expand="0" string="Agrupar">
+                    <filter string="Vehículo" name="grp_transport_id" context="{'group_by':'transport_id'}"/>
+                    <filter string="Clientes" name="grp_partner_id" context="{'group_by':'partner_id'}"/>
+                    <filter string="Estado" name="grp_state" context="{'group_by':'state'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- ACTION -->
+    <record id="action_tms_roadmap" model="ir.actions.act_window">
+        <field name="name">Hojas de Ruta</field>
+        <field name="res_model">tms.roadmap</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+</odoo>

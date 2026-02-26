@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- RUTEO DE INVENTARIO: RI/00001 -->
+    <record id="seq_tms_inventory_routing_ri" model="ir.sequence">
+        <field name="name">TMS Ruteo de Inventario (RI)</field>
+        <field name="code">tms.inventory.routing</field>
+        <field name="prefix">RI/</field>
+        <field name="padding">5</field>
+        <field name="number_next">1</field>
+        <field name="number_increment">1</field>
+        <!-- False = secuencia global (multi-compañía comparte numeración) -->
+        <field name="company_id" eval="False"/>
+    </record>
+
+    <!-- CITACIONES: CT/00001 -->
+    <record id="seq_tms_citation_ct" model="ir.sequence">
+        <field name="name">TMS Citación (CT)</field>
+        <field name="code">tms.citation</field>
+        <field name="prefix">CT/</field>
+        <field name="padding">5</field>
+        <field name="number_next">1</field>
+        <field name="number_increment">1</field>
+        <!-- False = secuencia global (multi-compañía comparte numeración) -->
+        <field name="company_id" eval="False"/>
+    </record>
+
+    <!-- HOJA DE RUTA: HDR/00001 -->
+    <record id="seq_tms_roadmap_hdr" model="ir.sequence">
+        <field name="name">TMS Hoja de Ruta (HDR)</field>
+        <field name="code">tms.roadmap</field>
+        <field name="prefix">HDR/</field>
+        <field name="padding">5</field>
+        <field name="number_next">1</field>
+        <field name="number_increment">1</field>
+        <field name="company_id" eval="False"/>
+    </record>
+
+</odoo>
