@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="view_tms_citation_link_roadmap_wizard_form" model="ir.ui.view">
+        <field name="name">tms.citation.link.roadmap.wizard.form</field>
+        <field name="model">tms.citation.link.roadmap.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Vincular Hojas de Ruta">
+                <group>
+                    <field name="citation_id" invisible="1"/>
+                    <field name="roadmap_ids" widget="many2many_tags" options="{'no_create': True}"/>
+                </group>
+                <footer>
+                    <button name="action_link" type="object" string="Vincular" class="btn-primary"/>
+                    <button string="Cancelar" special="cancel" class="btn-secondary"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_tms_citation_link_roadmap_wizard" model="ir.actions.act_window">
+        <field name="name">Vincular Hojas de Ruta</field>
+        <field name="res_model">tms.citation.link.roadmap.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+        <field name="context">{'default_citation_id': active_id}</field>
+    </record>
+
+</odoo>

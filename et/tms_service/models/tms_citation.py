@@ -115,7 +115,7 @@ class TmsRoadmap(models.Model):
     )
     assistants = fields.Integer(string="Ayudantes", store=True, tracking=True)
     in_ruta = fields.Integer(string="Indice de Vuelta-Ruta", store=True, tracking=True)
-    partner_id = fields.Many2one("res.partner", string="Titulo", store=True, tracking=True)
+    partner_id = fields.Many2one("res.partner", string="Cliente", store=True, tracking=True)
     direction = fields.Char(string="Dirección", store=True, tracking=True)
 
 

@@ -35,7 +35,7 @@ class OutInvoiceRefacturarWizard(models.TransientModel):
             moves = moves.filtered(lambda m: m.move_type == 'out_invoice')
             if not moves:
                 raise ValidationError(_("Seleccioná al menos una factura de cliente."))
-            res['account_move_ids'] = [(6, 0, moves.ids)]
+            res['account_move_ids'] = [(6, 0, moves.ids if moves else [])]
         return res
 
     @api.onchange('accion_descuento')
@@ -56,7 +56,7 @@ class OutInvoiceRefacturarWizard(models.TransientModel):
                 g = self._norm(t.tax_group_id.name) if t.tax_group_id else ""
                 return ("iibb" in n or "iibb" in g) and ("percep" in n or "perc" in n or "percep" in g or "perc" in g)
             kept = line.tax_ids.filtered(lambda t: not is_iibb_perc(t))
-            line.write({'tax_ids': [(6, 0, kept.ids)]})
+            line.write({'tax_ids': [(6, 0, kept.ids if kept else [])]})
 
     @api.onchange('descuento_porcentaje')
     def _onchange_descuento_porcentaje(self):
@@ -165,10 +165,10 @@ class OutInvoiceRefacturarWizard(models.TransientModel):
                 'product_uom_id': line.product_uom_id.id if line.product_uom_id else False,
                 'price_unit': price_unit,
                 'discount': self.descuento_porcentaje if self.accion_descuento else line.discount,
-                'tax_ids': [(6, 0, mapped_taxes.ids)],
-                'sale_line_ids': [(6, 0, line.sale_line_ids.ids if line.sale_line_ids else False)],
+                'tax_ids': [(6, 0, mapped_taxes.ids if mapped_taxes else [])],
+                'sale_line_ids': [(6, 0, line.sale_line_ids.ids if line.sale_line_ids else [])],
                 #enlazar con la transferencia copya de stock
-                'move_line_ids': [(6, 0, line.move_line_ids.ids if line.move_line_ids else False)],
+                'move_line_ids': [(6, 0, line.move_line_ids.ids if line.move_line_ids else [])],
             }))
 
         return vals

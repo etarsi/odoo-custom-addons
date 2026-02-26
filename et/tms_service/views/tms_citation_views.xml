@@ -70,7 +70,24 @@
                         </group>
                     </group>
                     <notebook>
-                        <page string="Observaciones">
+                        <page name="tms_roadmap_ids_page" string="Hojas de Ruta">
+                            <group>
+                                <button name="%(action_tms_citation_link_roadmap_wizard)d"
+                                        type="action"
+                                        string="Vincular hojas de Ruta"
+                                        class="btn-secondary"/>
+                            </group>
+
+                            <field name="tms_roadmap_ids" context="{'default_citation_id': active_id}" mode="tree,form">
+                                <tree string="Hojas de Ruta">
+                                    <field name="name"/>
+                                    <field name="destination"/>
+                                    <field name="bulto_count"/>
+                                    <field name="bulto_count_verified"/>
+                                </tree>
+                            </field>
+                        </page>
+                        <page string="Observaciones" name="observations_page">
                             <field name="observations"/>
                         </page>
                     </notebook>
