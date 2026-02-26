@@ -1,8 +1,8 @@
 <!-- views/report_customer_rubro_views.xml -->
 <odoo>
-    <record id="view_report_factura_rubros_temp_dc_tree" model="ir.ui.view">
-        <field name="name">report.factura.rubros.temp.dc.tree</field>
-        <field name="model">report.factura.rubros.temp.dc</field>
+    <record id="view_report_factura_rubros_temp_dn_tree" model="ir.ui.view">
+        <field name="name">report.factura.rubros.temp.dn.tree</field>
+        <field name="model">report.factura.rubros.temp.dn</field>
         <field name="arch" type="xml">
             <tree string="Reporte de Facturas por Rubros Temporada Día del Niño 2026" create="0" edit="0" delete="0" default_order="total_amount_rubro desc">
                 <field name="partner_id" optional="show"/>
@@ -23,9 +23,9 @@
     </record>
 
     <!-- Vista de búsqueda para el informe de facturación por rubro -->
-    <record id="view_report_factura_rubros_temp_dc_search" model="ir.ui.view">
-        <field name="name">report.factura.rubros.temp.dc.search</field>
-        <field name="model">report.factura.rubros.temp.dc</field>
+    <record id="view_report_factura_rubros_temp_dn_search" model="ir.ui.view">
+        <field name="name">report.factura.rubros.temp.dn.search</field>
+        <field name="model">report.factura.rubros.temp.dn</field>
         <field name="arch" type="xml">
             <search string="Buscar facturación por rubro">
                 <field name="partner_id" string="Cliente"/>
@@ -43,7 +43,7 @@
 
     <record id="action_report_factura_rubros_temp_nino_2026" model="ir.actions.act_window">
         <field name="name">Facturación - Día del Niño (2026)</field>
-        <field name="res_model">report.factura.rubros.temp.dc</field>
+        <field name="res_model">report.factura.rubros.temp.dn</field>
         <field name="view_mode">tree</field>
     </record>
 

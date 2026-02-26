@@ -3,7 +3,7 @@ from odoo import models, fields, tools
 
 
 class ReportFacturaRubrosTempDc(models.Model):
-    _name = 'report.factura.rubros.temp.dc'
+    _name = 'report.factura.rubros.temp.dn'
     _description = 'Reporte de Facturas por Rubros Temporada Día del Niño 2026'
     _auto = False
     _order = 'id asc, partner_id asc, comercial_id asc'
