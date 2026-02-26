@@ -5,6 +5,11 @@
         <field name="model">tms.stock.picking</field>
         <field name="arch" type="xml">
             <form>
+                <header>
+                    <field name="delivery_state"
+                           widget="statusbar"
+                           statusbar_visible="no,delivered,returned"/>
+                </header>
                 <sheet>
                     <!-- SOLO 2 SMART BUTTONS -->
                     <div class="oe_button_box" name="button_box">
@@ -35,41 +40,57 @@
                             <field name="account_move_count" widget="statinfo" string="Facturas"/>
                         </button>
                     </div>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="name" readonly="1"/>
+                        </h1>
                     <!-- tu layout existente -->
-                    <group>
+                    <group name="group_top" string="Información General">
                         <group>
-                            <field name="currency_id" invisible="1"/>
-                            <field name="fecha_envio_wms"/>
+                            <field name="partner_id"/>
                             <field name="codigo_wms"/>
                             <field name="account_move_ids" widget="many2many_tags"/>
-                            <field name="amount_totals"/>
-                            <field name="doc_origen"/>
                             <field name="picking_ids" widget="many2many_tags"/>
-                            <field name="partner_id"/>
                             <field name="items_ids" widget="many2many_tags"/>
-                            <field name="carrier_id"/>
+                            <field name="sale_id"/>
+                            <field name="doc_origen"/>
+                            <field name="amount_totals"/>
+                            <field name="currency_id" invisible="1"/>
                         </group>
                         <group>
+                            <field name="fecha_envio_wms"/>
                             <field name="cantidad_bultos"/>
                             <field name="cantidad_lineas"/>
-                            <field name="observaciones"/>
-                            <field name="industry_id"/>
-                            <field name="ubicacion"/>
-                            <field name="invoice_status"/>
-                            <field name="estado_digip"/>
-                            <field name="estado_despacho"/>
-                            <field name="fecha_despacho"/>
-                            <field name="observacion_despacho"/>
-                            <field name="contacto_calle"/>
-                            <field name="direccion_entrega"/>
-                            <field name="contacto_cp"/>
-                            <field name="contacto_ciudad"/>
-                            <field name="carrier_address"/>
-                            <field name="company_id"/>
+                            <field name="carrier_id"/>
                             <field name="user_id"/>
-                            <field name="sale_id"/>
+                            <field name="company_id"/>
                         </group>
                     </group>
+                    <notebook>
+                        <page string="Observaciones" name="observations_page">
+                            <field name="observaciones"/>
+                        </page>
+                        <page string="info. Adicional" name="additional_info_page">
+                            <group>
+                                <group name="info_additional" string="Dirección">
+                                    <field name="industry_id"/>
+                                    <field name="ubicacion"/>
+                                    <field name="contacto_calle"/>
+                                    <field name="direccion_entrega"/>
+                                    <field name="contacto_cp"/>
+                                    <field name="contacto_ciudad"/>
+                                    <field name="carrier_address"/>
+                                </group>
+                                <group name="info_status" string="Información de Estado">
+                                    <field name="invoice_status"/>
+                                    <field name="estado_digip"/>
+                                    <field name="estado_despacho"/>
+                                    <field name="fecha_despacho"/>
+                                    <field name="observacion_despacho"/>
+                                </group>
+                            </group>
+                        </page>
+                    </notebook>
                 </sheet>
             </form>
         </field>

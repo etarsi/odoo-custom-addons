@@ -10,7 +10,7 @@ headers = {
 }
 
 params = {
-    'PedidoCodigo': 'P9064',
+    'PedidoCodigo': 'T12',
 }
 
 response = requests.get(url, headers=headers, params=params)

@@ -43,30 +43,17 @@
                 </header>
 
                 <sheet>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="name" readonly="1"/>
+                        </h1>
+                    </div>
                     <group>
                         <group>
-                            <field name="name"/>
-                            <field name="date"/>
-                            <field name="mes" readonly="1"/>
-
-                            <!-- OJO: es delivery.carrier según tu modelo -->
-                            <field name="empresa_id"/>
-
-                            <field name="tms_stock_picking_id"/>
-                        </group>
-
-                        <group>
-                            <!-- OJO: es tms.transport según tu modelo -->
                             <field name="transport_id"/>
-
-                            <field name="transport_type_id"/>
-                            <field name="patente_tractor"/>
-                            <field name="patente_semi"/>
-                        </group>
-                    </group>
-
-                    <group>
-                        <group>
+                            <field name="mes" readonly="1"/>
+                            <field name="empresa_id"/>
+                            <field name="tms_stock_picking_id"/>
                             <field name="service_id"/>
                             <field name="area"/>
                             <field name="hiring_id"/>
@@ -74,11 +61,14 @@
                         </group>
 
                         <group>
+                            <field name="date"/>
                             <field name="hour_citation" widget="float_time"/>
                             <field name="hour_arrival" widget="float_time"/>
+                            <field name="transport_type_id"/>
+                            <field name="patente_tractor"/>
+                            <field name="patente_semi"/>
                         </group>
                     </group>
-
                     <notebook>
                         <page string="Observaciones">
                             <field name="observations"/>

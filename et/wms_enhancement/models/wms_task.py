@@ -81,14 +81,15 @@ class WMSTask(models.Model):
 
     # preparation
 
+    declared_value = fields.Float(string="Valor Declarado", default=0)
 
     ## statistics
 
     percent_complete = fields.Float(string="Completado %")
 
     # category_ids = fields.One2many()
-
-    bultos_count = fields.Float(string="Cantidad de Bultos", compute="_compute_bultos_count")
+    bultos_count = fields.Float(string="Bultos")
+    packages_count = fields.Float(string="Paquetes")
 
 
     # scheduled_at = fields.Datetime()
@@ -103,17 +104,7 @@ class WMSTask(models.Model):
     
     # transporte
     carrier_id = fields.Many2one(string="Transporte", related='partner_id.property_delivery_carrier_id', store=True)
-    
-    #COMPUTADOS
-    def _compute_bultos_count(self):
-        for record in self:
-            bultos = 0
-            for line in record.task_line_ids:
-                if line.transfer_line_id.uxb:
-                    bultos += line.quantity / line.transfer_line_id.uxb
-                else:
-                    bultos += line.quantity
-            record.bultos_count = bultos
+
 
     @api.model
     def create(self, vals):
@@ -224,6 +215,7 @@ class WMSTask(models.Model):
             if task.digip_state != 'sent':
                 continue
             task.get_digip()
+            task.get_digip_preparations()
         return True
     
 
@@ -292,7 +284,35 @@ class WMSTask(models.Model):
                     created += 1
             task.digip_state = "received"
             task.date_done = fields.Date.context_today(self)
-        return True
+        return True   
+
+    def get_digip_preparations(self):
+        for task in self:
+            url = self.env['ir.config_parameter'].sudo().get_param('digipwms-v2.url')
+            api_key = self.env['ir.config_parameter'].sudo().get_param('digipwms.key')
+
+            headers = {"x-api-key": api_key}
+            params = {"PedidoCodigo": task.name}
+
+            response = requests.get(f"{url}/v2/Preparaciones/ContenedoresDetalle", headers=headers, params=params, timeout=30)
+            if response.status_code != 200:
+                raise UserError(_("Digip devolvió %s: %s") % (response.status_code, response.text))
+
+            data = response.json()
+
+            total_bultos = 0
+
+            for line in task.task_line_ids:
+                total_bultos += line.quantity_picked / line.uxb
+
+
+            total_packages = sum(
+                cont.get("cantidadBulto", 0)
+                for cont in data.get("contenedores", [])
+            )
+            
+            task.bultos_count = total_bultos
+            task.packages_count = total_packages
 
 
     def send_and_receive_digip(self):
@@ -497,9 +517,9 @@ class WMSTask(models.Model):
                 'address': f"{partner.property_delivery_carrier_id.address or ''}",
             },
             'line_lines': lines,
-            'total_bultos': total_bultos,
-            'total_units': total_unidades,
-            'total_value': 0,
+            'total_bultos': task.packages_count,
+            'total_units': task.bultos_count,
+            'total_value': task.declared_value,
             'company_name': company_id.name,
         }
 
@@ -764,6 +784,10 @@ class WMSTask(models.Model):
                     cliente = f"{record.partner_id.parent_id.name}, {record.partner_id.name}"
                 else:
                     cliente = record.partner_id.name
+            #Cantidad de bultos
+            total_bultos = 0
+            for line in record.task_line_ids:
+                total_bultos += line.quantity_picked / line.uxb if line.uxb else 0
             try:
                 values = [
                     "",                                          # A
@@ -772,7 +796,7 @@ class WMSTask(models.Model):
                     record.transfer_id.origin or "",                         # D
                     record.transfer_id.name or "",                           # E
                     cliente,                                    # F
-                    (round(record.bultos_count, 2) or ""),     # G
+                    (round(total_bultos, 2) or ""),     # G
                     len(record.task_line_ids) or 0,   # H
                     "",                                          # I
                     "",                                          # J
@@ -803,14 +827,18 @@ class WMSTask(models.Model):
                     direccion_entrega = f"{self.partner_id.street or '-'}, {self.partner_id.zip or '-'}, {self.partner_id.city or '-' }"
                 else:
                     direccion_entrega = self.carrier_id.address
+            #Cantidad de bultos
+            total_bultos = 0
+            for line in self.task_line_ids:
+                total_bultos += line.quantity_picked / line.uxb if line.uxb else 0
             vals = {
-                'picking_ids': [(4, self.id)],
+                'wms_task_id': self.id,
                 'fecha_entrega': False,
                 'fecha_envio_wms': self.transfer_id.create_date,
                 'codigo_wms': self.name,
                 'doc_origen': self.origin,
                 'partner_id': self.partner_id.id,
-                'cantidad_bultos': self.bultos_count,
+                'cantidad_bultos': total_bultos,
                 'cantidad_lineas': len(self.task_line_ids) or 0,
                 'carrier_id': self.carrier_id.id,
                 'observaciones': '',
