@@ -105,7 +105,6 @@ class TmsRoadmap(models.Model):
         ("millan", "Millan"),
         ("other", "Otro"),
     ], required=True, default="pg", tracking=True)
-    hiring_id = fields.Many2one("tms.hiring", string="Contratación", required=True, tracking=True)
     observations = fields.Text(string="Observaciones", tracking=True)
     bulto_count = fields.Float(string="Bultos", tracking=True)
     bulto_count_verified = fields.Float(string="Bultos Verificados", tracking=True)
