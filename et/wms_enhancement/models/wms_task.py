@@ -786,8 +786,8 @@ class WMSTask(models.Model):
                     'transport_id': record.carrier_id.id,
                     'direction': record.carrier_id.address,
                     'in_ruta': 1,
-                    'bulto_count': record.bultos_count,
-                    'bulto_count_verified': record.bultos_count,
+                    'bulto_count': record.bultos_prepared if record.bultos_prepared > 0 else record.bultos_count,
+                    'bulto_count_verified': record.bultos_prepared if record.bultos_prepared > 0 else record.bultos_count,
                 })
                 
                 return {
