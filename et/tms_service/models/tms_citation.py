@@ -97,7 +97,7 @@ class TmsRoadmap(models.Model):
 
     name = fields.Char(string="Número", required=True, copy=False, index=True, default=lambda self: _("New"), tracking=True)
     date = fields.Datetime(string="Fecha", required=True, default=fields.Datetime.now, index=True)
-    transport_id = fields.Many2one("tms.transport", string="Vehículo", required=True, index=True, tracking=True)
+    transport_id = fields.Many2one("tms.transport", string="Vehículo", index=True, tracking=True)
     patente = fields.Char(string="Patente", tracking=True)
     area = fields.Selection(string="Área", selection=[
         ("pg", "Pedidos Generales"),
