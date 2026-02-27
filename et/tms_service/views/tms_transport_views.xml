@@ -1,0 +1,53 @@
+<?xml version='1.0' encoding='utf-8'?>
+<odoo>
+
+    <!-- FORMULARIO -->
+    <record id="view_tms_transport_form" model="ir.ui.view">
+        <field name="name">tms.transport.form</field>
+        <field name="model">tms.transport</field>
+        <field name="arch" type="xml">
+            <form string="Transporte">
+                <sheet>
+                    <group name="group_transport" string="Información del Transporte">
+                        <group>
+                            <field name="name"/>
+                            <field name="patente_trc"/>
+                            <field name="patente_semi"/>
+                            <field name="active"/>
+                        </group>
+                        <group>
+                            <field name="transport_type_id"/>
+                            <field name="delivery_carrier_id"/>
+                            <field name="weight_capacity_limit"/>
+                            <field name="package_limit"/>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- VISTA DE LISTADO -->
+    <record id="view_tms_transport_tree" model="ir.ui.view">
+        <field name="name">tms.transport.tree</field>
+        <field name="model">tms.transport</field>
+        <field name="arch" type="xml">
+            <tree string="Transporte" create="true" edit="true" delete="true" editable="bottom">
+                <field name="name"/>
+                <field name="patente_trc"/>
+                <field name="patente_semi"/>
+                <field name="transport_type_id"/>
+                <field name="delivery_carrier_id"/>
+                <field name="weight_capacity_limit"/>
+                <field name="package_limit"/>
+                <field name="active"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="action_tms_transport" model="ir.actions.act_window">
+        <field name="name">Vehículos</field>
+        <field name="res_model">tms.transport</field>
+        <field name="view_mode">tree</field>
+    </record>
+</odoo>

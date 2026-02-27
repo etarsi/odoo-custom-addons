@@ -16,6 +16,8 @@ class TmsTransport(models.Model):
         ondelete='restrict',
         index=True,
     )
+    weight_capacity_limit = fields.Float(string='Capacidad de Peso Límite (kg)')
+    package_limit = fields.Float(string='Límite de Bultos')
 
     
 class TmsTransportType(models.Model):

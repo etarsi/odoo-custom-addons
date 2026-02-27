@@ -1,0 +1,44 @@
+<?xml version='1.0' encoding='utf-8'?>
+<odoo>
+    <!-- FORMULARIO -->
+    <record id="view_tms_hiring_form" model="ir.ui.view">
+        <field name="name">tms.hiring.form</field>
+        <field name="model">tms.hiring</field>
+        <field name="arch" type="xml">
+            <form string="Contratación de Transporte" create="true" edit="true" delete="true">
+                <sheet>
+                    <group name="group_hiring" string="Información de la Contratación de Transporte">
+                        <group>
+                            <field name="name"/>
+                            <field name="date_hired"/>
+                            <field name="transport_id"/>
+                            <field name="service_id"/>
+                            <field name="observations"/>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- VISTA DE LISTADO -->
+    <record id="view_tms_hiring_tree" model="ir.ui.view">
+        <field name="name">tms.hiring.tree</field>
+        <field name="model">tms.hiring</field>
+        <field name="arch" type="xml">
+            <tree string="Contratación de Transporte" create="true" edit="true" delete="true" editable="bottom">
+                <field name="name"/>
+                <field name="date_hired"/>
+                <field name="transport_id"/>
+                <field name="service_id"/>
+                <field name="observations"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="action_tms_hiring" model="ir.actions.act_window">
+        <field name="name">Contrataciones de Transporte</field>
+        <field name="res_model">tms.hiring</field>
+        <field name="view_mode">tree</field>
+    </record>
+</odoo>

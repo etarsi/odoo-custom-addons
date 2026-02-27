@@ -788,7 +788,7 @@ class WMSTask(models.Model):
                     'wms_task_id': record.id,
                     'origin': record.origin,
                     'partner_id': record.partner_id.id,
-                    'date': fields.Datetime.context_today(self),
+                    'date': fields.Date.context_today(self),
                     'transport_id': record.carrier_id.id,
                     'direction': record.carrier_id.address,
                     'in_ruta': 1,
