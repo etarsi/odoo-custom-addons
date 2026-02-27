@@ -10,3 +10,11 @@ class TmsStockPicking(models.Model):
     
     #agregar campo relacionado con wms_task
     wms_task_id = fields.Many2one('wms.task', string='Tarea WMS', ondelete='set null', index=True, tracking=True)
+    
+    
+class TmsRoadmap(models.Model):
+    _inherit = 'tms.roadmap'
+    _description = 'Hoja de Ruta'
+    
+    #agregar campo relacionado con wms_task
+    wms_task_id = fields.Many2one('wms.task', string='Tarea WMS', ondelete='set null', index=True, tracking=True)
