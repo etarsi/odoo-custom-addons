@@ -133,7 +133,7 @@
                     <button name="action_print_remito" class="oe_highlight" type="object" string="IMPRIMIR REMITO" attrs="{'invisible': [('digip_state', '!=', 'received')]}"/>
                     <button name="action_enviar_compartido" type="object" string="Enviar a Compartido" attrs="{'invisible': [('digip_state', '!=', 'sent')]}"/>      
                     <button name="action_create_invoice_from_picking" class="oe_highlight" type="object" string="CREAR FACTURA" attrs="{'invisible': ['|', ('digip_state', '!=', 'received'), ('invoice_state', '=', 'invoiced')]}"/>
-                    <button name="action_create_tms_roadmap" class="oe_highlight" type="object" string="Crear Hoja de Ruta" attrs="{'invisible': ['|', ('digip_state', '!=', 'received')]}"/>
+                    <button name="action_create_tms_roadmap" class="oe_highlight" type="object" string="Crear Hoja de Ruta" attrs="{'invisible': [('digip_state', '!=', 'received')]}"/>
                     <field name="state_preparation" widget="statusbar" statusbar_visible="pending,preparation,control,delivery"/>
                 </header>
                 <sheet>
