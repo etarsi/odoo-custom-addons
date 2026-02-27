@@ -33,7 +33,7 @@ class TmsCitation(models.Model):
     bulto_count = fields.Float(string="Cantidad de Bultos", tracking=True)
     tms_stock_picking_id = fields.Many2one(
         "tms.stock.picking",
-        string="Remito Asociado",
+        string="Ruteo Asociado",
         required=False,
         ondelete="restrict",
         index=True,
@@ -77,6 +77,16 @@ class TmsCitation(models.Model):
                 vals["name"] = self.env["ir.sequence"].next_by_code("tms.citation") or _("New")
         return super().create(vals_list)
     
+    @api.onchange("transport_id")
+    def _onchange_transport_id(self):
+        if self.transport_id:
+            self.transport_type_id = self.transport_id.transport_type_id
+            self.patente_tractor = self.transport_id.patente_trc
+            self.patente_semi = self.transport_id.patente_semi
+        else:
+            self.transport_type_id = False
+            self.patente_tractor = False
+            self.patente_semi = False
 
 
 class TmsRoadmap(models.Model):

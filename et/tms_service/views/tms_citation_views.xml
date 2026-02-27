@@ -50,23 +50,23 @@
                     </div>
                     <group>
                         <group>
-                            <field name="transport_id"/>
-                            <field name="mes" readonly="1"/>
                             <field name="empresa_id"/>
-                            <field name="tms_stock_picking_id"/>
+                            <field name="transport_id"/>
+                            <field name="transport_type_id"/>
+                            <field name="patente_tractor"/>
+                            <field name="patente_semi"/>
                             <field name="service_id"/>
                             <field name="area"/>
                             <field name="hiring_id"/>
-                            <field name="bulto_count"/>
+                            <field name="tms_stock_picking_id"/>
                         </group>
 
                         <group>
                             <field name="date"/>
+                            <field name="mes" readonly="1"/>
                             <field name="hour_citation" widget="float_time"/>
                             <field name="hour_arrival" widget="float_time"/>
-                            <field name="transport_type_id"/>
-                            <field name="patente_tractor"/>
-                            <field name="patente_semi"/>
+                            <field name="bulto_count"/>
                         </group>
                     </group>
                     <notebook>

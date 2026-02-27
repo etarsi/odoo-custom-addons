@@ -30,20 +30,26 @@
     <!-- Submenu de Configuración -->
     <menuitem id="menu_configuration" name="Configuración" parent="tms_root_logo" sequence="90"/>
 
-    <!-- CONFIGURACION/COMPAÑIAS DE TRANSPORTE 
-    <menuitem id="menu_tms_company" name="Compañías de Transporte" parent="menu_configuration"
-              action="action_tms_transport_company" sequence="10"/>-->
+    <!-- CONFIGURACION/TRANSPORTE -->
+    <menuitem id="menu_tms_transport_main" name="Transporte" parent="menu_configuration" sequence="10"/>
 
-    <!-- CONFIGURACION/VEHICULOS -->
-    <menuitem id="menu_tms_transport" name="Vehículos" parent="menu_configuration"
+    <!-- CONFIGURACION/TRANSPORTE/VEHICULOS -->
+    <menuitem id="menu_tms_transport" name="Vehículos" parent="menu_tms_transport_main"
               action="action_tms_transport" sequence="10"/>
     
-    <!-- CONFIGURACION/TIPOS DE VEHICULO -->
-    <menuitem id="menu_transport_type" name="Tipos de Vehículo" parent="menu_configuration"
+    <!-- CONFIGURACION/TRANSPORTE/TIPOS DE VEHICULO -->
+    <menuitem id="menu_transport_type" name="Tipos de Vehículo" parent="menu_tms_transport_main"
               action="action_tms_transport_type" sequence="20"/>
     
-    <!-- CONFIGURACION/SERVICIOS -->
-    <menuitem id="menu_tms_service" name="Servicios" parent="menu_configuration" 
+    <!-- CONFIGURACION/TRANSPORTE/SERVICIOS -->
+    <menuitem id="menu_tms_service" name="Servicios" parent="menu_tms_transport_main" 
               action="action_tms_service" sequence="30"/>
+
+    <!-- CONFIGURACION/CONTRATOS -->
+    <menuitem id="menu_tms_hiring_main" name="Contratos" parent="menu_configuration" sequence="20"/>
+    
+    <!-- CONFIGURACION/CONTRATOS/CONTRATACIONES DE TRANSPORTE -->
+    <menuitem id="menu_tms_hiring" name="Contrataciones de Transporte" parent="menu_tms_hiring_main"
+              action="action_tms_hiring" sequence="10"/>
 
 </odoo>
