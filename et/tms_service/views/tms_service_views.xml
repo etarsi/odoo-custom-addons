@@ -10,9 +10,9 @@
                 <sheet>
                     <group name="group_service" string="Información del Servicio de Transporte">
                         <group>
-                            <field name="name"/>
-                            <field name="code"/>
-                            <field name="active"/>
+                            <field name="name" optional="show"/>
+                            <field name="code" optional="show"/>
+                            <field name="active" optional="hide"/>
                         </group>
                     </group>
                 </sheet>

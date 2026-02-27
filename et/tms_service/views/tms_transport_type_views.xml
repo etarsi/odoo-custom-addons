@@ -26,9 +26,9 @@
         <field name="model">tms.transport.type</field>
         <field name="arch" type="xml">
             <tree string="Tipo de Transporte" create="true" edit="true" delete="true" editable="bottom">
-                <field name="name"/>
-                <field name="code"/>
-                <field name="active"/>
+                <field name="name" optional="show"/>
+                <field name="code" optional="show"/>
+                <field name="active" optional="hide"/>
             </tree>
         </field>
     </record>

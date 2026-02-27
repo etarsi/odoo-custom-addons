@@ -32,15 +32,15 @@
         <field name="name">tms.transport.tree</field>
         <field name="model">tms.transport</field>
         <field name="arch" type="xml">
-            <tree string="Transporte" create="true" edit="true" delete="true" editable="bottom">
-                <field name="name"/>
-                <field name="patente_trc"/>
-                <field name="patente_semi"/>
-                <field name="transport_type_id"/>
-                <field name="delivery_carrier_id"/>
-                <field name="weight_capacity_limit"/>
-                <field name="package_limit"/>
-                <field name="active"/>
+            <tree string="Vehículos"> 
+                <field name="name" optional="show"/>
+                <field name="patente_trc" optional="show"/>
+                <field name="patente_semi" optional="show"/>
+                <field name="transport_type_id" optional="show"/>
+                <field name="delivery_carrier_id" optional="show"/>
+                <field name="weight_capacity_limit" optional="show"/>
+                <field name="package_limit" optional="show"/>
+                <field name="active" optional="hide"/>
             </tree>
         </field>
     </record>
@@ -48,6 +48,6 @@
     <record id="action_tms_transport" model="ir.actions.act_window">
         <field name="name">Vehículos</field>
         <field name="res_model">tms.transport</field>
-        <field name="view_mode">tree</field>
+        <field name="view_mode">tree,form</field>
     </record>
 </odoo>

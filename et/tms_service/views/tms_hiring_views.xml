@@ -27,11 +27,11 @@
         <field name="model">tms.hiring</field>
         <field name="arch" type="xml">
             <tree string="Contratación de Transporte" create="true" edit="true" delete="true" editable="bottom">
-                <field name="name"/>
-                <field name="date_hired"/>
-                <field name="transport_id"/>
-                <field name="service_id"/>
-                <field name="observations"/>
+                <field name="name" optional="show"/>
+                <field name="date_hired" optional="show"/>
+                <field name="transport_id" optional="show"/>
+                <field name="service_id" optional="show"/>
+                <field name="observations" optional="show"/>
             </tree>
         </field>
     </record>
