@@ -786,7 +786,6 @@ class WMSTask(models.Model):
             if not tms_roadmap_id:
                 tms_roadmap_id = record.env['tms.roadmap'].create({
                     'wms_task_id': record.id,
-                    'origin': record.origin,
                     'partner_id': record.partner_id.id,
                     'date': fields.Date.context_today(self),
                     'transport_id': record.carrier_id.id,
