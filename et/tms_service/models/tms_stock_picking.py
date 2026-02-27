@@ -30,12 +30,13 @@ class TmsStockPicking(models.Model):
     observaciones = fields.Text(string='Obs. de Operaciones', tracking=True)
     industry_id = fields.Many2one('res.partner.industry', string='Despacho', tracking=True)
     ubicacion = fields.Char(string='Ubicación', tracking=True)
-    estado_digip = fields.Selection([('closed','Enviado y recibido'),
-                                        ('done','Enviado'),
-                                        ('no','No enviado'),
-                                        ('error','Error envio'),
-                                        ('pending','Pendiente')
-                                    ], string='Estado WMS', default='no', tracking=True)
+    estado_digip = fields.Selection(selection=[
+            ('no', 'No enviado'),
+            ('sent', 'Enviado'),
+            ('received', 'Recibido')
+        ], string='Estado WMS', default='no', tracking=True)
+
+
     estado_despacho = fields.Selection([('void', 'Anulado'),
                                         ('pending', 'Pendiente'),
                                         ('in_preparation', 'En Preparación'),

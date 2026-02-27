@@ -217,6 +217,12 @@ class WMSTask(models.Model):
             posted = record.post_digip(task)
 
             if posted:
+                total_bultos = 0
+
+                for line in record.task_line_ids:
+                    total_bultos += line.quantity_picked / line.transfer_line_id.uxb
+                record.bultos_prepared = total_bultos
+
                 record.digip_state = 'sent'
 
 
@@ -352,10 +358,7 @@ class WMSTask(models.Model):
 
             data = response.json()
 
-            total_bultos = 0
-
-            for line in task.task_line_ids:
-                total_bultos += line.quantity_picked / line.transfer_line_id.uxb
+            
 
 
             total_packages = sum(
@@ -363,7 +366,6 @@ class WMSTask(models.Model):
                 for cont in data.get("contenedores", [])
             )
             
-            task.bultos_prepared = total_bultos
             task.packages_count = total_packages
 
 
@@ -873,7 +875,7 @@ class WMSTask(models.Model):
                     record._fmt_dt_local(record.transfer_id.create_date),   # B
                     record.name or "",                     # C
                     record.transfer_id.origin or "",                         # D
-                    record.name or "",                           # E
+                    record.transfer_id.name or "",                           # E
                     cliente,                                    # F
                     (round(record.bultos_count, 2) or ""),     # G
                     len(record.task_line_ids) or 0,   # H
@@ -907,6 +909,7 @@ class WMSTask(models.Model):
                 else:
                     direccion_entrega = self.carrier_id.address
             vals = {
+                'name': self.transfer_id.name,
                 'wms_task_id': self.id,
                 'picking_ids': [(4, self.id)],
                 'fecha_entrega': False,
@@ -920,9 +923,8 @@ class WMSTask(models.Model):
                 'observaciones': '',
                 'industry_id': self.partner_id.industry_id.id,
                 'ubicacion': '',
-                'estado_digip': self.state_wms,
+                'estado_digip': self.digip_state,
                 'estado_despacho': 'in_preparation',
-                'delivery_state': self.delivery_state,
                 'sale_id': self.transfer_id.sale_id.id if self.transfer_id.sale_id else False,
                 'fecha_despacho': False,
                 'observacion_despacho': False,

@@ -4,15 +4,6 @@ from odoo import models, fields, api
 class WMSStockLocation(models.Model):
     _name = 'wms.stock.location'
 
-    name = fields.Char()
-    product_id = fields.Many2one(string="Producto", comodel_name="product.product")
-    
-    
-    
-#     value2 = fields.Float(compute="_value_pc", store=True)
-#     description = fields.Text()
-#
-#     @api.depends('value')
-#     def _value_pc(self):
-#         for record in self:
-#             record.value2 = float(record.value) / 100
+    name = fields.Char(string="Ubicación")
+    warehouse_id = fields.Many2one(string="Almacen", comodel_name="wms.warehouse")
+    container_ids = fields.One2many(string="Contenedores", comodel_name="wms.container", inverse_name="location_id")

@@ -154,6 +154,7 @@ class WMSTransfer(models.Model):
         Crea tareas consumiendo qty_pending de las líneas disponibles (available_percent == 100).
         Soporta partir una misma wms.transfer.line entre múltiples tareas.
         """
+        global total_created_tasks
         total_created_tasks = self.env['wms.task']
 
         for record in self:
@@ -323,7 +324,7 @@ class WMSTransfer(models.Model):
                     line.qty_pending = 0
 
                 task_lines = self.env['wms.task.line'].create(product_list)
-                task.update_availability()
+                record.update_availability()
             else:
                 raise UserError('No hay líneas disponibles para crear una tarea')
         return {
