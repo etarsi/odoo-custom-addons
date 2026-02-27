@@ -108,6 +108,12 @@ class WMSTask(models.Model):
     
     # transporte
     carrier_id = fields.Many2one(string="Transporte", related='partner_id.property_delivery_carrier_id', store=True)
+    
+    
+    #TMS HOJA DE RUTA
+    tms_roadmap_count = fields.Integer(compute="_compute_tms_roadmap_count", string="Hoja de Ruta")
+    tms_roadmap_id = fields.Many2one("tms.roadmap", compute="_compute_tms_roadmap_id", store=False)
+
 
     @api.model
     def create(self, vals):
@@ -937,6 +943,38 @@ class WMSTask(models.Model):
             }
             tms = self.env['tms.stock.picking'].create(vals)
 
+
+    def _compute_tms_roadmap_count(self):
+        Roadmap = self.env["tms.roadmap"]
+        grouped = Roadmap.read_group(
+            [("wms_task_id", "in", self.ids)],
+            ["wms_task_id"],
+            ["wms_task_id"],
+        )
+        mp = {g["wms_task_id"][0]: g["wms_task_id_count"] for g in grouped if g.get("wms_task_id")}
+        for rec in self:
+            rec.tms_roadmap_count = mp.get(rec.id, 0)
+
+    def _compute_tms_roadmap_id(self):
+        Roadmap = self.env["tms.roadmap"]
+        for rec in self:
+            rec.tms_roadmap_id = Roadmap.search([("wms_task_id", "=", rec.id)], limit=1)
+
+    def action_open_tms_roadmap(self):
+        self.ensure_one()
+        Roadmap = self.env["tms.roadmap"]
+        roadmap = Roadmap.search([("wms_task_id", "=", self.id)], limit=1)
+        if not roadmap:
+            roadmap = Roadmap.create({"wms_task_id": self.id})
+        return {
+            "type": "ir.actions.act_window",
+            "name": "Hoja de Ruta",
+            "res_model": "tms.roadmap",
+            "view_mode": "form",
+            "res_id": roadmap.id,
+            "target": "current",
+            "context": {"default_wms_task_id": self.id},
+        }
 
 class WMSTaskLine(models.Model):
     _name = 'wms.task.line'

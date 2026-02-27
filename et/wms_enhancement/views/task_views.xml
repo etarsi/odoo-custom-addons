@@ -139,6 +139,14 @@
                 <sheet>
                     <div class="oe_button_box" name="button_box">
                         <field name="transfer_id" invisible="1"/>
+                        <!--BOTON PARA ABRIR HOJA DE RUTA-->
+                        <button name="action_open_tms_roadmap"
+                                type="object"
+                                class="oe_stat_button"
+                                icon="fa-exchange"
+                                attrs="{'invisible': [('tms_roadmap_count', '=', 0)]}">
+                            <field name="tms_roadmap_count" widget="statinfo" string="Hoja de Ruta"/>
+                        </button>
 
                         <button name="action_open_wms_transfer"
                                 type="object"
