@@ -559,7 +559,8 @@ class WMSTask(models.Model):
         # if total_value == 0:
         #     total_value = False
         
-        client_location = f"{partner.city}, {partner.state_id.name}"
+        client_location = f"{partner_sh
+        .city}, {partner_shipping.state_id.name}"
 
         remito = {
             'date': date,
