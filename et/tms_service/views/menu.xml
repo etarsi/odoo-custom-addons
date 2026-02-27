@@ -30,10 +30,14 @@
     <!-- Submenu de Configuración -->
     <menuitem id="menu_configuration" name="Configuración" parent="tms_root_logo" sequence="90"/>
 
-    <!-- CONFIGURACION/COMPAÑIAS DE TRANSPORTE -->
+    <!-- CONFIGURACION/COMPAÑIAS DE TRANSPORTE 
     <menuitem id="menu_tms_company" name="Compañías de Transporte" parent="menu_configuration"
-              action="action_tms_transport_company" sequence="10"/>
+              action="action_tms_transport_company" sequence="10"/>-->
 
+    <!-- CONFIGURACION/VEHICULOS -->
+    <menuitem id="menu_tms_transport" name="Vehículos" parent="menu_configuration"
+              action="action_tms_transport" sequence="10"/>
+    
     <!-- CONFIGURACION/TIPOS DE VEHICULO -->
     <menuitem id="menu_transport_type" name="Tipos de Vehículo" parent="menu_configuration"
               action="action_tms_transport_type" sequence="20"/>
