@@ -772,6 +772,37 @@ class WMSTask(models.Model):
                 'domain': [('id', 'in', self.invoice_ids.ids)],
             }
     
+    def action_create_tms_roadmap(self):
+        for record in self:
+            tms_roadmap_id = record.env['tms.roadmap'].search([('wms_task_id', '=', record.id)], limit=1)
+            if not tms_roadmap_id:
+                tms_roadmap_id = record.env['tms.roadmap'].create({
+                    'wms_task_id': record.id,
+                    'origin': record.origin,
+                    'partner_id': record.partner_id.id,
+                    'date': fields.Datetime.context_today(self),
+                    'transport_id': record.carrier_id.id,
+                    'direction': record.carrier_id.address,
+                    'in_ruta': 1,
+                    'bulto_count': record.bultos_count,
+                    'bulto_count_verified': record.bultos_count,
+                })
+                
+                return {
+                    'name': "Hoja de Ruta",
+                    'type': 'ir.actions.act_window',
+                    'res_model': 'tms.roadmap',
+                    'view_mode': 'form',
+                    'res_id': tms_roadmap_id.id,
+                }
+            else:
+                return {
+                    'name': "Hoja de Ruta",
+                    'type': 'ir.actions.act_window',
+                    'res_model': 'tms.roadmap',
+                    'view_mode': 'form',
+                    'res_id': tms_roadmap_id.id,
+                }
 
     def _prepare_invoice_base_vals(self, company):
         invoice_date_due = fields.Date.context_today(self)

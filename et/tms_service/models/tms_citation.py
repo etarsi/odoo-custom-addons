@@ -8,7 +8,7 @@ class TmsCitation(models.Model):
     _description = "Ruteo Citación"
     _order = "date desc, id desc"
 
-    name = fields.Char(string="Referencia", required=True, copy=False, index=True, default=lambda self: _("New"), tracking=True)
+    name = fields.Char(string="Número", required=True, copy=False, index=True, default=lambda self: _("New"), tracking=True)
     tms_roadmap_ids = fields.One2many("tms.roadmap", "citation_id", string="Hojas de Rutas", index=True, tracking=True)
     date = fields.Datetime(string="Fecha", required=True, default=fields.Datetime.now, index=True, tracking=True)
     mes = fields.Char(string="Mes", compute="_compute_mes", store=True, index=True, tracking=True)
@@ -85,7 +85,7 @@ class TmsRoadmap(models.Model):
     _description = "Hoja de Ruta"
     _order = "date desc, id desc"
 
-    name = fields.Char(string="Referencia", required=True, copy=False, index=True, default=lambda self: _("New"), tracking=True)
+    name = fields.Char(string="Número", required=True, copy=False, index=True, default=lambda self: _("New"), tracking=True)
     date = fields.Datetime(string="Fecha", required=True, default=fields.Datetime.now, index=True)
     transport_id = fields.Many2one("tms.transport", string="Vehículo", required=True, index=True, tracking=True)
     patente = fields.Char(string="Patente", tracking=True)
