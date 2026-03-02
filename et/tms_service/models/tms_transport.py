@@ -12,14 +12,19 @@ class TmsTransport(models.Model):
     delivery_carrier_id = fields.Many2one(
         'delivery.carrier',
         string='Empresa de Transporte',
-        required=True,
+        required=False,
         ondelete='restrict',
         index=True,
     )
     weight_capacity_limit = fields.Float(string='Capacidad de Peso Límite (kg)')
     package_limit = fields.Float(string='Límite de Bultos')
 
-    
+
+    def action_unlink_carrier(self):
+        for rec in self:
+            rec.delivery_carrier_id = False
+        return True
+
 class TmsTransportType(models.Model):
     _name = 'tms.transport.type'
     _description = 'Tipo de Transporte'

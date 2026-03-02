@@ -18,13 +18,20 @@
                     <field name="tms_transport_ids"
                            context="{'default_delivery_carrier_id': active_id}"
                            mode="tree,form">
-                        <tree editable="bottom">
+                        <tree editable="bottom" delete="false">
                             <field name="name"/>
                             <field name="patente_trc"/>
                             <field name="patente_semi"/>
                             <field name="transport_type_id"/>
                             <field name="weight_capacity_limit"/>
                             <field name="package_limit"/>
+                            <!-- Botón por línea -->
+                            <button name="action_unlink_carrier"
+                                    type="object"
+                                    string="Desvincular"
+                                    icon="fa-unlink"
+                                    class="btn-link"
+                                    confirm="¿Desvincular este vehículo de la empresa?"/>
                         </tree>
                     </field>
 
