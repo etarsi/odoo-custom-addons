@@ -96,11 +96,18 @@ class ReturnMove(models.Model):
                 invoice = AccountMove.browse(invoice_id)
                 company = invoice.company_id
 
-                journal = self.env['account.journal'].search([
-                    ('type', '=', 'sale'),
-                    ('company_id', '=', company.id),
-                    ('code', '=', '00010')
-                ], limit=1)
+                if company.id == 1:
+                    journal = self.env['account.journal'].search([
+                        ('type', '=', 'sale'),
+                        ('company_id', '=', company.id),
+                        ('code', '=', 'FCX')
+                    ], limit=1)
+                else:
+                    journal = self.env['account.journal'].search([
+                        ('type', '=', 'sale'),
+                        ('company_id', '=', company.id),
+                        ('code', '=', '00010')
+                    ], limit=1)
                 if not journal:
                     raise UserError(_("No encontré un diario de Ventas para la compañía %s") % company.display_name)
 
