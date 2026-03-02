@@ -136,11 +136,9 @@
                     <button name="action_open_tms_roadmap_modal"
                             type="object"
                             class="oe_stat_button"
-                            icon="fa-exchange">
-                        <div class="o_stat_info">
-                            <span class="o_stat_text">CREAR HOJA DE RUTA</span>
-                        </div>
-                    </button>
+                            icon="fa-exchange"
+                            string="CREAR HOJA DE RUTA"
+                            attrs="{'invisible': [('digip_state', '!=', 'received')]}"/>
                     <field name="state_preparation" widget="statusbar" statusbar_visible="pending,preparation,control,delivery"/>
                 </header>
                 <sheet>
