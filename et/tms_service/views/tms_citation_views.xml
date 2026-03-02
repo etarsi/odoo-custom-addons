@@ -39,7 +39,7 @@
                 <header>
                     <button name="action_post" type="object" string="Confirmar" class="btn-secondary" attrs="{'invisible': ['|', ('state', '!=', 'draft'), ('state', '=', 'pending')]}"/>
                     <button name="action_completed" type="object" string="Completar Citación" class="btn-success" attrs="{'invisible': ['|', ('state', '!=', 'pending'), ('state', '=', 'completed')]}"/>
-                    <button name="action_canceled" type="object" string="Cancelar Citación" class="btn-danger" attrs="{'invisible': [('state', '=', 'canceled')]}"/>
+                    <button name="action_cancel" type="object" string="Cancelar Citación" class="btn-danger" attrs="{'invisible': [('state', '=', 'canceled')]}"/>
                     <button name="action_draft" type="object" string="Revertir a Borrador" class="btn-secondary" attrs="{'invisible': [('state', '!=', 'canceled')]}"/>
                     <field name="state"
                            widget="statusbar"
