@@ -18,7 +18,7 @@
                 <field name="bulto_count" optional="show"/>
                 <field name="bulto_count_verified" optional="show"/>
                 <field name="percentage_verified" optional="show"/>
-                <field name="state" widget="statusbar" decoration-info="state == 'draft'" decoration-warning="state == 'pending'" decoration-success="state == 'completed'" decoration-danger="state == 'canceled'" optional="show"/>
+                <field name="state" widget="badge" decoration-info="state == 'draft'" decoration-warning="state == 'pending'" decoration-success="state == 'completed'" decoration-danger="state == 'canceled'" optional="show"/>
             </tree>
         </field>
     </record>
