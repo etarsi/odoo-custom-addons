@@ -18,6 +18,15 @@
         <field name="model">tms.stock.picking</field>
         <field name="inherit_id" ref="tms_service.view_tms_stock_picking_form"/>
         <field name="arch" type="xml">
+            <xpath exp="//sheet" position="inside">
+                <button name="action_open_wms_task"
+                        type="object"
+                        class="oe_stat_button"
+                        icon="fa-building"
+                        attrs="{'invisible': [('wms_task_id','=',False)]}">
+                    <field name="wms_task_id" widget="statinfo" string="Tarea WMS"/>
+                </button>
+            </xpath>
             <xpath expr="//field[@name='items_ids']" position="after">
                 <field name="wms_task_id"/>
             </xpath>

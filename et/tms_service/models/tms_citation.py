@@ -148,6 +148,7 @@ class TmsRoadmap(models.Model):
     bulto_count_verified = fields.Float(string="Bultos Verificados", tracking=True)
     percentage_verified = fields.Float(string="Porcentaje Verificado", compute="_compute_percentage_verified", store=True, tracking=True)
     citation_id = fields.Many2one("tms.citation", string="Citación", ondelete="set null", index=True, tracking=True)
+    citation_count = fields.Integer(string="Número de Citaciones", compute="_compute_citation_count", store=True, tracking=True)
     state = fields.Selection(
         [
             ("draft", "Borrador"),
@@ -182,7 +183,11 @@ class TmsRoadmap(models.Model):
     _sql_constraints = [
         ("uniq_tms_roadmap_name", "unique(name)", "La referencia de Hoja de Ruta debe ser única."),
     ]
-    
+
+    def _compute_citation_count(self):
+        for rec in self:
+            rec.citation_count = 1 if rec.citation_id else 0
+
     @api.depends("bulto_count", "bulto_count_verified")
     def _compute_percentage_verified(self):
         for rec in self:
@@ -207,3 +212,16 @@ class TmsRoadmap(models.Model):
                 self.patente = self.transport_id.patente_semi
         else:
             self.patente = False
+            
+    def action_open_citation(self):
+        self.ensure_one()
+        if not self.citation_id:
+            return
+        return {
+            "type": "ir.actions.act_window",
+            "name": _("Citación"),
+            "res_model": "tms.citation",
+            "view_mode": "form",
+            "res_id": self.citation_id.id,
+            "target": "current",
+        }

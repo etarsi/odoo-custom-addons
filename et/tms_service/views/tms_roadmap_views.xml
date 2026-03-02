@@ -36,6 +36,13 @@
                 </header>
 
                 <sheet>
+                    <button name="action_open_citation"
+                            type="object"
+                            class="oe_stat_button"
+                            icon="fa-building"
+                            attrs="{'invisible': [('citation_id','=',False)]}">
+                        <field name="citation_count" widget="statinfo" string="Citación"/>
+                    </button>
                     <div class="oe_title">
                         <h1>
                             <field name="name" readonly="1"/>
