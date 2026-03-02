@@ -159,3 +159,13 @@ class TmsRoadmap(models.Model):
             if vals.get("name", _("New")) == _("New"):
                 vals["name"] = self.env["ir.sequence"].next_by_code("tms.roadmap") or _("New")
         return super().create(vals_list)
+    
+    @api.onchange("transport_id")
+    def _onchange_transport_id(self):
+        if self.transport_id:
+            if self.transport_id.patente_trc:
+                self.patente = self.transport_id.patente_trc
+            if self.transport_id.patente_semi:
+                self.patente = self.transport_id.patente_semi
+        else:
+            self.patente = False
