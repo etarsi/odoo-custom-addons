@@ -116,6 +116,8 @@ class ReturnMove(models.Model):
                     document_type = self.env['l10n_latam.document.type'].browse(3)
                 elif invoice.l10n_latam_document_type_id.code == '201':
                     document_type = self.env['l10n_latam.document.type'].browse(111)
+                else:
+                    document_type = False
 
                 cn = rm._create_cn_without_x2many(company, journal, invoice, document_type, return_lines)
                 created_moves_ids.append(cn.id)
