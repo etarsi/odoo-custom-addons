@@ -53,7 +53,8 @@
                     <group>
                         <group>
                             <field name="empresa_id" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
-                            <field name="transport_id" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                            <field name="transport_id" domain="[('active', '=', True), ('delivery_carrier_id', '=', empresa_id)]" 
+                                    attrs="{'readonly': [('state', '!=', 'draft')]}"/>
                             <field name="transport_type_id" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
                             <field name="patente_tractor" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
                             <field name="patente_semi" attrs="{'readonly': [('state', '!=', 'draft')]}"/>

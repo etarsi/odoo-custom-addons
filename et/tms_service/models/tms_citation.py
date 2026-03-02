@@ -12,7 +12,7 @@ class TmsCitation(models.Model):
     tms_roadmap_ids = fields.One2many("tms.roadmap", "citation_id", string="Hojas de Rutas", index=True, tracking=True)
     date = fields.Datetime(string="Fecha", required=True, default=fields.Datetime.now, index=True, tracking=True)
     mes = fields.Char(string="Mes", compute="_compute_mes", store=True, index=True, tracking=True)
-    empresa_id = fields.Many2one("delivery.carrier", string="Empresa", required=True, index=True, tracking=True)
+    empresa_id = fields.Many2one("delivery.carrier", string="Empresa", domain="[('active', '=', True)]", required=True, index=True, tracking=True)
     transport_id = fields.Many2one("tms.transport", string="Vehículo", required=True, index=True, tracking=True)
     transport_type_id = fields.Many2one("tms.transport.type", string="Tipo de Vehículo", required=True, tracking=True)
     patente_tractor = fields.Char(string="Patente Tractor", tracking=True)

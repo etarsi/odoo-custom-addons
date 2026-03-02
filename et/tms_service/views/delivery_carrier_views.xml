@@ -25,7 +25,6 @@
                             <field name="transport_type_id"/>
                             <field name="weight_capacity_limit"/>
                             <field name="package_limit"/>
-                            <field name="active"/>
                         </tree>
                     </field>
 
