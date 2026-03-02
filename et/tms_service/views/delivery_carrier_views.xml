@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_delivery_carrier_form_inherit_tms_vehicles" model="ir.ui.view">
+        <field name="name">delivery.carrier.form.inherit.tms.vehicles</field>
+        <field name="model">delivery.carrier</field>
+        <field name="inherit_id" ref="delivery.view_delivery_carrier_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//page[@name='destination']" position="after">
+                <page string="Vehículos Asociados" name="vehicles_associated">
+
+                    <group>
+                        <button name="%(action_tms_transport_reassign_wizard)d"
+                                type="action"
+                                string="Vincular vehículos existentes"
+                                class="btn-secondary"/>
+                    </group>
+
+                    <field name="tms_transport_ids"
+                           context="{'default_delivery_carrier_id': active_id}"
+                           mode="tree,form">
+                        <tree editable="bottom">
+                            <field name="name"/>
+                            <field name="patente_trc"/>
+                            <field name="patente_semi"/>
+                            <field name="transport_type_id"/>
+                            <field name="weight_capacity_limit"/>
+                            <field name="package_limit"/>
+                            <field name="active"/>
+                        </tree>
+                    </field>
+
+                </page>
+            </xpath>
+        </field>
+    </record>
+</odoo>

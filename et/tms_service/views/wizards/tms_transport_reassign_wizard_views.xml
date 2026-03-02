@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="view_tms_transport_reassign_wizard_form" model="ir.ui.view">
+        <field name="name">tms.transport.reassign.wizard.form</field>
+        <field name="model">tms.transport.reassign.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Vincular vehículos existentes">
+                <group>
+                    <field name="carrier_id" invisible="1"/>
+                    <field name="transport_ids"
+                           widget="many2many_tags"
+                           options="{'no_create': True}"/>
+                </group>
+                <footer>
+                    <button name="action_reassign" type="object" string="Vincular" class="btn-primary"/>
+                    <button string="Cancelar" special="cancel" class="btn-secondary"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_tms_transport_reassign_wizard" model="ir.actions.act_window">
+        <field name="name">Vincular vehículos</field>
+        <field name="res_model">tms.transport.reassign.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+        <field name="context">{'default_carrier_id': active_id}</field>
+    </record>
+
+</odoo>

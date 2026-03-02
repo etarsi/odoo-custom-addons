@@ -6,11 +6,7 @@
         <field name="name">tms.citation.tree</field>
         <field name="model">tms.citation</field>
         <field name="arch" type="xml">
-            <tree string="Citaciones"
-                  decoration-info="state == 'draft'"
-                  decoration-warning="state == 'pending'"
-                  decoration-success="state == 'completed'"
-                  decoration-danger="state == 'canceled'">
+            <tree string="Citaciones">
                 <field name="name" optional="show"/>
                 <field name="date" optional="show" widget="date"/>
                 <field name="mes" optional="show"/>
@@ -27,7 +23,7 @@
                 <field name="total_bulk" optional="show"/>
                 <field name="total_bulk_verified" optional="show"/>
                 <field name="percentage_verified" optional="show"/>
-                <field name="state" optional="show"/>
+                <field name="state" widget="statusbar" decoration-info="state == 'draft'" decoration-warning="state == 'pending'" decoration-success="state == 'completed'" decoration-danger="state == 'canceled'" optional="show"/>
             </tree>
         </field>
     </record>

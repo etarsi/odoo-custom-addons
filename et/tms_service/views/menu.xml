@@ -22,7 +22,7 @@
               sequence="50"/>
 
     <!-- Submenu de Transporte-->
-    <menuitem id="menu_tms_transporte" name="Transportes" parent="tms_root_logo"
+    <menuitem id="menu_tms_transporte" name="Empresas" parent="tms_root_logo"
               action="delivery.action_delivery_carrier_form" sequence="70"/>
 
 
