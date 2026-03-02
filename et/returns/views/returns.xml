@@ -15,7 +15,7 @@
                 <field name="name"/>
                 <field name="partner_id"/>
                 <field name="price_total" sum="Total"/>
-                <field name="state"/>
+                <field name="state" widget="badge" decoration-success="state== 'invoiced'" decoration-warning="state == 'pending'"/>
             </tree>
         </field>
     </record>
