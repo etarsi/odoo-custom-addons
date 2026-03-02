@@ -780,37 +780,44 @@ class WMSTask(models.Model):
                 'domain': [('id', 'in', self.invoice_ids.ids)],
             }
     
-    def action_create_tms_roadmap(self):
-        for record in self:
-            tms_roadmap_id = record.env['tms.roadmap'].search([('wms_task_id', '=', record.id)], limit=1)
-            if not tms_roadmap_id:
-                tms_roadmap_id = record.env['tms.roadmap'].create({
-                    'wms_task_id': record.id,
-                    'partner_id': record.partner_id.id,
-                    'date': fields.Date.context_today(self),
-                    'transport_id': record.carrier_id.id if record.carrier_id else None,
-                    'direction': record.carrier_id.address if record.carrier_id else None,
-                    'in_ruta': 1,
-                    'bulto_count': record.bultos_prepared if record.bultos_prepared > 0 else record.bultos_count,
-                    'bulto_count_verified': record.bultos_prepared if record.bultos_prepared > 0 else record.bultos_count,
-                })
-                
-                return {
-                    'name': "Hoja de Ruta",
-                    'type': 'ir.actions.act_window',
-                    'res_model': 'tms.roadmap',
-                    'view_mode': 'form',
-                    'res_id': tms_roadmap_id.id,
-                }
-            else:
-                return {
-                    'name': "Hoja de Ruta",
-                    'type': 'ir.actions.act_window',
-                    'res_model': 'tms.roadmap',
-                    'view_mode': 'form',
-                    'res_id': tms_roadmap_id.id,
-                }
+    def action_open_tms_roadmap_modal(self):
+        self.ensure_one()
 
+        Roadmap = self.env["tms.roadmap"]
+        roadmap = Roadmap.search([("wms_task_id", "=", self.id)], limit=1)
+
+        ctx = dict(self.env.context or {})
+        ctx.update({
+            # defaults para crear (si no existe)
+            "default_wms_task_id": self.id,
+            "default_partner_id": self.partner_id.id if self.partner_id else False,
+            "default_date": fields.Date.context_today(self),   # <- correcto en Date
+            "default_direction": self.carrier_id.address if getattr(self, "carrier_id", False) else False,
+            "default_in_ruta": True,
+            "default_bulto_count": self.bultos_prepared if (self.bultos_prepared or 0) > 0 else (self.bultos_count or 0),
+            "default_bulto_count_verified": self.bultos_prepared if (self.bultos_prepared or 0) > 0 else (self.bultos_count or 0),
+        })
+
+        action = {
+            "name": _("Hoja de Ruta"),
+            "type": "ir.actions.act_window",
+            "res_model": "tms.roadmap",
+            "view_mode": "form",
+            "target": "new",       # <-- MODAL
+            "context": ctx,
+        }
+
+        if roadmap:
+            # si existe, abre ese registro en el modal
+            action["res_id"] = roadmap.id
+        else:
+            # si no existe, abre un form vacío con defaults (se crea al guardar)
+            # opcional: usar una vista “modal” simplificada
+            view = self.env.ref("tms_service.view_tms_roadmap_form_modal", raise_if_not_found=False)
+            if view:
+                action["views"] = [(view.id, "form")]
+
+        return action
     def _prepare_invoice_base_vals(self, company):
         invoice_date_due = fields.Date.context_today(self)
 
