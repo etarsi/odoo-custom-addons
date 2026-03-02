@@ -64,7 +64,6 @@
                             <field name="service_id" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
                             <field name="area" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
                             <field name="hiring_id" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
-                            <field name="tms_stock_picking_id" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
                         </group>
 
                         <group>

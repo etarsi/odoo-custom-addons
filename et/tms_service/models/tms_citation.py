@@ -33,15 +33,6 @@ class TmsCitation(models.Model):
     total_bulk = fields.Float(string="T. Cantidad de Bultos", compute="_compute_total_bulto", tracking=True)
     total_bulk_verified = fields.Float(string="T. Cantidad de Bultos Verificados", compute="_compute_total_bulto_verified", tracking=True)
     percentage_verified = fields.Float(string="Porcentaje Verificado", compute="_compute_percentage_verified", store=True, tracking=True)
-    
-    tms_stock_picking_id = fields.Many2one(
-        "tms.stock.picking",
-        string="Ruteo Asociado",
-        required=False,
-        ondelete="restrict",
-        index=True,
-        tracking=True,
-    )
     state = fields.Selection(
         [
             ("draft", "Borrador"),
@@ -178,7 +169,17 @@ class TmsRoadmap(models.Model):
         ("delivery", "Entrega"),
         ("pickup", "Retiro"),
     ], required=True, default="delivery", tracking=True)
-
+    tms_stock_picking_id = fields.Many2one(
+        "tms.stock.picking",
+        string="Ruteo Asociado",
+        required=False,
+        ondelete="restrict",
+        index=True,
+        tracking=True,
+    )
+    
+    
+    
     @api.depends("bulto_count", "bulto_count_verified")
     def _compute_percentage_verified(self):
         for rec in self:

@@ -62,6 +62,16 @@
                             <field name="percentage_verified"/>
                         </group>
                     </group>
+                    <notebook>
+                        <page name="information" string="Información Adicional">
+                            <group name="group_information" string="Información Adicional">
+                                <group>
+                                    <field name="citation_id"/>
+                                    <field name="tms_stock_picking_id"/>
+                                </group>
+                            </group>
+                        </page>
+                    </notebook>
                 </sheet>
                 <!-- Chatter -->
                 <div class="oe_chatter">
