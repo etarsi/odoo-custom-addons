@@ -225,3 +225,8 @@ class TmsRoadmap(models.Model):
             "res_id": self.citation_id.id,
             "target": "current",
         }
+        
+    def action_unlink_roadmap(self):
+        for rec in self:
+            rec.citation_id = False
+        return True

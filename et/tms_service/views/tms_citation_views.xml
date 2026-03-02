@@ -83,12 +83,19 @@
                             </group>
 
                             <field name="tms_roadmap_ids" context="{'default_citation_id': active_id}" mode="tree,form" attrs="{'readonly': [('state', '!=', 'draft')]}">
-                                <tree string="Hojas de Ruta">
+                                <tree string="Hojas de Ruta" delete="false">
                                     <field name="name"/>
                                     <field name="partner_id"/>
                                     <field name="bulto_count"/>
                                     <field name="bulto_count_verified"/>
                                     <field name="percentage_verified"/>
+                                    <!-- Botón por línea -->
+                                    <button name="action_unlink_roadmap"
+                                            type="object"
+                                            string="Desvincular"
+                                            icon="fa-unlink"
+                                            class="btn-link"
+                                            confirm="¿Desvincular esta hoja de ruta de la citación?"/>
                                 </tree>
                             </field>
                         </page>
