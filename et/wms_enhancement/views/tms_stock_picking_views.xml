@@ -18,7 +18,7 @@
         <field name="model">tms.stock.picking</field>
         <field name="inherit_id" ref="tms_service.view_tms_stock_picking_form"/>
         <field name="arch" type="xml">
-            <xpath exp="//sheet" position="inside">
+            <xpath expr="//div[@name='button_box']" position="inside">
                 <button name="action_open_wms_task"
                         type="object"
                         class="oe_stat_button"
