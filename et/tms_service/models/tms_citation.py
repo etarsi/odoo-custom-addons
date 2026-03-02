@@ -178,7 +178,10 @@ class TmsRoadmap(models.Model):
         tracking=True,
     )
     
-    
+    #SQL
+    _sql_constraints = [
+        ("uniq_tms_roadmap_name", "unique(name)", "La referencia de Hoja de Ruta debe ser única."),
+    ]
     
     @api.depends("bulto_count", "bulto_count_verified")
     def _compute_percentage_verified(self):
