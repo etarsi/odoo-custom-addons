@@ -43,8 +43,8 @@ class TmsCitation(models.Model):
         [
             ("draft", "Borrador"),
             ("pending", "Pendiente"),
-            ("completed", "Completada"),
-            ("canceled", "Cancelada"),
+            ("completed", "Completado"),
+            ("canceled", "Cancelado"),
         ],
         string="Estado",
         default="draft",
@@ -87,6 +87,31 @@ class TmsCitation(models.Model):
             self.transport_type_id = False
             self.patente_tractor = False
             self.patente_semi = False
+
+    def action_post(self):
+        for rec in self:
+            if rec.state != "draft":
+                raise ValidationError(_("Solo se pueden publicar hojas de ruta en estado Borrador."))
+            rec.state = "pending"
+            
+    def action_draft(self):
+        for rec in self:
+            if rec.state != "pending":
+                raise ValidationError(_("Solo se pueden volver a borrador hojas de ruta en estado Pendiente."))
+            rec.state = "draft"
+            
+    def action_cancel(self):
+        for rec in self:
+            if rec.state == "canceled":
+                raise ValidationError(_("La hoja de ruta ya está cancelada."))
+            rec.state = "canceled"
+            
+    def action_completed(self):
+        for rec in self:
+            if rec.state != "pending":
+                raise ValidationError(_("Solo se pueden completar hojas de ruta en estado Pendiente."))
+            rec.state = "completed"
+
 
 
 class TmsRoadmap(models.Model):

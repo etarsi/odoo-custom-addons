@@ -35,7 +35,7 @@
                 <header>
                     <field name="state"
                            widget="statusbar"
-                           statusbar_visible="draft,pending,completed,canceled"/>
+                           statusbar_visible="draft,pending,completed"/>
                 </header>
 
                 <sheet>

@@ -37,9 +37,12 @@
         <field name="arch" type="xml">
             <form string="Citación">
                 <header>
+                    <button name="action_set_pending" type="object" string="Confirmar" class="btn-secondary" attrs="{'invisible': ['|', ('state', '!=', 'draft'), ('state', '=', 'pending')]}"/>
+                    <button name="action_set_completed" type="object" string="Completar Citación" class="btn-success" attrs="{'invisible': ['|', ('state', '!=', 'pending'), ('state', '=', 'completed')]}"/>
+                    <button name="action_set_canceled" type="object" string="Cancelar Citación" class="btn-danger" attrs="{'invisible': [('state', '=', 'canceled')]}"/>
                     <field name="state"
                            widget="statusbar"
-                           statusbar_visible="draft,pending,completed,canceled"/>
+                           statusbar_visible="draft,pending,completed"/>
                 </header>
 
                 <sheet>
@@ -50,23 +53,23 @@
                     </div>
                     <group>
                         <group>
-                            <field name="empresa_id"/>
-                            <field name="transport_id"/>
-                            <field name="transport_type_id"/>
-                            <field name="patente_tractor"/>
-                            <field name="patente_semi"/>
-                            <field name="service_id"/>
-                            <field name="area"/>
-                            <field name="hiring_id"/>
-                            <field name="tms_stock_picking_id"/>
+                            <field name="empresa_id" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                            <field name="transport_id" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                            <field name="transport_type_id" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                            <field name="patente_tractor" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                            <field name="patente_semi" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                            <field name="service_id" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                            <field name="area" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                            <field name="hiring_id" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                            <field name="tms_stock_picking_id" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
                         </group>
 
                         <group>
-                            <field name="date"/>
+                            <field name="date" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
                             <field name="mes" readonly="1"/>
-                            <field name="hour_citation" widget="float_time"/>
-                            <field name="hour_arrival" widget="float_time"/>
-                            <field name="bulto_count"/>
+                            <field name="hour_citation" widget="float_time" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                            <field name="hour_arrival" widget="float_time" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                            <field name="bulto_count" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
                         </group>
                     </group>
                     <notebook>
@@ -78,7 +81,7 @@
                                         class="btn-secondary"/>
                             </group>
 
-                            <field name="tms_roadmap_ids" context="{'default_citation_id': active_id}" mode="tree,form">
+                            <field name="tms_roadmap_ids" context="{'default_citation_id': active_id}" mode="tree,form" attrs="{'readonly': [('state', '!=', 'draft')]}">
                                 <tree string="Hojas de Ruta">
                                     <field name="name"/>
                                     <field name="partner_id"/>
@@ -88,7 +91,7 @@
                             </field>
                         </page>
                         <page string="Observaciones" name="observations_page">
-                            <field name="observations"/>
+                            <field name="observations" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
                         </page>
                     </notebook>
                 </sheet>
