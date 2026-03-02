@@ -178,6 +178,7 @@ class TmsRoadmap(models.Model):
         index=True,
         tracking=True,
     )
+    industry_id = fields.Many2one("res.partner.industry", string="Zona", store=True, tracking=True, related='partner_id.industry_id')
     
     #SQL
     _sql_constraints = [

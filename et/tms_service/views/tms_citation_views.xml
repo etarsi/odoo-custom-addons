@@ -86,6 +86,8 @@
                                 <tree string="Hojas de Ruta" delete="false">
                                     <field name="name"/>
                                     <field name="partner_id"/>
+                                    <field name="in_ruta"/>
+                                    <field name="industry_id"/>
                                     <field name="bulto_count"/>
                                     <field name="bulto_count_verified"/>
                                     <field name="percentage_verified"/>
