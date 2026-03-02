@@ -174,6 +174,10 @@ class TmsRoadmap(models.Model):
     in_ruta = fields.Integer(string="Indice de Vuelta-Ruta", store=True, tracking=True)
     partner_id = fields.Many2one("res.partner", string="Cliente", store=True, tracking=True)
     direction = fields.Char(string="Dirección", store=True, tracking=True)
+    type_roadmap = fields.Selection(string="Tipo", selection=[
+        ("delivery", "Entrega"),
+        ("pickup", "Retiro"),
+    ], required=True, default="delivery", tracking=True)
 
     @api.depends("bulto_count", "bulto_count_verified")
     def _compute_percentage_verified(self):
