@@ -12,7 +12,7 @@
                 decoration-success="state == 'completed'"
                 decoration-danger="state == 'canceled'">
                 <field name="name" optional="show"/>
-                <field name="date" optional="show"/>
+                <field name="date" optional="show" widget="date"/>
                 <field name="transport_id" optional="show"/>
                 <field name="assistants" optional="show"/>
                 <field name="patente" optional="show"/>
@@ -54,7 +54,7 @@
                             <field name="direction"/>
                         </group>
                         <group>
-                            <field name="date"/>
+                            <field name="date" widget="date"/>
                             <field name="assistants"/>
                             <field name="bulto_count"/>
                             <field name="bulto_count_verified"/>
