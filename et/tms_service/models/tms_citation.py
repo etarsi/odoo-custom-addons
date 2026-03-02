@@ -30,7 +30,10 @@ class TmsCitation(models.Model):
     hiring_id = fields.Many2one("tms.hiring", string="Contratación", required=True, tracking=True)
     observations = fields.Text(string="Observaciones", tracking=True)
     # En la planilla 'Btos G.C' viene con decimales (ej 35.67), por eso Float.
-    bulto_count = fields.Float(string="Cantidad de Bultos", tracking=True)
+    total_bulk = fields.Float(string="T. Cantidad de Bultos", compute="_compute_total_bulto", tracking=True)
+    total_bulk_verified = fields.Float(string="T. Cantidad de Bultos Verificados", compute="_compute_total_bulto_verified", tracking=True)
+    percentage_verified = fields.Float(string="Porcentaje Verificado", compute="_compute_percentage_verified", store=True, tracking=True)
+    
     tms_stock_picking_id = fields.Many2one(
         "tms.stock.picking",
         string="Ruteo Asociado",
@@ -52,6 +55,25 @@ class TmsCitation(models.Model):
         index=True,
         tracking=True,
     )
+    
+    @api.depends("tms_roadmap_ids.bulto_count")
+    def _compute_total_bulto(self):
+        for rec in self:
+            rec.total_bulk = sum(rec.tms_roadmap_ids.mapped('bulto_count'))   
+
+    @api.depends("tms_roadmap_ids.bulto_count_verified")
+    def _compute_total_bulto_verified(self):
+        for rec in self:
+            rec.total_bulk_verified = sum(rec.tms_roadmap_ids.mapped('bulto_count_verified'))
+
+    @api.depends("total_bulk", "total_bulk_verified")
+    def _compute_percentage_verified(self):
+        for rec in self:
+            if rec.total_bulk > 0 and rec.total_bulk_verified > 0:
+                rec.percentage_verified = (rec.total_bulk_verified / rec.total_bulk) * 100
+            else:
+                rec.percentage_verified = 0.0
+    
 
     @api.depends("date")
     def _compute_mes(self):
@@ -133,6 +155,7 @@ class TmsRoadmap(models.Model):
     observations = fields.Text(string="Observaciones", tracking=True)
     bulto_count = fields.Float(string="Bultos", tracking=True)
     bulto_count_verified = fields.Float(string="Bultos Verificados", tracking=True)
+    percentage_verified = fields.Float(string="Porcentaje Verificado", compute="_compute_percentage_verified", store=True, tracking=True)
     citation_id = fields.Many2one("tms.citation", string="Citación", ondelete="set null", index=True, tracking=True)
     state = fields.Selection(
         [
@@ -152,6 +175,13 @@ class TmsRoadmap(models.Model):
     partner_id = fields.Many2one("res.partner", string="Cliente", store=True, tracking=True)
     direction = fields.Char(string="Dirección", store=True, tracking=True)
 
+    @api.depends("bulto_count", "bulto_count_verified")
+    def _compute_percentage_verified(self):
+        for rec in self:
+            if rec.bulto_count > 0 and rec.bulto_count_verified > 0:
+                rec.percentage_verified = (rec.bulto_count_verified / rec.bulto_count) * 100
+            else:
+                rec.percentage_verified = 0.0
 
     @api.model_create_multi
     def create(self, vals_list):

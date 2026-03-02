@@ -70,7 +70,9 @@
                             <field name="mes" readonly="1"/>
                             <field name="hour_citation" widget="float_time" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
                             <field name="hour_arrival" widget="float_time" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
-                            <field name="bulto_count" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                            <field name="total_bulk"/>
+                            <field name="total_bulk_verified"/>
+                            <field name="percentage_verified"/>
                         </group>
                     </group>
                     <notebook>
@@ -88,6 +90,7 @@
                                     <field name="partner_id"/>
                                     <field name="bulto_count"/>
                                     <field name="bulto_count_verified"/>
+                                    <field name="percentage_verified"/>
                                 </tree>
                             </field>
                         </page>
