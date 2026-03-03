@@ -11,8 +11,7 @@
             <search string="Buscar Transferencias">
                 <field name="name"/>
                 <field name="partner_id"/>
-                <field name="sale_id"/>
-                <field name="purchase_id"/>
+                <field name="transfer_id"/>
 <!-- 
                 <filter string="Ingreso" name="incoming" domain="[('operation_type','=','incoming')]"/>
                 <filter string="Entrega" name="outgoing" domain="[('operation_type','=','outgoing')]"/>
