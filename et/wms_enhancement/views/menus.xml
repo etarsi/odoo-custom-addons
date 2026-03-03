@@ -99,4 +99,13 @@
               sequence="50"    
               action="action_wms_product_lot"/>    
 
+
+    <!-- VENTAS -->
+
+    <menuitem id="wms_preselection_menu"
+              name="Preselección GC"
+              parent="sale.sale_order_menu"
+              sequence="2"
+              action="action_wms_preselection"
+    />
 </odoo>
