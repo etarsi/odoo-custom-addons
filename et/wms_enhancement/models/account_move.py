@@ -29,3 +29,5 @@ class AccountMoveInherit(models.Model):
                 line.write({
                     'price_unit': new_price
                 })
+
+            record._recompute_dynamic_lines()
