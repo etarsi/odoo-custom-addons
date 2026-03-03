@@ -57,7 +57,7 @@
                 <group expand="0" string="Agrupar por">
                     <filter string="Operación" name="group_operation" context="{'group_by':'operation_type'}"/>
                     <filter string="Cliente" name="group_partner" context="{'group_by':'partner_id'}"/> -->
-                </group>
+                <!-- </group> -->
             </search>
         </field>
     </record>
