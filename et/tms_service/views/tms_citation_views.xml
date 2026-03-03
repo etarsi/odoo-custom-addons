@@ -22,7 +22,7 @@
                 <field name="hiring_id" optional="show"/>
                 <field name="total_bulk" optional="show"/>
                 <field name="total_bulk_verified" optional="show"/>
-                <field name="percentage_verified" optional="show"/>
+                <field name="percentage_verified" widget="progressbar" options="{'max_value': 100}" optional="show"/>
                 <field name="state" widget="badge" decoration-info="state == 'draft'" decoration-warning="state == 'pending'" decoration-success="state == 'completed'" decoration-danger="state == 'canceled'" optional="show"/>
             </tree>
         </field>
@@ -70,7 +70,7 @@
                             <field name="hour_arrival" widget="float_time" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
                             <field name="total_bulk"/>
                             <field name="total_bulk_verified"/>
-                            <field name="percentage_verified"/>
+                            <field name="percentage_verified" widget="progressbar" options="{'max_value': 100}"/>
                         </group>
                     </group>
                     <notebook>
@@ -90,7 +90,7 @@
                                     <field name="industry_id"/>
                                     <field name="bulto_count"/>
                                     <field name="bulto_count_verified"/>
-                                    <field name="percentage_verified"/>
+                                    <field name="percentage_verified" widget="progressbar" options="{'max_value': 100}"/>
                                     <!-- Botón por línea -->
                                     <button name="action_unlink_roadmap"
                                             type="object"

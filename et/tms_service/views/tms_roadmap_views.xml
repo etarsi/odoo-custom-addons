@@ -18,7 +18,7 @@
                 <field name="direction" optional="show"/>
                 <field name="bulto_count" optional="show"/>
                 <field name="bulto_count_verified" optional="show"/>
-                <field name="percentage_verified" optional="show"/>
+                <field name="percentage_verified" widget="progressbar" options="{'max_value': 100}" optional="show"/>
                 <field name="state" widget="badge" decoration-info="state == 'draft'" decoration-warning="state == 'pending'" decoration-success="state == 'completed'" decoration-danger="state == 'canceled'" optional="show"/>
             </tree>
         </field>
@@ -66,7 +66,7 @@
                             <field name="assistants"/>
                             <field name="bulto_count"/>
                             <field name="bulto_count_verified"/>
-                            <field name="percentage_verified"/>
+                            <field name="percentage_verified" widget="progressbar" options="{'max_value': 100}"/>
                         </group>
                     </group>
                     <notebook>
