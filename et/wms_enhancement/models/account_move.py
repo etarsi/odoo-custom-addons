@@ -20,3 +20,12 @@ class AccountMoveInherit(models.Model):
            'res_id': self.task_id.id,
            'target': 'current',
         }
+    
+
+    def sacar_iva_21(self):
+        for record in self:
+            for line in record.invoice_line_ids:
+                new_price = line.price_unit / 1.21
+                line.write({
+                    'price_unit': new_price
+                })
