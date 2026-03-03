@@ -41,22 +41,25 @@ class OutInvoiceRefacturarWizard(models.TransientModel):
     @api.onchange('accion_descuento')
     def _onchange_accion_descuento(self):      
         if not self.accion_descuento:
-            self.descuento_porcentaje = 0.0
-
-    def _norm(self, s):
-        s = (s or "")
-        s = unicodedata.normalize("NFKD", s)
-        s = "".join(ch for ch in s if not unicodedata.combining(ch))
-        return s.lower()
-
+            self.descuento_porcentaje = 0.0    
+    
     def _delete_impuestos_percepcion_iibb(self, move):
+        target_desc = [
+            'Percepción IIBB CABA A',
+            'Percepción IIBB AGIP A',
+            'Percepción IIBB ARBA A',
+        ]
+
+        Tax = self.env['account.tax'].with_company(move.company_id)
+        target_taxes = Tax.search([
+            ('company_id', '=', move.company_id.id),
+            ('description', 'in', target_desc),
+        ])
+        target_ids = set(target_taxes.ids)
+
         for line in move.invoice_line_ids.filtered(lambda l: not l.display_type):
-            def is_iibb_perc(t):
-                n = self._norm(t.name)
-                g = self._norm(t.tax_group_id.name) if t.tax_group_id else ""
-                return ("iibb" in n or "iibb" in g) and ("percep" in n or "perc" in n or "percep" in g or "perc" in g)
-            kept = line.tax_ids.filtered(lambda t: not is_iibb_perc(t))
-            line.write({'tax_ids': [(6, 0, kept.ids if kept else [])]})
+            kept = line.tax_ids.filtered(lambda t: t.id not in target_ids)
+            line.write({'tax_ids': [(6, 0, kept.ids)]})
 
     @api.onchange('descuento_porcentaje')
     def _onchange_descuento_porcentaje(self):

@@ -713,13 +713,25 @@ class AccountMoveReversalInherit(models.TransientModel):
                     self._delete_impuestos_perceppcion_iibb(new_move)
             new_move.update_taxes()
         return action
-    
+                
     def _delete_impuestos_perceppcion_iibb(self, move):
-        tax_name = 'percepción iibb'
-        for line in move.invoice_line_ids:
-            line_tax_ids = line.tax_ids.filtered(lambda t: tax_name not in (t.name).lower())
-            if line_tax_ids:
-                line.write({'tax_ids': [(6, 0, line_tax_ids.ids)]})      
+        target_desc = [
+            'Percepción IIBB CABA A',
+            'Percepción IIBB AGIP A',
+            'Percepción IIBB ARBA A',
+        ]
+
+        Tax = self.env['account.tax'].with_company(move.company_id)
+        target_taxes = Tax.search([
+            ('company_id', '=', move.company_id.id),
+            ('description', 'in', target_desc),
+        ])
+        target_ids = set(target_taxes.ids)
+
+        for line in move.invoice_line_ids.filtered(lambda l: not l.display_type):
+            kept = line.tax_ids.filtered(lambda t: t.id not in target_ids)
+            line.write({'tax_ids': [(6, 0, kept.ids)]})
+ 
         
 
 #SOLO DEBERIA ESTAR ACTIVO PARA EL SERVIDOR DE TEST PARA HACER PRUEBAS CON AFIP
