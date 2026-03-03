@@ -26,8 +26,5 @@ class AccountMoveInherit(models.Model):
         for record in self:
             for line in record.invoice_line_ids:
                 new_price = line.price_unit / 1.21
-                line.write({
-                    'price_unit': new_price
-                })
-
+                line.price_unit = new_price
             record._recompute_dynamic_lines()
