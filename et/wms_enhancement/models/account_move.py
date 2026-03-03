@@ -23,8 +23,12 @@ class AccountMoveInherit(models.Model):
     
 
     def sacar_iva_21(self):
-        for record in self:
-            for line in record.invoice_line_ids:
-                new_price = line.price_unit / 1.21
-                line.price_unit = new_price
-            record._recompute_dynamic_lines()
+        for move in self:
+            # 1) cambiar price_unit sin validar balance en cada write
+            for line in move.invoice_line_ids:
+                line.with_context(check_move_validity=False).write({
+                    'price_unit': line.price_unit / 1.21
+                })
+
+            # 2) recomputar todo lo dinámico (líneas contables, totales, vencimientos)
+            move.with_context(check_move_validity=False)._recompute_dynamic_lines()
