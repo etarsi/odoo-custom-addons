@@ -53,7 +53,7 @@
                 <field name="date"/>
                 <field name="partner_id" optional="show"/>
                 <field name="transfer_id" optional="show"/>                
-                <field name="items_id" widget="many2many_tags" optional="show"/>            
+                <!-- <field name="items_id" widget="many2many_tags" optional="show"/>             -->
                 <field name="bultos_count" sum="total" optional="show"/>                
                 <field name="lines_count" sum="total" optional="show"/>                
                 <field name="state" optional="show" widget="badge"/>
