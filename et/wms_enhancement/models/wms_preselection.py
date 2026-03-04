@@ -20,6 +20,16 @@ class WMSPreselection(models.Model):
         ('closed', 'Cerrado')
     ])
 
+
+    @api.model
+    def create(self, vals):
+        if vals.get('name', 'New') in (False, 'New', '/'):
+            vals['name'] = self.env['ir.sequence'].next_by_code('wms.preselection') or 'New'
+
+
+        return super().create(vals)
+
+
     @api.depends('line_ids.product_id')
     def _compute_items_ids(self):
         for record in self:
@@ -93,17 +103,20 @@ class WMSPreselectionLine(models.Model):
     product_id = fields.Many2one(string="Producto", comodel_name="product.product")
     bultos = fields.Float(string="Bultos", compute="_compute_bultos", store=True)
     uxb = fields.Integer(string="UxB")
+    uxb_client = fields.Integer(string="UxB Solicitada")
     quantity = fields.Integer(string="Demanda")
-    quantity_prepared = fields.Integer(string="Preparado")
-    quantity_delivered = fields.Integer(string="Entregado")
-    quantity_invoiced = fields.Integer(string="Facturado")
+    quantity_ordered = fields.Integer(string="Pedido")
 
 
     @api.depends('quantity')
     def _compute_bultos(self):
         for record in self:
             if record.product_id and record.quantity > 0:
-                record.bultos = record.quantity / record.uxb
+                if record.uxb:
+                    record.bultos = record.quantity / record.uxb
+                else:
+                    record.uxb = record.product_id.packaging_ids[0].qty or 1                    
+                    record.bultos = record.quantity / record.uxb
 
 
     @api.onchange('product_id')
