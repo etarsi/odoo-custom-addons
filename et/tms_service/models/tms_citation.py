@@ -146,7 +146,7 @@ class TmsRoadmap(models.Model):
     observations = fields.Text(string="Observaciones", tracking=True)
     bulto_count = fields.Float(string="Bultos", tracking=True)
     bulto_count_verified = fields.Float(string="Bultos Verificados", tracking=True)
-    percentage_verified = fields.Float(string="Porcentaje Verificado", compute="_compute_percentage_verified", store=True, tracking=True)
+    percentage_verified = fields.Float(string="Nivel de Cumplimiento", compute="_compute_percentage_verified", store=True, tracking=True)
     citation_id = fields.Many2one("tms.citation", string="Citación", ondelete="set null", index=True, tracking=True)
     citation_count = fields.Integer(string="Número de Citaciones", compute="_compute_citation_count", store=True, tracking=True)
     state = fields.Selection(

@@ -38,6 +38,15 @@
                         </group>
                     </group>
                 </page>
+                <page string="Configuración de Pagos Automáticos" name="automatic_payment_config">
+                    <group name="automatic_payment_group" string="Configuración de Pagos Automáticos">
+                        <group>
+                            <field name="automatic_payment"/>
+                            <field name="daily_to_pay" attrs="{'invisible': [('automatic_payment', '=', False)]}"/>
+                            <field name="method_to_pay" attrs="{'invisible': [('automatic_payment', '=', False)]}"/>
+                        </group>
+                    </group>
+                </page>
             </xpath>
         </field>
     </record>
