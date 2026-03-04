@@ -112,7 +112,8 @@ class WMSPreselectionLine(models.Model):
     def _compute_bultos(self):
         for record in self:
             if record.product_id and record.quantity > 0:
-                record.bultos = record.quantity / record.uxb
+                if record.uxb:
+                    record.bultos = record.quantity / record.uxb
 
 
     @api.onchange('product_id')

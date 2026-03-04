@@ -107,7 +107,7 @@
                                     <field name="id" optional="hide"/>
                                     <field name="product_id"/>
                                     <field name="uxb" string="UxB Original"/>
-                                    <field name="uxb"/>
+                                    <field name="uxb_client"/>
                                     <field name="bultos" string="Bultos a Preparar"/>
                                     <field name="quantity"/>
                                     <field name="quantity_ordered"/>
