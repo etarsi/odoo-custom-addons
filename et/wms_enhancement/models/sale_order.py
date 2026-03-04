@@ -6,6 +6,7 @@ class SaleOrderInherit(models.Model):
 
 
     transfer_id = fields.Many2one(string="Transferencia", comodel_name="wms.transfer")
+    preselection_id = fields.Many2one(string="Preselección", comodel_name="wms.preselection")
 
     def action_open_wms_transfer(self):
        self.ensure_one()

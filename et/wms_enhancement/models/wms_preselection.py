@@ -10,6 +10,7 @@ class WMSPreselection(models.Model):
     partner_id = fields.Many2one(string="Cliente", comodel_name="res.partner")
     line_ids = fields.One2many(string="Líneas de Preselección", comodel_name="wms.preselection.line", inverse_name="preselection_id")
     transfer_id = fields.Many2one(string="Transferencia", comodel_name="wms.transfer")
+    sale_ids = fields.One2many(string="Pedidos de Venta", comodel_name="sale.order", inverse_name="preselection_id")
     item_ids = fields.Many2many(string="Rubros", comodel_name="product.category", compute="_compute_item_ids", store=True)
     bultos_count = fields.Float(string="Bultos Totales", compute="_compute_bultos_count", store=True)
     lines_count = fields.Integer(string="Cantidad Líneas", compute="_compute_lines_count", store=True)
@@ -106,6 +107,7 @@ class WMSPreselection(models.Model):
 
             record.transfer_id = transfer_id.id
             record.state = 'confirmed'
+
 
 class WMSPreselectionLine(models.Model):
     _name = 'wms.preselection.line'
