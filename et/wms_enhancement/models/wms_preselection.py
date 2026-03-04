@@ -81,6 +81,7 @@ class WMSPreselection(models.Model):
             transfer_vals = {
                 'operation_type':'internal',
                 'partner_id':record.partner_id.id,
+                'partner_address_id': record.partner_id.id,
                 'state': 'pending',
             }
 
@@ -104,6 +105,7 @@ class WMSPreselection(models.Model):
             self.env['wms.transfer.line'].create(transfer_lines_list)
 
             record.transfer_id = transfer_id.id
+            record.state = 'confirmed'
 
 class WMSPreselectionLine(models.Model):
     _name = 'wms.preselection.line'
