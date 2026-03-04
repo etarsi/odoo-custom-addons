@@ -20,6 +20,16 @@ class WMSPreselection(models.Model):
         ('closed', 'Cerrado')
     ])
 
+
+    @api.model
+    def create(self, vals):
+        if vals.get('name', 'New') in (False, 'New', '/'):
+            vals['name'] = self.env['ir.sequence'].next_by_code('wms.preselection') or 'New'
+
+
+        return super().create(vals)
+
+
     @api.depends('line_ids.product_id')
     def _compute_items_ids(self):
         for record in self:
