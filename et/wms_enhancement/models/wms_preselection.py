@@ -113,8 +113,8 @@ class WMSPreselectionLine(models.Model):
                 record.uxb = record.product_id.packaging_ids[0].qty or 1
 
     
-    @api.onchange('quantity')
-    def _onchange_quantity(self):
-        for record in self:
-            if record.quantity == 0:
-                raise UserWarning('La demanda debe ser mayor a 0')
+    # @api.onchange('quantity')
+    # def _onchange_quantity(self):
+    #     for record in self:
+    #         if record.product_id and record.quantity == 0:
+    #             raise UserWarning('La demanda debe ser mayor a 0')
