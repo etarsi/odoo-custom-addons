@@ -575,7 +575,7 @@ class AccountMoveLineInherit(models.Model):
                 raise ValidationError(_("No se pueden eliminar líneas para un movimiento con 'Período de Corte Bloqueado' activo."))
         return super().unlink()
 
-    @api.onchange('product_id', 'name', 'move_id.partner_id')
+    @api.onchange('product_id', 'move_id.partner_id')
     def _onchange_product_id(self):
         super()._onchange_product_id()
         if self.move_id.move_type in ['out_invoice', 'out_refund'] and self.move_id.state == 'draft': # ventas y notas de credito en estado borrador
@@ -584,6 +584,13 @@ class AccountMoveLineInherit(models.Model):
                 if partner and partner not in self.product_id.excluyent_partner_ids:
                     name = f'[{self.product_id.default_code}] {self.product_id.name_alternative}'.strip()    
                     self.name = name
+            elif self.product_id and self.product_id.default_code in ('DF', 'DCA'):
+                name = f'[{self.product_id.default_code}] {self.product_id.name}'.strip()
+                if self.product_id.default_code == 'DF':
+                    name = f'Descuento financiero xx%'
+                elif self.product_id.default_code == 'DCA':
+                    name = f'Descuento comercial x%'
+                self.name = name
 
     @api.onchange('debit2')
     def onchange_debit2(self):
