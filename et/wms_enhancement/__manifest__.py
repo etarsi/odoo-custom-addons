@@ -33,6 +33,7 @@
         'views/product_lot.xml',
         'views/res_config_settings_views.xml',
         'views/tms_stock_picking_views.xml',
+        'views/tms_roadmap_views.xml',
         'views/preselection_views.xml',
         'views/menus.xml',
     ],
