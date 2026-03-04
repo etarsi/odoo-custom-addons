@@ -106,12 +106,11 @@
                                 <tree editable="bottom" string="Líneas de Transferencia">
                                     <field name="id" optional="hide"/>
                                     <field name="product_id"/>
-                                    <field name="bultos"/>
+                                    <field name="uxb" string="UxB Original"/>
                                     <field name="uxb"/>
+                                    <field name="bultos" string="Bultos a Preparar"/>
                                     <field name="quantity"/>
-                                    <field name="quantity_prepared"/>
-                                    <field name="quantity_delivered"/>
-                                    <field name="quantity_invoiced"/>
+                                    <field name="quantity_ordered"/>
                                 </tree>                                
                             </field>
                         </page>

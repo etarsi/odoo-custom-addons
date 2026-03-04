@@ -93,10 +93,9 @@ class WMSPreselectionLine(models.Model):
     product_id = fields.Many2one(string="Producto", comodel_name="product.product")
     bultos = fields.Float(string="Bultos", compute="_compute_bultos", store=True)
     uxb = fields.Integer(string="UxB")
+    uxb_client = fields.Integer(string="UxB Solicitada")
     quantity = fields.Integer(string="Demanda")
-    quantity_prepared = fields.Integer(string="Preparado")
-    quantity_delivered = fields.Integer(string="Entregado")
-    quantity_invoiced = fields.Integer(string="Facturado")
+    quantity_ordered = fields.Integer(string="Pedido")
 
 
     @api.depends('quantity')
