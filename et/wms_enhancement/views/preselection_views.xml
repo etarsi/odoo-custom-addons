@@ -71,12 +71,12 @@
         <field name="model">wms.preselection</field>
         <field name="arch" type="xml">
             <form string="Preselección">
-                <sheet>
-                    <header>
-                        <button name="action_confirm" string="Confirmar" type="object" class="oe_highlight" attrs="{'invisible': [('state', 'in', ('confirmed', 'cancel', 'closed'))]}"/>
+                <header>
+                    <button name="action_confirm" string="Confirmar" type="object" class="oe_highlight" attrs="{'invisible': [('state', 'in', ('confirmed', 'cancel', 'closed'))]}"/>
 
-                        <field name="state" widget="statusbar" statusbar_visible="draft,confirmed,closed"/>
-                    </header>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,confirmed,closed"/>
+                </header>
+                <sheet>
                     <div class="oe_button_box" name="button_box">
                         <field name="transfer_id" invisible="1"/>
                         <button type="object"

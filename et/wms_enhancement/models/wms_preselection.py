@@ -18,7 +18,7 @@ class WMSPreselection(models.Model):
         ('confirmed', 'Confirmado'),
         ('cancel', 'Cancelado'),
         ('closed', 'Cerrado')
-    ])
+    ], default='draft')
 
 
     @api.model
@@ -81,7 +81,6 @@ class WMSPreselection(models.Model):
             transfer_vals = {
                 'operation_type':'internal',
                 'partner_id':record.partner_id.id,
-                'partner_address_id':record.partner_shipping_id.id or False,
                 'state': 'pending',
             }
 
