@@ -54,35 +54,6 @@ class WMSPreselection(models.Model):
                 record.lines_count = len(record.line_ids)
 
 
-    def action_confirm(self):
-        for record in self:
-            
-            transfer_vals = {
-                'partner_id': record.partner_id.id,
-                'operation_type': 'internal',
-                'preselection_id': record.id,                
-            }
-
-            transfer_id = self.env['wms.transfer'].create(transfer_vals)
-
-            transfer_lines_vals_list = []
-            for line in record.line_ids:
-                transfer_line = {
-                    'transfer_id': transfer_id.id,
-                    'product_id': line.product_id.id,
-                    'state': 'pending',
-                    'invoice_state': 'no',
-                    'sale_line_id': line.id,
-                    'uxb': line.product_packaging_id.qty or 0,
-                    'qty_demand': line.quantity,
-                }
-                transfer_lines_vals_list.append(transfer_line)
-            
-            self.env['wms.transfer.line'].create(transfer_lines_vals_list)
-
-            record.transfer_id = transfer_id.id
-            record.state = 'confirmed'
-
     def action_open_wms_transfer(self):
         self.ensure_one()
         if not self.transfer_id:
@@ -95,6 +66,45 @@ class WMSPreselection(models.Model):
             'res_id': self.transfer_id.id,
             'target': 'current',
         }
+    
+
+    def action_confirm(self):
+        for record in self:          
+
+            ### TRANSFER CREATION
+            if record.transfer_id:
+                continue
+
+            if record.state != 'draft':
+                continue
+
+            transfer_vals = {
+                'operation_type':'internal',
+                'partner_id':record.partner_id.id,
+                'partner_address_id':record.partner_shipping_id.id or False,
+                'state': 'pending',
+            }
+
+            transfer_id = self.env['wms.transfer'].create(transfer_vals)
+            transfer_lines_list = []
+            
+            for line in record.line_ids:
+                   
+               if line.product_id:
+                   transfer_line = {
+                       'transfer_id': transfer_id.id,
+                       'product_id': line.product_id.id,
+                       'state': 'pending',
+                       'invoice_state': 'no',
+                       'uxb': line.uxb_client,
+                       'qty_demand': line.quantity,
+                    }
+
+                   transfer_lines_list.append(transfer_line)
+            
+            self.env['wms.transfer.line'].create(transfer_lines_list)
+
+            record.transfer_id = transfer_id.id
 
 class WMSPreselectionLine(models.Model):
     _name = 'wms.preselection.line'
@@ -116,7 +126,7 @@ class WMSPreselectionLine(models.Model):
                     record.bultos = record.quantity / record.uxb
                 else:
                     record.uxb = record.product_id.packaging_ids[0].qty or 1                    
-                    record.bultos = record.quantity / record.uxb
+                    record.bultos = record.quantity / record.uxb_client
 
 
     @api.onchange('product_id')
