@@ -27,7 +27,7 @@
                     <field name="wms_task_id" widget="statinfo" string="Tarea WMS"/>
                 </button>
             </xpath>
-            <xpath expr="//field[@name='items_ids']" position="after">
+            <xpath expr="//field[@name='citation_id']" position="after">
                 <field name="wms_task_id"/>
             </xpath>
         </field>
