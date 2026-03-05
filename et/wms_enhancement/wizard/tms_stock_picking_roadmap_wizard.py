@@ -88,8 +88,8 @@ class TmsStockPickingRoadmapWizard(models.TransientModel):
                 "tms_stock_picking_id": wl.tms_stock_picking_id.id,
                 "partner_id": wl.partner_id.id if wl.partner_id else False,
                 "direction": wl.direction,
-                "bulto_defendant": wl.bulto_defendant,
-                "bulto_picking": wl.bulto_picking,
+                "bulk_defendant": wl.bulto_defendant,
+                "bulk_picking": wl.bulto_picking,
             })
 
         # opcional: abrir la HDR creada/vinculada
