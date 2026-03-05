@@ -47,15 +47,13 @@ class TmsCitation(models.Model):
         tracking=True,
     )
     
-    @api.depends("tms_roadmap_ids.bulto_count")
     def _compute_total_bulto(self):
         for rec in self:
-            rec.total_bulk = sum(rec.tms_roadmap_ids.mapped('bulto_count'))   
+            rec.total_bulk = 0
 
-    @api.depends("tms_roadmap_ids.bulto_count_verified")
     def _compute_total_bulto_verified(self):
         for rec in self:
-            rec.total_bulk_verified = sum(rec.tms_roadmap_ids.mapped('bulto_count_verified'))
+            rec.total_bulk_verified = 0
 
     @api.depends("total_bulk", "total_bulk_verified")
     def _compute_percentage_verified(self):
@@ -124,110 +122,3 @@ class TmsCitation(models.Model):
             if rec.state != "pending":
                 raise ValidationError(_("Solo se pueden completar hojas de ruta en estado Pendiente."))
             rec.state = "completed"
-
-
-
-class TmsRoadmap(models.Model):
-    _name = "tms.roadmap"
-    _inherit = ['mail.thread', 'mail.activity.mixin'] 
-    _description = "Hoja de Ruta"
-    _order = "date desc, id desc"
-
-    name = fields.Char(string="Número", required=True, copy=False, index=True, default=lambda self: _("New"), tracking=True)
-    date = fields.Datetime(string="Fecha", required=True, default=fields.Datetime.now, index=True)
-    transport_id = fields.Many2one("tms.transport", string="Vehículo", index=True, tracking=True, ondelete="set null")
-    patente = fields.Char(string="Patente", tracking=True)
-    area = fields.Selection(string="Área", selection=[
-        ("pg", "Pedidos Generales"),
-        ("gc", "Grandes Cadenas"),
-        ("millan", "Millan"),
-        ("other", "Otro"),
-    ], required=True, default="pg", tracking=True)
-    observations = fields.Text(string="Observaciones", tracking=True)
-    bulto_count = fields.Float(string="Bultos", tracking=True)
-    bulto_count_verified = fields.Float(string="Bultos Verificados", tracking=True)
-    percentage_verified = fields.Float(string="Nivel de Cumplimiento", compute="_compute_percentage_verified", store=True, tracking=True)
-    citation_id = fields.Many2one("tms.citation", string="Citación", ondelete="set null", index=True, tracking=True)
-    citation_count = fields.Integer(string="Número de Citaciones", compute="_compute_citation_count", store=False, tracking=True)
-    state = fields.Selection(
-        [
-            ("draft", "Borrador"),
-            ("pending", "Pendiente"),
-            ("completed", "Completada"),
-            ("canceled", "Cancelada"),
-        ],
-        string="Estado",
-        default="draft",
-        required=True,
-        index=True,
-        tracking=True,
-    )
-    assistants = fields.Integer(string="Ayudantes", store=True, tracking=True)
-    in_ruta = fields.Integer(string="Indice de Vuelta-Ruta", store=True, tracking=True)
-    partner_id = fields.Many2one("res.partner", string="Cliente", store=True, tracking=True)
-    direction = fields.Char(string="Dirección", store=True, tracking=True)
-    type_roadmap = fields.Selection(string="Tipo", selection=[
-        ("delivery", "Entrega"),
-        ("pickup", "Retiro"),
-    ], required=True, default="delivery", tracking=True)
-    tms_stock_picking_id = fields.Many2one(
-        "tms.stock.picking",
-        string="Ruteo Asociado",
-        required=False,
-        ondelete="restrict",
-        index=True,
-        tracking=True,
-    )
-    industry_id = fields.Many2one("res.partner.industry", string="Zona", store=True, tracking=True, related='partner_id.industry_id')
-    
-    #SQL
-    _sql_constraints = [
-        ("uniq_tms_roadmap_name", "unique(name)", "La referencia de Hoja de Ruta debe ser única."),
-    ]
-
-    def _compute_citation_count(self):
-        for rec in self:
-            rec.citation_count = 1 if rec.citation_id else 0
-
-    @api.depends("bulto_count", "bulto_count_verified")
-    def _compute_percentage_verified(self):
-        for rec in self:
-            if rec.bulto_count > 0 and rec.bulto_count_verified > 0:
-                rec.percentage_verified = (rec.bulto_count_verified / rec.bulto_count) * 100
-            else:
-                rec.percentage_verified = 0.0
-
-    @api.model_create_multi
-    def create(self, vals_list):
-        for vals in vals_list:
-            if vals.get("name", _("New")) == _("New"):
-                vals["name"] = self.env["ir.sequence"].next_by_code("tms.roadmap") or _("New")
-        return super().create(vals_list)
-    
-    @api.onchange("transport_id")
-    def _onchange_transport_id(self):
-        if self.transport_id:
-            if self.transport_id.patente_trc:
-                self.patente = self.transport_id.patente_trc
-            if self.transport_id.patente_semi:
-                self.patente = self.transport_id.patente_semi
-        else:
-            self.patente = False
-            
-    def action_open_citation(self):
-        self.ensure_one()
-        if not self.citation_id:
-            return
-        return {
-            "type": "ir.actions.act_window",
-            "name": _("Citación"),
-            "res_model": "tms.citation",
-            "view_mode": "form",
-            "res_id": self.citation_id.id,
-            "target": "current",
-        }
-        
-    def action_unlink_roadmap(self):
-        for rec in self:
-            rec.citation_id = False
-        return True
