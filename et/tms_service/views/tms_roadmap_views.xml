@@ -76,10 +76,6 @@
                                 mode="tree,form">
 
                                 <tree editable="bottom" create="1" edit="1" delete="false">
-                                    <!-- Orden / Parada (si los tenés) -->
-                                    <field name="sequence" optional="show"/>
-                                    <field name="parada" optional="show"/>
-
                                     <!-- Columnas tipo Excel -->
                                     <field name="date"/>
                                     <field name="transport_id"/>
@@ -94,9 +90,7 @@
 
                                     <!-- Barra de progreso -->
                                     <field name="lvl_compliance" widget="progressbar" options="{'max_value': 100}"/>
-
                                     <field name="tms_stock_picking_id"/>
-
                                     <!-- Botón por línea para “desvincular” de la HDR (sin borrar el registro) -->
                                     <button name="action_unlink_roadmap"
                                             type="object"
