@@ -7,7 +7,7 @@
         <field name="inherit_id" ref="tms_service.view_tms_roadmap_tree"/>
         <field name="arch" type="xml">
             <xpath expr="//field[@name='name']" position="after">
-                <field name="wms_task_id" optional="show"/>
+                <field name="wms_task_ids" optional="show" widget="many2many_tags"/>
             </xpath>
         </field>
     </record>
@@ -18,17 +18,8 @@
         <field name="model">tms.roadmap</field>
         <field name="inherit_id" ref="tms_service.view_tms_roadmap_form"/>
         <field name="arch" type="xml">
-            <xpath expr="//div[@name='button_box']" position="inside">
-                <button name="action_open_wms_task"
-                        type="object"
-                        class="oe_stat_button"
-                        icon="fa-building"
-                        attrs="{'invisible': [('wms_task_id','=',False)]}">
-                    <field name="wms_task_id" widget="statinfo" string="Tarea WMS"/>
-                </button>
-            </xpath>
             <xpath expr="//field[@name='citation_id']" position="after">
-                <field name="wms_task_id"/>
+                <field name="wms_task_ids" widget="many2many_tags"/>
             </xpath>
         </field>
     </record>
