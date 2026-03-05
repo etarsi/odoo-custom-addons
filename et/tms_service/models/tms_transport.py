@@ -2,7 +2,7 @@ from odoo import models, fields, api
 
 class TmsTransport(models.Model):
     _name = 'tms.transport'
-    _description = 'Transporte'
+    _description = 'Vehículo de Transporte'
 
     name = fields.Char(string='Descripción', required=True)
     patente_trc = fields.Char(string='Patente Tractor', required=True)

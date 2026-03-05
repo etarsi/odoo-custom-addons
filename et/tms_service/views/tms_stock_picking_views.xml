@@ -108,6 +108,10 @@
         <field name="model">tms.stock.picking</field>
         <field name="arch" type="xml">
             <tree edit="true" default_order="fecha_envio_wms desc" js_class="selection_sum_list">
+                <header>
+                    <button name="action_link_tms_roadmap" type="object" string="Vincular HDR"/>   
+                    <button name="action_create_tms_road_map" type="object" string="Crear HDR"/>
+                </header>      
                 <field name="name" optional="show"/>
                 <field name="fecha_entrega" optional="show"/>
                 <field name="fecha_envio_wms" widget="date" optional="show"/>

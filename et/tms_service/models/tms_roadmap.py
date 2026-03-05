@@ -126,8 +126,8 @@ class TmsRoadmapLine(models.Model):
 
     name = fields.Char(string="Etiqueta", required=True, copy=False, index=True, default=lambda self: _("New"), tracking=True)
     date = fields.Datetime(string="Fecha", required=True, default=fields.Datetime.now, index=True)
-    transport_id = fields.Many2one("tms.transport", string="Vehículo", index=True, tracking=True, ondelete="set null")
-    patente = fields.Char(string="Patente", tracking=True)
+    transport_id = fields.Many2one("tms.transport", string="Vehículo", store=True, related='roadmap_id.transport_id')
+    patente = fields.Char(string="Patente", tracking=True, store=True, related='roadmap_id.patente')
     bulk_defendant = fields.Float(string="Bultos Demandados", tracking=True)
     bulk_picking = fields.Float(string="Bultos Pickeados", tracking=True)
     lvl_compliance = fields.Float(string="Nivel de Cumplimiento", compute="_compute_lvl_compliance", store=True, tracking=True)

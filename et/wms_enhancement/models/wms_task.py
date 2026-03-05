@@ -111,9 +111,13 @@ class WMSTask(models.Model):
     
     
     #TMS HOJA DE RUTA
+    tms_roadmap_id = fields.Many2one(
+        "tms.roadmap",
+        compute="_compute_tms_roadmap_id",
+        store=False,
+        string="Hoja de Ruta",
+    )
     tms_roadmap_count = fields.Integer(compute="_compute_tms_roadmap_count", string="Hoja de Ruta")
-    tms_roadmap_id = fields.Many2one("tms.roadmap", compute="_compute_tms_roadmap_id", store=False)
-
 
     @api.model
     def create(self, vals):
@@ -176,29 +180,8 @@ class WMSTask(models.Model):
     
 
     # OMITIR CODIGO durante el picking
-
     # def omitir_codigo(self):
-
-
     # def lanzar_pedido(self):
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
     def action_send_task_to_digip(self):    
         for record in self:
@@ -961,24 +944,28 @@ class WMSTask(models.Model):
             rec.tms_roadmap_count = mp.get(rec.id, 0)
 
     def _compute_tms_roadmap_id(self):
-        Roadmap = self.env["tms.roadmap"]
         for rec in self:
-            rec.tms_roadmap_id = Roadmap.search([("wms_task_id", "=", rec.id)], limit=1)
+            line = self.env["tms.roadmap.line"].search([("wms_task_id", "=", rec.id), ("roadmap_id", "!=", False)], limit=1)
+            rec.tms_roadmap_id = line.roadmap_id if line else False
 
-    def action_open_tms_roadmap(self):
+    def _compute_tms_roadmap_count(self):
+        grouped = self.env["tms.roadmap.line"].read_group(
+            [("wms_task_id", "in", self.ids), ("roadmap_id", "!=", False)],
+            ["wms_task_id"],
+            ["wms_task_id"],
+        )
+        mp = {g["wms_task_id"][0]: g["wms_task_id_count"] for g in grouped if g.get("wms_task_id")}
+        for rec in self:
+            rec.tms_roadmap_count = 1 if mp.get(rec.id, 0) else 0
+
+    def action_open_tms_roadmap_tree_views(self):
         self.ensure_one()
-        Roadmap = self.env["tms.roadmap"]
-        roadmap = Roadmap.search([("wms_task_id", "=", self.id)], limit=1)
-        if not roadmap:
-            roadmap = Roadmap.create({"wms_task_id": self.id})
         return {
+            "name": _("Líneas de Hoja de Ruta"),
             "type": "ir.actions.act_window",
-            "name": "Hoja de Ruta",
-            "res_model": "tms.roadmap",
-            "view_mode": "form",
-            "res_id": roadmap.id,
-            "target": "current",
-            "context": {"default_wms_task_id": self.id},
+            "res_model": "tms.roadmap.line",
+            "view_mode": "tree,form",
+            "domain": [("wms_task_id", "=", self.id), ("roadmap_id", "!=", False)],
         }
 
 class WMSTaskLine(models.Model):

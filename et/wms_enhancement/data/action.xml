@@ -8,4 +8,46 @@
         <field name="state">code</field>
         <field name="code">action = records.action_forzar_envio_compartido()</field>
     </record>
+
+    <record id="action_tms_stock_picking_create_roadmap_wizard" model="ir.actions.server">
+        <field name="name">Crear Hoja de Ruta</field>
+        <field name="model_id" ref="tms_service.model_tms_stock_picking"/>
+        <field name="binding_model_id" ref="tms_service.model_tms_stock_picking"/>
+        <field name="binding_view_types">list</field>
+        <field name="state">code</field>
+        <field name="code">
+action = {
+    "type": "ir.actions.act_window",
+    "name": "Crear Hoja de Ruta",
+    "res_model": "tms.stock.picking.roadmap.wizard",
+    "view_mode": "form",
+    "target": "new",
+    "context": {
+        "default_stock_picking_ids": [(6, 0, records.ids)],
+        "default_type": "create",
+    },
+}
+        </field>
+    </record>
+
+    <record id="action_tms_stock_picking_link_roadmap_wizard" model="ir.actions.server">
+        <field name="name">Vincular Hoja de Ruta</field>
+        <field name="model_id" ref="tms_service.model_tms_stock_picking"/>
+        <field name="binding_model_id" ref="tms_service.model_tms_stock_picking"/>
+        <field name="binding_view_types">list</field>
+        <field name="state">code</field>
+        <field name="code">
+action = {
+    "type": "ir.actions.act_window",
+    "name": "Vincular Hoja de Ruta",
+    "res_model": "tms.stock.picking.roadmap.wizard",
+    "view_mode": "form",
+    "target": "new",
+    "context": {
+        "default_stock_picking_ids": [(6, 0, records.ids)],
+        "default_type": "link",
+    },
+}
+        </field>
+    </record>
 </odoo>
