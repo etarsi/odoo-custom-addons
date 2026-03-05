@@ -45,7 +45,6 @@ class TmsStockPickingRoadmapWizard(models.TransientModel):
             return
 
         lines_cmds = [(5, 0, 0)]
-
         for p in self.stock_picking_ids:
             lines_cmds.append((0, 0, {
                 "tms_stock_picking_id": p.id,
@@ -55,9 +54,6 @@ class TmsStockPickingRoadmapWizard(models.TransientModel):
                 # si tenés picking de bultos, setearlo acá:
                 "bulto_picking": getattr(p, "bultos_pickeados", 0.0) or 0.0,
             }))
-            seq += 10
-            parada += 1
-
         self.line_ids = lines_cmds
 
     def action_confirm(self):
