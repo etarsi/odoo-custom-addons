@@ -77,16 +77,17 @@
 
                                 <tree editable="bottom" create="1" edit="1">
                                     <!-- Columnas tipo Excel -->
-                                    <field name="transport_id" readonly="1"/>
-                                    <field name="patente" readonly="1"/>
-                                    <field name="in_ruta"/>
-                                    <field name="partner_id" readonly="1"/>
-                                    <field name="direction"/>
-                                    <field name="bulk_defendant"/>
-                                    <field name="bulk_picking"/>
+                                    <field name="tms_stock_picking_id" options="{'no_create': True}" optional="show"/>
+                                    <field name="transport_id" readonly="1" options="{'no_create': True}" optional="hide"/>
+                                    <field name="patente" readonly="1" optional="hide"/>
+                                    <field name="in_ruta" optional="show"/>
+                                    <field name="partner_id" readonly="1" optional="hide"/>
+                                    <field name="direction" optional="show"/>
+                                    <field name="industry_id" options="{'no_create': True}" readonly="1" optional="show"/>
+                                    <field name="bulk_defendant" optional="show"/>
+                                    <field name="bulk_picking" optional="show"/>
                                     <!-- Barra de progreso -->
-                                    <field name="lvl_compliance" widget="progressbar" options="{'max_value': 100}"/>
-                                    <field name="tms_stock_picking_id"/>
+                                    <field name="lvl_compliance" widget="progressbar" options="{'max_value': 100}" optional="show"/>
                                 </tree>
                             </field>
                         </page>
