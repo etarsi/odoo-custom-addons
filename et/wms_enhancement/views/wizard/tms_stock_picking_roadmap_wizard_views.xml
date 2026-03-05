@@ -21,6 +21,7 @@
                 <field name="line_ids" context="{'default_wizard_id': active_id}">
                     <tree editable="bottom" create="0" delete="1">
                         <field name="tms_stock_picking_id" options="{'no_create': True}"/>
+                        <field name="wms_task_id" string="Tarea WMS" options="{'no_create': True}"/>
                         <field name="partner_id"/>
                         <field name="direction"/>
                         <field name="bulto_defendant"/>

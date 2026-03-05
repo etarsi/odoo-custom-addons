@@ -80,7 +80,6 @@ class TmsStockPickingRoadmapWizard(models.TransientModel):
                 "patente": self.transport_id.patente_trc or self.transport_id.patente_semi,
                 "assistants": self.assistants,
                 "industry_ids": [(6, 0, self.industry_ids.ids)] if self.industry_ids else False,
-                # si tenés empresa_id en roadmap como related, no hace falta setearla
             })
 
         # 2) Crear líneas reales desde el preview (lo que el usuario editó)
@@ -88,11 +87,20 @@ class TmsStockPickingRoadmapWizard(models.TransientModel):
         for wl in self.line_ids:
             if not wl.tms_stock_picking_id:
                 continue
+            if wl.wms_task_id:
+                # Si la línea del wizard tiene tarea WMS, buscamos si ya existe una línea HDR vinculada a esa tarea
+                existing_line = self.env["tms.roadmap.line"].search([
+                    ("wms_task_id", "=", wl.wms_task_id.id)
+                ], limit=1)
+                if existing_line:
+                    raise UserError(_("La tarea WMS '%s' ya está vinculada a la línea de Hoja de Ruta '%s'. No se puede vincular el mismo ruteo a dos hojas de ruta.") % (wl.wms_task_id.name, existing_line.roadmap_id.name))
             Line.create({
                 "roadmap_id": roadmap.id,
                 "tms_stock_picking_id": wl.tms_stock_picking_id.id,
+                "wms_task_id": wl.wms_task_id.id if wl.wms_task_id else False,
                 "partner_id": wl.partner_id.id if wl.partner_id else False,
                 "direction": wl.direction,
+                "industry_id": wl.industry_id.id if wl.industry_id else False,
                 "bulk_defendant": wl.bulto_defendant,
                 "bulk_picking": wl.bulto_picking,
             })
