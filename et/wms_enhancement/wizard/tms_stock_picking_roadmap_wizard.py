@@ -116,7 +116,7 @@ class TmsStockPickingRoadmapWizard(models.TransientModel):
 class TmsStockPickingRoadmapWizardLine(models.TransientModel):
     _name = "tms.stock.picking.roadmap.wizard.line"
     _description = "Preview líneas HDR (wizard)"
-    _order = "sequence, id"
+    _order = "id"
 
     wizard_id = fields.Many2one("tms.stock.picking.roadmap.wizard", required=True, ondelete="cascade")
     tms_stock_picking_id = fields.Many2one("tms.stock.picking", string="Ruteo", required=True)
