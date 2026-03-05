@@ -7,7 +7,7 @@
         <field name="arch" type="xml">
             <form string="Hoja de Ruta">
                 <group>
-                    <field name="type"/>
+                    <field name="type" readonly="1"/>
                     <field name="roadmap_id" attrs="{'invisible':[('type','!=','link')], 'required':[('type','=','link')]}"/>
                     <field name="transport_id" attrs="{'invisible':[('type','!=','create')], 'required':[('type','=','create')]}"/>
                     <field name="industry_ids" widget="many2many_tags" attrs="{'invisible':[('type','!=','create')]}"/>
@@ -20,14 +20,14 @@
 
                 <field name="line_ids" context="{'default_wizard_id': active_id}">
                     <tree editable="bottom" create="0" delete="1">
-                        <field name="wms_task_id" string="Tarea WMS" options="{'no_create': True}"/>
-                        <field name="tms_stock_picking_id" options="{'no_create': True}"/>
-                        <field name="type_roadmap"/>
-                        <field name="partner_id"/>
-                        <field name="in_ruta"/>
-                        <field name="direction"/>
-                        <field name="bulto_defendant"/>
-                        <field name="bulto_picking"/>
+                        <field name="wms_task_id" string="Tarea WMS" options="{'no_create': True}" optional="show"/>
+                        <field name="tms_stock_picking_id" options="{'no_create': True}" optional="show"/>
+                        <field name="type_roadmap" optional="show"/>
+                        <field name="partner_id" optional="hide"/>
+                        <field name="in_ruta" optional="show"/>
+                        <field name="direction" optional="show"/>
+                        <field name="bulto_defendant" optional="show"/>
+                        <field name="bulto_picking" optional="show"/>
 
                     </tree>
                 </field>
