@@ -52,14 +52,14 @@ class TmsRoadmap(models.Model):
     wms_task_ids = fields.Many2many('wms.task', string='Tareas WMS', compute="_compute_wms_task_ids", store=False)
     
     
-    @api.depends('roadmap_line_ids.wms_task_id')
+    @api.depends('road_maps_line_ids.wms_task_id')
     def _compute_wms_task_ids(self):
         for rec in self:
-            rec.wms_task_ids = rec.mapped('roadmap_line_ids.wms_task_id')
+            rec.wms_task_ids = rec.mapped('road_maps_line_ids.wms_task_id')
             
     def action_wms_task_tree_view(self):
         self.ensure_one()
-        wms_tasks = self.mapped('roadmap_line_ids.wms_task_id')
+        wms_tasks = self.mapped('road_maps_line_ids.wms_task_id')
         if not wms_tasks:
             raise ValidationError("No hay tareas WMS asociadas a esta Hoja de Ruta.")
         
