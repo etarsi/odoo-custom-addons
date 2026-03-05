@@ -45,13 +45,9 @@ class TmsStockPickingRoadmapWizard(models.TransientModel):
             return
 
         lines_cmds = [(5, 0, 0)]
-        seq = 10
-        parada = 1
 
         for p in self.stock_picking_ids:
             lines_cmds.append((0, 0, {
-                "sequence": seq,
-                "parada": parada,
                 "tms_stock_picking_id": p.id,
                 "partner_id": p.partner_id.id if p.partner_id else False,
                 "direction": getattr(p, "direccion_entrega", False) or getattr(p, "direction", False),
@@ -94,8 +90,6 @@ class TmsStockPickingRoadmapWizard(models.TransientModel):
             Line.create({
                 "roadmap_id": roadmap.id,
                 "tms_stock_picking_id": wl.tms_stock_picking_id.id,
-                "sequence": wl.sequence,
-                "parada": wl.parada,
                 "partner_id": wl.partner_id.id if wl.partner_id else False,
                 "direction": wl.direction,
                 "bulto_defendant": wl.bulto_defendant,
