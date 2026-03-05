@@ -28,7 +28,7 @@
                         <field name="direction" optional="show"/>
                         <field name="bulto_defendant" optional="show"/>
                         <field name="bulto_picking" optional="show"/>
-
+                        <field name="industry_id" options="{'no_create': True}" optional="hide"/>
                     </tree>
                 </field>
                 <footer>
