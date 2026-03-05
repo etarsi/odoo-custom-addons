@@ -133,26 +133,11 @@
                     <button name="action_print_remito" class="oe_highlight" type="object" string="IMPRIMIR REMITO" attrs="{'invisible': [('digip_state', '!=', 'received')]}"/>
                     <button name="action_enviar_compartido" type="object" string="ENVIAR A COMPARTIDO" attrs="{'invisible': [('digip_state', '!=', 'sent')]}"/>      
                     <button name="action_create_invoice_from_picking" class="oe_highlight" type="object" string="CREAR FACTURA" attrs="{'invisible': ['|', ('digip_state', '!=', 'received'), ('invoice_state', '=', 'invoiced')]}"/>
-                    <button name="action_open_tms_roadmap_modal"
-                            type="object"
-                            class="oe_stat_button"
-                            icon="fa-exchange"
-                            string="CREAR HOJA DE RUTA"
-                            attrs="{'invisible': [('digip_state', '!=', 'received')]}"/>
                     <field name="state_preparation" widget="statusbar" statusbar_visible="pending,preparation,control,delivery"/>
                 </header>
                 <sheet>
                     <div class="oe_button_box" name="button_box">
                         <field name="transfer_id" invisible="1"/>
-                        <!--BOTON PARA ABRIR HOJA DE RUTA-->
-                        <button name="action_open_tms_roadmap"
-                                type="object"
-                                class="oe_stat_button"
-                                icon="fa-exchange"
-                                attrs="{'invisible': [('tms_roadmap_count', '=', 0)]}">
-                            <field name="tms_roadmap_count" widget="statinfo" string="Hoja de Ruta"/>
-                        </button>
-
                         <button name="action_open_wms_transfer"
                                 type="object"
                                 class="oe_stat_button"
