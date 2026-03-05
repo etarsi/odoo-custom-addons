@@ -170,7 +170,6 @@
                 <group expand="0" string="Agrupar">
                     <filter string="Vehículo" name="grp_transport_id" context="{'group_by':'transport_id'}"/>
                     <filter string="Clientes" name="grp_partner_id" context="{'group_by':'partner_id'}"/>
-                    <filter string="Zona" name="grp_industry_id" context="{'group_by':'industry_id'}"/>
                     <filter string="Estado" name="grp_state" context="{'group_by':'state'}"/>
                 </group>
             </search>
