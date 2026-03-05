@@ -144,7 +144,7 @@ class TmsStockPickingRoadmapWizardLine(models.TransientModel):
             if rec.tms_stock_picking_id:
                 rec.wms_task_id = rec.tms_stock_picking_id.wms_task_id if rec.tms_stock_picking_id.wms_task_id else False
                 rec.partner_id = rec.tms_stock_picking_id.partner_id if rec.tms_stock_picking_id.partner_id else False
-                rec.industry_id = rec.tms_stock_picking_id.industry_id if rec.tms_stock_picking_id.industry_id else False
+                rec.industry_id = rec.tms_stock_picking_id.industry_id
                 rec.direction = getattr(rec.tms_stock_picking_id, "direccion_entrega", False) or getattr(rec.tms_stock_picking_id, "direction", False)
                 rec.bulto_defendant = getattr(rec.tms_stock_picking_id, "cantidad_bultos", 0.0) or 0.0
                 rec.bulto_picking = getattr(rec.tms_stock_picking_id, "bulk_picking", 0.0) or 0.0
