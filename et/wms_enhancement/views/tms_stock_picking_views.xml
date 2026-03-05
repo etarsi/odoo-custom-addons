@@ -9,7 +9,7 @@
             <xpath expr="//field[@name='name']" position="after">
                 <field name="wms_task_id" optional="show"/>
             </xpath>
-            <xpath expr="//field[@name='origin']" position="after">
+            <xpath expr="//field[@name='cantidad_lineas']" position="after">
                 <field name="bulk_defendant"/>
                 <field name="bulk_picking"/>
             </xpath>
