@@ -75,46 +75,19 @@
                                             'default_in_ruta': in_ruta}"
                                 mode="tree,form">
 
-                                <tree editable="bottom" create="1" edit="1" delete="false">
+                                <tree editable="bottom" create="1" edit="1">
                                     <!-- Columnas tipo Excel -->
-                                    <field name="date"/>
-                                    <field name="transport_id"/>
-                                    <field name="patente"/>
+                                    <field name="transport_id" readonly="1"/>
+                                    <field name="patente" readonly="1"/>
                                     <field name="in_ruta"/>
-
-                                    <field name="partner_id"/>
+                                    <field name="partner_id" readonly="1"/>
                                     <field name="direction"/>
-
                                     <field name="bulk_defendant"/>
                                     <field name="bulk_picking"/>
-
                                     <!-- Barra de progreso -->
                                     <field name="lvl_compliance" widget="progressbar" options="{'max_value': 100}"/>
                                     <field name="tms_stock_picking_id"/>
                                 </tree>
-
-                                <form string="Línea HDR">
-                                    <sheet>
-                                        <group>
-                                            <group>
-                                                <field name="roadmap_id" readonly="1"/>
-                                                <field name="date"/>
-                                                <field name="transport_id"/>
-                                                <field name="patente"/>
-                                                <field name="in_ruta"/>
-                                            </group>
-                                            <group>
-                                                <field name="partner_id"/>
-                                                <field name="direction"/>
-                                                <field name="bulk_defendant"/>
-                                                <field name="bulk_picking"/>
-                                                <field name="lvl_compliance" widget="progressbar" options="{'max_value': 100}"/>
-                                                <field name="tms_stock_picking_id"/>
-                                            </group>
-                                        </group>
-                                    </sheet>
-                                </form>
-
                             </field>
                         </page>
                         <page name="information" string="Información Adicional">
