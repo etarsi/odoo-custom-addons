@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+  <template id="report_tms_roadmap">
+    <t t-call="web.basic_layout">
+      <t t-foreach="docs" t-as="o">
+
+        <style>
+          .tms-wrap { font-size: 10px; }
+          .tms-topbox { border: 1px solid #000; height: 22px; margin-bottom: 10px; }
+          .tms-row { display:flex; gap: 24px; margin: 6px 0 10px; }
+          .tms-field { flex: 1; }
+          .tms-label { font-weight: 700; }
+          .tms-line { border-bottom: 1px dotted #000; display:inline-block; min-width: 220px; height: 12px; }
+
+          table.tms-table { width:100%; border-collapse: collapse; table-layout: fixed; }
+          table.tms-table th { background: #1e73be; color: #fff; padding: 4px 3px; border: 1px solid #fff; font-size: 9px; }
+          table.tms-table td { padding: 4px 3px; border: 1px solid #ddd; vertical-align: top; font-size: 9px; }
+
+          .w-fecha{width:6%} .w-veh{width:12%} .w-ay{width:6%} .w-pat{width:8%}
+          .w-ind{width:5%} .w-par{width:5%} .w-tit{width:24%} .w-dir{width:22%}
+          .w-bul{width:6%} .w-ped{width:7%} .w-sist{width:5%}
+
+          .tms-sign { position: fixed; bottom: 12mm; left: 8mm; right: 8mm; display:flex; justify-content: space-between; }
+          .tms-sign div { width: 30%; text-align: center; }
+        </style>
+
+        <div class="tms-wrap">
+
+          <!-- Caja superior (como en tu imagen) -->
+          <div class="tms-topbox"/>
+
+          <!-- Línea con datos “manuales” (si no tenés campos, quedan en blanco) -->
+          <div class="tms-row">
+            <div class="tms-field">
+              <span class="tms-label">Nombre Chofer:</span>
+              <span class="tms-line">
+                <t t-esc="getattr(o,'driver_name', '')"/>
+              </span>
+            </div>
+            <div class="tms-field">
+              <span class="tms-label">Hora Salida:</span>
+              <span class="tms-line">
+                <t t-esc="getattr(o,'hour_out', '')"/>
+              </span>
+            </div>
+            <div class="tms-field">
+              <span class="tms-label">Hora Llegada:</span>
+              <span class="tms-line">
+                <t t-esc="getattr(o,'hour_in', '')"/>
+              </span>
+            </div>
+            <div class="tms-field">
+              <span class="tms-label">Nombre Ayudante:</span>
+              <span class="tms-line">
+                <t t-esc="getattr(o,'assistant_name', '')"/>
+              </span>
+            </div>
+          </div>
+
+          <!-- Tabla -->
+          <table class="tms-table">
+            <thead>
+              <tr>
+                <th class="w-fecha">Fecha</th>
+                <th class="w-veh">Vehículo</th>
+                <th class="w-ay">Ayudante</th>
+                <th class="w-pat">Patente</th>
+                <th class="w-ind">Ín. de</th>
+                <th class="w-par">Parada</th>
+                <th class="w-tit">Título</th>
+                <th class="w-dir">Dirección</th>
+                <th class="w-bul">Bultos</th>
+                <th class="w-ped">N° Pedido</th>
+                <th class="w-sist">SIST</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              <!-- Si TENÉS líneas -->
+              <t t-if="hasattr(o, 'items_ids') and o.items_ids">
+                <t t-foreach="o.items_ids" t-as="l">
+                  <tr>
+                    <td><t t-esc="(o.date and o.date.date()) or ''"/></td>
+                    <td><t t-esc="o.transport_id.name or ''"/></td>
+                    <td><t t-esc="getattr(o,'assistants', '')"/></td>
+                    <td><t t-esc="o.patente or ''"/></td>
+                    <td><t t-esc="getattr(o,'in_ruta', '')"/></td>
+
+                    <!-- Ajustá estos campos a tu modelo de líneas -->
+                    <td><t t-esc="getattr(l,'stop', '')"/></td>
+                    <td><t t-esc="getattr(l,'title', '') or (getattr(l,'partner_id', False) and l.partner_id.name) or ''"/></td>
+                    <td><t t-esc="getattr(l,'direction', '')"/></td>
+                    <td><t t-esc="getattr(l,'bulto_count', '')"/></td>
+                    <td><t t-esc="getattr(l,'pedido_ref', '')"/></td>
+                    <td><t t-esc="getattr(l,'sist', '')"/></td>
+                  </tr>
+                </t>
+              </t>
+
+              <!-- Si NO tenés líneas, imprimí una fila simple con el roadmap -->
+              <t t-else="">
+                <tr>
+                  <td><t t-esc="(o.date and o.date.date()) or ''"/></td>
+                  <td><t t-esc="o.transport_id.name or ''"/></td>
+                  <td><t t-esc="o.assistants or ''"/></td>
+                  <td><t t-esc="o.patente or ''"/></td>
+                  <td><t t-esc="o.in_ruta or ''"/></td>
+                  <td></td>
+                  <td><t t-esc="(o.partner_id and o.partner_id.name) or ''"/></td>
+                  <td><t t-esc="o.direction or ''"/></td>
+                  <td><t t-esc="o.bulto_count or ''"/></td>
+                  <td></td>
+                  <td></td>
+                </tr>
+              </t>
+            </tbody>
+          </table>
+
+          <!-- Firma (como en tu imagen, abajo) -->
+          <div class="tms-sign">
+            <div><b>FIRMA CHOFER</b></div>
+            <div><b>ACLARACIÓN CHOFER</b></div>
+            <div><b>D.N.I. CHOFER</b></div>
+          </div>
+
+        </div>
+      </t>
+    </t>
+  </template>
+
+  <template id="report_tms_roadmap" name="Hoja de Ruta TMS">
+    <t t-call="tms_service.report_tms_roadmap"/>
+  </template>
+
+</odoo>

@@ -922,7 +922,7 @@ class WMSTask(models.Model):
             vals = {
                 'name': self.transfer_id.name,
                 'wms_task_id': self.id,
-                'picking_ids': [(4, self.id)],
+                #'picking_ids': [(4, self.id)], --> NO SE PONE PORQUE LA RELACION ES DESDE EL STOCK PICKING HACIA LA TASK, NO AL REVES
                 'fecha_entrega': False,
                 'fecha_envio_wms': self.transfer_id.create_date,
                 'codigo_wms': self.name,

@@ -8,3 +8,4 @@ access_tms_hiring,tms.hiring,model_tms_hiring,base.group_user,1,1,1,1
 access_tms_roadmap,tms.roadmap,model_tms_roadmap,base.group_user,1,1,1,1
 access_tms_citation_link_roadmap_wizard,tms.citation.link.roadmap.wizard,model_tms_citation_link_roadmap_wizard,base.group_user,1,1,1,1
 access_tms_transport_reassign_wizard,tms.transport.reassign.wizard,model_tms_transport_reassign_wizard,base.group_user,1,1,1,1
+access_tms_roadmap_line,tms.roadmap.line,model_tms_roadmap_line,base.group_user,1,1,1,1
