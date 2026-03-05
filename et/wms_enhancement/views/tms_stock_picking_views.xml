@@ -13,6 +13,7 @@
                 <field name="bulk_defendant"/>
                 <field name="bulk_picking"/>
             </xpath>
+        </field>
     </record>
 
     <!-- FORM -->
