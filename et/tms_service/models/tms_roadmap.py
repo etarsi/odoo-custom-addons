@@ -20,8 +20,8 @@ class TmsRoadmap(models.Model):
         ("other", "Otro"),
     ], required=True, default="pg", tracking=True)
     observations = fields.Text(string="Observaciones", tracking=True)
-    total_bulto_defendant = fields.Float(string="T. Bultos Demandados", tracking=True)
-    total_bulto_picking = fields.Float(string="T. Bultos Pickeados", tracking=True)
+    total_bulk_defendant = fields.Float(string="T. Bultos Demandados", tracking=True)
+    total_bulk_picking = fields.Float(string="T. Bultos Pickeados", tracking=True)
     total_lvl_compliance = fields.Float(string="T. Nivel de Cumplimiento", compute="_compute_total_lvl_compliance", store=True, tracking=True)
     citation_id = fields.Many2one("tms.citation", string="Citación", ondelete="set null", index=True, tracking=True)
     citation_count = fields.Integer(string="Número de Citaciones", compute="_compute_citation_count", store=False, tracking=True)
@@ -70,11 +70,11 @@ class TmsRoadmap(models.Model):
         for rec in self:
             rec.citation_count = 1 if rec.citation_id else 0
 
-    @api.depends("total_bulto_defendant", "total_bulto_picking")
+    @api.depends("total_bulk_defendant", "total_bulk_picking")
     def _compute_total_lvl_compliance(self):
         for rec in self:
-            denom = rec.total_bulto_defendant or 0.0
-            num = rec.total_bulto_picking or 0.0
+            denom = rec.total_bulk_defendant or 0.0
+            num = rec.total_bulk_picking or 0.0
             if denom > 0.0:
                 pct = (num / denom) * 100.0
                 rec.total_lvl_compliance = min(pct, 100.0)  # tope 100%
@@ -128,8 +128,8 @@ class TmsRoadmapLine(models.Model):
     date = fields.Datetime(string="Fecha", required=True, default=fields.Datetime.now, index=True)
     transport_id = fields.Many2one("tms.transport", string="Vehículo", index=True, tracking=True, ondelete="set null")
     patente = fields.Char(string="Patente", tracking=True)
-    bulto_defendant = fields.Float(string="Bultos Demandados", tracking=True)
-    bulto_picking = fields.Float(string="Bultos Pickeados", tracking=True)
+    bulk_defendant = fields.Float(string="Bultos Demandados", tracking=True)
+    bulk_picking = fields.Float(string="Bultos Pickeados", tracking=True)
     lvl_compliance = fields.Float(string="Nivel de Cumplimiento", compute="_compute_lvl_compliance", store=True, tracking=True)
     state = fields.Selection(
         related="roadmap_id.state",
@@ -159,11 +159,11 @@ class TmsRoadmapLine(models.Model):
     
 
 
-    @api.depends("bulto_defendant", "bulto_picking")
+    @api.depends("bulk_defendant", "bulk_picking")
     def _compute_lvl_compliance(self):
         for rec in self:
-            if rec.bulto_defendant > 0 and rec.bulto_picking > 0:
-                rec.lvl_compliance = (rec.bulto_picking / rec.bulto_defendant) * 100
+            if rec.bulk_defendant > 0 and rec.bulk_picking > 0:
+                rec.lvl_compliance = (rec.bulk_picking / rec.bulk_defendant) * 100
             else:
                 rec.lvl_compliance = 0.0
     

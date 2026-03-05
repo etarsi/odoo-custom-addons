@@ -85,12 +85,11 @@
                             <field name="tms_roadmap_ids" context="{'default_citation_id': active_id}" mode="tree,form" attrs="{'readonly': [('state', '!=', 'draft')]}">
                                 <tree string="Hojas de Ruta" delete="false">
                                     <field name="name"/>
-                                    <field name="partner_id"/>
                                     <field name="in_ruta"/>
                                     <field name="industry_id"/>
-                                    <field name="bulto_count"/>
-                                    <field name="bulto_count_verified"/>
-                                    <field name="percentage_verified" widget="progressbar" options="{'max_value': 100}"/>
+                                    <field name="total_bulk_defendant"/>
+                                    <field name="total_bulk_picking"/>
+                                    <field name="total_lvl_compliance" widget="progressbar" options="{'max_value': 100}"/>
                                     <!-- Botón por línea -->
                                     <button name="action_unlink_roadmap"
                                             type="object"
