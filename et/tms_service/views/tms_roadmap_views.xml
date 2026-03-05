@@ -91,13 +91,6 @@
                                     <!-- Barra de progreso -->
                                     <field name="lvl_compliance" widget="progressbar" options="{'max_value': 100}"/>
                                     <field name="tms_stock_picking_id"/>
-                                    <!-- Botón por línea para “desvincular” de la HDR (sin borrar el registro) -->
-                                    <button name="action_unlink_roadmap"
-                                            type="object"
-                                            string="Quitar"
-                                            icon="fa-unlink"
-                                            class="btn-link"
-                                            confirm="¿Quitar esta línea de la Hoja de Ruta?"/>
                                 </tree>
 
                                 <form string="Línea HDR">
