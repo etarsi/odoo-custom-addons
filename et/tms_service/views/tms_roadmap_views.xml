@@ -51,7 +51,6 @@
                     </div>
                     <group>
                         <group>
-                            <field name="partner_id"/>
                             <field name="transport_id"/>
                             <field name="patente"/>
                             <field name="type_roadmap"/>
