@@ -56,6 +56,7 @@ class TmsStockPickingRoadmapWizard(models.TransientModel):
                 "partner_id": p.partner_id.id if p.partner_id else False,
                 "direction": getattr(p, "direccion_entrega", False) or getattr(p, "direction", False),
                 "bulto_defendant": getattr(p, "cantidad_bultos", 0.0) or 0.0,
+                "industry_id": p.industry_id.id if p.industry_id else False,
                 # si tenés picking de bultos, setearlo acá:
                 "bulto_picking": getattr(p, "bultos_pickeados", 0.0) or 0.0,
             }))
