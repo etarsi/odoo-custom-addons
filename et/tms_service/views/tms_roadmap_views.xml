@@ -159,7 +159,6 @@
         <field name="arch" type="xml">
             <search string="Buscar Hoja de Ruta">
                 <field name="name"/>
-                <field name="partner_id"/>
                 <field name="transport_id"/>
                 <separator/>
                 <filter string="Borrador" name="draft" domain="[('state','=','draft')]"/>
@@ -169,7 +168,6 @@
                 <separator/>
                 <group expand="0" string="Agrupar">
                     <filter string="Vehículo" name="grp_transport_id" context="{'group_by':'transport_id'}"/>
-                    <filter string="Clientes" name="grp_partner_id" context="{'group_by':'partner_id'}"/>
                     <filter string="Estado" name="grp_state" context="{'group_by':'state'}"/>
                 </group>
             </search>
