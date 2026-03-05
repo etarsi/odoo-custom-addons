@@ -101,6 +101,8 @@ class TmsStockPickingRoadmapWizard(models.TransientModel):
                 "partner_id": wl.partner_id.id if wl.partner_id else False,
                 "direction": wl.direction,
                 "industry_id": wl.industry_id.id if wl.industry_id else False,
+                "in_ruta": wl.in_ruta,
+                "type_roadmap": wl.type_roadmap,
                 "bulk_defendant": wl.bulto_defendant,
                 "bulk_picking": wl.bulto_picking,
             })
@@ -129,7 +131,11 @@ class TmsStockPickingRoadmapWizardLine(models.TransientModel):
     direction = fields.Char(string="Dirección")
     bulto_defendant = fields.Float(string="Bultos Demandados")
     bulto_picking = fields.Float(string="Bultos Pickeados")
-    
+    type_roadmap = fields.Selection(string="Tipo", selection=[
+        ("delivery", "Entrega"),
+        ("pickup", "Retiro"),
+    ], required=True, default="delivery", tracking=True)
+    in_ruta = fields.Integer(string="Índice de Vuelta-Ruta", default=1)
     
     
     @api.depends("tms_stock_picking_id")
