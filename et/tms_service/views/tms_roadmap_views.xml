@@ -115,8 +115,6 @@
                                                 <field name="transport_id"/>
                                                 <field name="patente"/>
                                                 <field name="in_ruta"/>
-                                                <field name="parada"/>
-                                                <field name="sequence"/>
                                             </group>
                                             <group>
                                                 <field name="partner_id"/>
