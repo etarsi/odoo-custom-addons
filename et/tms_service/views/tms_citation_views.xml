@@ -88,6 +88,7 @@
                             <field name="tms_roadmap_ids" context="{'default_citation_id': active_id}" mode="tree,form" attrs="{'readonly': [('state', '!=', 'draft')]}">
                                 <tree string="Hojas de Ruta" delete="false">
                                     <field name="name"/>
+                                    <field name="state" invisible="1"/>
                                     <field name="in_ruta"/>
                                     <field name="industry_ids" widget="many2many_tags"/>
                                     <field name="total_bulk_defendant"/>
