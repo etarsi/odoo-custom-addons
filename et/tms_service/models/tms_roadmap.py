@@ -29,7 +29,7 @@ class TmsRoadmap(models.Model):
         [
             ("draft", "Borrador"),
             ("pending", "Pendiente"),
-            ("completed", "Completada"),
+            ("completed", "Despachado"),
             ("canceled", "Cancelada"),
         ],
         string="Estado",
