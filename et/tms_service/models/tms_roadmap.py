@@ -39,7 +39,7 @@ class TmsRoadmap(models.Model):
         tracking=True,
     )
     assistants = fields.Integer(string="Ayudantes", store=True, tracking=True)
-    in_ruta = fields.Integer(string="C, Indice de Vuelta-Ruta", store=True, tracking=True)
+    in_ruta = fields.Integer(string="Ind. Vuelta-Ruta", compute="_compute_in_ruta", store=True, tracking=True)
     tms_stock_picking_id = fields.Many2one(
         "tms.stock.picking",
         string="Ruteo Asociado",
@@ -64,6 +64,12 @@ class TmsRoadmap(models.Model):
     _sql_constraints = [
         ("uniq_tms_roadmap_name", "unique(name)", "La referencia de Hoja de Ruta debe ser única."),
     ]
+
+    @api.depends("road_maps_line_ids")
+    def _compute_in_ruta(self):
+        for rec in self:
+            max_in_ruta = rec.road_maps_line_ids.mapped("in_ruta")
+            rec.in_ruta = max(max_in_ruta) if max_in_ruta else 1
 
     @api.depends("road_maps_line_ids.bulk_defendant", "road_maps_line_ids.bulk_picking")
     def _compute_totals(self):

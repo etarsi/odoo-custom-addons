@@ -74,9 +74,9 @@
                                     Retiro
                                 </span>
                             </div>
-                            <field name="in_ruta"/>
+                            <field name="in_ruta" readonly="1"/>
                             <field name="industry_ids" widget="many2many_tags"/>
-                            <field name="citation_id" options="{'no_create': True}"/>
+                            <field name="citation_id" options="{'no_create': True}" domain="[('state', 'not in', ['canceled', 'completed'])]"/>
                         </group>
                         <group>
                             <field name="date" widget="date"/>

@@ -97,7 +97,8 @@
                                             string="Desvincular"
                                             icon="fa-unlink"
                                             class="btn-link"
-                                            confirm="¿Desvincular esta hoja de ruta de la citación?"/>
+                                            confirm="¿Desvincular esta hoja de ruta de la citación?"
+                                            attrs="{'invisible': [('state', 'in', ['canceled', 'completed'])]}"/>
                                 </tree>
                             </field>
                         </page>
