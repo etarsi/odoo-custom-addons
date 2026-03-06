@@ -40,12 +40,12 @@ class TmsRoadmap(models.Model):
     )
     assistants = fields.Integer(string="Ayudantes", store=True, tracking=True)
     in_ruta = fields.Selection(string="Ind. Vuelta-Ruta", selection=[
-        (1, "1"),
-        (2, "2"),
-        (3, "3"),
-        (4, "4"),
-        (5, "5"),
-        (6, "6"),
+        ('1', "1"),
+        ('2', "2"),
+        ('3', "3"),
+        ('4', "4"),
+        ('5', "5"),
+        ('6', "6"),
     ], default=1, store=True, tracking=True)
     tms_stock_picking_id = fields.Many2one(
         "tms.stock.picking",
@@ -205,12 +205,12 @@ class TmsRoadmapLine(models.Model):
         index=True,
     )
     in_ruta = fields.Selection(string="Ind. Vuelta-Ruta", selection=[
-        (1, "1"),
-        (2, "2"),
-        (3, "3"),
-        (4, "4"),
-        (5, "5"),
-        (6, "6"),
+        ('1', "1"),
+        ('2', "2"),
+        ('3', "3"),
+        ('4', "4"),
+        ('5', "5"),
+        ('6', "6"),
     ], default=1, store=True, tracking=True)
     partner_id = fields.Many2one("res.partner", string="Cliente", store=True, tracking=True)
     direction = fields.Char(string="Dirección", store=True, tracking=True)
