@@ -75,10 +75,11 @@ class TmsRoadmap(models.Model):
     @api.depends("road_maps_line_ids")
     def _compute_in_ruta(self):
         for rec in self:
-            if rec.road_maps_line_ids:
-                rec.in_ruta = max(rec.road_maps_line_ids.mapped("in_ruta") or [1])
+            in_ruta_values = rec.road_maps_line_ids.mapped("in_ruta")
+            if in_ruta_values:
+                rec.in_ruta = max(in_ruta_values)  # asigna el valor máximo de in_ruta entre las líneas
             else:
-                rec.in_ruta = 1
+                rec.in_ruta = '1'
 
     @api.depends("road_maps_line_ids.bulk_defendant", "road_maps_line_ids.bulk_picking")
     def _compute_totals(self):
