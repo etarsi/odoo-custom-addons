@@ -152,8 +152,9 @@ class TmsRoadmap(models.Model):
             "view_mode": "form",
             "target": "current",
             "context": {
-                "default_empresa_id": self.transport_id.empresa_id.id if self.transport_id and self.transport_id.empresa_id else False,
+                "default_empresa_id": self.transport_id.delivery_carrier_id.id if self.transport_id and self.transport_id.delivery_carrier_id else False,
                 "default_transport_id": self.transport_id.id if self.transport_id else False,
+                "default_transport_type_id": self.transport_id.transport_type_id.id if self.transport_id and self.transport_id.transport_type_id else False,
                 "default_patente_tractor": self.patente,
                 "default_patente_semi": self.patente,
                 "tms_roadmap_ids": [(6, 0, [self.id])],
@@ -183,7 +184,7 @@ class TmsRoadmapLine(models.Model):
         tracking=True,
         index=True,
     )
-    in_ruta = fields.Integer(string="Indice de Vuelta-Ruta", store=True, tracking=True)
+    in_ruta = fields.Integer(string="Ind. Vuelta-Ruta", store=True, tracking=True)
     partner_id = fields.Many2one("res.partner", string="Cliente", store=True, tracking=True)
     direction = fields.Char(string="Dirección", store=True, tracking=True)
     type_roadmap = fields.Selection(string="Tipo", selection=[
