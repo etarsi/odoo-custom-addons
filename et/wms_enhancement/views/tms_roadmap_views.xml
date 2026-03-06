@@ -30,6 +30,10 @@
                     <field name="wms_task_count" widget="statinfo" string="Tareas WMS"/>
                 </button>
             </xpath>
+            <!--LA VISTA TREE de road_maps_line_ids -->
+            <xpath expr="//field[@name='road_maps_line_ids']/tree/field[@name='tms_stock_picking_id']" position="after">
+                <field name="wms_task_id" options="{'no_create': True}" optional="hide"/>
+            </xpath>
         </field>
     </record>
 </odoo>
