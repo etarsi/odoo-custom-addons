@@ -158,6 +158,8 @@ class TmsRoadmap(models.Model):
             "transport_type_id": self.transport_id.transport_type_id.id if self.transport_id and self.transport_id.transport_type_id else False,
             "patente_tractor": self.patente,
             "patente_semi": self.patente,
+            "service_id": self.env[]["tms.service"].search([("code", "=", "PG")], limit=1).id,
+            "area": 'pg'
         })
         self.citation_id = citacion.id
 
