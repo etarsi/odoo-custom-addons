@@ -9,15 +9,16 @@ class TmsRoadmap(models.Model):
     _description = 'Hoja de Ruta'
     
     #agregar campo relacionado con wms_task
-    wms_task_ids = fields.Many2many('wms.task', string='Tareas WMS', compute="_compute_wms_task_ids", store=False)
-    wms_task_count = fields.Integer(string="Cantidad de Tareas WMS", compute="_compute_wms_task_ids", store=False)
+    wms_task_ids = fields.Many2many('wms.task', string='Tareas WMS', compute="_compute_wms_tasks", store=False)
+    wms_task_count = fields.Integer(string="Cantidad de Tareas WMS", compute="_compute_wms_tasks", store=False)
     
     
-    def _compute_wms_task_ids(self):
+    @api.depends("road_maps_line_ids.wms_task_id")
+    def _compute_wms_tasks(self):
         for rec in self:
-            wms_tasks = rec.mapped('road_maps_line_ids.wms_task_id')
-            rec.wms_task_ids = [(6, 0, wms_tasks.ids)]
-            rec.wms_task_count = len(wms_tasks)
+            tasks = rec.road_maps_line_ids.mapped("wms_task_id")  # recordset
+            rec.wms_task_ids = tasks
+            rec.wms_task_count = len(tasks)
 
 
     def action_open_wms_tasks(self):
