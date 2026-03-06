@@ -53,15 +53,28 @@
                         <group>
                             <field name="transport_id"/>
                             <field name="patente"/>
-                            <field name="type_roadmap"/>
+                            <field name="assistants"/>
+                            <!-- campos invisibles -->
+                            <field name="has_delivery" invisible="1"/>
+                            <field name="has_pickup" invisible="1"/>
+                            <div class="o_row" style="gap:6px;">
+                                <span class="badge badge-info"
+                                    attrs="{'invisible': [('has_delivery','=',False)]}">
+                                    Entrega
+                                </span>
+                                <span class="badge badge-warning"
+                                    attrs="{'invisible': [('has_pickup','=',False)]}">
+                                    Retiro
+                                </span>
+                            </div>
                             <field name="in_ruta"/>
                             <field name="industry_ids" widget="many2many_tags"/>
+                            <field name="citation_id" options="{'no_create': True}"/>
                         </group>
                         <group>
                             <field name="date" widget="date"/>
-                            <field name="assistants"/>
-                            <field name="total_bulk_defendant"/>
-                            <field name="total_bulk_picking"/>
+                            <field name="total_bulk_defendant" readonly="1"/>
+                            <field name="total_bulk_picking" readonly="1"/>
                             <field name="total_lvl_compliance" widget="progressbar" options="{'max_value': 100}"/>
                         </group>
                     </group>
@@ -94,7 +107,7 @@
                         <page name="information" string="Información Adicional">
                             <group name="group_information" string="Información Adicional">
                                 <group>
-                                    <field name="citation_id"/>
+                                    <field name="observations" widget="text" colspan="2"/>
                                 </group>
                             </group>
                         </page>

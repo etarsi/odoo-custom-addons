@@ -40,10 +40,6 @@ class TmsRoadmap(models.Model):
     )
     assistants = fields.Integer(string="Ayudantes", store=True, tracking=True)
     in_ruta = fields.Integer(string="C, Indice de Vuelta-Ruta", store=True, tracking=True)
-    type_roadmap = fields.Selection(string="Tipo", selection=[
-        ("delivery", "Entrega"),
-        ("pickup", "Retiro"),
-    ], required=True, default="delivery", tracking=True)
     tms_stock_picking_id = fields.Many2one(
         "tms.stock.picking",
         string="Ruteo Asociado",
@@ -52,13 +48,35 @@ class TmsRoadmap(models.Model):
         index=True,
         tracking=True,
     )
-    industry_ids = fields.Many2many("res.partner.industry", string="Zonas", compute="_compute_industry_ids", store=True, tracking=True)
+    industry_ids = fields.Many2many(
+        "res.partner.industry",
+        string="Zonas",
+        compute="_compute_industry_ids",
+        store=True,
+        readonly=True,
+        tracking=True,
+    )
     road_maps_line_ids = fields.One2many("tms.roadmap.line", "roadmap_id", string="Líneas de Hoja de Ruta", tracking=True)
-    
+    has_delivery = fields.Boolean(compute="_compute_type_flags", store=True)
+    has_pickup = fields.Boolean(compute="_compute_type_flags", store=True) 
     #SQL
     _sql_constraints = [
         ("uniq_tms_roadmap_name", "unique(name)", "La referencia de Hoja de Ruta debe ser única."),
     ]
+
+
+    @api.depends("road_maps_line_ids.industry_id")
+    def _compute_industry_ids(self):
+        for rec in self:
+            inds = rec.road_maps_line_ids.mapped("industry_id").ids
+            rec.industry_ids = [(6, 0, list(set(inds)))]
+
+    @api.depends("road_maps_line_ids.type_roadmap")  # ajustá el One2many real
+    def _compute_type_flags(self):
+        for rec in self:
+            types = set(rec.road_maps_line_ids.mapped("type_roadmap"))
+            rec.has_delivery = "delivery" in types
+            rec.has_pickup = "pickup" in types    
 
     def _compute_industry_ids(self):
         for rec in self:
