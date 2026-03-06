@@ -98,7 +98,6 @@
                                 <tree editable="bottom" create="1" edit="1">
                                     <!-- Columnas tipo Excel -->
                                     <field name="tms_stock_picking_id" options="{'no_create': True}" optional="show"/>
-                                    <field name="wms_task_id" options="{'no_create': True}" optional="hide"/>
                                     <field name="type_roadmap" optional="show"/>
                                     <field name="transport_id" readonly="1" options="{'no_create': True}" optional="hide"/>
                                     <field name="patente" readonly="1" optional="hide"/>
