@@ -59,6 +59,8 @@ class TmsRoadmap(models.Model):
     road_maps_line_ids = fields.One2many("tms.roadmap.line", "roadmap_id", string="Líneas de Hoja de Ruta", tracking=True)
     has_delivery = fields.Boolean(compute="_compute_type_flags", store=True)
     has_pickup = fields.Boolean(compute="_compute_type_flags", store=True) 
+    amount_service = fields.Float(string="Importe del Servicio", tracking=True)    
+
     #SQL
     _sql_constraints = [
         ("uniq_tms_roadmap_name", "unique(name)", "La referencia de Hoja de Ruta debe ser única."),

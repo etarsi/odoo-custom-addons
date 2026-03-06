@@ -25,8 +25,8 @@ class TmsCitation(models.Model):
         ("other", "Otro"),
     ], required=True, default="pg", tracking=True)
     # Para mostrarlo lindo en UI, después en la vista usás widget="float_time"
-    hour_citation = fields.Float(string="Hora Citación", required=True, tracking=True)
-    hour_arrival = fields.Float(string="Hora Llegada", tracking=True)
+    hour_citation = fields.Float(string="Hora Citación", required=True, default=7, tracking=True)
+    hour_arrival = fields.Float(string="Hora Llegada", default=14, tracking=True)
     hiring_id = fields.Many2one("tms.hiring", string="Contratación", required=True, tracking=True)
     observations = fields.Text(string="Observaciones", tracking=True)
     # En la planilla 'Btos G.C' viene con decimales (ej 35.67), por eso Float.

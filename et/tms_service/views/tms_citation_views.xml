@@ -71,6 +71,7 @@
                             <field name="total_bulk"/>
                             <field name="total_bulk_verified"/>
                             <field name="percentage_verified" widget="progressbar" options="{'max_value': 100}"/>
+                            <field name="amount_service"/>
                         </group>
                     </group>
                     <notebook>
