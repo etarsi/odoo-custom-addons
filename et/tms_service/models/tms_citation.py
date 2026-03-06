@@ -37,7 +37,7 @@ class TmsCitation(models.Model):
         [
             ("draft", "Borrador"),
             ("pending", "Pendiente"),
-            ("completed", "Completado"),
+            ("completed", "Despachado"),
             ("canceled", "Cancelado"),
         ],
         string="Estado",
