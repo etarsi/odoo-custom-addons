@@ -57,12 +57,13 @@
                             <!-- campos invisibles -->
                             <field name="has_delivery" invisible="1"/>
                             <field name="has_pickup" invisible="1"/>
-                            <div class="o_row" style="gap:6px;">
-                                <span class="badge badge-info"
+                            <label string="Tipo"/>
+                            <div class="o_row" style="gap:6px; align-items:center;">
+                                <span class="badge badge-info badge-pill"
                                     attrs="{'invisible': [('has_delivery','=',False)]}">
                                     Entrega
                                 </span>
-                                <span class="badge badge-warning"
+                                <span class="badge badge-warning badge-pill"
                                     attrs="{'invisible': [('has_pickup','=',False)]}">
                                     Retiro
                                 </span>

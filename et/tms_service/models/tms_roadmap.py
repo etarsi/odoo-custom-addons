@@ -20,9 +20,9 @@ class TmsRoadmap(models.Model):
         ("other", "Otro"),
     ], required=True, default="pg", tracking=True)
     observations = fields.Text(string="Observaciones", tracking=True)
-    total_bulk_defendant = fields.Float(string="T. Bultos Demandados", tracking=True)
-    total_bulk_picking = fields.Float(string="T. Bultos Pickeados", tracking=True)
-    total_lvl_compliance = fields.Float(string="T. Nivel de Cumplimiento", compute="_compute_total_lvl_compliance", store=True, tracking=True)
+    total_bulk_defendant = fields.Float(string="T. Bultos Demandados", tracking=True, compute="_compute_totals", default=0.0, store=True)
+    total_bulk_picking = fields.Float(string="T. Bultos Pickeados", tracking=True, compute="_compute_totals", default=0.0, store=True)
+    total_lvl_compliance = fields.Float(string="T. Nivel de Cumplimiento", compute="_compute_totals", store=True, tracking=True)
     citation_id = fields.Many2one("tms.citation", string="Citación", ondelete="set null", index=True, tracking=True)
     citation_count = fields.Integer(string="Número de Citaciones", compute="_compute_citation_count", store=False, tracking=True)
     state = fields.Selection(
@@ -64,6 +64,15 @@ class TmsRoadmap(models.Model):
         ("uniq_tms_roadmap_name", "unique(name)", "La referencia de Hoja de Ruta debe ser única."),
     ]
 
+    @api.depends("road_maps_line_ids.bulk_defendant", "road_maps_line_ids.bulk_picking")
+    def _compute_totals(self):
+        for rec in self:
+            rec.total_bulk_defendant = sum(rec.road_maps_line_ids.mapped("bulk_defendant"))
+            rec.total_bulk_picking = sum(rec.road_maps_line_ids.mapped("bulk_picking"))
+            if rec.total_bulk_defendant > 0:
+                rec.total_lvl_compliance = (rec.total_bulk_picking / rec.total_bulk_defendant) * 100
+            else:
+                rec.total_lvl_compliance = 0.0
 
     @api.depends("road_maps_line_ids.industry_id")
     def _compute_industry_ids(self):
@@ -77,12 +86,6 @@ class TmsRoadmap(models.Model):
             types = set(rec.road_maps_line_ids.mapped("type_roadmap"))
             rec.has_delivery = "delivery" in types
             rec.has_pickup = "pickup" in types    
-
-    def _compute_industry_ids(self):
-        for rec in self:
-            industry_ids = rec.road_maps_line_ids.mapped('industry_id').ids
-            rec.industry_ids = [(6, 0, industry_ids)]
-
 
     def _compute_citation_count(self):
         for rec in self:
