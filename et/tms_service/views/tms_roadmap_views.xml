@@ -29,6 +29,12 @@
         <field name="arch" type="xml">
             <form string="Hoja de Ruta">
                 <header>
+                    <button name="action_generate_citation"
+                            type="object"
+                            string="GENERAR CITACIÓN"
+                            class="oe_highlight"
+                            attrs="{'invisible': [('citation_id','!=',False)]}"/>
+
                     <field name="state"
                            widget="statusbar"
                            statusbar_visible="draft,pending,completed"/>
@@ -92,12 +98,14 @@
                                 <tree editable="bottom" create="1" edit="1">
                                     <!-- Columnas tipo Excel -->
                                     <field name="tms_stock_picking_id" options="{'no_create': True}" optional="show"/>
+                                    <field name="wms_task_id" options="{'no_create': True}" optional="hide"/>
+                                    <field name="type_roadmap" optional="show"/>
                                     <field name="transport_id" readonly="1" options="{'no_create': True}" optional="hide"/>
                                     <field name="patente" readonly="1" optional="hide"/>
                                     <field name="in_ruta" optional="show"/>
-                                    <field name="partner_id" readonly="1" optional="hide"/>
+                                    <field name="partner_id" optional="show"/>
                                     <field name="direction" optional="show"/>
-                                    <field name="industry_id" options="{'no_create': True}" readonly="1" optional="show"/>
+                                    <field name="industry_id" options="{'no_create': True}" optional="show"/>
                                     <field name="bulk_defendant" optional="show"/>
                                     <field name="bulk_picking" optional="show"/>
                                     <!-- Barra de progreso -->

@@ -138,6 +138,29 @@ class TmsRoadmap(models.Model):
         return True
     
     
+    #action GNERAR CITACION
+    def action_generate_citation(self):
+        #redirigir a citacion form view new con los campos por default llenados segun la hoja de ruta
+        self.ensure_one()
+        if self.citation_id:
+            raise ValidationError("Esta Hoja de Ruta ya tiene una citación asociada.")
+        #crear la citacion
+        return {
+            "type": "ir.actions.act_window",
+            "name": _("Generar Citación"),
+            "res_model": "tms.citation",
+            "view_mode": "form",
+            "target": "current",
+            "context": {
+                "default_empresa_id": self.transport_id.empresa_id.id if self.transport_id and self.transport_id.empresa_id else False,
+                "default_transport_id": self.transport_id.id if self.transport_id else False,
+                "default_patente_tractor": self.patente,
+                "default_patente_semi": self.patente,
+                "tms_roadmap_ids": [(6, 0, [self.id])],
+            },
+        }
+    
+    
     
 class TmsRoadmapLine(models.Model):
     _name = "tms.roadmap.line"
