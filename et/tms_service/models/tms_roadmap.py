@@ -152,20 +152,22 @@ class TmsRoadmap(models.Model):
         if self.citation_id:
             raise ValidationError("Esta Hoja de Ruta ya tiene una citación asociada.")
         #crear la citacion
+        citacion = self.env["tms.citation"].create({
+            "empresa_id": self.transport_id.delivery_carrier_id.id if self.transport_id and self.transport_id.delivery_carrier_id else False,
+            "transport_id": self.transport_id.id if self.transport_id else False,
+            "transport_type_id": self.transport_id.transport_type_id.id if self.transport_id and self.transport_id.transport_type_id else False,
+            "patente_tractor": self.patente,
+            "patente_semi": self.patente,
+        })
+        self.citation_id = citacion.id
+
         return {
             "type": "ir.actions.act_window",
-            "name": _("Generar Citación"),
+            "name": _("Citación"),
             "res_model": "tms.citation",
             "view_mode": "form",
+            "res_id": citacion.id,
             "target": "current",
-            "context": {
-                "default_empresa_id": self.transport_id.delivery_carrier_id.id if self.transport_id and self.transport_id.delivery_carrier_id else False,
-                "default_transport_id": self.transport_id.id if self.transport_id else False,
-                "default_transport_type_id": self.transport_id.transport_type_id.id if self.transport_id and self.transport_id.transport_type_id else False,
-                "default_patente_tractor": self.patente,
-                "default_patente_semi": self.patente,
-                "tms_roadmap_ids": [(6, 0, [self.id])],
-            },
         }
     
     
