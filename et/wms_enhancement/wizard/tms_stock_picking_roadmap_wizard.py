@@ -53,12 +53,13 @@ class TmsStockPickingRoadmapWizard(models.TransientModel):
         for p in self.stock_picking_ids:
             lines_cmds.append((0, 0, {
                 "tms_stock_picking_id": p.id,
+                "wms_task_id": p.wms_task_id.id if p.wms_task_id else False,
                 "partner_id": p.partner_id.id if p.partner_id else False,
                 "direction": getattr(p, "direccion_entrega", False) or getattr(p, "direction", False),
-                "bulto_defendant": getattr(p, "cantidad_bultos", 0.0) or 0.0,
+                "bulto_defendant": getattr(p, "bulk_defendant", 0.0) or 0.0,
                 "industry_id": p.industry_id.id if p.industry_id else False,
                 # si tenés picking de bultos, setearlo acá:
-                "bulto_picking": getattr(p, "bultos_pickeados", 0.0) or 0.0,
+                "bulto_picking": getattr(p, "bulk_picking", 0.0) or 0.0,
             }))
         self.line_ids = lines_cmds
 
@@ -138,7 +139,7 @@ class TmsStockPickingRoadmapWizardLine(models.TransientModel):
         ("delivery", "Entrega"),
         ("pickup", "Retiro"),
     ], required=True, default="delivery", tracking=True)
-    in_ruta = fields.Integer(string="Índice de Vuelta-Ruta", default=1)
+    in_ruta = fields.Integer(string="Índ. Vuelta-Ruta", default=1)
     
     
     @api.depends("tms_stock_picking_id")
