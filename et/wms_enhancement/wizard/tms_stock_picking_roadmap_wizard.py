@@ -139,7 +139,14 @@ class TmsStockPickingRoadmapWizardLine(models.TransientModel):
         ("delivery", "Entrega"),
         ("pickup", "Retiro"),
     ], required=True, default="delivery", tracking=True)
-    in_ruta = fields.Integer(string="Índ. Vuelta-Ruta", default=1)
+    in_ruta = fields.Selection(string="Ind. Vuelta-Ruta", selection=[
+        (1, "1"),
+        (2, "2"),
+        (3, "3"),
+        (4, "4"),
+        (5, "5"),
+        (6, "6"),
+    ], default=1, store=True, tracking=True)
     
     
     @api.depends("tms_stock_picking_id")
