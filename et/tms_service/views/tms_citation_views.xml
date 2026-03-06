@@ -35,7 +35,6 @@
         <field name="arch" type="xml">
             <form string="Citación">
                 <header>
-                    <field name="state" invisible="1"/>
                     <button name="action_post" type="object" string="Confirmar" class="btn-secondary" attrs="{'invisible': ['|', ('state', '!=', 'draft'), ('state', '=', 'pending')]}"/>
                     <button name="action_completed" type="object" string="Completar Citación" class="btn-success" attrs="{'invisible': ['|', ('state', '!=', 'pending'), ('state', '=', 'completed')]}"/>
                     <button name="action_cancel" type="object" string="Cancelar Citación" class="btn-danger" attrs="{'invisible': [('state', '=', 'canceled')]}" confirm="¿Está seguro de que desea cancelar esta citación?"/>
@@ -46,6 +45,7 @@
                 </header>
 
                 <sheet>
+                    <field name="state" invisible="1"/>
                     <div class="oe_title">
                         <h1>
                             <field name="name" readonly="1"/>
