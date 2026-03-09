@@ -95,14 +95,14 @@
 
                             <!-- OJO: ajustá el nombre real del campo -->
                             <td style="text-align:right;">
-                                <span t-esc="getattr(l,'bulk_defendant', getattr(l,'bulk_defendant', 0.0))"/>
+                                <span t-esc="l.bulk_defendant or 0.0"/>
                             </td>
 
                             <td><span t-esc="l.wms_task_id.name if l.wms_task_id else ''"/></td>
 
                             <!-- ajustá según tu campo SIST real -->
                             <td style="text-align:right;">
-                                <span t-esc="getattr(l,'bulk_picking', getattr(l,'bulk_picking', 0.0))"/>
+                                <span t-esc="l.bulk_picking or 0.0"/>
                             </td>
                         </tr>
                     </t>
