@@ -252,7 +252,7 @@ class AccountMoveInherit(models.Model):
             'currency_id': self.currency_id.id,
             'date': fields.Date.context_today(self),
             'partner_id': self.partner_id.id,
-            'journal_id': self.partner_id.daily_to_pay.id,
+            'journal_id': self.partner_id.daily_to_pay.with_context(company_id=self.company_id.id).id,
             'payment_type': 'outbound',
         }
         self.env['account.payment'].create(payment_vals)
