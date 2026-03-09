@@ -226,33 +226,38 @@ class AccountMoveInherit(models.Model):
                         line_tax_ids = line.tax_ids.filtered(lambda t: 'percepción iibb' not in (t.name or '').lower())
                         if line_tax_ids and len(line.tax_ids) != len(line_tax_ids):
                             line.write({'tax_ids': [(6, 0, line_tax_ids.ids)]})
-                            
+            # Si es factura de proveedor y el proveedor tiene pago automático, crear grupo de pago y pago asociado al validar la factura
             if move.move_type == 'in_invoice' and move.partner_id.automatic_payment:
-                # Solo para facturas de proveedor, crear payment_group y payment al validar la factura, si el proveedor tiene pago automático activo
-                payment_group_vals = {
-                    'partner_id': move.partner_id.id,
-                    'to_pay_amount': move.amount_total,
-                    'partner_type': 'supplier',
-                    'currency_id': move.currency_id.id,
-                    'payment_type': 'outbound',
-                    'communication': f"Pago automático de factura {move.name}",
-                    'company_id': move.company_id.id,
-                    'to_pay_move_line_ids': [(4, line.id) for line in move.line_ids if line.account_id.internal_type in ('payable', 'liquidity')], # asociar líneas de factura al grupo de pago para conciliación automática
-                }
-                payment_group = self.env['account.payment.group'].create(payment_group_vals)
-                payment_vals = {
-                    'payment_group_id': payment_group.id,
-                    'amount': move.amount_total,
-                    'currency_id': move.currency_id.id,
-                    'payment_date': fields.Date.context_today(self),
-                    'partner_id': move.partner_id.id,
-                    'journal_id': move.partner_id.daily_to_pay.id,
-                    'payment_type': 'outbound',
-                    'communication': f"Pago automático de factura {move.name}",
-                }
-                payment = self.env['account.payment'].create(payment_vals)
-                payment_group.post()
+                move._action_create_payment_group_automatic()
         return res
+    
+    def _action_create_payment_group_automatic(self):
+        """Crea un grupo de pagos para esta factura, si no existe ya uno relacionado."""
+        self.ensure_one()
+        # Solo para facturas de proveedor, crear payment_group y payment al validar la factura, si el proveedor tiene pago automático activo
+        payment_group_vals = {
+            'partner_id': self.partner_id.id,
+            'to_pay_amount': self.amount_total,
+            'partner_type': 'supplier',
+            'currency_id': self.currency_id.id,
+            'payment_type': 'outbound',
+            'communication': f"Pago automático de factura {self.name}",
+            'company_id': self.company_id.id,
+            'to_pay_move_line_ids': [(4, line.id) for line in self.line_ids if line.account_id.internal_type in ('payable', 'liquidity')], # asociar líneas de factura al grupo de pago para conciliación automática
+        }
+        payment_group = self.env['account.payment.group'].create(payment_group_vals)
+        payment_vals = {
+            'payment_group_id': payment_group.id,
+            'amount': self.amount_total,
+            'currency_id': self.currency_id.id,
+            'payment_date': fields.Date.context_today(self),
+            'partner_id': self.partner_id.id,
+            'journal_id': self.partner_id.daily_to_pay.id,
+            'payment_type': 'outbound',
+            'communication': f"Pago automático de factura {self.name}",
+        }
+        self.env['account.payment'].create(payment_vals)
+        payment_group.post()
 
     @api.depends('line_ids.product_id')
     def _compute_category_ids(self):
