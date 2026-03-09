@@ -172,11 +172,11 @@
                             <td><span t-field="l.partner_id"/></td>
                             <td><span t-esc="l.direction or ''"/></td>
                             <td style="text-align:right;">
-                                <span t-esc="formatLang(l.bulk_defendant or 0.0, digits=(16,2))"/>
+                                <span t-field="l.bulk_defendant" t-options="{'widget': 'float', 'precision_digits': 2}"/>
                             </td>
                             <td><span t-esc="l.wms_task_id.name if l.wms_task_id else ''"/></td>
                             <td style="text-align:right;">
-                                <span t-esc="formatLang(l.bulk_picking or 0.0, digits=(16,2))"/>
+                                <span t-field="l.bulk_picking" t-options="{'widget': 'float', 'precision_digits': 2}"/>
                             </td>
                         </tr>
                     </t>
