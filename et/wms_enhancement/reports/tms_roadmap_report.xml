@@ -40,28 +40,56 @@
                 .muted { color:#777; }
                 .sign-row { margin-top: 14px; font-size: 9px; display:flex; justify-content:space-between; }
                 .sign-box { width: 32%; text-align:left; }
-                .sign-line { margin-top: 18px; border-top: 1px solid #000; padding-top: 2px; }
+                .meta-block{ font-size:10px; margin-bottom:6px; }
+                .meta-block b{ font-weight:700; }
+                .fill-table{ width:100%; border-collapse:collapse; font-size:10px; margin-top:6px; }
+                .fill-table td{ padding:2px 10px 2px 0; white-space:nowrap; vertical-align:bottom; }
+                .fill-label{ font-weight:700; }
+                .fill-line{
+                    display:inline-block;
+                    border-bottom:1px solid #000;
+                    min-width:180px;     /* ajustá ancho */
+                    height:12px;
+                    padding:0 4px;
+                    vertical-align:bottom;
+                }
+                .fill-line.small{ min-width:120px; }
+                .sign-table{ width:100%; border-collapse:collapse; margin-top:18px; font-size:10px; }
+                .sign-table td{ width:33.33%; vertical-align:bottom; padding:0 10px; }
+                .sign-line{ border-top:1px solid #000; padding-top:3px; text-align:left; }
+                .sign-center{ text-align:center; }
+                .sign-right{ text-align:right; }
             </style>
-
+            <table class="fill-table">
+                <tr>
+                    <td>
+                        <span class="fill-label">Nombre Chofer:</span>
+                        <span class="fill-line"></span>
+                    </td>
+                    <td>
+                        <span class="fill-label">Hora Salida:</span>
+                        <span class="fill-line"></span>
+                    </td>
+                    <td>
+                        <span class="fill-label">Hora Llegada:</span>
+                        <span class="fill-line"></span>
+                    </td>
+                    <td>
+                        <span class="fill-label">Nombre Ayudante:</span>
+                        <span class="fill-line"></span>
+                    </td>
+                </tr>
+            </table>
             <!-- CABECERA -->
             <div class="hdr-title">
                 <span t-esc="doc.name"/>
             </div>
-
             <div class="hdr-meta">
                 <div class="line">
                     <div><b>Vehículo:</b> <span t-field="doc.transport_id"/></div>
                     <div><b>Patente:</b> <span t-esc="doc.patente or ''"/></div>
                     <div><b>Ayudantes:</b> <span t-esc="doc.assistants or 0"/></div>
                     <div><b>Fecha:</b> <span t-field="doc.date"/></div>
-                </div>
-
-                <!-- si tenés chofer/hora salida/llegada, ponelos acá -->
-                <div class="line" style="margin-top:4px;">
-                    <div><b>Nombre Chofer:</b></div>
-                    <div><b>Hora Salida:</b></div>
-                    <div><b>Hora Llegada:</b></div>
-                    <div><b>Nombre Ayudante:</b></div>
                 </div>
             </div>
 
@@ -108,21 +136,13 @@
                     </t>
                 </tbody>
             </table>
-
-            <!-- FIRMAS -->
-            <div class="sign-row">
-                <div class="sign-box">
-                    <div class="sign-line">FIRMA CHOFER</div>
-                </div>
-                <div class="sign-box" style="text-align:center;">
-                    <div class="sign-line">ACLARACIÓN CHOFER</div>
-                </div>
-                <div class="sign-box" style="text-align:right;">
-                    <div class="sign-line">D.N.I. CHOFER</div>
-                </div>
-            </div>
-
+            <table class="sign-table">
+                <tr>
+                    <td><div class="sign-line">FIRMA CHOFER</div></td>
+                    <td><div class="sign-line sign-center">ACLARACIÓN CHOFER</div></td>
+                    <td><div class="sign-line sign-right">D.N.I. CHOFER</div></td>
+                </tr>
+            </table>
         </t>
     </template>
-
 </odoo>
