@@ -82,9 +82,7 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <t t-set="lines"
-                       t-value="doc.road_maps_line_ids.sorted(key=lambda l: ((l.in_ruta or 0), (getattr(l,'parada',0) or 0), l.id))"/>
-
+                    <t t-set="lines" t-value="doc.road_maps_line_ids"/>
                     <t t-foreach="lines" t-as="l">
                         <tr>
                             <td><span t-field="doc.transport_id"/></td>
