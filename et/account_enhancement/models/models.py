@@ -254,7 +254,6 @@ class AccountMoveInherit(models.Model):
             'partner_id': self.partner_id.id,
             'journal_id': self.partner_id.daily_to_pay.id,
             'payment_type': 'outbound',
-            'communication': f"Pago automático de factura {self.name}",
         }
         self.env['account.payment'].create(payment_vals)
         payment_group.post()
