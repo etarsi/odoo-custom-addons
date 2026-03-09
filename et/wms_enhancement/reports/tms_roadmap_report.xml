@@ -92,7 +92,7 @@
                 .sign-table{
                     width:100%;
                     border-collapse:collapse;
-                    margin-top:26px;          /* baja las firmas */
+                    margin-top:160px;
                     font-size:10px;
                 }
                 .sign-table td{
@@ -155,7 +155,7 @@
                         <th>Parada</th>
                         <th>Cliente</th>
                         <th>Dirección</th>
-                        <th>Bultos</th>
+                        <th>Bultos Demandados</th>
                         <th>N° Tarea</th>
                         <th>Bultos Pickeados</th>
                     </tr>
@@ -171,17 +171,12 @@
                             <td></td>
                             <td><span t-field="l.partner_id"/></td>
                             <td><span t-esc="l.direction or ''"/></td>
-
-                            <!-- OJO: ajustá el nombre real del campo -->
                             <td style="text-align:right;">
-                                <span t-esc="l.bulk_defendant or 0.0"/>
+                                <span t-esc="formatLang(l.bulk_defendant or 0.0, digits=(16,2))"/>
                             </td>
-
                             <td><span t-esc="l.wms_task_id.name if l.wms_task_id else ''"/></td>
-
-                            <!-- ajustá según tu campo SIST real -->
                             <td style="text-align:right;">
-                                <span t-esc="l.bulk_picking or 0.0"/>
+                                <span t-esc="formatLang(l.bulk_picking or 0.0, digits=(16,2))"/>
                             </td>
                         </tr>
                     </t>
