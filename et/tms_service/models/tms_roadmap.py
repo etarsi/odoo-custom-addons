@@ -194,8 +194,8 @@ class TmsRoadmapLine(models.Model):
     date = fields.Datetime(string="Fecha", required=True, default=fields.Datetime.now, index=True)
     transport_id = fields.Many2one("tms.transport", string="Vehículo", store=True, related='roadmap_id.transport_id')
     patente = fields.Char(string="Patente", tracking=True, store=True, related='roadmap_id.patente')
-    bulk_defendant = fields.Float(string="Bultos Demandados", tracking=True)
-    bulk_picking = fields.Float(string="Bultos Pickeados", tracking=True)
+    bulto_defendant = fields.Float(string="Bultos Demandados", digits=(16, 2), tracking=True)
+    bulto_picking   = fields.Float(string="Bultos Pickeados",  digits=(16, 2), tracking=True)
     lvl_compliance = fields.Float(string="Nivel de Cumplimiento", compute="_compute_lvl_compliance", store=True, tracking=True)
     state = fields.Selection(
         related="roadmap_id.state",
