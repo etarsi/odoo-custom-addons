@@ -91,7 +91,6 @@ class SaleOrderInherit(models.Model):
                 # record.cancel_transfers()                
                 record.unreserve_stock_sale_order()
                 record.action_cancel()
-            
             record.unreserve_stock_sale_order()
     
     def cancel_pickings(self):

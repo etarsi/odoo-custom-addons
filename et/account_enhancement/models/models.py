@@ -209,6 +209,7 @@ class AccountMoveInherit(models.Model):
         self.env.cr.execute(sql, (self.id,))
     
     def action_post(self):
+        res = super().action_post()
         for move in self:
             #validar nota de credito sea de tipo comprobante nota de credito
             if move.move_type == 'out_refund':
@@ -225,7 +226,33 @@ class AccountMoveInherit(models.Model):
                         line_tax_ids = line.tax_ids.filtered(lambda t: 'percepción iibb' not in (t.name or '').lower())
                         if line_tax_ids and len(line.tax_ids) != len(line_tax_ids):
                             line.write({'tax_ids': [(6, 0, line_tax_ids.ids)]})
-        return super().action_post()
+                            
+            if move.move_type == 'in_invoice' and move.partner_id.automatic_payment:
+                # Solo para facturas de proveedor, crear payment_group y payment al validar la factura, si el proveedor tiene pago automático activo
+                payment_group_vals = {
+                    'partner_id': move.partner_id.id,
+                    'to_pay_amount': move.amount_total,
+                    'partner_type': 'supplier',
+                    'currency_id': move.currency_id.id,
+                    'payment_type': 'outbound',
+                    'communication': f"Pago automático de factura {move.name}",
+                    'company_id': move.company_id.id,
+                    'to_pay_move_line_ids': [(4, line.id) for line in move.line_ids if line.account_id.internal_type in ('payable', 'liquidity')], # asociar líneas de factura al grupo de pago para conciliación automática
+                }
+                payment_group = self.env['account.payment.group'].create(payment_group_vals)
+                payment_vals = {
+                    'payment_group_id': payment_group.id,
+                    'amount': move.amount_total,
+                    'currency_id': move.currency_id.id,
+                    'payment_date': fields.Date.context_today(self),
+                    'partner_id': move.partner_id.id,
+                    'journal_id': move.partner_id.daily_to_pay.id,
+                    'payment_type': 'outbound',
+                    'communication': f"Pago automático de factura {move.name}",
+                }
+                payment = self.env['account.payment'].create(payment_vals)
+                payment_group.post()
+        return res
 
     @api.depends('line_ids.product_id')
     def _compute_category_ids(self):

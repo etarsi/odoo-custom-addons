@@ -26,10 +26,8 @@ class ResPartnerInherit(models.Model):
     daily_to_pay = fields.Many2one('account.journal', string='Diario de Pago', company_dependent=True, 
                                         help='Seleccionar el diario para los pagos automáticos a proveedores de AFIP.')
     method_to_pay = fields.Selection(string='Método de Pago', selection=[
-        ('bank_transfer', 'Transferencia Bancaria'),    
-        ('check', 'Cheque'),
         ('cash', 'Efectivo'),
-    ], help='Seleccionar el método de pago para los pagos automáticos a proveedores de AFIP.')
+    ], help='Seleccionar el método de pago para los pagos automáticos a proveedores de AFIP.', default='cash')
     
 
     def action_resumen_composicion(self):

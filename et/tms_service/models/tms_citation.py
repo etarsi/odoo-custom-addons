@@ -14,7 +14,7 @@ class TmsCitation(models.Model):
     mes = fields.Char(string="Mes", compute="_compute_mes", store=True, index=True, tracking=True)
     empresa_id = fields.Many2one("delivery.carrier", string="Empresa", domain="[('active', '=', True)]", required=True, index=True, tracking=True)
     transport_id = fields.Many2one("tms.transport", string="Vehículo", required=True, index=True, tracking=True)
-    transport_type_id = fields.Many2one("tms.transport.type", string="Tipo de Vehículo", required=True, tracking=True)
+    transport_type_id = fields.Many2one("tms.transport.type", string="Tipo de Vehículo", tracking=True)
     patente_tractor = fields.Char(string="Patente Tractor", tracking=True)
     patente_semi = fields.Char(string="Patente Semi", tracking=True)
     service_id = fields.Many2one("tms.service", string="Servicio", required=True, index=True, tracking=True)
