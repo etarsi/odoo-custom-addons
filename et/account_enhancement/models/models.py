@@ -237,6 +237,7 @@ class AccountMoveInherit(models.Model):
         # Solo para facturas de proveedor, crear payment_group y payment al validar la factura, si el proveedor tiene pago automático activo
         payment_group_vals = {
             'partner_id': self.partner_id.id,
+            'payment_date': fields.Date.context_today(self),
             'to_pay_amount': self.amount_total,
             'partner_type': 'supplier',
             'currency_id': self.currency_id.id,
@@ -249,7 +250,7 @@ class AccountMoveInherit(models.Model):
             'payment_group_id': payment_group.id,
             'amount': self.amount_total,
             'currency_id': self.currency_id.id,
-            'payment_date': fields.Date.context_today(self),
+            'date': fields.Date.context_today(self),
             'partner_id': self.partner_id.id,
             'journal_id': self.partner_id.daily_to_pay.id,
             'payment_type': 'outbound',
