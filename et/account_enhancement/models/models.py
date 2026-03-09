@@ -51,6 +51,13 @@ class AccountMoveInherit(models.Model):
     fiscal_period_config_id = fields.Many2one("account.fiscal.period.config", string="Ejercicio de Cierre/Apertura", copy=False, readonly=True)
     #bloqueo de contabilidad para evitar modificaciones en líneas de asiento relacionadas a los movimientos de cierre y apertura generados por el módulo
     period_cut_locked = fields.Boolean(string="Período de Corte Bloqueado", store=True, tracking=True)
+    #Pago Automatico Configuracion por Factura Proveedor
+    payment_automatic_bool = fields.Boolean(string="Pago Automático", store=True, readonly=True)
+    daily_to_pay = fields.Many2one('account.journal', string='Diario de Pago', domain="[('company_id', '=', company_id)]",
+                                        help='Seleccionar el diario para los pagos automáticos a proveedores de AFIP.')
+    method_to_pay = fields.Selection(string='Método de Pago', selection=[
+        ('cash', 'Efectivo'),
+    ], help='Seleccionar el método de pago para los pagos automáticos a proveedores de AFIP.', default='cash')
 
     # ENVIO DE CORREO---------------------------------------------------------
     def _get_default_invoice_mail_template(self):
@@ -165,7 +172,7 @@ class AccountMoveInherit(models.Model):
                 body="Factura enviada por correo a %s" % (move.partner_id.email or "N/A"), attachment_ids=[attachment.id])
         return
     # FIN ENVIO DE CORREO---------------------------------------------------------
-    
+
     @api.model_create_multi
     def create(self, vals_list):
         for vals in vals_list:

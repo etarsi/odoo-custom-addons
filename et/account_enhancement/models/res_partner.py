@@ -21,14 +21,6 @@ class ResPartnerInherit(models.Model):
     mail_alternative = fields.Char(string='Email Alternativo', help='Email alternativo para envíos de comprobantes y notificaciones.')
     mail_alternative_b = fields.Char(string='Email Alternativo B', help='Segundo email alternativo para envíos de comprobantes y notificaciones.')
     
-    #AGREGAR CAMPO PARA CONFIGURAR PAGOS A PROVEEDORES DE AFIP 
-    automatic_payment = fields.Boolean(string='Pago Automático AFIP', help='Si está activo, los pagos a proveedores de AFIP se registrarán automáticamente al validar facturas.')
-    daily_to_pay = fields.Many2one('account.journal', string='Diario de Pago', company_dependent=True, 
-                                        help='Seleccionar el diario para los pagos automáticos a proveedores de AFIP.')
-    method_to_pay = fields.Selection(string='Método de Pago', selection=[
-        ('cash', 'Efectivo'),
-    ], help='Seleccionar el método de pago para los pagos automáticos a proveedores de AFIP.', default='cash')
-    
 
     def action_resumen_composicion(self):
         """Abrir facturas del cliente (y contactos hijos) en vista tree personalizada."""
