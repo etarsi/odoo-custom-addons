@@ -240,7 +240,6 @@ class AccountMoveInherit(models.Model):
             'to_pay_amount': self.amount_total,
             'partner_type': 'supplier',
             'currency_id': self.currency_id.id,
-            'payment_type': 'outbound',
             'communication': f"Pago automático de factura {self.name}",
             'company_id': self.company_id.id,
             'to_pay_move_line_ids': [(4, line.id) for line in self.line_ids if line.account_id.internal_type in ('payable', 'liquidity')], # asociar líneas de factura al grupo de pago para conciliación automática
