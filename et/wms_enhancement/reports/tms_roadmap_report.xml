@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- A4 apaisado -->
+    <record id="paperformat_tms_roadmap_landscape" model="report.paperformat">
+        <field name="name">TMS Roadmap Landscape</field>
+        <field name="default" eval="False"/>
+        <field name="format">A4</field>
+        <field name="orientation">Landscape</field>
+        <field name="margin_top">8</field>
+        <field name="margin_bottom">8</field>
+        <field name="margin_left">8</field>
+        <field name="margin_right">8</field>
+        <field name="header_line" eval="False"/>
+        <field name="dpi">90</field>
+    </record>
+
+    <report
+        id="action_report_tms_roadmap"
+        model="tms.roadmap"
+        string="Hoja de Ruta"
+        report_type="qweb-pdf"
+        name="wms_enhancement.report_tms_roadmap_document"
+        file="wms_enhancement.report_tms_roadmap_document"
+        paperformat="wms_enhancement.paperformat_tms_roadmap_landscape"
+        print_report_name="'HDR - %s' % (object.name)"
+    />
+
+    <template id="report_tms_roadmap_document">
+        <t t-call="web.basic_layout">
+            <t t-set="doc" t-value="doc_ids and docs[0] or docs"/>
+
+            <style>
+                .hdr-title { font-size: 18px; font-weight: 700; margin: 0 0 6px 0; }
+                .hdr-meta { font-size: 10px; margin-bottom: 6px; }
+                .hdr-meta .line { display:flex; gap:18px; }
+                .table { width:100%; border-collapse: collapse; font-size: 9px; }
+                .table th { background:#1f77b4; color:#fff; padding:3px 4px; border:1px solid #bbb; }
+                .table td { padding:2px 4px; border:1px solid #bbb; vertical-align: top; }
+                .muted { color:#777; }
+                .sign-row { margin-top: 14px; font-size: 9px; display:flex; justify-content:space-between; }
+                .sign-box { width: 32%; text-align:left; }
+                .sign-line { margin-top: 18px; border-top: 1px solid #000; padding-top: 2px; }
+            </style>
+
+            <!-- CABECERA -->
+            <div class="hdr-title">
+                <span t-esc="doc.name"/>
+            </div>
+
+            <div class="hdr-meta">
+                <div class="line">
+                    <div><b>Vehículo:</b> <span t-field="doc.transport_id"/></div>
+                    <div><b>Patente:</b> <span t-esc="doc.patente or ''"/></div>
+                    <div><b>Ayudantes:</b> <span t-esc="doc.assistants or 0"/></div>
+                    <div><b>Fecha:</b> <span t-field="doc.date"/></div>
+                </div>
+
+                <!-- si tenés chofer/hora salida/llegada, ponelos acá -->
+                <div class="line" style="margin-top:4px;">
+                    <div><b>Nombre Chofer:</b></div>
+                    <div><b>Hora Salida:</b></div>
+                    <div><b>Hora Llegada:</b></div>
+                    <div><b>Nombre Ayudante:</b></div>
+                </div>
+            </div>
+
+            <!-- DETALLE -->
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Vehículo</th>
+                        <th>Ayudante</th>
+                        <th>Patente</th>
+                        <th>Ín. de Ruta</th>
+                        <th>Parada</th>
+                        <th>Cliente</th>
+                        <th>Dirección</th>
+                        <th>Bultos</th>
+                        <th>N° Tarea</th>
+                        <th>Bultos Pickeados</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <t t-set="lines"
+                       t-value="doc.road_maps_line_ids.sorted(key=lambda l: ((l.in_ruta or 0), (getattr(l,'parada',0) or 0), l.id))"/>
+
+                    <t t-foreach="lines" t-as="l">
+                        <tr>
+                            <td><span t-field="doc.transport_id"/></td>
+                            <td><span t-esc="doc.assistants or 0"/></td>
+                            <td><span t-esc="doc.patente or ''"/></td>
+                            <td><span t-esc="l.in_ruta or 1"/></td>
+                            <td></td>
+                            <td><span t-field="l.partner_id"/></td>
+                            <td><span t-esc="l.direction or ''"/></td>
+
+                            <!-- OJO: ajustá el nombre real del campo -->
+                            <td style="text-align:right;">
+                                <span t-esc="getattr(l,'bulk_defendant', getattr(l,'bulk_defendant', 0.0))"/>
+                            </td>
+
+                            <td><span t-esc="l.wms_task_id.name if l.wms_task_id else ''"/></td>
+
+                            <!-- ajustá según tu campo SIST real -->
+                            <td style="text-align:right;">
+                                <span t-esc="getattr(l,'bulk_picking', getattr(l,'bulk_picking', 0.0))"/>
+                            </td>
+                        </tr>
+                    </t>
+                </tbody>
+            </table>
+
+            <!-- FIRMAS -->
+            <div class="sign-row">
+                <div class="sign-box">
+                    <div class="sign-line">FIRMA CHOFER</div>
+                </div>
+                <div class="sign-box" style="text-align:center;">
+                    <div class="sign-line">ACLARACIÓN CHOFER</div>
+                </div>
+                <div class="sign-box" style="text-align:right;">
+                    <div class="sign-line">D.N.I. CHOFER</div>
+                </div>
+            </div>
+
+        </t>
+    </template>
+
+</odoo>
