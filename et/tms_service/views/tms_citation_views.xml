@@ -23,6 +23,7 @@
                 <field name="total_bulk" optional="show"/>
                 <field name="total_bulk_verified" optional="show"/>
                 <field name="percentage_verified" widget="progressbar" options="{'max_value': 100}" optional="show"/>
+                <field name="amount_service" optional="show"/>
                 <field name="state" widget="badge" decoration-info="state == 'draft'" decoration-warning="state == 'pending'" decoration-success="state == 'completed'" decoration-danger="state == 'canceled'" optional="show"/>
             </tree>
         </field>
