@@ -888,48 +888,69 @@ class WMSTask(models.Model):
                 ]
                 enviado = record.env["google.sheets.client"].append_row(values)
                 if enviado == 200 and record.shared_route == 'no':
-                    record._crear_tms_stock_picking()
                     record.write({'shared_route': 'si'})
             except Exception as e:
                 raise ValidationError(_("Fallo enviando a Google Sheets para picking %s: %s") % (record.name, e))
 
     def _crear_tms_stock_picking(self):
-        tms = self.env['tms.stock.picking'].search([('wms_task_id', '=', self.id)], limit=1)
-        if not tms:
-            direccion_entrega = ""
-            if self.carrier_id:
-                if self.carrier_id.name == 'Reparto Propio':
-                    direccion_entrega = f"{self.partner_id.street or '-'}, {self.partner_id.zip or '-'}, {self.partner_id.city or '-' }"
-                else:
-                    direccion_entrega = self.carrier_id.address
-            vals = {
-                'name': self.transfer_id.name,
-                'wms_task_id': self.id,
-                #'picking_ids': [(4, self.id)], --> NO SE PONE PORQUE LA RELACION ES DESDE EL STOCK PICKING HACIA LA TASK, NO AL REVES
-                'fecha_entrega': False,
-                'fecha_envio_wms': self.transfer_id.create_date,
-                'codigo_wms': self.name,
-                'doc_origen': self.origin,
-                'partner_id': self.partner_id.id,
-                'cantidad_bultos': self.bultos_count,
-                'cantidad_lineas': len(self.task_line_ids) or 0,
-                'carrier_id': self.carrier_id.id,
-                'observaciones': '',
-                'industry_id': self.partner_id.industry_id.id,
-                'ubicacion': '',
-                'estado_digip': self.digip_state,
-                'estado_despacho': 'in_preparation',
-                'sale_id': self.transfer_id.sale_id.id if self.transfer_id.sale_id else False,
-                'fecha_despacho': False,
-                'observacion_despacho': False,
-                'contacto_calle': self.partner_id.street or False,
-                'direccion_entrega': direccion_entrega,
-                'contacto_cp': self.partner_id.zip or False,
-                'contacto_ciudad': self.partner_id.city or False,
-                'company_id': self.transfer_id.sale_id.company_id.id if self.transfer_id.sale_id and self.transfer_id.sale_id.company_id else False,
-                'user_id': self.env.user.id,
+        tms_ids= []
+        for record in self:
+            tms = self.env['tms.stock.picking'].search([('wms_task_id', '=', record.id)], limit=1)
+            if not tms:
+                direccion_entrega = ""
+                if self.carrier_id:
+                    if self.carrier_id.name == 'Reparto Propio':
+                        direccion_entrega = f"{self.partner_id.street or '-'}, {self.partner_id.zip or '-'}, {self.partner_id.city or '-' }"
+                    else:
+                        direccion_entrega = self.carrier_id.address
+                vals = {
+                    'name': self.transfer_id.name,
+                    'wms_task_id': self.id,
+                    #'picking_ids': [(4, self.id)], --> NO SE PONE PORQUE LA RELACION ES DESDE EL STOCK PICKING HACIA LA TASK, NO AL REVES
+                    'fecha_entrega': False,
+                    'fecha_envio_wms': self.transfer_id.create_date,
+                    'codigo_wms': self.name,
+                    'doc_origen': self.origin,
+                    'partner_id': self.partner_id.id,
+                    'cantidad_bultos': self.bultos_count,
+                    'cantidad_lineas': len(self.task_line_ids) or 0,
+                    'carrier_id': self.carrier_id.id,
+                    'observaciones': '',
+                    'industry_id': self.partner_id.industry_id.id,
+                    'ubicacion': '',
+                    'estado_digip': self.digip_state,
+                    'estado_despacho': 'in_preparation',
+                    'sale_id': self.transfer_id.sale_id.id if self.transfer_id.sale_id else False,
+                    'fecha_despacho': False,
+                    'observacion_despacho': False,
+                    'contacto_calle': self.partner_id.street or False,
+                    'direccion_entrega': direccion_entrega,
+                    'contacto_cp': self.partner_id.zip or False,
+                    'contacto_ciudad': self.partner_id.city or False,
+                    'company_id': self.transfer_id.sale_id.company_id.id if self.transfer_id.sale_id and self.transfer_id.sale_id.company_id else False,
+                    'user_id': self.env.user.id,
+                }
+                tms = self.env['tms.stock.picking'].create(vals)
+            if tms:
+                tms_ids.append(tms.id)
+            else:
+                raise UserError(_("No se pudo crear el ruteo de inventario para la tarea %s") % self.name)
+        if len(tms_ids) == 1:
+            return {
+                'name': "Ruteo de Inventario",
+                'type': 'ir.actions.act_window',
+                'res_model': 'tms.stock.picking',
+                'view_mode': 'form',
+                'res_id': tms_ids[0],
             }
-            tms = self.env['tms.stock.picking'].create(vals)
+        else:
+            return {
+                'name': "Ruteos de Inventario",
+                'type': 'ir.actions.act_window',
+                'res_model': 'tms.stock.picking',
+                'view_mode': 'tree,form',
+                'domain': [('id', 'in', tms_ids)],
+            }
 
 
     def _compute_tms_roadmap_count(self):
