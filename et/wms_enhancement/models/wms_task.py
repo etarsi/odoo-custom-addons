@@ -892,7 +892,7 @@ class WMSTask(models.Model):
             except Exception as e:
                 raise ValidationError(_("Fallo enviando a Google Sheets para picking %s: %s") % (record.name, e))
 
-    def _crear_tms_stock_picking(self):
+    def crear_tms_stock_picking(self):
         tms_ids= []
         for record in self:
             tms = self.env['tms.stock.picking'].search([('wms_task_id', '=', record.id)], limit=1)
