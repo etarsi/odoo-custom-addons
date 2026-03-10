@@ -233,9 +233,6 @@ class AccountMoveInherit(models.Model):
                         line_tax_ids = line.tax_ids.filtered(lambda t: 'percepción iibb' not in (t.name or '').lower())
                         if line_tax_ids and len(line.tax_ids) != len(line_tax_ids):
                             line.write({'tax_ids': [(6, 0, line_tax_ids.ids)]})
-            # Si es factura de proveedor y el proveedor tiene pago automático, crear grupo de pago y pago asociado al validar la factura
-            if move.move_type == 'in_invoice' and move.journal_id.code != 'RECHA' and move.partner_id.automatic_payment:
-                move._action_create_payment_group_automatic()
         return res
     
     def _action_create_payment_group_automatic(self):
