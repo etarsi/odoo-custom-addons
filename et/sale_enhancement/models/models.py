@@ -670,7 +670,7 @@ class SaleOrderLineInherit(models.Model):
 
                 tag = self.env['res.partner.category'].search([('name', '=', 'Fraccionado')], limit=1)
                 
-                if not tag in rec.partner_id.category_id:
+                if not tag in rec.order_id.partner_id.category_id:
                     rec.comprometer_stock()
                 
         return res
