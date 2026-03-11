@@ -273,8 +273,8 @@ class WMSTask(models.Model):
             task.get_digip()
             task.get_digip_preparations()
             task.calculate_bultos_prepared()
+            task.actualizar_ruteo_hdr()
         return True
-    
 
     def get_digip(self):
         for task in self:
@@ -413,7 +413,15 @@ class WMSTask(models.Model):
         if response.status_code == 200:
             self.digip_state = 'remitido'
         
-        
+
+    def actualizar_tms_ruteo_hdr(self):
+        #
+        tms_stock_picking = self.env['tms.stock.picking'].search([('wms_task_id', '=', self.id)], limit=1)
+        if tms_stock_picking:
+            tms_stock_picking.write({'bulk_picking': self.bultos_prepared})
+        tms_roadmap_line = self.env['tms.roadmap.line'].search([('wms_task_id', '=', self.id)], limit=1)
+        if tms_roadmap_line:
+            tms_roadmap_line.write({'bulk_picking': self.bultos_prepared})
 
     def get_digip_preparations(self):
         for task in self:
