@@ -149,7 +149,7 @@
                     <t t-foreach="lines" t-as="l">
                         <tr>
                             <td><span t-esc="l.in_ruta or 1"/></td>
-                            <td><span t-esc="dict(l._fields['type_roadmap'].selection).get(l.type_roadmap, '')"/></td>
+                            <td><span t-field="l.type_roadmap" t-options="{'widget': 'selection'}"/></td>
                             <td></td>
                             <td><span t-field="l.partner_id"/></td>
                             <td><span t-esc="l.direction or ''"/></td>
