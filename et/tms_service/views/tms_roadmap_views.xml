@@ -95,8 +95,9 @@
                                             'default_in_ruta': in_ruta}"
                                 mode="tree,form">
 
-                                <tree editable="bottom" create="1" edit="1">
+                                <tree editable="bottom" create="1" edit="1" delete="0" string="Líneas de Hoja de Ruta" decoration-danger="is_canceled == True">
                                     <!-- Columnas tipo Excel -->
+                                    <field name="is_canceled" invisible="1"/>
                                     <field name="tms_stock_picking_id" options="{'no_create': True}" optional="show"/>
                                     <field name="type_roadmap" optional="show"/>
                                     <field name="transport_id" readonly="1" options="{'no_create': True}" optional="hide"/>
@@ -109,6 +110,14 @@
                                     <field name="bulk_picking" optional="show"/>
                                     <!-- Barra de progreso -->
                                     <field name="lvl_compliance" widget="progressbar" options="{'max_value': 100}" optional="show"/>
+                                    <!-- Botón por línea -->
+                                    <button name="action_unlink_roadmap"
+                                            type="object"
+                                            string="Cancelar Envío"
+                                            icon="fa-unlink"
+                                            class="btn-link"
+                                            confirm="¿Cancelar esta línea de Hoja de Ruta?"
+                                            attrs="{'invisible': [('is_canceled', '=', True)]}"/>
                                 </tree>
                             </field>
                         </page>

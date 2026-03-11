@@ -92,12 +92,12 @@ class TmsStockPickingRoadmapWizard(models.TransientModel):
             if wl.wms_task_id:
                 # Si la línea del wizard tiene tarea WMS, buscamos si ya existe una línea HDR vinculada a esa tarea
                 existing_line = self.env["tms.roadmap.line"].search([
-                    ("wms_task_id", "=", wl.wms_task_id.id)
+                    ("wms_task_id", "=", wl.wms_task_id.id),
+                    ("roadmap_id", "!=", roadmap.id),
+                    ("is_canceled", "=", False),
                 ], limit=1)
                 if existing_line:
                     raise UserError(_("La tarea WMS '%s' ya está vinculada a la línea de Hoja de Ruta '%s'. No se puede vincular el mismo ruteo a dos hojas de ruta.") % (wl.wms_task_id.name, existing_line.roadmap_id.name))
-                if wl.wms_task_id.digip_state != "received":
-                    raise UserError(_("La tarea WMS '%s' no está en estado Recibido de DIGIP. Solo se pueden vincular ruteos con tareas en estado Recibido.") % wl.wms_task_id.name)
             Line.create({
                 "roadmap_id": roadmap.id,
                 "tms_stock_picking_id": wl.tms_stock_picking_id.id,

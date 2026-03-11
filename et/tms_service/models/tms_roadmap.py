@@ -229,8 +229,12 @@ class TmsRoadmapLine(models.Model):
     )
     industry_id = fields.Many2one("res.partner.industry", string="Zona", store=True, tracking=True, related='partner_id.industry_id')
     roadmap_id = fields.Many2one("tms.roadmap", string="Hoja de Ruta Principal", ondelete="cascade", index=True, tracking=True)
+    is_canceled = fields.Boolean(string="Cancelado", default=False, tracking=True)
     
-
+    def action_unlink_roadmap(self):
+        for rec in self:
+            rec.is_canceled = True
+        return True
 
     @api.depends("bulk_defendant", "bulk_picking")
     def _compute_lvl_compliance(self):
