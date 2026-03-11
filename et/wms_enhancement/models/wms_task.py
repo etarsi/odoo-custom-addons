@@ -356,8 +356,6 @@ class WMSTask(models.Model):
 
         data = response.json()
 
-        if not data:
-            raise UserError(_("Digip no devolvió resultados para PedidoCodigo=%s") % self.name)
 
         pedido = data[0]
         digip_state = pedido.get("estado")
