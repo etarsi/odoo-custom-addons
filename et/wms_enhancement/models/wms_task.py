@@ -207,17 +207,17 @@ class WMSTask(models.Model):
 
             task["items"] = product_list
 
-            posted = record.post_digip(task)
+            record.post_digip(task)
 
-            if posted:
-                total_bultos = 0
 
-                for line in record.task_line_ids:
-                    total_bultos += line.quantity_picked / line.transfer_line_id.uxb
-                record.bultos_prepared = total_bultos
+    def calculate_bultos_prepared(self):
+        total_bultos = 0
 
-                record.digip_state = 'sent'
+        for line in self.task_line_ids:
+            total_bultos += line.quantity_picked / line.transfer_line_id.uxb
+        self.bultos_prepared = total_bultos
 
+        self.digip_state = 'sent'
 
 
     def get_product_list(self):
@@ -273,6 +273,7 @@ class WMSTask(models.Model):
                 continue
             task.get_digip()
             task.get_digip_preparations()
+            task.calculate_bultos_prepared()
         return True
     
 
