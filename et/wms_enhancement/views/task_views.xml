@@ -173,8 +173,7 @@
                             <field name="company_id"/>
                             <field name="invoicing_type"/>
                             <field name="declared_value"/>
-                            <field name="digip_state" widget="badge" ion-danger="type=='return'" decoration-info="type=='reception'" decoration-primary="type=='fraction'" decoration-success="type=='preparation'" decoration-warning="type=='replenish'" decoration-bf="type=='relocate'"/>
-                <field name="digip_state" widget="badge" decoration-warning="digip_state == 'sent'" decoration-success="digip_state == 'received'" decoration-info="digip_state == 'remitido'" decoration-danger="digip_state == 'pending'" decoration-primary="digip_state == 'preparation'"/>
+                            <field name="digip_state" widget="badge" decoration-warning="digip_state == 'sent'" decoration-success="digip_state == 'received'" decoration-info="digip_state == 'remitido'" decoration-danger="digip_state == 'pending'" decoration-primary="digip_state == 'preparation'"/>
                         </group>
                         <group string="Tiempos / KPIs">
                             <field name="percent_complete"/>
