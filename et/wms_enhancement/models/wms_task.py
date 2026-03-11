@@ -208,6 +208,7 @@ class WMSTask(models.Model):
             task["items"] = product_list
 
             record.post_digip(task)
+            record.digip_state = 'sent'
 
 
     def calculate_bultos_prepared(self):
