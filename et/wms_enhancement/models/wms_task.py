@@ -269,7 +269,7 @@ class WMSTask(models.Model):
 
     def action_receive_task_digip(self):
         for task in self:
-            if task.digip_state != 'sent':
+            if task.digip_state not in ('sent','pending', 'preparation'):
                 continue
             task.get_digip()
             task.get_digip_preparations()
@@ -369,6 +369,7 @@ class WMSTask(models.Model):
             self.digip_state = 'preparation'
         elif digip_state == 'Completo':
             self.get_digip()
+            self.get_digip_preparations()
 
 
     def send_remitido(self):
