@@ -380,10 +380,9 @@ class WMSTask(models.Model):
         headers["x-api-key"] = self.env['ir.config_parameter'].sudo().get_param('digipwms.key')        
         response = requests.post(f'{url}/v2/Pedidos/Remitido', headers=headers, json=payload)
 
-        if response.status_code == 201:
-            return True
-        else:
-            raise UserError(f'Error al enviar a Digip la tarea. ERROR_CODE: {response.status_code} - ERROR: {response.text}')
+        if response.status_code == 200:
+            self.digip_state = 'remitido'
+        
         
 
     def get_digip_preparations(self):
