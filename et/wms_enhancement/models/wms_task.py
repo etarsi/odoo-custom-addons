@@ -273,7 +273,7 @@ class WMSTask(models.Model):
             task.get_digip()
             task.get_digip_preparations()
             task.calculate_bultos_prepared()
-            task.actualizar_ruteo_hdr()
+            task.actualizar_tms_ruteo_hdr()
         return True
 
     def get_digip(self):
