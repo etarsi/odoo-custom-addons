@@ -264,7 +264,7 @@ class WMSTask(models.Model):
 
         if sent_tasks:
             for task in sent_tasks:
-                task.get_digip()
+                task.get_digip_state()
     
 
     def action_receive_task_digip(self):
@@ -362,6 +362,7 @@ class WMSTask(models.Model):
 
         pedido = data[0]
         digip_state = pedido.get("Estado")
+        raise UserError(digip_state)
 
         if digip_state == 'Pendiente':
             self.digip_state = 'pending'
