@@ -667,7 +667,11 @@ class SaleOrderLineInherit(models.Model):
                         rec.product_packaging_qty = rec.product_uom_qty / rec.product_packaging_id.qty
                 rec.update_stock_erp()
                 # rec.check_client_purchase_intent()
-                rec.comprometer_stock()
+
+                tag = self.env['res.partner.category'].search([('name', '=', 'Fraccionado')], limit=1)
+                
+                if not tag in rec.order_id.partner_id.category_id:
+                    rec.comprometer_stock()
                 
         return res
     

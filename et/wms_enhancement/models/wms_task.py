@@ -70,7 +70,11 @@ class WMSTask(models.Model):
     digip_state = fields.Selection(string="Digip", selection=[
         ('no', 'No enviado'),
         ('sent', 'Enviado'),
-        ('received', 'Recibido')
+        ('pending', 'Pendiente'),
+        ('preparation', 'En Preparación'),
+        ('completed', 'Completo'),
+        ('received', 'Recibido'),
+        ('remitido', 'Remitido')
     ])
 
     ## recepcion
@@ -203,17 +207,16 @@ class WMSTask(models.Model):
 
             task["items"] = product_list
 
-            posted = record.post_digip(task)
+            record.post_digip(task)
+            record.digip_state = 'sent'
 
-            if posted:
-                total_bultos = 0
 
-                for line in record.task_line_ids:
-                    total_bultos += line.quantity_picked / line.transfer_line_id.uxb
-                record.bultos_prepared = total_bultos
+    def calculate_bultos_prepared(self):
+        total_bultos = 0
 
-                record.digip_state = 'sent'
-
+        for line in self.task_line_ids:
+            total_bultos += line.quantity_picked / line.transfer_line_id.uxb
+        self.bultos_prepared = total_bultos
 
 
     def get_product_list(self):
@@ -255,14 +258,21 @@ class WMSTask(models.Model):
     #         else:
     #             record.total_available_percentage = 0
 
+    def update_tasks_state(self):
+        sent_tasks = self.env['wms.task'].search([('digip_state', 'in', ('sent', 'pending', 'preparation'))])
+
+        if sent_tasks:
+            for task in sent_tasks:
+                task.get_digip_state()
     
 
     def action_receive_task_digip(self):
         for task in self:
-            if task.digip_state != 'sent':
+            if task.digip_state not in ('sent','pending', 'preparation'):
                 continue
             task.get_digip()
             task.get_digip_preparations()
+            task.calculate_bultos_prepared()
         return True
     
 
@@ -333,6 +343,78 @@ class WMSTask(models.Model):
             task.date_done = fields.Date.context_today(self)
         return True   
 
+
+    def get_digip_state(self):
+        url = self.env['ir.config_parameter'].sudo().get_param('digipwms-v2.url')
+        api_key = self.env['ir.config_parameter'].sudo().get_param('digipwms.key')
+
+        headers = {"x-api-key": api_key}
+        params = {"PedidoCodigo": self.name}
+
+        response = requests.get(f"{url}/v2/Pedidos", headers=headers, params=params, timeout=30)
+        if response.status_code != 200:
+            raise UserError(_("Digip devolvió %s: %s") % (response.status_code, response.text))
+
+        data = response.json()
+
+
+        pedido = data[0]
+        digip_state = pedido.get("estado")
+
+        if digip_state == 'Pendiente':
+            self.digip_state = 'pending'
+        elif digip_state == 'EnPreparacion':
+            self.digip_state = 'preparation'
+        elif digip_state == 'Completo':
+            self.get_digip()
+            self.get_digip_preparations()
+            self.calculate_bultos_prepared()
+
+    def get_digip_state2(self):
+        url = self.env['ir.config_parameter'].sudo().get_param('digipwms-v2.url')
+        api_key = self.env['ir.config_parameter'].sudo().get_param('digipwms.key')
+
+        headers = {"x-api-key": api_key}
+        params = {"PedidoCodigo": self.name}
+
+        response = requests.get(f"{url}/v2/Pedidos", headers=headers, params=params, timeout=30)
+        if response.status_code != 200:
+            raise UserError(_("Digip devolvió %s: %s") % (response.status_code, response.text))
+
+        data = response.json()
+
+        if not data:
+            raise UserError(_("Digip no devolvió resultados para PedidoCodigo=%s") % self.name)
+
+        pedido = data[0]
+        digip_state = pedido.get("estado")
+
+        if digip_state == 'Pendiente':
+            self.digip_state = 'pending'
+        elif digip_state == 'Preparacion':
+            self.digip_state = 'preparation'
+        elif digip_state == 'Completo':
+            self.get_digip()
+            self.get_digip_preparations()
+            self.calculate_bultos_prepared()
+        elif digip_state == 'RemitidoExterno':
+            self.digip_state = 'remitido'
+
+
+    def send_remitido(self):
+        headers = {}
+        payload = {
+            'codigo': self.name
+        }
+        url = self.env['ir.config_parameter'].sudo().get_param('digipwms-v2.url')
+        headers["x-api-key"] = self.env['ir.config_parameter'].sudo().get_param('digipwms.key')        
+        response = requests.post(f'{url}/v2/Pedidos/Remitido', headers=headers, json=payload)
+
+        if response.status_code == 200:
+            self.digip_state = 'remitido'
+        
+        
+
     def get_digip_preparations(self):
         for task in self:
             url = self.env['ir.config_parameter'].sudo().get_param('digipwms-v2.url')
@@ -369,6 +451,8 @@ class WMSTask(models.Model):
     ### REMITO 
     def action_print_remito(self):
         self.ensure_one()
+        if self.digip_state == 'received':
+            self.send_remitido()
         return {
             'type': 'ir.actions.act_url',
             'url': f'/newremito/auto/{self.id}',

@@ -67,7 +67,7 @@
                 <field name="percent_complete" widget="percentage"/> 
 
                 <field name="type" widget="badge" decoration-danger="type=='return'" decoration-info="type=='reception'" decoration-primary="type=='fraction'" decoration-success="type=='preparation'" decoration-warning="type=='replenish'" decoration-bf="type=='relocate'"/>
-                <field name="digip_state" widget="badge" decoration-warning="digip_state == 'sent'" decoration-success="digip_state == 'received'"/>
+                <field name="digip_state" widget="badge" decoration-warning="digip_state == 'sent'" decoration-success="digip_state == 'received'" decoration-info="digip_state == 'remitido'" decoration-danger="digip_state == 'pending'" decoration-primary="digip_state == 'preparation'"/>
                 <field name="invoice_state" widget="badge" decoration-success="invoice_state== 'invoiced'"/>
                 <!-- <field name="state_preparation" widget="badge" attrs="{'column_invisible': [('type', '!=', 'preparation')]}"/> -->
             </tree>
@@ -129,11 +129,15 @@
                 <header>
                     <field name="invoice_state" invisible="1"/>
                     <button name="action_send_task_to_digip" type="object" string="Enviar a Digip" attrs="{'invisible': [('digip_state', '!=', 'no')]}"/>
-                    <button name="action_receive_task_digip" type="object" string="Recibir de Digip" attrs="{'invisible': [('digip_state', '!=', 'sent')]}"/>
-                    <button name="action_print_remito" class="oe_highlight" type="object" string="IMPRIMIR REMITO" attrs="{'invisible': [('digip_state', '!=', 'received')]}"/>
+                    <button name="action_receive_task_digip" type="object" string="Recibir de Digip" attrs="{'invisible': [('digip_state', 'not in', ('sent', 'pending', 'preparation'))]}"/>
+                    <button name="action_print_remito" class="oe_highlight" type="object" string="IMPRIMIR REMITO" attrs="{'invisible': [('digip_state', 'not in', ('received', 'remitido'))]}"/>
+                    <button name="action_create_invoice_from_picking" class="oe_highlight" type="object" string="CREAR FACTURA" attrs="{'invisible': ['|', ('digip_state', 'not in', ('received', 'remitido')), ('invoice_state', '=', 'invoiced')]}"/>
+
+
                     <button name="action_enviar_compartido" type="object" string="ENVIAR A COMPARTIDO" attrs="{'invisible': [('digip_state', '!=', 'sent')]}"/>     
-                    <button name="crear_tms_stock_picking" type="object" string="CREAR RUTEO TMS" attrs="{'invisible': [('digip_state', '!=', 'sent')]}"/> 
-                    <button name="action_create_invoice_from_picking" class="oe_highlight" type="object" string="CREAR FACTURA" attrs="{'invisible': ['|', ('digip_state', '!=', 'received'), ('invoice_state', '=', 'invoiced')]}"/>
+                    <button name="crear_tms_stock_picking" type="object" string="CREAR RUTEO TMS" attrs="{'invisible': [('digip_state', 'not in', ('received', 'remitido'))]}"/> 
+                    
+                    
                     <field name="state_preparation" widget="statusbar" statusbar_visible="pending,preparation,control,delivery"/>
                 </header>
                 <sheet>
@@ -173,7 +177,7 @@
                             <field name="company_id"/>
                             <field name="invoicing_type"/>
                             <field name="declared_value"/>
-                            <field name="digip_state" widget="badge" decoration-warning="digip_state == 'sent'" decoration-success="digip_state == 'received'"/>
+                            <field name="digip_state" widget="badge" decoration-warning="digip_state == 'sent'" decoration-success="digip_state == 'received'" decoration-info="digip_state == 'remitido'" decoration-danger="digip_state == 'pending'" decoration-primary="digip_state == 'preparation'"/>
                         </group>
                         <group string="Tiempos / KPIs">
                             <field name="percent_complete"/>
