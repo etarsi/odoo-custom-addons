@@ -18,12 +18,6 @@ def _float_to_time(f):
     m = max(0, min(59, m))
     return time(h, m, 0)
 
-def _get_json():
-    data = request.jsonrequest or {}
-    if isinstance(data, dict) and 'params' in data and isinstance(data['params'], dict):
-        data = data['params']
-    return data
-
 def _parse_shift_from_dni(dni: str):
     s = (dni or '').strip()
     if not s:
@@ -101,15 +95,10 @@ class HrEnhancementApi(models.AbstractModel):
                         })
                         if check_utc > start_limit_day_inicio_marcado_employee:
                             self._create_temp_attendance_record(employee.id, check_utc, 'Intento marcar Entrada fuera del rango diurno (%s-%s)' % (start_limit_day.strftime("%H:%M"), end_limit_day.strftime("%H:%M")))
-                            message += '--asistencia fuera del rango diurno de inicio de marcado'
-                            return {'success': False, 'error': message, 'received': data}
+                            self.action_create_asistencia(hr_attendance, employee, check_utc, type_income='PT')
+                            message += '--asistencia fuera del rango diurno de inicio de marcado, pero se registró como PT'
                         else:
-                            # Crear asistencia abierta
-                            open_att = hr_attendance.create({
-                                'employee_id': employee.id,
-                                'check_in': check_utc,
-                                'create_lector': True,
-                            })
+                            open_att = self.action_create_asistencia(hr_attendance, employee, check_utc)
                             message += f'--asistencia abierta: {open_att.id}, {employee.name}'
                     else:
                         # Limites del día (para agrupar por día local)
@@ -118,13 +107,8 @@ class HrEnhancementApi(models.AbstractModel):
                             ('check_out', '=', False),
                             ('blocked', '=', False)], limit=1, order='check_in desc')
                         if open_att:
+                            # es del mismo dia
                             if open_att.check_in.date() == check_utc.date():
-                                min_minutes = 60
-                                delta_minutes = (check_utc - open_att.check_in).total_seconds() / 60.0
-                                if delta_minutes < min_minutes:
-                                    self._create_temp_attendance_record(employee.id, check_utc, 'Intento marcar la salida antes de %d minutos de la entrada (%s)' % (min_minutes, open_att.check_in.strftime("%Y-%m-%d %H:%M")))
-                                    message += f'--la salida debe ser al menos {min_minutes} minutos después de la entrada ({open_att.check_in.strftime("%Y-%m-%d %H:%M")})'
-                                    return {'success': False, 'error': message, 'received': data}
                                 open_att.write({'check_out': check_utc})
                                 message += f' (asistencia cerrada: {open_att.id})'
                             else:
@@ -316,3 +300,12 @@ class HrEnhancementApi(models.AbstractModel):
                 # rollback explícito por si quedó algo a medio camino
                 env.cr.rollback()
                 return {'success': False, 'error': str(e), 'received': data, 'status_code': 500}
+    
+    def action_create_asistencia(self, hr_attendance, employee, check_utc, type_income=False):
+        open_att = hr_attendance.create({
+            'employee_id': employee.id,
+            'check_in': check_utc,
+            'create_lector': True,
+            'type_income': type_income if type_income else 'P',
+        })
+        return open_att

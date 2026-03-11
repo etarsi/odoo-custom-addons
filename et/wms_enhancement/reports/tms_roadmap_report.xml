@@ -31,24 +31,19 @@
             <t t-set="doc" t-value="doc_ids and docs[0] or docs"/>
 
             <style>
-                /* =========================
-                    TIPOGRAFÍA / RESET
-                    ========================= */
                 .hdr-title { font-size: 18px; font-weight: 700; margin: 6px 0 6px 0; }
                 .hdr-meta  { font-size: 10px; margin: 0 0 12px 0; }
-                .hdr-meta .line { display:flex; gap:18px; flex-wrap:wrap; } /* flex-wrap para que no explote si falta espacio */
-
-                /* =========================
-                    FILA DE CAMPOS A COMPLETAR
-                    ========================= */
+                .hdr-meta .line { display:flex; gap:18px; flex-wrap:wrap; }
+                .hdr-meta .line.meta-big { font-size: 12px; }
+                .hdr-meta .line.meta-big b { font-size: 12px; }
                 .fill-table{
                     width:100%;
                     border-collapse:collapse;
                     font-size:10px;
-                    margin: 6px 0 12px 0;     /* aire arriba y abajo */
+                    margin: 6px 0 12px 0;
                 }
                 .fill-table td{
-                    padding: 2px 14px 2px 0;  /* más separación horizontal */
+                    padding: 2px 14px 2px 0;
                     white-space:nowrap;
                     vertical-align:bottom;
                 }
@@ -56,16 +51,12 @@
                 .fill-line{
                     display:inline-block;
                     border-bottom:1px solid #000;
-                    min-width:180px;          /* ajustá ancho */
+                    min-width:180px;
                     height:12px;
                     padding:0 4px;
                     vertical-align:bottom;
                 }
                 .fill-line.small{ min-width:120px; }
-
-                /* =========================
-                    TABLA DETALLE
-                    ========================= */
                 .table{
                     width:100%;
                     border-collapse:collapse;
@@ -75,20 +66,15 @@
                 .table th{
                     background:#1f77b4;
                     color:#fff;
-                    padding:4px 4px;          /* más aire */
+                    padding:4px 4px;
                     border:1px solid #bbb;
                 }
                 .table td{
-                    padding:3px 4px;          /* más aire */
+                    padding:3px 4px;
                     border:1px solid #bbb;
                     vertical-align:top;
                 }
-
                 .muted{ color:#777; }
-
-                /* =========================
-                    FIRMAS
-                    ========================= */
                 .sign-table{
                     width:100%;
                     border-collapse:collapse;
@@ -136,7 +122,7 @@
                 <span t-esc="doc.name"/>
             </div>
             <div class="hdr-meta">
-                <div class="line">
+                <div class="line meta-big">
                     <div><b>Vehículo:</b> <span t-field="doc.transport_id"/></div>
                     <div><b>Patente:</b> <span t-esc="doc.patente or ''"/></div>
                     <div><b>Ayudantes:</b> <span t-esc="doc.assistants or 0"/></div>
@@ -148,10 +134,8 @@
             <table class="table">
                 <thead>
                     <tr>
-                        <th>Vehículo</th>
-                        <th>Ayudante</th>
-                        <th>Patente</th>
                         <th>Ín. de Ruta</th>
+                        <th>Tipo</th>
                         <th>Parada</th>
                         <th>Cliente</th>
                         <th>Dirección</th>
@@ -164,11 +148,8 @@
                     <t t-set="lines" t-value="doc.road_maps_line_ids"/>
                     <t t-foreach="lines" t-as="l">
                         <tr>
-                            <td><span t-field="doc.transport_id"/></td>
-                            <td><span t-esc="doc.assistants or 0"/></td>
-                            <td><span t-esc="doc.patente or ''"/></td>
                             <td><span t-esc="l.in_ruta or 1"/></td>
-                            <td></td>
+                            <td><span t-esc="l.type_roadmap or ''"/></td>
                             <td><span t-field="l.partner_id"/></td>
                             <td><span t-esc="l.direction or ''"/></td>
                             <td style="text-align:right;">
