@@ -217,8 +217,6 @@ class WMSTask(models.Model):
             total_bultos += line.quantity_picked / line.transfer_line_id.uxb
         self.bultos_prepared = total_bultos
 
-        self.digip_state = 'sent'
-
 
     def get_product_list(self):
         for record in self:
@@ -371,6 +369,37 @@ class WMSTask(models.Model):
         elif digip_state == 'Completo':
             self.get_digip()
             self.get_digip_preparations()
+            self.calculate_bultos_prepared()
+
+    def get_digip_state2(self):
+        url = self.env['ir.config_parameter'].sudo().get_param('digipwms-v2.url')
+        api_key = self.env['ir.config_parameter'].sudo().get_param('digipwms.key')
+
+        headers = {"x-api-key": api_key}
+        params = {"PedidoCodigo": self.name}
+
+        response = requests.get(f"{url}/v2/Pedidos", headers=headers, params=params, timeout=30)
+        if response.status_code != 200:
+            raise UserError(_("Digip devolvió %s: %s") % (response.status_code, response.text))
+
+        data = response.json()
+
+        if not data:
+            raise UserError(_("Digip no devolvió resultados para PedidoCodigo=%s") % self.name)
+
+        pedido = data[0]
+        digip_state = pedido.get("estado")
+
+        if digip_state == 'Pendiente':
+            self.digip_state = 'pending'
+        elif digip_state == 'EnPreparacion':
+            self.digip_state = 'preparation'
+        elif digip_state == 'Completo':
+            self.get_digip()
+            self.get_digip_preparations()
+            self.calculate_bultos_prepared()
+        elif digip_state == 'RemitidoExterno':
+            self.digip_state = 'remitido'
 
 
     def send_remitido(self):
