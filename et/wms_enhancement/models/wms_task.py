@@ -392,7 +392,7 @@ class WMSTask(models.Model):
 
         if digip_state == 'Pendiente':
             self.digip_state = 'pending'
-        elif digip_state == 'EnPreparacion':
+        elif digip_state == 'Preparacion':
             self.digip_state = 'preparation'
         elif digip_state == 'Completo':
             self.get_digip()
