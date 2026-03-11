@@ -415,11 +415,11 @@ class WMSTask(models.Model):
         
 
     def actualizar_tms_ruteo_hdr(self):
-        #
+        #Actualiza los bultos pickeados de la tarea en la hoja de ruta para que se refleje en el módulo de transporte
         tms_stock_picking = self.env['tms.stock.picking'].search([('wms_task_id', '=', self.id)], limit=1)
         if tms_stock_picking:
             tms_stock_picking.write({'bulk_picking': self.bultos_prepared})
-        tms_roadmap_line = self.env['tms.roadmap.line'].search([('wms_task_id', '=', self.id)], limit=1)
+        tms_roadmap_line = self.env['tms.roadmap.line'].search([('wms_task_id', '=', self.id), ('is_canceled', '=', False)], limit=1)
         if tms_roadmap_line:
             tms_roadmap_line.write({'bulk_picking': self.bultos_prepared})
 
