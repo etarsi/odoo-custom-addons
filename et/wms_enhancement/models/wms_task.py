@@ -361,8 +361,7 @@ class WMSTask(models.Model):
             raise UserError(_("Digip no devolvió resultados para PedidoCodigo=%s") % self.name)
 
         pedido = data[0]
-        digip_state = pedido.get("Estado")
-        raise UserError(digip_state)
+        digip_state = pedido.get("estado")
 
         if digip_state == 'Pendiente':
             self.digip_state = 'pending'
