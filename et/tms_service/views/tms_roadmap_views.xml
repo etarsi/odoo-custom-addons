@@ -83,6 +83,7 @@
                             <field name="total_bulk_defendant" readonly="1"/>
                             <field name="total_bulk_picking" readonly="1"/>
                             <field name="total_lvl_compliance" widget="progressbar" options="{'max_value': 100}"/>
+                            <field name="porcentage_efective_hdr" widget="progressbar" options="{'max_value': 100}"/>
                         </group>
                     </group>
                     <notebook>

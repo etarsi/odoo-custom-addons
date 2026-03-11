@@ -66,6 +66,7 @@ class TmsRoadmap(models.Model):
     road_maps_line_ids = fields.One2many("tms.roadmap.line", "roadmap_id", string="Líneas de Hoja de Ruta", tracking=True)
     has_delivery = fields.Boolean(compute="_compute_type_flags", store=True)
     has_pickup = fields.Boolean(compute="_compute_type_flags", store=True) 
+    porcentage_efective_hdr = fields.Float(string="Porcentaje Efectividad de HDR", compute="_compute_porcentage_efective_hdr", store=True, tracking=True)
 
     #SQL
     _sql_constraints = [
@@ -119,6 +120,20 @@ class TmsRoadmap(models.Model):
             else:
                 rec.total_lvl_compliance = 0.0
 
+    @api.depends("road_maps_line_ids.is_canceled")
+    def _compute_porcentage_efective_hdr(self):
+        for rec in self:
+            if rec.road_maps_line_ids:
+                total_lines = len(rec.road_maps_line_ids)
+                is_canceled = rec.road_maps_line_ids.filtered(lambda l: l.is_canceled)
+                effective_lines = total_lines - len(is_canceled)
+                if total_lines > 0:
+                    rec.porcentage_efective_hdr = (effective_lines / total_lines) * 100.0
+                else:
+                    rec.porcentage_efective_hdr = 0.0
+            else:
+                rec.porcentage_efective_hdr = 0.0
+            
     @api.model_create_multi
     def create(self, vals_list):
         for vals in vals_list:

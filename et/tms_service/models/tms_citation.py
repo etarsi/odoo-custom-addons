@@ -102,16 +102,20 @@ class TmsCitation(models.Model):
 
     def action_post(self):
         for rec in self:
-            if rec.state != "draft":
-                raise ValidationError(_("Solo se pueden publicar hojas de ruta en estado Borrador."))
+            if rec.state == "draft":
+                raise ValidationError(_("La hoja de ruta ya está en borrador."))
+            elif rec.state == "canceled":
+                raise ValidationError(_("No se pueden publicar hojas de ruta canceladas."))
             rec.state = "pending"
             rec.message_post(body=_("La hoja de ruta ha sido publicada."))
             rec.tms_roadmap_ids.write({"state": "pending"})
             
     def action_draft(self):
         for rec in self:
-            if rec.state != "pending":
-                raise ValidationError(_("Solo se pueden volver a borrador hojas de ruta en estado Pendiente."))
+            if rec.state == "draft":
+                raise ValidationError(_("La hoja de ruta ya está en borrador."))
+            elif rec.state == "canceled":
+                raise ValidationError(_("No se pueden poner en borrador hojas de ruta canceladas."))
             rec.state = "draft"
             rec.message_post(body=_("La hoja de ruta ha sido puesta en borrador."))
             rec.tms_roadmap_ids.write({"state": "draft"})
@@ -124,8 +128,10 @@ class TmsCitation(models.Model):
             rec.tms_roadmap_ids.write({"state": "canceled"})
     def action_completed(self):
         for rec in self:
-            if rec.state != "pending":
-                raise ValidationError(_("Solo se pueden completar hojas de ruta en estado Pendiente."))
+            if rec.state == "completed":
+                raise ValidationError(_("No se pueden completar hojas de ruta ya completadas."))
+            elif rec.state == "canceled":
+                raise ValidationError(_("No se pueden completar hojas de ruta canceladas."))
             rec.state = "completed"
             rec.message_post(body=_("La hoja de ruta ha sido completada."))
             rec.tms_roadmap_ids.write({"state": "completed"})

@@ -36,8 +36,8 @@
         <field name="arch" type="xml">
             <form string="Citación">
                 <header>
-                    <button name="action_post" type="object" string="Confirmar" class="btn-secondary" attrs="{'invisible': [('state', 'not in', ['draft', 'pending'])]}"/>
-                    <button name="action_completed" type="object" string="Completar Citación" class="btn-success" attrs="{'invisible': [('state', 'not in', ['pending', 'completed'])]}"/>
+                    <button name="action_post" type="object" string="Confirmar" class="btn-secondary" attrs="{'invisible': [('state', '!=', 'draft')]}"/>
+                    <button name="action_completed" type="object" string="Completar Citación" class="btn-success" attrs="{'invisible': [('state', '!=', 'pending')]}"/>
                     <button name="action_cancel" type="object" string="Cancelar Citación" class="btn-danger" attrs="{'invisible': [('state', '=', 'canceled')]}" confirm="¿Está seguro de que desea cancelar esta citación?"/>
                     <button name="action_draft" type="object" string="Revertir a Borrador" class="btn-secondary" attrs="{'invisible': [('state', '!=', 'canceled')]}" confirm="¿Está seguro de que desea revertir esta citación a borrador?"/>
                     <field name="state"
