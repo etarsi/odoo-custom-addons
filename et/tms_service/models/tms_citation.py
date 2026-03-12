@@ -48,15 +48,14 @@ class TmsCitation(models.Model):
         tracking=True,
     )
     
-    @api.depends("tms_roadmap_ids.road_maps_line_ids.total_bulk_defendant", "tms_roadmap_ids.road_maps_line_ids.total_bulk_picking")
+    @api.depends("tms_roadmap_ids.total_bulk_defendant", "tms_roadmap_ids.total_bulk_picking")
     def _compute_total_bulk(self):
         for rec in self:
             rec.total_bulk = 0
             rec.total_bulk_verified = 0
             for roadmap in rec.tms_roadmap_ids:
-                for line in roadmap.road_maps_line_ids:
-                    rec.total_bulk += line.total_bulk_defendant
-                    rec.total_bulk_verified += line.total_bulk_picking
+                rec.total_bulk += roadmap.total_bulk_defendant
+                rec.total_bulk_verified += roadmap.total_bulk_picking
 
     @api.depends("total_bulk", "total_bulk_verified")
     def _compute_percentage_verified(self):
