@@ -125,6 +125,15 @@ class WMSTask(models.Model):
             if transfer.exists():
                 vals['origin'] = transfer.origin
 
+        
+        total_bultos = 0
+        task_line_ids = vals.get('task_line_ids')
+        if task_line_ids:
+            for line in task_line_ids:
+                line_bultos = line.quantity / line.transfer_line_id.uxb
+                total_bultos += line_bultos
+
+        vals['bultos_count'] = total_bultos
 
         return super().create(vals)
 
