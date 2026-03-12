@@ -103,9 +103,7 @@ class TmsCitation(models.Model):
 
     def action_post(self):
         for rec in self:
-            if rec.state == "draft":
-                raise ValidationError(_("La hoja de ruta ya está en borrador."))
-            elif rec.state == "canceled":
+            if rec.state == "canceled":
                 raise ValidationError(_("No se pueden publicar hojas de ruta canceladas."))
             rec.state = "pending"
             rec.message_post(body=_("La hoja de ruta ha sido publicada."))
@@ -113,13 +111,12 @@ class TmsCitation(models.Model):
             
     def action_draft(self):
         for rec in self:
-            if rec.state == "draft":
-                raise ValidationError(_("La hoja de ruta ya está en borrador."))
-            elif rec.state == "canceled":
+            if rec.state == "canceled":
                 raise ValidationError(_("No se pueden poner en borrador hojas de ruta canceladas."))
             rec.state = "draft"
             rec.message_post(body=_("La hoja de ruta ha sido puesta en borrador."))
             rec.tms_roadmap_ids.write({"state": "draft"})
+
     def action_cancel(self):
         for rec in self:
             if rec.state == "canceled":
@@ -127,6 +124,7 @@ class TmsCitation(models.Model):
             rec.state = "canceled"
             rec.message_post(body=_("La hoja de ruta ha sido cancelada."))
             rec.tms_roadmap_ids.write({"state": "canceled"})
+            
     def action_completed(self):
         for rec in self:
             if rec.state == "completed":
