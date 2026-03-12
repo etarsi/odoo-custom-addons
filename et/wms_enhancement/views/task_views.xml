@@ -135,7 +135,7 @@
 
 
                     <button name="action_enviar_compartido" type="object" string="ENVIAR A COMPARTIDO" attrs="{'invisible': [('digip_state', '!=', 'sent')]}"/>     
-                    <button name="crear_tms_stock_picking" type="object" string="CREAR RUTEO TMS" attrs="{'invisible': [('digip_state', 'not in', ('received', 'remitido'))]}"/> 
+                    <button name="crear_tms_stock_picking" type="object" string="CREAR RUTEO TMS" attrs="{'invisible': [('digip_state', '!=', 'sent')]}"/> 
                     
                     
                     <field name="state_preparation" widget="statusbar" statusbar_visible="pending,preparation,control,delivery"/>
