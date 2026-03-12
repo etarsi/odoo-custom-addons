@@ -988,7 +988,6 @@ class WMSTask(models.Model):
                     else:
                         direccion_entrega = record.carrier_id.address
                 vals = {
-                    'name': record.transfer_id.name,
                     'wms_task_id': record.id,
                     #'picking_ids': [(4, self.id)], --> NO SE PONE PORQUE LA RELACION ES DESDE EL STOCK PICKING HACIA LA TASK, NO AL REVES
                     'fecha_entrega': False,
