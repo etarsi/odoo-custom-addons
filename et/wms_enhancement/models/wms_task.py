@@ -1036,6 +1036,19 @@ class WMSTask(models.Model):
                     'view_mode': 'tree,form',
                     'domain': [('id', 'in', tms_ids)],
                 }
+                
+    # ACTION PARA ABRIR EL RUTEO TMS 
+    def action_open_tms_stock_picking(self):
+        self.ensure_one()
+        if not self.tms_stock_picking_id:
+            raise UserError(_("No hay un ruteo de inventario asociado a esta tarea."))
+        return {
+            'name': "Ruteo de Inventario",
+            'type': 'ir.actions.act_window',
+            'res_model': 'tms.stock.picking',
+            'view_mode': 'form',
+            'res_id': self.tms_stock_picking_id.id,
+        }
 
 class WMSTaskLine(models.Model):
     _name = 'wms.task.line'
