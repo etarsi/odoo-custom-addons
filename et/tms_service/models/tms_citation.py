@@ -30,8 +30,8 @@ class TmsCitation(models.Model):
     hiring_id = fields.Many2one("tms.hiring", string="Contratación", tracking=True)
     observations = fields.Text(string="Observaciones", tracking=True)
     # En la planilla 'Btos G.C' viene con decimales (ej 35.67), por eso Float.
-    total_bulk = fields.Float(string="T. Cantidad de Bultos", compute="_compute_total_bulto", tracking=True)
-    total_bulk_verified = fields.Float(string="T. Cantidad de Bultos Verificados", compute="_compute_total_bulto_verified", tracking=True)
+    total_bulk = fields.Float(string="T. Cantidad de Bultos", compute="_compute_total_bulk", tracking=True)
+    total_bulk_verified = fields.Float(string="T. Cantidad de Bultos Pickeados", compute="_compute_total_bulk", store=True, tracking=True)
     percentage_verified = fields.Float(string="Porcentaje Verificado", compute="_compute_percentage_verified", store=True, tracking=True)
     amount_service = fields.Float(string="Importe del Servicio", tracking=True)    
     state = fields.Selection(
@@ -48,13 +48,15 @@ class TmsCitation(models.Model):
         tracking=True,
     )
     
-    def _compute_total_bulto(self):
+    @api.depends("tms_roadmap_ids.road_maps_line_ids.total_bulk_defendant", "tms_roadmap_ids.road_maps_line_ids.total_bulk_picking")
+    def _compute_total_bulk(self):
         for rec in self:
             rec.total_bulk = 0
-
-    def _compute_total_bulto_verified(self):
-        for rec in self:
             rec.total_bulk_verified = 0
+            for roadmap in rec.tms_roadmap_ids:
+                for line in roadmap.road_maps_line_ids:
+                    rec.total_bulk += line.total_bulk_defendant
+                    rec.total_bulk_verified += line.total_bulk_picking
 
     @api.depends("total_bulk", "total_bulk_verified")
     def _compute_percentage_verified(self):
