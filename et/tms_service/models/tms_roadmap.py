@@ -22,7 +22,7 @@ class TmsRoadmap(models.Model):
     observations = fields.Text(string="Observaciones", tracking=True)
     total_bulk_defendant = fields.Float(string="T. Bultos Demandados", tracking=True, compute="_compute_totals", default=0.0, store=True)
     total_bulk_picking = fields.Float(string="T. Bultos Pickeados", tracking=True, compute="_compute_totals", default=0.0, store=True)
-    total_lvl_compliance = fields.Float(string="T. Nivel de Cumplimiento", compute="_compute_totals", store=True, tracking=True)
+    total_lvl_compliance = fields.Float(string="Desvio de Packing", compute="_compute_totals", store=True, tracking=True)
     citation_id = fields.Many2one("tms.citation", string="Citación", ondelete="set null", index=True, tracking=True)
     citation_count = fields.Integer(string="Número de Citaciones", compute="_compute_citation_count", store=False, tracking=True)
     state = fields.Selection(
@@ -87,8 +87,8 @@ class TmsRoadmap(models.Model):
         for rec in self:
             rec.total_bulk_defendant = sum(rec.road_maps_line_ids.mapped("bulk_defendant"))
             rec.total_bulk_picking = sum(rec.road_maps_line_ids.mapped("bulk_picking"))
-            if rec.total_bulk_defendant > 0:
-                rec.total_lvl_compliance = (rec.total_bulk_picking / rec.total_bulk_defendant) * 100
+            if rec.total_bulk_picking > 0:
+                rec.total_lvl_compliance = (rec.total_bulk_defendant / rec.total_bulk_picking) * 100
             else:
                 rec.total_lvl_compliance = 0.0
 

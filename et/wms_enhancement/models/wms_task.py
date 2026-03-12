@@ -112,16 +112,7 @@ class WMSTask(models.Model):
     
     # transporte
     carrier_id = fields.Many2one(string="Transporte", related='partner_id.property_delivery_carrier_id', store=True)
-    
-    
-    #TMS HOJA DE RUTA
-    tms_roadmap_id = fields.Many2one(
-        "tms.roadmap",
-        compute="_compute_tms_roadmap_id",
-        store=False,
-        string="Hoja de Ruta",
-    )
-    tms_roadmap_count = fields.Integer(compute="_compute_tms_roadmap_count", string="Hoja de Ruta")
+    tms_stock_picking_id = fields.Many2one("tms.stock.picking", string="Ruteo TMS", ondelete="set null", index=True, tracking=True)
 
     @api.model
     def create(self, vals):
@@ -988,46 +979,46 @@ class WMSTask(models.Model):
     def crear_tms_stock_picking(self, internal=False):
         tms_ids= []
         for record in self:
-            tms = self.env['tms.stock.picking'].search([('wms_task_id', '=', record.id)], limit=1)
+            tms = record.env['tms.stock.picking'].search([('wms_task_id', '=', record.id)], limit=1)
             if not tms:
                 direccion_entrega = ""
-                if self.carrier_id:
-                    if self.carrier_id.name == 'Reparto Propio':
-                        direccion_entrega = f"{self.partner_id.street or '-'}, {self.partner_id.zip or '-'}, {self.partner_id.city or '-' }"
+                if record.carrier_id:
+                    if record.carrier_id.name == 'Reparto Propio':
+                        direccion_entrega = f"{record.partner_id.street or '-'}, {record.partner_id.zip or '-'}, {record.partner_id.city or '-' }"
                     else:
-                        direccion_entrega = self.carrier_id.address
+                        direccion_entrega = record.carrier_id.address
                 vals = {
-                    'name': self.transfer_id.name,
-                    'wms_task_id': self.id,
+                    'name': record.transfer_id.name,
+                    'wms_task_id': record.id,
                     #'picking_ids': [(4, self.id)], --> NO SE PONE PORQUE LA RELACION ES DESDE EL STOCK PICKING HACIA LA TASK, NO AL REVES
                     'fecha_entrega': False,
-                    'fecha_envio_wms': self.transfer_id.create_date,
-                    'codigo_wms': self.name,
-                    'doc_origen': self.origin,
-                    'partner_id': self.partner_id.id,
-                    'cantidad_bultos': self.bultos_count,
-                    'cantidad_lineas': len(self.task_line_ids) or 0,
-                    'carrier_id': self.carrier_id.id,
+                    'fecha_envio_wms': record.transfer_id.create_date,
+                    'codigo_wms': record.name,
+                    'doc_origen': record.origin,
+                    'partner_id': record.partner_id.id,
+                    'cantidad_bultos': record.bultos_count,
+                    'cantidad_lineas': len(record.task_line_ids) or 0,
+                    'carrier_id': record.carrier_id.id,
                     'observaciones': '',
-                    'industry_id': self.partner_id.industry_id.id,
+                    'industry_id': record.partner_id.industry_id.id,
                     'ubicacion': '',
-                    'estado_digip': self.digip_state,
+                    'estado_digip': record.digip_state,
                     'estado_despacho': 'in_preparation',
-                    'sale_id': self.transfer_id.sale_id.id if self.transfer_id.sale_id else False,
+                    'sale_id': record.transfer_id.sale_id.id if record.transfer_id.sale_id else False,
                     'fecha_despacho': False,
                     'observacion_despacho': False,
-                    'contacto_calle': self.partner_id.street or False,
+                    'contacto_calle': record.partner_id.street or False,
                     'direccion_entrega': direccion_entrega,
-                    'contacto_cp': self.partner_id.zip or False,
-                    'contacto_ciudad': self.partner_id.city or False,
-                    'company_id': self.transfer_id.sale_id.company_id.id if self.transfer_id.sale_id and self.transfer_id.sale_id.company_id else False,
-                    'user_id': self.env.user.id,
+                    'contacto_cp': record.partner_id.zip or False,
+                    'contacto_ciudad': record.partner_id.city or False,
+                    'company_id': record.transfer_id.sale_id.company_id.id if record.transfer_id.sale_id and record.transfer_id.sale_id.company_id else False,
+                    'user_id': record.env.user.id,
                 }
-                tms = self.env['tms.stock.picking'].create(vals)
+                tms = record.env['tms.stock.picking'].create(vals)
             if tms:
-                tms_ids.append(tms.id)
+                record.write({'tms_stock_picking_id': tms.id})
             else:
-                raise UserError(_("No se pudo crear el ruteo de inventario para la tarea %s") % self.name)
+                raise UserError(_("No se pudo crear el ruteo de inventario para la tarea %s") % record.name)
         if not internal:
             if len(tms_ids) == 1:
                 return {
@@ -1045,43 +1036,6 @@ class WMSTask(models.Model):
                     'view_mode': 'tree,form',
                     'domain': [('id', 'in', tms_ids)],
                 }
-
-
-    def _compute_tms_roadmap_count(self):
-        Roadmap = self.env["tms.roadmap"]
-        grouped = Roadmap.read_group(
-            [("wms_task_id", "in", self.ids)],
-            ["wms_task_id"],
-            ["wms_task_id"],
-        )
-        mp = {g["wms_task_id"][0]: g["wms_task_id_count"] for g in grouped if g.get("wms_task_id")}
-        for rec in self:
-            rec.tms_roadmap_count = mp.get(rec.id, 0)
-
-    def _compute_tms_roadmap_id(self):
-        for rec in self:
-            line = self.env["tms.roadmap.line"].search([("wms_task_id", "=", rec.id), ("roadmap_id", "!=", False)], limit=1)
-            rec.tms_roadmap_id = line.roadmap_id if line else False
-
-    def _compute_tms_roadmap_count(self):
-        grouped = self.env["tms.roadmap.line"].read_group(
-            [("wms_task_id", "in", self.ids), ("roadmap_id", "!=", False)],
-            ["wms_task_id"],
-            ["wms_task_id"],
-        )
-        mp = {g["wms_task_id"][0]: g["wms_task_id_count"] for g in grouped if g.get("wms_task_id")}
-        for rec in self:
-            rec.tms_roadmap_count = 1 if mp.get(rec.id, 0) else 0
-
-    def action_open_tms_roadmap_tree_views(self):
-        self.ensure_one()
-        return {
-            "name": _("Líneas de Hoja de Ruta"),
-            "type": "ir.actions.act_window",
-            "res_model": "tms.roadmap.line",
-            "view_mode": "tree,form",
-            "domain": [("wms_task_id", "=", self.id), ("roadmap_id", "!=", False)],
-        }
 
 class WMSTaskLine(models.Model):
     _name = 'wms.task.line'
