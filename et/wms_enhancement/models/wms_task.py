@@ -209,6 +209,7 @@ class WMSTask(models.Model):
 
             record.post_digip(task)
             record.digip_state = 'sent'
+            record.crear_tms_stock_picking(internal=True)
 
 
     def calculate_bultos_prepared(self):
@@ -984,7 +985,7 @@ class WMSTask(models.Model):
             except Exception as e:
                 raise ValidationError(_("Fallo enviando a Google Sheets para picking %s: %s") % (record.name, e))
 
-    def crear_tms_stock_picking(self):
+    def crear_tms_stock_picking(self, internal=False):
         tms_ids= []
         for record in self:
             tms = self.env['tms.stock.picking'].search([('wms_task_id', '=', record.id)], limit=1)
@@ -1027,22 +1028,23 @@ class WMSTask(models.Model):
                 tms_ids.append(tms.id)
             else:
                 raise UserError(_("No se pudo crear el ruteo de inventario para la tarea %s") % self.name)
-        if len(tms_ids) == 1:
-            return {
-                'name': "Ruteo de Inventario",
-                'type': 'ir.actions.act_window',
-                'res_model': 'tms.stock.picking',
-                'view_mode': 'form',
-                'res_id': tms_ids[0],
-            }
-        else:
-            return {
-                'name': "Ruteos de Inventario",
-                'type': 'ir.actions.act_window',
-                'res_model': 'tms.stock.picking',
-                'view_mode': 'tree,form',
-                'domain': [('id', 'in', tms_ids)],
-            }
+        if not internal:
+            if len(tms_ids) == 1:
+                return {
+                    'name': "Ruteo de Inventario",
+                    'type': 'ir.actions.act_window',
+                    'res_model': 'tms.stock.picking',
+                    'view_mode': 'form',
+                    'res_id': tms_ids[0],
+                }
+            else:
+                return {
+                    'name': "Ruteos de Inventario",
+                    'type': 'ir.actions.act_window',
+                    'res_model': 'tms.stock.picking',
+                    'view_mode': 'tree,form',
+                    'domain': [('id', 'in', tms_ids)],
+                }
 
 
     def _compute_tms_roadmap_count(self):
