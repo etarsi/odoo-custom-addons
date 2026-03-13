@@ -11,3 +11,4 @@ from . import import_afip_iibb_wizard
 from . import pop_up_message_wizard
 from . import top_products_wizard
 from . import import_afip_arba_wizard
+from . import residual_invoice_wizard
