@@ -195,10 +195,8 @@ class AccountMoveRoundingInvoiceWizard(models.TransientModel):
                     'El diario %s debe ser de tipo Venta.'
                 ) % journal.display_name)
 
-            move_names = wiz_line.move_names
-
-            if move_names:
-                texto_origen = 'El Redondeo de saldo en: %s' % ', '.join(move_names)
+            if wiz_line.move_names:
+                texto_origen = f'El Redondeo de saldo en: {wiz_line.move_names}'
             else:
                 texto_origen = 'El Redondeo de saldo en los asientos seleccionados'
 
