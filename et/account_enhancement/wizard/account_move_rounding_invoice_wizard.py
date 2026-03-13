@@ -104,7 +104,7 @@ class AccountMoveRoundingInvoiceWizard(models.TransientModel):
         groups = {}
 
         for line in lines:
-            partner = line.partner_id.commercial_partner_id
+            partner = line.partner_id
             company = line.company_id
             currency = line.currency_id or line.company_currency_id
             move = line.move_id
