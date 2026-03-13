@@ -577,6 +577,18 @@ class AccountMoveInherit(models.Model):
                     record._compute_amount()
                     record._compute_tax_totals_json()
 
+    def action_create_account_move_reverse(self):
+        """Acción para crear un asiento de reversión desde la vista de factura.
+        Solo para facturas de cliente (out_invoice) en estado 'posted'."""
+        account_move= []
+        for move in self:
+            # como agarro los 2 registros en uno solo, me aseguro que ambos sean del mismo tipo y estado
+            if move.move_type != 'out_invoice' or move.state != 'posted':
+                raise UserError(_("Solo se pueden revertir facturas de cliente (out_invoice) que estén publicadas (posted)."))
+            
+        
+            
+        return 
 
 
 
