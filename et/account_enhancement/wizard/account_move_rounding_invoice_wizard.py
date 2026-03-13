@@ -120,11 +120,17 @@ class AccountMoveRoundingInvoiceWizard(models.TransientModel):
         for line in lines:
             partner = line.partner_id.commercial_partner_id
             company = line.company_id
-            account = line.account_id
             currency = line.currency_id or line.company_currency_id
             move = line.move_id
-
+            account = self.env['account.account'].search([
+                        ('company_id', '=', company.id),
+                        ('code', '=', '4.2.1.01.030'),
+                    ], limit=1)
             key = (partner.id, company.id, account.id, currency.id)
+            journal = self.env['account.journal'].search([
+                        ('company_id', '=', company.id),
+                        ('name', 'ilike', 'Reclasificacion'),
+                    ], limit=1)
 
             if key not in groups:
                 groups[key] = {
@@ -132,6 +138,9 @@ class AccountMoveRoundingInvoiceWizard(models.TransientModel):
                     'company': company,
                     'account': account,
                     'currency': currency,
+                    'journal': journal,
+                    'product': self.env['product.product'].search([
+                        ('name', 'ilike', 'Redondeo')], limit=1),
                     'move_ids': self.env['account.move'],
                     'move_line_ids': self.env['account.move.line'],
                 }
