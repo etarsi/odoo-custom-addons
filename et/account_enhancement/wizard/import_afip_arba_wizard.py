@@ -42,8 +42,8 @@ class ImportAfipArbaWizard(models.TransientModel):
     def action_consultar_arba_iibb(self):
         self.ensure_one()
 
-        arba_iibb_user = '20267565393'
-        arba_iibb_password = '99999'
+        arba_iibb_user = '30708077034' # Usuario de prueba de ARBA para testing
+        arba_iibb_password = 'Funtoys0205' # Password de prueba de ARBA para testing
 
         cuit = self._get_partner_cuit_clean()
         if not cuit or not cuit.isdigit() or len(cuit) != 11:
