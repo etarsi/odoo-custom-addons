@@ -248,21 +248,18 @@ class AccountMoveRoundingInvoiceWizardLine(models.TransientModel):
     company_id = fields.Many2one(
         'res.company',
         string='Compañía',
-        required=True,
         readonly=True
     )
 
     account_id = fields.Many2one(
         'account.account',
         string='Cuenta a cobrar',
-        required=True,
         readonly=True
     )
 
     currency_id = fields.Many2one(
         'res.currency',
         string='Moneda',
-        required=True,
         readonly=True
     )
 
