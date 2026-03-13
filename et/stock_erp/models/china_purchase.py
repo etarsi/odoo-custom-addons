@@ -59,7 +59,7 @@ class ChinaPurchase(models.Model):
                        'product_id': line.product_id.id,
                        'state': 'pending',
                        'invoice_state': 'no',
-                       'uxb': line.product_id.product_packaging_id.qty or False,
+                       'uxb': line.uxb or False,
                        'qty_demand': qty_demand,
                     }
 
