@@ -40,20 +40,6 @@ class AccountMoveRoundingInvoiceWizard(models.TransientModel):
             currency = data['currency']
             move_ids = data['move_ids']
             move_line_ids = data['move_line_ids']
-
-            partner_receivable = partner.with_company(company).property_account_receivable_id
-            if partner_receivable != account:
-                raise UserError(_(
-                    'El cliente %s en la compañía %s tiene como cuenta a cobrar %s, '
-                    'pero la línea seleccionada usa %s.\n\n'
-                    'Para que la conciliación automática funcione, ambas deben coincidir.'
-                ) % (
-                    partner.display_name,
-                    company.display_name,
-                    partner_receivable.display_name if partner_receivable else _('(vacía)'),
-                    account.display_name,
-                ))
-
             amount_total = self._get_group_amount(move_line_ids, currency, company)
 
             if amount_total <= 0:
