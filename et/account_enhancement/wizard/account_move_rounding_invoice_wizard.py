@@ -86,12 +86,6 @@ class AccountMoveRoundingInvoiceWizard(models.TransientModel):
         if not line.partner_id:
             return False
 
-        if line.reconciled:
-            return False
-
-        if line.account_id.user_type_id.type != 'receivable':
-            return False
-
         if line.currency_id and line.currency_id != line.company_currency_id:
             residual = line.amount_residual_currency
         else:
@@ -222,8 +216,7 @@ class AccountMoveRoundingInvoiceWizard(models.TransientModel):
             new_receivable_lines = invoice.line_ids.filtered(
                 lambda l: (
                     l.account_id.id == account.id
-                    and l.partner_id.commercial_partner_id.id == partner.id
-                    and not l.reconciled
+                    and l.partner_id.id == partner.id
                 )
             )
 
@@ -232,8 +225,7 @@ class AccountMoveRoundingInvoiceWizard(models.TransientModel):
                     'La factura %s no generó una línea a cobrar en la cuenta %s.'
                 ) % (invoice.display_name, account.display_name))
 
-            old_lines = wiz_line.move_line_ids.filtered(lambda l: not l.reconciled)
-
+            old_lines = wiz_line.move_line_ids
             if not old_lines:
                 raise UserError(_(
                     'Las líneas origen del cliente %s ya están conciliadas.'
