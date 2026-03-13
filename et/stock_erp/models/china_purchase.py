@@ -7,7 +7,6 @@ class ChinaPurchase(models.Model):
     partner_id = fields.Many2one('res.partner', string='Proveedor')
     state = fields.Selection(selection=[('draft', 'Borrador'), ('confirmed', 'Confirmado'), ('closed', 'Cerrado')], default="draft")
     order_line = fields.One2many('china.purchase.line', 'china_purchase', string="Líneas de Compra")
-    transfer_id = fields.Many2one(string="Transferencia", comodel_name="wms.transfer")
 
 
     def action_open_wms_transfer(self):
