@@ -195,7 +195,12 @@ class AccountMoveRoundingInvoiceWizard(models.TransientModel):
                     'El diario %s debe ser de tipo Venta.'
                 ) % journal.display_name)
 
-            description = self._build_description(wiz_line.move_ids)
+            move_names = [name for name in wiz_line.move_ids.mapped('name') if name and name != '/']
+
+            if move_names:
+                texto_origen = 'El Redondeo de saldo en: %s' % ', '.join(move_names)
+            else:
+                texto_origen = 'El Redondeo de saldo en los asientos seleccionados'
 
             invoice_vals = {
                 'move_type': 'out_invoice',
@@ -204,14 +209,19 @@ class AccountMoveRoundingInvoiceWizard(models.TransientModel):
                 'journal_id': journal.id,
                 'currency_id': currency.id,
                 'invoice_date': fields.Date.context_today(self),
-                'invoice_line_ids': [(0, 0, {
-                    'product_id': product.id,
-                    'name': description,
-                    'quantity': 1.0,
-                    'price_unit': wiz_line.amount_total,
-                    'account_id': account.id,
-                    'tax_ids': [(6, 0, [])],
-                })],
+                'invoice_line_ids': [
+                    (0, 0, {
+                        'product_id': product.id,
+                        'quantity': 1.0,
+                        'price_unit': wiz_line.amount_total,
+                        'account_id': account.id,
+                        'tax_ids': [(6, 0, [])],
+                    }),
+                    (0, 0, {
+                        'display_type': 'line_note',
+                        'name': texto_origen,
+                    })
+                ]
             }
 
             invoice = self.env['account.move'].with_company(company).create(invoice_vals)
