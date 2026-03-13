@@ -43,7 +43,7 @@ class ChinaPurchase(models.Model):
                 continue
 
             transfer_vals = {
-                'operation_type':'ingoing',
+                'operation_type':'incoming',
                 'partner_id':record.partner_id.id,
                 'partner_address_id':record.partner_id.id,
                 'state': 'pending',
