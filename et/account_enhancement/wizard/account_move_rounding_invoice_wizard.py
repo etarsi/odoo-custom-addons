@@ -116,6 +116,7 @@ class AccountMoveRoundingInvoiceWizard(models.TransientModel):
             journal = self.env['account.journal'].search([
                         ('company_id', '=', company.id),
                         ('name', 'ilike', 'Reclasificacion'),
+                        ('type', '=', 'sale'),
                     ], limit=1)
 
             if key not in groups:
@@ -179,18 +180,9 @@ class AccountMoveRoundingInvoiceWizard(models.TransientModel):
             partner = wiz_line.partner_id
             account = wiz_line.account_id
             currency = wiz_line.currency_id
-            journal = company.rounding_journal_id
-            product = company.rounding_product_id
+            journal = wiz_line.journal_id
+            product = wiz_line.product_id
 
-            if not journal:
-                raise UserError(_(
-                    'Falta configurar el Diario facturas redondeo en la compañía %s.'
-                ) % company.display_name)
-
-            if not product:
-                raise UserError(_(
-                    'Falta configurar el Producto redondeo en la compañía %s.'
-                ) % company.display_name)
 
             if journal.company_id != company:
                 raise UserError(_(
