@@ -67,7 +67,7 @@
         'views/wizard/pop_up_message_wizard_views.xml',
         'views/wizard/top_products_wizard_views.xml',
         'views/wizard/import_afip_arba_wizard_views.xml',
-        'views/wizard/residual_invoice_wizard_views.xml',
+        'views/wizard/account_move_rounding_invoice_wizard_views.xml',
         #Reportes
         'wizard/generar_factura_wizard_views.xml',
         #Templates

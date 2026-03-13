@@ -3,12 +3,12 @@ from odoo import api, fields, models, _
 from odoo.exceptions import UserError
 
 
-class ResidualInvoiceWizard(models.TransientModel):
-    _name = 'residual.invoice.wizard'
-    _description = 'Wizard - Facturas de redondeo desde asientos'
+class AccountMoveRoundingInvoiceWizard(models.TransientModel):
+    _name = 'account.move.rounding.invoice.wizard'
+    _description = 'Wizard - Facturas de redondeo desde líneas contables'
 
     line_ids = fields.One2many(
-        'residual.invoice.line.wizard',
+        'account.move.rounding.invoice.wizard.line',
         'wizard_id',
         string='Líneas'
     )
@@ -17,22 +17,19 @@ class ResidualInvoiceWizard(models.TransientModel):
     def default_get(self, fields_list):
         res = super().default_get(fields_list)
 
-        active_ids = self.env.context.get('active_ids', [])
-        moves = self.env['account.move'].browse(active_ids).exists()
+        lines = self._get_selected_source_lines()
 
-        if not moves:
-            raise UserError(_('No hay asientos seleccionados.'))
+        if not lines:
+            raise UserError(_(
+                'No hay líneas válidas seleccionadas.\n\n'
+                'Seleccioná líneas contables pendientes en cuenta a cobrar.'
+            ))
 
-        not_posted = moves.filtered(lambda m: m.state != 'posted')
-        if not_posted:
-            raise UserError(_('Todos los movimientos seleccionados deben estar publicados.'))
-
-        groups = self._group_selected_moves(moves)
+        groups = self._group_selected_lines(lines)
 
         if not groups:
             raise UserError(_(
-                'No se encontraron líneas pendientes en cuenta a cobrar con residual negativo '
-                'para los movimientos seleccionados.'
+                'No se encontraron líneas pendientes en cuenta a cobrar con residual negativo.'
             ))
 
         line_commands = []
@@ -47,8 +44,8 @@ class ResidualInvoiceWizard(models.TransientModel):
             partner_receivable = partner.with_company(company).property_account_receivable_id
             if partner_receivable != account:
                 raise UserError(_(
-                    'El partner %s en la compañía %s tiene como cuenta a cobrar %s, '
-                    'pero los movimientos seleccionados están pendientes en %s.\n\n'
+                    'El cliente %s en la compañía %s tiene como cuenta a cobrar %s, '
+                    'pero la línea seleccionada usa %s.\n\n'
                     'Para que la conciliación automática funcione, ambas deben coincidir.'
                 ) % (
                     partner.display_name,
@@ -81,34 +78,23 @@ class ResidualInvoiceWizard(models.TransientModel):
         res['line_ids'] = line_commands
         return res
 
-    def _group_selected_moves(self, moves):
-        groups = {}
+    def _get_selected_source_lines(self):
+        active_ids = self.env.context.get('active_ids', [])
+        active_model = self.env.context.get('active_model')
 
-        for move in moves:
-            candidate_lines = move.line_ids.filtered(self._is_candidate_line)
+        if active_model != 'account.move.line':
+            raise UserError(_('Este asistente solo puede ejecutarse desde líneas contables.'))
 
-            for line in candidate_lines:
-                partner = line.partner_id.commercial_partner_id
-                company = line.company_id
-                account = line.account_id
-                currency = line.currency_id or line.company_currency_id
+        if not active_ids:
+            return self.env['account.move.line']
 
-                key = (partner.id, company.id, account.id, currency.id)
+        lines = self.env['account.move.line'].browse(active_ids).exists()
 
-                if key not in groups:
-                    groups[key] = {
-                        'partner': partner,
-                        'company': company,
-                        'account': account,
-                        'currency': currency,
-                        'move_ids': self.env['account.move'],
-                        'move_line_ids': self.env['account.move.line'],
-                    }
+        not_posted = lines.filtered(lambda l: l.move_id.state != 'posted')
+        if not_posted:
+            raise UserError(_('Todas las líneas seleccionadas deben pertenecer a movimientos publicados.'))
 
-                groups[key]['move_ids'] |= move
-                groups[key]['move_line_ids'] |= line
-
-        return groups
+        return lines.filtered(self._is_candidate_line)
 
     def _is_candidate_line(self, line):
         if not line.partner_id:
@@ -120,14 +106,40 @@ class ResidualInvoiceWizard(models.TransientModel):
         if line.account_id.user_type_id.type != 'receivable':
             return False
 
-        # Este flujo está pensado para créditos del cliente
-        # que luego se consumen con una factura de redondeo.
         if line.currency_id and line.currency_id != line.company_currency_id:
             residual = line.amount_residual_currency
         else:
             residual = line.amount_residual
 
+        # pensado para saldos acreedores del cliente
         return residual < -0.00001
+
+    def _group_selected_lines(self, lines):
+        groups = {}
+
+        for line in lines:
+            partner = line.partner_id.commercial_partner_id
+            company = line.company_id
+            account = line.account_id
+            currency = line.currency_id or line.company_currency_id
+            move = line.move_id
+
+            key = (partner.id, company.id, account.id, currency.id)
+
+            if key not in groups:
+                groups[key] = {
+                    'partner': partner,
+                    'company': company,
+                    'account': account,
+                    'currency': currency,
+                    'move_ids': self.env['account.move'],
+                    'move_line_ids': self.env['account.move.line'],
+                }
+
+            groups[key]['move_ids'] |= move
+            groups[key]['move_line_ids'] |= line
+
+        return groups
 
     def _get_group_amount(self, lines, currency, company):
         if currency != company.currency_id:
@@ -150,6 +162,9 @@ class ResidualInvoiceWizard(models.TransientModel):
         if not names:
             return _('Redondeo de saldo')
 
+        if len(names) == 1:
+            return _('Redondeo de saldo en %s') % names[0]
+
         shown = ', '.join(names[:5])
         if len(names) > 5:
             shown = '%s + %s' % (shown, len(names) - 5)
@@ -169,8 +184,8 @@ class ResidualInvoiceWizard(models.TransientModel):
             partner = wiz_line.partner_id
             account = wiz_line.account_id
             currency = wiz_line.currency_id
-            journal = self.env['account.journal'].search([('name', 'like', 'Reclasificacion'), ('company_id', '=', company.id)], limit=1)
-            product = self.env['product.product'].search([('name', '=', 'Redondeo')], limit=1)
+            journal = company.rounding_journal_id
+            product = company.rounding_product_id
 
             if not journal:
                 raise UserError(_(
@@ -201,6 +216,10 @@ class ResidualInvoiceWizard(models.TransientModel):
                 'journal_id': journal.id,
                 'currency_id': currency.id,
                 'invoice_date': fields.Date.context_today(self),
+                'is_rounding_invoice': True,
+                'rounding_source_move_ids': [(6, 0, wiz_line.move_ids.ids)],
+                'rounding_source_line_ids': [(6, 0, wiz_line.move_line_ids.ids)],
+                'rounding_notes': _('Factura generada automáticamente desde Libro Mayor.'),
                 'invoice_line_ids': [(0, 0, {
                     'product_id': product.id,
                     'name': description,
@@ -223,15 +242,14 @@ class ResidualInvoiceWizard(models.TransientModel):
 
             if not new_receivable_lines:
                 raise UserError(_(
-                    'La factura %s no generó una línea a cobrar en la cuenta %s.\n'
-                    'Revisá la cuenta a cobrar del partner o la configuración contable.'
+                    'La factura %s no generó una línea a cobrar en la cuenta %s.'
                 ) % (invoice.display_name, account.display_name))
 
             old_lines = wiz_line.move_line_ids.filtered(lambda l: not l.reconciled)
 
             if not old_lines:
                 raise UserError(_(
-                    'Las líneas origen del partner %s ya están conciliadas.'
+                    'Las líneas origen del cliente %s ya están conciliadas.'
                 ) % partner.display_name)
 
             (old_lines | new_receivable_lines).reconcile()
@@ -251,12 +269,12 @@ class ResidualInvoiceWizard(models.TransientModel):
         return action
 
 
-class ResidualInvoiceLineWizard(models.TransientModel):
-    _name = 'residual.invoice.line.wizard'
-    _description = 'Wizard Line - Facturas de redondeo desde asientos'
+class AccountMoveRoundingInvoiceWizardLine(models.TransientModel):
+    _name = 'account.move.rounding.invoice.wizard.line'
+    _description = 'Wizard Line - Facturas de redondeo desde líneas contables'
 
     wizard_id = fields.Many2one(
-        'residual.invoice.wizard',
+        'account.move.rounding.invoice.wizard',
         required=True,
         ondelete='cascade'
     )
@@ -325,11 +343,13 @@ class ResidualInvoiceLineWizard(models.TransientModel):
     journal_id = fields.Many2one(
         'account.journal',
         string='Diario',
+        related='company_id.rounding_journal_id',
         readonly=True
     )
 
     product_id = fields.Many2one(
         'product.product',
         string='Producto',
+        related='company_id.rounding_product_id',
         readonly=True
     )

@@ -1,8 +1,8 @@
-<?xml version='1.0' encoding='utf-8'?>
+<?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <record id="view_residual_invoice_wizard_form" model="ir.ui.view">
-        <field name="name">residual.invoice.wizard.form</field>
-        <field name="model">residual.invoice.wizard</field>
+    <record id="view_account_move_rounding_invoice_wizard_form" model="ir.ui.view">
+        <field name="name">account.move.rounding.invoice.wizard.form</field>
+        <field name="model">account.move.rounding.invoice.wizard</field>
         <field name="arch" type="xml">
             <form string="Generar facturas de redondeo">
                 <group>
@@ -29,13 +29,13 @@
         </field>
     </record>
 
-    <record id="action_residual_invoice_wizard" model="ir.actions.act_window">
+    <record id="action_account_move_line_rounding_invoice_wizard" model="ir.actions.act_window">
         <field name="name">Generar facturas de redondeo</field>
-        <field name="res_model">residual.invoice.wizard</field>
+        <field name="res_model">account.move.rounding.invoice.wizard</field>
         <field name="view_mode">form</field>
-        <field name="view_id" ref="view_residual_invoice_wizard_form"/>
+        <field name="view_id" ref="view_account_move_rounding_invoice_wizard_form"/>
         <field name="target">new</field>
-        <field name="binding_model_id" ref="account.model_account_move"/>
+        <field name="binding_model_id" ref="account.model_account_move_line"/>
         <field name="binding_view_types">list</field>
     </record>
 </odoo>
