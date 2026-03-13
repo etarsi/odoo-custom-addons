@@ -114,7 +114,7 @@ class AccountMoveRoundingInvoiceWizard(models.TransientModel):
                         ('company_id', '=', company.id),
                         ('code', '=', '4.2.1.01.030'),
                     ], limit=1)
-            key = (partner.id, company.id, account.id, currency.id)
+            key = (partner.id, company.id, currency.id)
             journal = self.env['account.journal'].search([
                         ('company_id', '=', company.id),
                         ('name', 'ilike', 'Reclasificacion'),
