@@ -343,13 +343,11 @@ class AccountMoveRoundingInvoiceWizardLine(models.TransientModel):
     journal_id = fields.Many2one(
         'account.journal',
         string='Diario',
-        related='company_id.rounding_journal_id',
         readonly=True
     )
 
     product_id = fields.Many2one(
         'product.product',
         string='Producto',
-        related='company_id.rounding_product_id',
         readonly=True
     )
