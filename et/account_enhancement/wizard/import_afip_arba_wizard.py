@@ -5,6 +5,8 @@ from datetime import date
 from calendar import monthrange
 
 from pyafipws.iibb import IIBB
+import logging
+_logger = logging.getLogger(__name__)
 
 
 ARBA_TEST_URL = "https://dfe.test.arba.gov.ar/DomicilioElectronico/SeguridadCliente/dfeServicioConsulta.do"
@@ -59,11 +61,20 @@ class ImportAfipArbaWizard(models.TransientModel):
 
         url = ARBA_TEST_URL if self.arba_iibb_testing else ARBA_PROD_URL
         iibb.Conectar(url=url)
+        _logger.info("Conexión a ARBA IIBB realizada. Con URL: %s | Testing: %s", url, self.arba_iibb_testing)
 
         ok = iibb.ConsultarContribuyentes(
             desde.strftime("%Y%m%d"),
             hasta.strftime("%Y%m%d"),
             cuit
+        )
+        _logger.info("Consulta ARBA IIBB realizada. OK: %s | Excepción: %s | CódigoError: %s | MensajeError: %s | NumeroComprobante: %s | CodigoHash: %s",
+            ok,
+            iibb.Excepcion or "",
+            iibb.CodigoError or "",
+            iibb.MensajeError or "",
+            iibb.NumeroComprobante or "",
+            iibb.CodigoHash or "",
         )
 
         # limpiar resultados previos
