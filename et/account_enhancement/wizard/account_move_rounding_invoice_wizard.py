@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 from odoo import api, fields, models, _
 from odoo.exceptions import UserError
+import logging
+_logger = logging.getLogger(__name__)
 
 
 class AccountMoveRoundingInvoiceWizard(models.TransientModel):
@@ -18,6 +20,7 @@ class AccountMoveRoundingInvoiceWizard(models.TransientModel):
         res = super().default_get(fields_list)
 
         lines = self._get_selected_source_lines()
+        _logger.info('Líneas seleccionadas para redondeo: %s', lines.ids)
 
         if not lines:
             raise UserError(_(
@@ -26,6 +29,7 @@ class AccountMoveRoundingInvoiceWizard(models.TransientModel):
             ))
 
         groups = self._group_selected_lines(lines)
+        _logger.info('Grupos de líneas seleccionadas: %s', groups)
 
         if not groups:
             raise UserError(_(
@@ -40,6 +44,8 @@ class AccountMoveRoundingInvoiceWizard(models.TransientModel):
             currency = data['currency']
             move_ids = data['move_ids']
             move_line_ids = data['move_line_ids']
+            journal = data['journal']
+            product = data['product']
             amount_total = self._get_group_amount(move_line_ids, currency, company)
 
             if amount_total <= 0:
@@ -56,6 +62,8 @@ class AccountMoveRoundingInvoiceWizard(models.TransientModel):
                 'line_count': len(move_line_ids),
                 'amount_total': amount_total,
                 'move_names': self._get_move_names(move_ids),
+                'journal_id': journal.id,
+                'product_id': product.id,
             }))
 
         if not line_commands:
@@ -212,27 +220,6 @@ class AccountMoveRoundingInvoiceWizard(models.TransientModel):
 
             invoice = self.env['account.move'].with_company(company).create(invoice_vals)
             invoice.action_post()
-
-            new_receivable_lines = invoice.line_ids.filtered(
-                lambda l: (
-                    l.account_id.id == account.id
-                    and l.partner_id.id == partner.id
-                )
-            )
-
-            if not new_receivable_lines:
-                raise UserError(_(
-                    'La factura %s no generó una línea a cobrar en la cuenta %s.'
-                ) % (invoice.display_name, account.display_name))
-
-            old_lines = wiz_line.move_line_ids
-            if not old_lines:
-                raise UserError(_(
-                    'Las líneas origen del cliente %s ya están conciliadas.'
-                ) % partner.display_name)
-
-            (old_lines | new_receivable_lines).reconcile()
-
             created_invoices |= invoice
 
         if not created_invoices:
@@ -240,11 +227,9 @@ class AccountMoveRoundingInvoiceWizard(models.TransientModel):
 
         action = self.env.ref('account.action_move_out_invoice_type').read()[0]
         action['domain'] = [('id', 'in', created_invoices.ids)]
-
         if len(created_invoices) == 1:
             action['views'] = [(self.env.ref('account.view_move_form').id, 'form')]
             action['res_id'] = created_invoices.id
-
         return action
 
 
