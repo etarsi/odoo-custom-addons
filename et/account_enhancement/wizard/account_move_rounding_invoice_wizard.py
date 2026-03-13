@@ -242,7 +242,6 @@ class AccountMoveRoundingInvoiceWizardLine(models.TransientModel):
     partner_id = fields.Many2one(
         'res.partner',
         string='Cliente',
-        required=True,
         readonly=True
     )
 
