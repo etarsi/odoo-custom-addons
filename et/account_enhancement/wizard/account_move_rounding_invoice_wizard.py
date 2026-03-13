@@ -242,68 +242,56 @@ class AccountMoveRoundingInvoiceWizardLine(models.TransientModel):
     partner_id = fields.Many2one(
         'res.partner',
         string='Cliente',
-        readonly=True
     )
 
     company_id = fields.Many2one(
         'res.company',
         string='Compañía',
-        readonly=True
     )
 
     account_id = fields.Many2one(
         'account.account',
         string='Cuenta a cobrar',
-        readonly=True
     )
 
     currency_id = fields.Many2one(
         'res.currency',
         string='Moneda',
-        readonly=True
     )
 
     move_ids = fields.Many2many(
         'account.move',
         string='Movimientos origen',
-        readonly=True
     )
 
     move_line_ids = fields.Many2many(
         'account.move.line',
         string='Líneas origen',
-        readonly=True
     )
 
     move_count = fields.Integer(
         string='Cant. asientos',
-        readonly=True
     )
 
     line_count = fields.Integer(
         string='Cant. líneas',
-        readonly=True
     )
 
     amount_total = fields.Monetary(
         string='Importe a facturar',
         currency_field='currency_id',
-        readonly=True
     )
 
     move_names = fields.Char(
         string='Referencias',
-        readonly=True
     )
 
     journal_id = fields.Many2one(
         'account.journal',
         string='Diario',
-        readonly=True
     )
 
     product_id = fields.Many2one(
         'product.product',
         string='Producto',
-        readonly=True
     )
