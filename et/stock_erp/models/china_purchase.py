@@ -16,7 +16,45 @@ class ChinaPurchase(models.Model):
 
                 for line in record.order_line:
                     line.add_enelagua_stock()
+                
+                record.create_transfer()
     
+    
+    def create_transfer(self):
+        for record in self:      
+
+            ### TRANSFER CREATION
+            if record.transfer_id:
+                continue
+
+            transfer_vals = {
+                'operation_type':'ingoing',
+                'partner_id':record.partner_id.id,
+                'partner_address_id':record.partner_id.id,
+                'state': 'pending',
+            }
+
+            transfer_id = self.env['wms.transfer'].create(transfer_vals)
+            transfer_lines_list = []
+            for line in record.order_line:
+               qty_demand = line.quantity
+                   
+               if line.product_id:
+                   transfer_line = {
+                       'transfer_id': transfer_id.id,
+                       'product_id': line.product_id.id,
+                       'state': 'pending',
+                       'invoice_state': 'no',
+                       'uxb': line.product_packaging_id.qty or False,
+                       'qty_demand': qty_demand,
+                    }
+
+                   transfer_lines_list.append(transfer_line)
+            
+            self.env['wms.transfer.line'].create(transfer_lines_list)
+
+            record.transfer_id = transfer_id.id
+
 
 
 class ChinaPurchaseLine(models.Model):
@@ -71,3 +109,14 @@ class ChinaPurchaseLine(models.Model):
                 record.quantity += record.quantity_to_add
 
                 record.quantity_to_add = 0
+
+            if not stock_erp:
+                vals = {}
+                vals['product_id'] = record.product_id.id
+                vals['uxb'] = record.product_id.packaging_ids[0].qty or 1,
+                vals['fisico_unidades'] = 0
+                vals['enelagua_unidades'] = record.quantity
+                vals['entregable_unidades'] = 0
+                vals['comprado_unidades'] = record.quantity
+
+                self.env['stock.erp'].create(vals)
