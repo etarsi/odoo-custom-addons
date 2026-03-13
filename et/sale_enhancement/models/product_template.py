@@ -34,7 +34,7 @@ class ProductTemplateInherit(models.Model):
     
     def action_update_company_ids_value(self):
         self.ensure_one()
-        products = self.env['product.template'].search([('sale_ok', '=', True)])
+        products = self.env['product.template'].search([('sale_ok', '=', True), ('company_ids', '=', False)])
         if products:
             for product in products:
                 product.update_company_ids_value()
@@ -45,6 +45,11 @@ class ProductTemplateInherit(models.Model):
         if categorias:
             for categoria in categorias:
                 if self.categ_id.parent_id and self.categ_id.parent_id.id == categoria.id:
+                    rubro = categoria.name.upper().strip()
+                    if rubro in RUBRO_COMPANY_MAPPING:
+                        company_id = RUBRO_COMPANY_MAPPING[rubro]
+                        company_ids.append(company_id)
+                elif self.categ_id.id == categoria.id:
                     rubro = categoria.name.upper().strip()
                     if rubro in RUBRO_COMPANY_MAPPING:
                         company_id = RUBRO_COMPANY_MAPPING[rubro]
