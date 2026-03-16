@@ -68,7 +68,7 @@ class ProductTemplateInherit(models.Model):
         self.ensure_one()
         iva_21_ids = self.env['account.tax'].search([('type_tax_use', '=', 'sale'), ('description', '=', 'IVA 21%'), ('active', '=', True)])
         _logger.info(f"IVA 21% encontrado: {iva_21_ids}")
-        percepcion_iibb_caba_ids = self.env['account.tax'].search([('description', 'in', ['Percepción IIBB CABA A', 'Percepción IIBB AGIP A', 'Percepción IIBB ARBA A']),
+        percepcion_iibb_caba_ids = self.env['account.tax'].search([('description', 'in', ['Perc IIBB CABA A', 'Perc IIBB AGIP A', 'Perc IIBB ARBA A']),
                                                                    ('type_tax_use', '=', 'sale'), ('active', '=', True)])
         _logger.info(f"Percepción IIBB CABA encontrado: {percepcion_iibb_caba_ids}")
         taxes_ids = []
