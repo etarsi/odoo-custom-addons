@@ -77,5 +77,5 @@ class ProductTemplateInherit(models.Model):
             taxes_ids.extend(iva_21)
             taxes_ids.extend(percepcion_iibb_caba)
         if taxes_ids:
-            self.taxes_id = [(6, 0, taxes_ids.ids)]
+            self.write({'taxes_id': [(6, 0, taxes_ids.ids)]})
             _logger.info(f"Producto {self.name} actualizado con impuestos IVA 21% y Percepción IIBB CABA Aplicada.")
