@@ -67,19 +67,19 @@ class ProductTemplateInherit(models.Model):
     def taxes_id_update(self):
         self.ensure_one()
         iva_21_ids = self.env['account.tax'].search([('type_tax_use', '=', 'sale'), ('description', '=', 'IVA 21%'), ('active', '=', True)])
-        _logger.info(f"IVA 21% encontrado: {iva_21_ids.ids}")
+        _logger.info(f"IVA 21% encontrado: {iva_21_ids}")
         percepcion_iibb_caba_ids = self.env['account.tax'].search([('description', 'in', ['Percepción IIBB CABA A', 'Percepción IIBB AGIP A', 'Percepción IIBB ARBA A']),
                                                                    ('type_tax_use', '=', 'sale'), ('active', '=', True)])
-        _logger.info(f"Percepción IIBB CABA encontrado: {percepcion_iibb_caba_ids.ids}")
+        _logger.info(f"Percepción IIBB CABA encontrado: {percepcion_iibb_caba_ids}")
         taxes_ids = []
         if iva_21_ids:
             iva_21 = iva_21_ids.filtered(lambda r: r.company_id.id in [2,3,4])
             taxes_ids.extend(iva_21)
-            _logger.info(f"IVA 21% filtrado por empresa: {iva_21.ids}")
+            _logger.info(f"IVA 21% filtrado por empresa: {iva_21}")
         if percepcion_iibb_caba_ids:
             percepcion_iibb_caba = percepcion_iibb_caba_ids.filtered(lambda r: r.company_id.id in [2,3,4])
             taxes_ids.extend(percepcion_iibb_caba)
-            _logger.info(f"Percepción IIBB CABA filtrado por empresa: {percepcion_iibb_caba.ids}")
+            _logger.info(f"Percepción IIBB CABA filtrado por empresa: {percepcion_iibb_caba}")
         if taxes_ids:
             self.write({'taxes_id': [(6, 0, taxes_ids.ids)]})
             _logger.info(f"Producto {self.name} actualizado con impuestos IVA 21% y Percepción IIBB CABA Aplicada.")
