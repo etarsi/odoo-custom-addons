@@ -113,7 +113,7 @@ class AccountMoveBalanceTransferWizard(models.TransientModel):
             move = line.move_id
             account = self.env['account.account'].search([
                         ('company_id', '=', company.id),
-                        ('code', '=', '4.2.1.01.030'),
+                        ('code', '=', '1.1.1.02.001'),
                     ], limit=1)
             key = (partner.id, company.id, currency.id)
             journal = self.env['account.journal'].search([
@@ -241,7 +241,7 @@ class AccountMoveBalanceTransferWizard(models.TransientModel):
                     ], limit=1)
             account_destination = self.env['account.account'].search([
                         ('company_id', '=', company_destination.id),
-                        ('code', '=', '4.2.1.01.030'),
+                        ('code', '=', '1.1.1.02.001'),
                     ], limit=1)
             credit_note_vals = {
                 'move_type': 'out_refund',
