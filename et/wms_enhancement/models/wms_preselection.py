@@ -126,7 +126,7 @@ class WMSPreselectionLine(models.Model):
         for record in self:
             if record.product_id and record.quantity > 0:
                 if record.uxb:
-                    record.bultos = record.quantity / record.uxb
+                    record.bultos = record.quantity / record.uxb_client
                 else:
                     record.uxb = record.product_id.packaging_ids[0].qty or 1                    
                     record.bultos = record.quantity / record.uxb_client
