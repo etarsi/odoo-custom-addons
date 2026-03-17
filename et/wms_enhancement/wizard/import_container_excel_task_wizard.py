@@ -274,60 +274,75 @@ class ImportContainerExcelTaskWizard(models.TransientModel):
                         'uxb': uxb,
                         'bultos': (total_qty / uxb) if uxb else 0.0,
                     })
-
-
-                # --------------------------------------------------
-                # 3) EDITAR UNA SOLA VEZ POR PRODUCTO
-                # --------------------------------------------------
-                for product_id, data in product_map.items():
-                    product = data['product']
-                    total_qty = data['total_qty']
-                    containers = ', '.join(sorted(data['containers'])) or '-'
-
-                    transfer_line = self.env['wms.transfer.line'].search([
-                        ('transfer_id', '=', self.wms_transfer_id.id),
-                        ('product_id', '=', product_id)
-                    ], limit=1)
-
-                    if not transfer_line:
-                        continue
-
-                    qty_pending_before = transfer_line.qty_pending or 0.0
-                    qty_demand_before = transfer_line.qty_demand or 0.0
-
-                    new_qty_pending = max(qty_pending_before - total_qty, 0.0)
-                    overflow = max(total_qty - qty_pending_before, 0.0)
-
-                    # según tu lógica, lo que excede pending pasa a demand
-                    new_qty_demand = qty_demand_before + overflow
-
-                    was_created = (qty_pending_before == 0.0 and qty_demand_before == 0.0)
-
-                    transfer_line.write({
-                        'qty_pending': new_qty_pending,
-                        'qty_demand': new_qty_demand,
-                    })
-
+                    
                     self.wms_transfer_id.message_post(body=_(
                         "%s el producto <b>%s</b>.<br/>"
                         "Cantidad importada total: <b>%s</b><br/>"
-                        "Pendiente antes: <b>%s</b><br/>"
-                        "Pendiente después: <b>%s</b><br/>"
-                        "Excedente enviado a demanda: <b>%s</b><br/>"
                         "Demanda antes: <b>%s</b><br/>"
                         "Demanda después: <b>%s</b><br/>"
+                        "Pendiente antes: <b>%s</b><br/>"
+                        "Pendiente después: <b>%s</b><br/>"
+
                         "Contenedor(es): <b>%s</b>"
                     ) % (
-                        "Se creó/actualizó" if was_created else "Se actualizó",
+                        "Se creó",
                         product.display_name,
                         total_qty,
-                        qty_pending_before,
-                        new_qty_pending,
-                        overflow,
                         qty_demand_before,
                         new_qty_demand,
+                        qty_pending_before,
+                        new_qty_pending,
                         containers,
                     ))
+
+            # --------------------------------------------------
+            # 3) EDITAR UNA SOLA VEZ POR PRODUCTO
+            # --------------------------------------------------
+            for product_id, data in product_map.items():
+                product = data['product']
+                total_qty = data['total_qty']
+                containers = ', '.join(sorted(data['containers'])) or '-'
+
+                transfer_line = self.env['wms.transfer.line'].search([
+                    ('transfer_id', '=', self.wms_transfer_id.id),
+                    ('product_id', '=', product_id)
+                ], limit=1)
+
+                if not transfer_line:
+                    continue
+
+                qty_pending_before = transfer_line.qty_pending or 0.0
+                qty_demand_before = transfer_line.qty_demand or 0.0
+                new_qty_pending = max(qty_pending_before - total_qty, 0.0)
+                overflow = max(total_qty - qty_pending_before, 0.0)
+                # según tu lógica, lo que excede pending pasa a demand
+                new_qty_demand = qty_demand_before + overflow
+
+                transfer_line.write({
+                    'qty_pending': new_qty_pending,
+                    'qty_demand': new_qty_demand,
+                })
+                
+                if overflow > 0:
+                    self.wms_transfer_id.message_post(body=_(
+                        "%s el producto <b>%s</b>.<br/>"
+                        "Cantidad importada total: <b>%s</b><br/>"
+                        "Demanda antes: <b>%s</b><br/>"
+                        "Demanda después: <b>%s</b><br/>"
+                        "Pendiente antes: <b>%s</b><br/>"
+                        "Pendiente después: <b>%s</b><br/>"
+                        "Contenedor(es): <b>%s</b>"
+                    ) % (
+                        "Se actualizó",
+                        product.display_name,
+                        total_qty,
+                        qty_demand_before,
+                        new_qty_demand,
+                        qty_pending_before,
+                        new_qty_pending,
+                        containers,
+                    ))
+
         # -------- 3) Volver mostrando los contenedores importados en tareas --------
         if not created_wms_task_ids:
             raise UserError(_("No se creó ningún contenedor desde el archivo."))
