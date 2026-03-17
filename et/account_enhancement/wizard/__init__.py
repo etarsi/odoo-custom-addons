@@ -12,3 +12,4 @@ from . import pop_up_message_wizard
 from . import top_products_wizard
 from . import import_afip_arba_wizard
 from . import account_move_rounding_invoice_wizard
+from . import account_move_balance_transfer_wizard
