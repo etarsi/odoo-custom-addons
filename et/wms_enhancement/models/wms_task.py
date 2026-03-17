@@ -649,8 +649,8 @@ class WMSTask(models.Model):
             'origin': task.origin or '',
             'task_name': task.name[:20] or '',
             'destination': {
-                'name': f"{partner.property_delivery_carrier_id.name or ''}",
-                'address': f"{partner.property_delivery_carrier_id.address or ''}",
+                'name': f"{partner_shipping.property_delivery_carrier_id.name or ''}",
+                'address': f"{partner_shipping.property_delivery_carrier_id.address or ''}",
             },
             'line_lines': lines,
             'total_bultos': task.packages_count,
