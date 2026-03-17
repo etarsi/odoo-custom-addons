@@ -268,7 +268,7 @@ class ImportContainerExcelTaskWizard(models.TransientModel):
                         'transfer_id': self.wms_transfer_id.id,
                         'product_id': product_id,
                         'qty_pending': 0.0,
-                        'qty_demand': 0.0,   # solo la creamos, el cálculo final viene después
+                        'qty_demand': 0.0,
                         'invoice_state': 'no',
                         'state': 'pending',
                         'uxb': uxb,
