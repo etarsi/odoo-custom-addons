@@ -1,8 +1,8 @@
 <odoo>
     <!-- FORM DEL WIZARD -->
-    <record id="view_import_container_excel_wizard_form" model="ir.ui.view">
-        <field name="name">import.container.excel.wizard.form</field>
-        <field name="model">import.container.excel.wizard</field>
+    <record id="view_import_container_excel_task_wizard_form" model="ir.ui.view">
+        <field name="name">import.container.excel.task.wizard.form</field>
+        <field name="model">import.container.excel.task.wizard</field>
         <field name="arch" type="xml">
             <form string="Importar Contenedores">
                 <group>
@@ -25,11 +25,11 @@
         </field>
     </record>
 
-    <record id="action_view_import_container_excel_wizard_form" model="ir.actions.act_window">
+    <record id="action_view_import_container_excel_task_wizard_form" model="ir.actions.act_window">
         <field name="name">Importar Contenedores</field>
-        <field name="res_model">import.container.excel.wizard</field>
+        <field name="res_model">import.container.excel.task.wizard</field>
         <field name="view_mode">form</field>
-        <field name="view_id" ref="view_import_container_excel_wizard_form"/>
+        <field name="view_id" ref="view_import_container_excel_task_wizard_form"/>
         <field name="target">new</field>
     </record>
 
