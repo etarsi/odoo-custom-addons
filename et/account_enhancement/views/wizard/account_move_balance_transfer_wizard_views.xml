@@ -10,12 +10,13 @@
                         <tree create="0" delete="0" edit="1" editable="bottom">
                             <field name="partner_id" optional="show"/>
                             <field name="company_id" optional="show"/>
-                            <field name="account_id" optional="show"/>
+                            <field name="account_id" optional="hide"/>
+                            <field name="journal_id" optional="hide"/>
                             <field name="currency_id" optional="hide"/>
                             <field name="move_count" optional="hide"/>
                             <field name="line_count" optional="hide"/>
                             <field name="amount_total" optional="show"/>
-                            <field name="product_id" optional="show"/>
+                            <field name="product_id" optional="hide"/>
                             <field name="move_names" optional="show"/>
                             <field name="partner_id_destination" optional="show"/>
                             <field name="company_id_destination" optional="show"/>
