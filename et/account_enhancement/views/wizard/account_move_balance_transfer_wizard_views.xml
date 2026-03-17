@@ -16,10 +16,12 @@
                             <field name="move_count" optional="hide"/>
                             <field name="line_count" optional="hide"/>
                             <field name="amount_total" optional="show"/>
+                            <field name="amount_total_origin" optional="hide"/>
                             <field name="product_id" optional="hide"/>
                             <field name="move_names" optional="show"/>
                             <field name="partner_id_destination" optional="show"/>
                             <field name="company_id_destination" optional="show"/>
+                            <button name="action_duplicate_line" type="object" string="Duplicar" class="btn-secondary" icon="fa-copy"/>
                         </tree>
                     </field>
                 </group>

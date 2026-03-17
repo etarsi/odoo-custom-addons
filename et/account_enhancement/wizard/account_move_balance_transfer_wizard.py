@@ -41,7 +41,7 @@ class AccountMoveBalanceTransferWizard(models.TransientModel):
             move_line_ids = data['move_line_ids']
             journal = data['journal']
             product = data['product']
-            amount_total, amount_total_original = self._get_group_amount(move_line_ids, currency, company)
+            amount_total, amount_total_origin = self._get_group_amount(move_line_ids, currency, company)
 
             if amount_total <= 0:
                 continue
@@ -55,7 +55,7 @@ class AccountMoveBalanceTransferWizard(models.TransientModel):
                 'move_line_ids': [(6, 0, move_line_ids.ids)],
                 'move_count': len(move_ids),
                 'amount_total': amount_total,
-                'amount_total_original': amount_total_original,
+                'amount_total_origin': amount_total_origin,
                 'move_names': self._get_move_names(move_ids),
                 'journal_id': journal.id,
                 'product_id': product.id,
@@ -295,11 +295,12 @@ class AccountMoveBalanceTransferWizardLine(models.TransientModel):
     product_id = fields.Many2one('product.product', string='Producto')
     company_id_destination = fields.Many2one('res.company', string='Compañía destino')
     partner_id_destination = fields.Many2one('res.partner', string='Cliente destino')
-    amount_total_original = fields.Monetary(string='Importe original', currency_field='currency_id')
+    amount_total_origin = fields.Monetary(string='Importe original', currency_field='currency_id')
 
 
     
-    def action_duplicar_linea(self):
+    def action_duplicate_line(self):
+        #DUPLICAR LA LINEA Y CREARLA CON LOS MISMOS VALORES PERO CON EL IMPORTE EN 0 PARA PODER FACTURAR UN NUEVO MONTO SIN PERDER LA REFERENCIA A LAS LINEAS ORIGINALES
         self.ensure_one()
         new_line = self.copy({
             'partner_id': self.partner_id.id,
@@ -316,9 +317,11 @@ class AccountMoveBalanceTransferWizardLine(models.TransientModel):
             'product_id': self.product_id.id,
             'partner_id_destination': self.partner_id_destination.id,
             'company_id_destination': self.company_id_destination.id,
-            'amount_total_original': self.amount_total_original,
+            'amount_total_origin': self.amount_total_origin,
         })
-        return new_line
+        #CREAR LA NUEVA LINEA CON EL MISMO WIZARD_ID
+        new_line.wizard_id = self.wizard_id
+        return True
     
     
     @api.onchange('amount_total')
@@ -328,6 +331,6 @@ class AccountMoveBalanceTransferWizardLine(models.TransientModel):
                 record.amount_total = 0.00
             #Que no sobrepase el importe original sumando todas las lineas con el mismo partner_id y company_id
             total_amount = sum(self.filtered(lambda l: l.partner_id == record.partner_id and l.company_id == record.company_id).mapped('amount_total'))
-            if total_amount > record.amount_total_original:
-                raise UserError(_('El importe a facturar no puede ser mayor al importe original de %s %s.') % (record.amount_total_original, record.currency_id.symbol))
+            if total_amount > record.amount_total_origin:
+                raise UserError(_('El importe a facturar no puede ser mayor al importe original de %s %s.') % (record.amount_total_origin, record.currency_id.symbol))
             
