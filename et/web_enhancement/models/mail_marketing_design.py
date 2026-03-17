@@ -149,8 +149,6 @@ class MailMarketingDesign(models.Model):
 
       <div style="padding:18px 18px 6px 18px;">
 
-        {wa_block}
-
         <div style="font-size:11px; line-height:1.4; color:#98A2B3; margin-top:18px;">
             Este e-mail es una publicidad de 
             <a href="https://one.sebigus.com.ar" target="_blank" rel="noopener noreferrer" style="color:#98A2B3; text-decoration:underline;">
@@ -194,7 +192,7 @@ class MailMarketingDesign(models.Model):
     def _compute_recipient_count(self):
         for rec in self:
             try:
-                domain = safe_eval("['|', ('mail_alternative','!=',False), ('mail_alternative_b','!=',False)]")
+                domain = safe_eval("['|', '|', ('mail_alternative','!=',False), ('mail_alternative_b','!=',False), (''email','!=',False)]")
                 domain = list(domain)
                 rec.recipient_count = self.env["res.partner"].search_count(domain)
             except Exception:
