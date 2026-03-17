@@ -21,28 +21,28 @@ class WMSTask(models.Model):
         ('control', 'Control'),
         ('delivery', 'Entregado'),
         ('cancel', 'Cancelado'),
-    ])
+    ], default='pending')
     state_reception = fields.Selection(string="Estado", selection=[
         ('no', 'No aplica'),
         ('pending', 'Pendiente'),
         ('inprocess', 'En Proceso'),
         ('received', 'Ingresado'),
         ('cancel', 'Cancelado'),
-    ])
+    ], default='pending')
     state_return = fields.Selection(string="Estado", selection=[
         ('no', 'No aplica'),
         ('pending', 'Pendiente'),
         ('inprocess', 'En Proceso'),
         ('control', 'Control'),
         ('cancel', 'Cancelado'),
-    ])
+    ], default='pending')
     state_reception = fields.Selection(string="Estado", selection=[
         ('no', 'No aplica'),
         ('pending', 'Pendiente'),
         ('control', 'Control'),
         ('complete', 'Completado'),
         ('cancel', 'Cancelado'),
-    ])
+    ], default='pending')
     type = fields.Selection(string="Tipo", selection=[
         ('reception', 'Recepción'),
         ('preparation', 'Preparación'),

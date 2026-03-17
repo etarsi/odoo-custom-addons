@@ -385,6 +385,21 @@ class WMSTransfer(models.Model):
         }
 
 
+    def action_open_import_container_excel_task_wizard(self):
+        self.ensure_one()
+        if not self.id:
+            raise UserError(_("La transferencia debe estar guardada para importar contenedores desde Excel."))
+
+        return {
+            'type': 'ir.actions.act_window',
+            'name': _('Importar Contenedores desde Excel'),
+            'res_model': 'import.container.excel.task.wizard',
+            'view_mode': 'form',
+            'target': 'new',
+            'context': {
+                'default_wms_transfer_id': self.id,
+            }
+        }
 
 
 class WMSTransferLine(models.Model):

@@ -99,6 +99,9 @@
 
                     <button name="action_split_into_tasks" type="object" string="Crear Tareas" attrs="{'invisible': [('state', '=', 'finished')]}" class="oe_highlight"/>
                     <button name="action_create_task" type="object" string="Crear Tarea Total"/>
+                    
+                    <!--IMPORTAR CONTENEDORES DESDE EXCEL COMO TAREAS-->
+                    <button name="action_open_import_container_excel_task_wizard" type="object" string="Crear Tareas" class="oe_secondary"/>
                 </header>
                 <sheet>
                     <div class="oe_button_box" name="button_box">
