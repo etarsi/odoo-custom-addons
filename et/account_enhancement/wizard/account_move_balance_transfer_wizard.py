@@ -18,19 +18,14 @@ class AccountMoveBalanceTransferWizard(models.TransientModel):
     @api.model
     def default_get(self, fields_list):
         res = super().default_get(fields_list)
-
         lines = self._get_selected_source_lines()
-        _logger.info('Líneas seleccionadas para transferencia de saldo: %s', lines.ids)
 
         if not lines:
             raise UserError(_(
                 'No hay líneas válidas seleccionadas.\n\n'
                 'Seleccioná líneas contables pendientes en cuenta a cobrar.'
             ))
-
         groups = self._group_selected_lines(lines)
-        _logger.info('Grupos de líneas seleccionadas: %s', groups)
-
         if not groups:
             raise UserError(_(
                 'No se encontraron líneas pendientes en cuenta a cobrar con residual negativo.'
@@ -47,6 +42,7 @@ class AccountMoveBalanceTransferWizard(models.TransientModel):
             journal = data['journal']
             product = data['product']
             amount_total = self._get_group_amount(move_line_ids, currency, company)
+            amount_total_origin = amount_total
 
             if amount_total <= 0:
                 continue
@@ -60,6 +56,7 @@ class AccountMoveBalanceTransferWizard(models.TransientModel):
                 'move_line_ids': [(6, 0, move_line_ids.ids)],
                 'move_count': len(move_ids),
                 'amount_total': amount_total,
+                'amount_total_origin': amount_total_origin,
                 'move_names': self._get_move_names(move_ids),
                 'journal_id': journal.id,
                 'product_id': product.id,
@@ -284,75 +281,57 @@ class AccountMoveBalanceTransferWizardLine(models.TransientModel):
     _name = 'account.move.balance.transfer.wizard.line'
     _description = 'Wizard Line - Facturas de redondeo desde líneas contables'
 
-    wizard_id = fields.Many2one(
-        'account.move.balance.transfer.wizard',
-        required=True,
-        ondelete='cascade'
-    )
+    wizard_id = fields.Many2one('account.move.balance.transfer.wizard', required=True, ondelete='cascade')
+    partner_id = fields.Many2one('res.partner', string='Cliente')
+    company_id = fields.Many2one('res.company', string='Compañía')
+    account_id = fields.Many2one('account.account', string='Cuenta a cobrar')
+    currency_id = fields.Many2one('res.currency', string='Moneda')
+    move_ids = fields.Many2many('account.move', string='Movimientos origen')
+    move_line_ids = fields.Many2many('account.move.line', string='Líneas origen')
+    move_count = fields.Integer(string='Cant. asientos')
+    line_count = fields.Integer(string='Cant. líneas')
+    amount_total = fields.Monetary(string='Importe a facturar', currency_field='currency_id')
+    move_names = fields.Char(string='Referencias')
+    journal_id = fields.Many2one('account.journal', string='Diario')
+    product_id = fields.Many2one('product.product', string='Producto')
+    company_id_destination = fields.Many2one('res.company', string='Compañía destino')
+    partner_id_destination = fields.Many2one('res.partner', string='Cliente destino')
+    amount_total_origin = fields.Monetary(string='Importe original', currency_field='currency_id')
 
-    partner_id = fields.Many2one(
-        'res.partner',
-        string='Cliente',
-    )
 
-    company_id = fields.Many2one(
-        'res.company',
-        string='Compañía',
-    )
-
-    account_id = fields.Many2one(
-        'account.account',
-        string='Cuenta a cobrar',
-    )
-
-    currency_id = fields.Many2one(
-        'res.currency',
-        string='Moneda',
-    )
-
-    move_ids = fields.Many2many(
-        'account.move',
-        string='Movimientos origen',
-    )
-
-    move_line_ids = fields.Many2many(
-        'account.move.line',
-        string='Líneas origen',
-    )
-
-    move_count = fields.Integer(
-        string='Cant. asientos',
-    )
-
-    line_count = fields.Integer(
-        string='Cant. líneas',
-    )
-
-    amount_total = fields.Monetary(
-        string='Importe a facturar',
-        currency_field='currency_id',
-    )
-
-    move_names = fields.Char(
-        string='Referencias',
-    )
-
-    journal_id = fields.Many2one(
-        'account.journal',
-        string='Diario',
-    )
-
-    product_id = fields.Many2one(
-        'product.product',
-        string='Producto',
-    )
     
-    company_id_destination = fields.Many2one(
-        'res.company',
-        string='Compañía destino',
-    )
+    def action_duplicate_line(self):
+        #DUPLICAR LA LINEA Y CREARLA CON LOS MISMOS VALORES PERO CON EL IMPORTE EN 0 PARA PODER FACTURAR UN NUEVO MONTO SIN PERDER LA REFERENCIA A LAS LINEAS ORIGINALES
+        self.ensure_one()
+        new_line = self.copy({
+            'partner_id': self.partner_id.id,
+            'company_id': self.company_id.id,
+            'account_id': self.account_id.id,
+            'currency_id': self.currency_id.id,
+            'move_ids': [(6, 0, self.move_ids.ids)],
+            'move_line_ids': [(6, 0, self.move_line_ids.ids)],
+            'move_count': self.move_count,
+            'line_count': self.line_count,
+            'amount_total': 0.00,  # Se resetea el importe para la nueva línea
+            'move_names': self.move_names,
+            'journal_id': self.journal_id.id,
+            'product_id': self.product_id.id,
+            'partner_id_destination': self.partner_id_destination.id,
+            'company_id_destination': self.company_id_destination.id,
+            'amount_total_origin': self.amount_total_origin,
+        })
+        #CREAR LA NUEVA LINEA CON EL MISMO WIZARD_ID
+        new_line.wizard_id = self.wizard_id
+        return True
     
-    partner_id_destination = fields.Many2one(
-        'res.partner',
-        string='Cliente destino',
-    )
+    
+    @api.onchange('amount_total')
+    def _onchange_amount_total(self):
+        for record in self:
+            if record.amount_total < 0:
+                record.amount_total = 0.00
+            #Que no sobrepase el importe original sumando todas las lineas con el mismo partner_id y company_id
+            total_amount = sum(self.filtered(lambda l: l.partner_id == record.partner_id and l.company_id == record.company_id).mapped('amount_total'))
+            if total_amount > record.amount_total_origin:
+                raise UserError(_('El importe a facturar no puede ser mayor al importe original de %s %s.') % (record.amount_total_origin, record.currency_id.symbol))
+            
