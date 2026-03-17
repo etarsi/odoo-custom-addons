@@ -225,40 +225,41 @@ class ImportContainerExcelTaskWizard(models.TransientModel):
                 self.env['wms.task.line'].create(vals_line)
 
         # después de crear las líneas, actualizar el pendiente y demanda inicial de wms.transfer.line
-        for line in wms_task.task_line_ids:
-            transfer_line = self.env['wms.transfer.line'].search([
-                ('transfer_id', '=', self.wms_transfer_id.id),
-                ('product_id', '=', line.product_id.id)
-            ], limit=1)
+        for wms_task in self.wms_transfer_id.task_ids:
+            for line in wms_task.task_line_ids:
+                transfer_line = self.env['wms.transfer.line'].search([
+                    ('transfer_id', '=', self.wms_transfer_id.id),
+                    ('product_id', '=', line.product_id.id)
+                ], limit=1)
 
-            if transfer_line:
-                qty_to_discount = line.quantity or 0.0
-                qty_pending = transfer_line.qty_pending or 0.0
-                qty_demand = transfer_line.qty_demand or 0.0
-                # lo que se puede descontar del pending
-                new_qty_pending = max(qty_pending - qty_to_discount, 0.0)
-                # excedente que no entró en pending
-                overflow = max(qty_to_discount - qty_pending, 0.0)
-                # solo si hubo excedente, descuenta de demand
-                new_qty_demand = qty_demand
-                if overflow > 0:
-                    new_qty_demand = max(qty_demand + overflow, 0.0)
-                transfer_line.write({
-                    'qty_pending': new_qty_pending,
-                    'qty_demand': new_qty_demand,
-                })
-            else:
-                # Si no se encuentra línea de transferencia, la creamos
-                uxb = line.product_id.packaging_ids[0].qty if line.product_id.packaging_ids else 1
-                self.env['wms.transfer.line'].create({
-                    'transfer_id': self.wms_transfer_id.id,
-                    'product_id': line.product_id.id,
-                    'qty_pending': 0.0,
-                    'qty_demand': max(line.quantity or 0.0, 0.0),
-                    'invoice_state': 'no',
-                    'uxb': uxb,
-                    'bultos': line.quantity / uxb if uxb else 0.0,
-                })
+                if transfer_line:
+                    qty_to_discount = line.quantity or 0.0
+                    qty_pending = transfer_line.qty_pending or 0.0
+                    qty_demand = transfer_line.qty_demand or 0.0
+                    # lo que se puede descontar del pending
+                    new_qty_pending = max(qty_pending - qty_to_discount, 0.0)
+                    # excedente que no entró en pending
+                    overflow = max(qty_to_discount - qty_pending, 0.0)
+                    # solo si hubo excedente, descuenta de demand
+                    new_qty_demand = qty_demand
+                    if overflow > 0:
+                        new_qty_demand = max(qty_demand + overflow, 0.0)
+                    transfer_line.write({
+                        'qty_pending': new_qty_pending,
+                        'qty_demand': new_qty_demand,
+                    })
+                else:
+                    # Si no se encuentra línea de transferencia, la creamos
+                    uxb = line.product_id.packaging_ids[0].qty if line.product_id.packaging_ids else 1
+                    self.env['wms.transfer.line'].create({
+                        'transfer_id': self.wms_transfer_id.id,
+                        'product_id': line.product_id.id,
+                        'qty_pending': 0.0,
+                        'qty_demand': max(line.quantity or 0.0, 0.0),
+                        'invoice_state': 'no',
+                        'uxb': uxb,
+                        'bultos': line.quantity / uxb if uxb else 0.0,
+                    })
 
         # -------- 3) Volver mostrando los contenedores importados en tareas --------
         if not created_wms_task_ids:
