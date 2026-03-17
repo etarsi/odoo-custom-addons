@@ -8,40 +8,40 @@ class WMSTransfer(models.Model):
     _inherit=['mail.thread', 'mail.activity.mixin']
 
     name = fields.Char()
-    partner_id = fields.Many2one(string="Cliente", comodel_name="res.partner")
-    partner_address_id = fields.Many2one(string="Dirección de Entrega", comodel_name="res.partner")
+    partner_id = fields.Many2one(string="Cliente", comodel_name="res.partner", tracking=True)
+    partner_address_id = fields.Many2one(string="Dirección de Entrega", comodel_name="res.partner", tracking=True)
     operation_type = fields.Selection(string="Tipo de Operación", selection=[
         ('incoming', 'Ingreso'),
         ('return', 'Devolución'),
         ('internal', 'Interno'),
         ('outgoing', 'Entrega'),
-    ])
+    ], tracking=True)
     state = fields.Selection(string="Estado", selection=[
         ('no', 'No aplica'),
         ('pending', 'Pendiente'),
         ('process', 'En Proceso'),
         ('finished', 'Finalizada')
-    ], default='no')
-    sale_type = fields.Char(string="TIPO")
-    preselection_id = fields.Many2one(string="Preselección", comodel_name="wms.preselection")
-    sale_id = fields.Many2one(string="Pedido de Venta", comodel_name="sale.order")
-    purchase_id = fields.Many2one(string="Pedido de Compra", comodel_name="purchase.order")
+    ], default='no', tracking=True)
+    sale_type = fields.Char(string="TIPO", tracking=True)
+    preselection_id = fields.Many2one(string="Preselección", comodel_name="wms.preselection", tracking=True)
+    sale_id = fields.Many2one(string="Pedido de Venta", comodel_name="sale.order", tracking=True)
+    purchase_id = fields.Many2one(string="Pedido de Compra", comodel_name="purchase.order", tracking=True)
     invoice_ids = fields.One2many(string="Facturas", comodel_name="account.move", inverse_name="transfer_id")
     line_ids = fields.One2many(string="Líneas de  Transferencia", comodel_name="wms.transfer.line", inverse_name="transfer_id")
     available_line_ids = fields.One2many(string="Líneas de  Transferencia", comodel_name="wms.transfer.line", compute="_compute_available_line_ids")
     task_ids = fields.One2many(string="Tareas", comodel_name="wms.task", inverse_name="transfer_id")
     task_count = fields.Integer(string="Tareas", compute="_compute_task_count")
     lines_count = fields.Integer(string="Cantidad de Líneas", compute="_compute_lines_count")
-    origin = fields.Char(string="Documento")
-    company_id = fields.Many2one(string="Compañía", comodel_name="res.company")
+    origin = fields.Char(string="Documento", tracking=True)
+    company_id = fields.Many2one(string="Compañía", comodel_name="res.company", tracking=True)
     
 
     # partner_tag = fields.Many2many()
     # products_categ = fields.Many2many()
 
-    total_bultos = fields.Float(string="Bultos", compute="_compute_total_bultos", store=True)
-    total_bultos_prepared = fields.Float(string="Bultos Preparados", compute="_compute_total_bultos_prepared", store=True)
-    total_available_percentage = fields.Float(string="Porcentaje Disponible", compute="_compute_total_available_percentage", store=True)
+    total_bultos = fields.Float(string="Bultos", compute="_compute_total_bultos", store=True, tracking=True)
+    total_bultos_prepared = fields.Float(string="Bultos Preparados", compute="_compute_total_bultos_prepared", store=True, tracking=True)
+    total_available_percentage = fields.Float(string="Porcentaje Disponible", compute="_compute_total_available_percentage", store=True, tracking=True)
 
 
     @api.model

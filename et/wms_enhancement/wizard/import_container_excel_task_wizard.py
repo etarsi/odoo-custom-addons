@@ -2,6 +2,7 @@
 from odoo import api, fields, models, _
 from odoo.exceptions import UserError, ValidationError
 import base64, re
+from collections import defaultdict
 from io import BytesIO
 from openpyxl import load_workbook
 
@@ -224,54 +225,109 @@ class ImportContainerExcelTaskWizard(models.TransientModel):
             for vals_line in line_vals_to_create:
                 self.env['wms.task.line'].create(vals_line)
                 
-        #CREAR LA TRANSFER LINE LOS QUE NO ESTAN EN LAS TAREAS
-        for transfer_line in self.wms_transfer_id.task_ids:
-            for line in transfer_line.task_line_ids:
+            # --------------------------------------------------
+            # 1) AGRUPAR POR PRODUCTO
+            # --------------------------------------------------
+            product_map = {}
+
+            for wms_task in self.wms_transfer_id.task_ids:
+                for line in wms_task.task_line_ids:
+                    if not line.product_id:
+                        continue
+
+                    product_id = line.product_id.id
+                    if product_id not in product_map:
+                        product_map[product_id] = {
+                            'product': line.product_id,
+                            'total_qty': 0.0,
+                            'containers': set(),
+                        }
+
+                    product_map[product_id]['total_qty'] += (line.quantity or 0.0)
+
+                    if wms_task.container:
+                        product_map[product_id]['containers'].add(str(wms_task.container))
+
+
+            # --------------------------------------------------
+            # 2) CREAR LÍNEAS FALTANTES
+            # --------------------------------------------------
+            for product_id, data in product_map.items():
+                product = data['product']
+                total_qty = data['total_qty']
+
                 transfer_line = self.env['wms.transfer.line'].search([
                     ('transfer_id', '=', self.wms_transfer_id.id),
-                    ('product_id', '=', line.product_id.id)
+                    ('product_id', '=', product_id)
                 ], limit=1)
+
                 if not transfer_line:
-                    # Si no se encuentra línea de transferencia, la creamos y sumamos todas las cantidades del producto en las tareas para ese producto
-                    qty_demand = sum(l.quantity for t in self.wms_transfer_id.task_ids for l in t.task_line_ids if l.product_id.id == line.product_id.id)
-                    uxb = line.product_id.packaging_ids[0].qty if line.product_id.packaging_ids else 1
-                    
+                    uxb = product.packaging_ids[:1].qty if product.packaging_ids else 1.0
+
                     self.env['wms.transfer.line'].create({
                         'transfer_id': self.wms_transfer_id.id,
-                        'product_id': line.product_id.id,
+                        'product_id': product_id,
                         'qty_pending': 0.0,
-                        'qty_demand': qty_demand,
+                        'qty_demand': 0.0,   # solo la creamos, el cálculo final viene después
                         'invoice_state': 'no',
                         'state': 'pending',
                         'uxb': uxb,
-                        'bultos': qty_demand / uxb if uxb else 0.0,
+                        'bultos': (total_qty / uxb) if uxb else 0.0,
                     })
 
-        # después de crear las líneas, actualizar el pendiente y demanda inicial de wms.transfer.line
-        for wms_task in self.wms_transfer_id.task_ids:
-            for line in wms_task.task_line_ids:
-                transfer_line = self.env['wms.transfer.line'].search([
-                    ('transfer_id', '=', self.wms_transfer_id.id),
-                    ('product_id', '=', line.product_id.id)
-                ], limit=1)
 
-                if transfer_line:
-                    qty_to_discount = line.quantity or 0.0
-                    qty_pending = transfer_line.qty_pending or 0.0
-                    qty_demand = transfer_line.qty_demand or 0.0
-                    # lo que se puede descontar del pending
-                    new_qty_pending = max(qty_pending - qty_to_discount, 0.0)
-                    # excedente que no entró en pending
-                    overflow = max(qty_to_discount - qty_pending, 0.0)
-                    # solo si hubo excedente, descuenta de demand
-                    new_qty_demand = qty_demand
-                    if overflow > 0:
-                        new_qty_demand = qty_demand + overflow
+                # --------------------------------------------------
+                # 3) EDITAR UNA SOLA VEZ POR PRODUCTO
+                # --------------------------------------------------
+                for product_id, data in product_map.items():
+                    product = data['product']
+                    total_qty = data['total_qty']
+                    containers = ', '.join(sorted(data['containers'])) or '-'
+
+                    transfer_line = self.env['wms.transfer.line'].search([
+                        ('transfer_id', '=', self.wms_transfer_id.id),
+                        ('product_id', '=', product_id)
+                    ], limit=1)
+
+                    if not transfer_line:
+                        continue
+
+                    qty_pending_before = transfer_line.qty_pending or 0.0
+                    qty_demand_before = transfer_line.qty_demand or 0.0
+
+                    new_qty_pending = max(qty_pending_before - total_qty, 0.0)
+                    overflow = max(total_qty - qty_pending_before, 0.0)
+
+                    # según tu lógica, lo que excede pending pasa a demand
+                    new_qty_demand = qty_demand_before + overflow
+
+                    was_created = (qty_pending_before == 0.0 and qty_demand_before == 0.0)
+
                     transfer_line.write({
                         'qty_pending': new_qty_pending,
                         'qty_demand': new_qty_demand,
-                    })  
+                    })
 
+                    self.wms_transfer_id.message_post(body=_(
+                        "%s el producto <b>%s</b>.<br/>"
+                        "Cantidad importada total: <b>%s</b><br/>"
+                        "Pendiente antes: <b>%s</b><br/>"
+                        "Pendiente después: <b>%s</b><br/>"
+                        "Excedente enviado a demanda: <b>%s</b><br/>"
+                        "Demanda antes: <b>%s</b><br/>"
+                        "Demanda después: <b>%s</b><br/>"
+                        "Contenedor(es): <b>%s</b>"
+                    ) % (
+                        "Se creó/actualizó" if was_created else "Se actualizó",
+                        product.display_name,
+                        total_qty,
+                        qty_pending_before,
+                        new_qty_pending,
+                        overflow,
+                        qty_demand_before,
+                        new_qty_demand,
+                        containers,
+                    ))
         # -------- 3) Volver mostrando los contenedores importados en tareas --------
         if not created_wms_task_ids:
             raise UserError(_("No se creó ningún contenedor desde el archivo."))
