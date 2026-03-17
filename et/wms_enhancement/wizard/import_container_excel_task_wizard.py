@@ -243,22 +243,32 @@ class ImportContainerExcelTaskWizard(models.TransientModel):
                     # solo si hubo excedente, descuenta de demand
                     new_qty_demand = qty_demand
                     if overflow > 0:
-                        new_qty_demand = max(qty_demand + overflow, 0.0)
+                        new_qty_demand = qty_demand + overflow
                     transfer_line.write({
                         'qty_pending': new_qty_pending,
                         'qty_demand': new_qty_demand,
-                    })
-                else:
-                    # Si no se encuentra línea de transferencia, la creamos
+                    })  
+        #CREAR LA TRANSFER LINE LOS QUE NO ESTAN EN LAS TAREAS
+        for transfer_line in self.wms_transfer_id.task_ids:
+            for line in transfer_line.task_line_ids:
+                transfer_line = self.env['wms.transfer.line'].search([
+                    ('transfer_id', '=', self.wms_transfer_id.id),
+                    ('product_id', '=', line.product_id.id)
+                ], limit=1)
+                if not transfer_line:
+                    # Si no se encuentra línea de transferencia, la creamos y sumamos todas las cantidades del producto en las tareas para ese producto
+                    qty_demand = sum(l.quantity for t in self.wms_transfer_id.task_ids for l in t.task_line_ids if l.product_id.id == line.product_id.id)
                     uxb = line.product_id.packaging_ids[0].qty if line.product_id.packaging_ids else 1
+                    
                     self.env['wms.transfer.line'].create({
                         'transfer_id': self.wms_transfer_id.id,
                         'product_id': line.product_id.id,
                         'qty_pending': 0.0,
-                        'qty_demand': max(line.quantity or 0.0, 0.0),
+                        'qty_demand': qty_demand,
                         'invoice_state': 'no',
+                        'state': 'pending',
                         'uxb': uxb,
-                        'bultos': line.quantity / uxb if uxb else 0.0,
+                        'bultos': qty_demand / uxb if uxb else 0.0,
                     })
 
         # -------- 3) Volver mostrando los contenedores importados en tareas --------
