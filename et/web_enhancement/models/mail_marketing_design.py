@@ -192,7 +192,7 @@ class MailMarketingDesign(models.Model):
     def _compute_recipient_count(self):
         for rec in self:
             try:
-                domain = safe_eval("['|', '|', ('mail_alternative','!=',False), ('mail_alternative_b','!=',False), (''email','!=',False)]")
+                domain = safe_eval("['|', '|', ('mail_alternative','!=',False), ('mail_alternative_b','!=',False), ('email','!=',False)]")
                 domain = list(domain)
                 rec.recipient_count = self.env["res.partner"].search_count(domain)
             except Exception:
