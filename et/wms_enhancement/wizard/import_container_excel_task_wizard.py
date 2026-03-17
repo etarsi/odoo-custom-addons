@@ -223,6 +223,29 @@ class ImportContainerExcelTaskWizard(models.TransientModel):
 
             for vals_line in line_vals_to_create:
                 self.env['wms.task.line'].create(vals_line)
+                
+        #CREAR LA TRANSFER LINE LOS QUE NO ESTAN EN LAS TAREAS
+        for transfer_line in self.wms_transfer_id.task_ids:
+            for line in transfer_line.task_line_ids:
+                transfer_line = self.env['wms.transfer.line'].search([
+                    ('transfer_id', '=', self.wms_transfer_id.id),
+                    ('product_id', '=', line.product_id.id)
+                ], limit=1)
+                if not transfer_line:
+                    # Si no se encuentra línea de transferencia, la creamos y sumamos todas las cantidades del producto en las tareas para ese producto
+                    qty_demand = sum(l.quantity for t in self.wms_transfer_id.task_ids for l in t.task_line_ids if l.product_id.id == line.product_id.id)
+                    uxb = line.product_id.packaging_ids[0].qty if line.product_id.packaging_ids else 1
+                    
+                    self.env['wms.transfer.line'].create({
+                        'transfer_id': self.wms_transfer_id.id,
+                        'product_id': line.product_id.id,
+                        'qty_pending': 0.0,
+                        'qty_demand': qty_demand,
+                        'invoice_state': 'no',
+                        'state': 'pending',
+                        'uxb': uxb,
+                        'bultos': qty_demand / uxb if uxb else 0.0,
+                    })
 
         # después de crear las líneas, actualizar el pendiente y demanda inicial de wms.transfer.line
         for wms_task in self.wms_transfer_id.task_ids:
@@ -248,28 +271,6 @@ class ImportContainerExcelTaskWizard(models.TransientModel):
                         'qty_pending': new_qty_pending,
                         'qty_demand': new_qty_demand,
                     })  
-        #CREAR LA TRANSFER LINE LOS QUE NO ESTAN EN LAS TAREAS
-        for transfer_line in self.wms_transfer_id.task_ids:
-            for line in transfer_line.task_line_ids:
-                transfer_line = self.env['wms.transfer.line'].search([
-                    ('transfer_id', '=', self.wms_transfer_id.id),
-                    ('product_id', '=', line.product_id.id)
-                ], limit=1)
-                if not transfer_line:
-                    # Si no se encuentra línea de transferencia, la creamos y sumamos todas las cantidades del producto en las tareas para ese producto
-                    qty_demand = sum(l.quantity for t in self.wms_transfer_id.task_ids for l in t.task_line_ids if l.product_id.id == line.product_id.id)
-                    uxb = line.product_id.packaging_ids[0].qty if line.product_id.packaging_ids else 1
-                    
-                    self.env['wms.transfer.line'].create({
-                        'transfer_id': self.wms_transfer_id.id,
-                        'product_id': line.product_id.id,
-                        'qty_pending': 0.0,
-                        'qty_demand': qty_demand,
-                        'invoice_state': 'no',
-                        'state': 'pending',
-                        'uxb': uxb,
-                        'bultos': qty_demand / uxb if uxb else 0.0,
-                    })
 
         # -------- 3) Volver mostrando los contenedores importados en tareas --------
         if not created_wms_task_ids:
