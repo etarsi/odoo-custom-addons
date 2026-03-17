@@ -255,9 +255,10 @@ class AccountMoveBalanceTransferWizard(models.TransientModel):
                     })
                 ]
             }
-                
-            
-            created_invoices |= invoice
+            invoice_nc = self.env['account.move'].with_company(company_destination).create(credit_note_vals)
+            invoice_nc.action_post()
+            created_invoices |= invoice #| invoice_nc  # Agregamos ambas facturas al conjunto de creadas
+            created_invoices |= invoice_nc # Agregamos ambas facturas al conjunto de creadas
 
         if not created_invoices:
             raise UserError(_('No se creó ninguna factura.'))
