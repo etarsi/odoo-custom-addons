@@ -168,6 +168,10 @@ class ImportContainerExcelTaskWizard(models.TransientModel):
 
             start_row = header_for_block + 1
             end_row = cont_row - 1
+            
+            wms_task = self.env['wms.task'].search([('container', '=', cont_code)], limit=1)
+            if wms_task:
+                raise UserError(_("Ya existe una tarea con el contenedor '%s'. Verifique que el contenedor no esté repetido en el archivo o que no exista previamente en Odoo.") % cont_code)
 
             # ---- Crear contenedor ----
             vals_wms_task = {
@@ -177,7 +181,7 @@ class ImportContainerExcelTaskWizard(models.TransientModel):
                 'container': cont_code,
                 'partner_id': self.wms_transfer_id.partner_id.id if self.wms_transfer_id.partner_id else False, 
                 'partner_address_id': self.wms_transfer_id.partner_address_id.id if self.wms_transfer_id.partner_address_id else False,
-                'type': 'replenish',
+                'type': 'reception',
                 'transfer_id': self.wms_transfer_id.id if self.wms_transfer_id else False
             }
             wms_task = self.env['wms.task'].create(vals_wms_task)
@@ -201,13 +205,12 @@ class ImportContainerExcelTaskWizard(models.TransientModel):
                     missing_codes.append(sb_code)
                     continue
 
-                qty_bultos = ws.cell(row=r, column=col_ctns).value if col_ctns else 0
                 qty_cantidad = ws.cell(row=r, column=col_pcs).value if col_pcs else 0
-
+                qty_cantidad = self._to_float(qty_cantidad)
                 vals_line = {
                     'task_id': wms_task.id,
                     'product_id': product.id,
-                    'quantity': self._to_float(qty_cantidad),
+                    'quantity': qty_cantidad,
                 }
                 line_vals_to_create.append(vals_line)
 
@@ -220,6 +223,33 @@ class ImportContainerExcelTaskWizard(models.TransientModel):
 
             for vals_line in line_vals_to_create:
                 self.env['wms.task.line'].create(vals_line)
+
+        # después de crear las líneas, actualizar el pendiente y demanda inicial de wms.transfer.line
+        for line in wms_task.task_line_ids:
+            transfer_line = self.env['wms.transfer.line'].search([
+                ('transfer_id', '=', self.wms_transfer_id.id),
+                ('product_id', '=', line.product_id.id)
+            ], limit=1)
+
+            if transfer_line:
+                qty_to_discount = line.quantity or 0.0
+                qty_pending = transfer_line.qty_pending or 0.0
+                qty_demand = transfer_line.qty_demand or 0.0
+                # lo que se puede descontar del pending
+                new_qty_pending = max(qty_pending - qty_to_discount, 0.0)
+
+                # excedente que no entró en pending
+                overflow = max(qty_to_discount - qty_pending, 0.0)
+
+                # solo si hubo excedente, descuenta de demand
+                new_qty_demand = qty_demand
+                if overflow > 0:
+                    new_qty_demand = max(qty_demand + overflow, 0.0)
+
+                transfer_line.write({
+                    'qty_pending': new_qty_pending,
+                    'qty_demand': new_qty_demand,
+                })
 
         # -------- 3) Volver mostrando los contenedores importados en tareas --------
         if not created_wms_task_ids:
