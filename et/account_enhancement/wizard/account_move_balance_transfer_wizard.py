@@ -41,7 +41,8 @@ class AccountMoveBalanceTransferWizard(models.TransientModel):
             move_line_ids = data['move_line_ids']
             journal = data['journal']
             product = data['product']
-            amount_total, amount_total_origin = self._get_group_amount(move_line_ids, currency, company)
+            amount_total = self._get_group_amount(move_line_ids, currency, company)
+            amount_total_origin = amount_total
 
             if amount_total <= 0:
                 continue
