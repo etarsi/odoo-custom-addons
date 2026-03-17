@@ -101,7 +101,7 @@
                     <button name="action_create_task" type="object" string="Crear Tarea Total"/>
                     
                     <!--IMPORTAR CONTENEDORES DESDE EXCEL COMO TAREAS-->
-                    <button name="action_open_import_container_excel_task_wizard" type="object" string="Crear Tareas" class="oe_secondary"/>
+                    <button name="action_open_import_container_excel_task_wizard" type="object" string="Crear Tareas" class="oe_secondary" attrs="{'invisible': [('state', '!=', 'incoming')]}"/>
                 </header>
                 <sheet>
                     <div class="oe_button_box" name="button_box">

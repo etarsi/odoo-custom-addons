@@ -5,6 +5,7 @@ from odoo.tools.float_utils import float_compare
 
 class WMSTransfer(models.Model):
     _name = 'wms.transfer'
+    _inherit=['mail.thread', 'mail.activity.mixin']
 
     name = fields.Char()
     partner_id = fields.Many2one(string="Cliente", comodel_name="res.partner")

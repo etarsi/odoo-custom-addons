@@ -75,7 +75,7 @@ class WMSTask(models.Model):
         ('completed', 'Completo'),
         ('received', 'Recibido'),
         ('remitido', 'Remitido')
-    ])
+    ], default='no')
 
     ## recepcion
 
