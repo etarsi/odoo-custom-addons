@@ -202,11 +202,11 @@ class AccountMoveBalanceTransferWizard(models.TransientModel):
                 ) % journal.display_name)
 
             if wiz_line.move_names:
-                text_invoice = f'Ajuste y/o reclasificación se envía a: {wiz_line.move_names} - {partner_destination.name} - {company_destination.name}'
-                text_invoice_nc = f'Ajuste y/o reclasificación proviene de: {wiz_line.move_names} - {partner.name} - {company.name}'
+                text_invoice = f'Ajuste y/o reclasificación se envía desde: {wiz_line.move_names} a {partner_destination.name} en {company_destination.name}'
+                text_invoice_nc = f'Ajuste y/o reclasificación proviene desde: {wiz_line.move_names} a {partner.name} en {company.name}'
             else:
-                text_invoice = f'Ajuste y/o reclasificación sin referencia de movimientos - {partner_destination.name} - {company_destination.name}'
-                text_invoice_nc = f'Ajuste y/o reclasificación sin referencia de movimientos - {partner.name} - {company.name}'
+                text_invoice = f'Ajuste y/o reclasificación sin referencia de movimientos a {partner_destination.name} en {company_destination.name}'
+                text_invoice_nc = f'Ajuste y/o reclasificación sin referencia de movimientos a {partner.name} en {company.name}'
 
             invoice_vals = {
                 'move_type': 'out_invoice',
