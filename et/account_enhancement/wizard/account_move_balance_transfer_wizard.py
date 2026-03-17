@@ -230,15 +230,24 @@ class AccountMoveBalanceTransferWizard(models.TransientModel):
                 ]
             }
 
-            invoice = self.env['account.move'].with_company(company_destination).create(invoice_vals)
+            invoice = self.env['account.move'].with_company(company).create(invoice_vals)
             invoice.action_post()
-            
+
             # CREAR LA NOTA DE CREDITO CON EL MISMO VALOR PERO NEGATIVO PARA EL CLIENTE DESTINO
+            journal_destination = self.env['account.journal'].search([
+                        ('company_id', '=', company_destination.id),
+                        ('name', 'ilike', 'Reclasificacion'),
+                        ('type', '=', 'sale'),
+                    ], limit=1)
+            account_destination = self.env['account.account'].search([
+                        ('company_id', '=', company_destination.id),
+                        ('code', '=', '4.2.1.01.030'),
+                    ], limit=1)
             credit_note_vals = {
                 'move_type': 'out_refund',
                 'partner_id': partner_destination.id,
                 'company_id': company_destination.id,
-                'journal_id': journal.id,
+                'journal_id': journal_destination.id,
                 'currency_id': currency.id,
                 'invoice_date': fields.Date.context_today(self),
                 'invoice_line_ids': [
@@ -246,7 +255,7 @@ class AccountMoveBalanceTransferWizard(models.TransientModel):
                         'product_id': product.id,
                         'quantity': 1.0,
                         'price_unit': wiz_line.amount_total,  # Valor normal, Odoo lo convertirá a negativo automáticamente por ser una nota de crédito
-                        'account_id': account.id,
+                        'account_id': account_destination.id,
                         'tax_ids': [(6, 0, [])],
                     }),
                     (0, 0, {
