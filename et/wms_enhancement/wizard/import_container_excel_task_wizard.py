@@ -205,7 +205,7 @@ class ImportContainerExcelTaskWizard(models.TransientModel):
                 qty_cantidad = ws.cell(row=r, column=col_pcs).value if col_pcs else 0
 
                 vals_line = {
-                    'wms_task': wms_task.id,
+                    'task_id': wms_task.id,
                     'product_id': product.id,
                     'quantity': self._to_float(qty_cantidad),
                 }
