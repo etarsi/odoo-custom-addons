@@ -270,12 +270,12 @@ class AccountMoveBalanceTransferWizard(models.TransientModel):
         return action
 
 
-class AccountMoveRoundingInvoiceWizardLine(models.TransientModel):
-    _name = 'account.move.rounding.invoice.wizard.line'
+class AccountMoveBalanceTransferWizardLine(models.TransientModel):
+    _name = 'account.move.balance.transfer.wizard.line'
     _description = 'Wizard Line - Facturas de redondeo desde líneas contables'
 
     wizard_id = fields.Many2one(
-        'account.move.rounding.invoice.wizard',
+        'account.move.balance.transfer.wizard',
         required=True,
         ondelete='cascade'
     )
