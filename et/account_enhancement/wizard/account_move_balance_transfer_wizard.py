@@ -15,7 +15,7 @@ class AccountMoveBalanceTransferWizard(models.TransientModel):
         string='Líneas'
     )
     
-    amount_total_invoice = fields.Monetary(string='Importe total a facturar', currency_field='currency_id', compute='_compute_amount_total_invoice')
+    amount_total_invoice = fields.Monetary(string='Importe total a migrar', currency_field='currency_id', compute='_compute_amount_total_invoice')
     currency_id = fields.Many2one('res.currency', string='Moneda', compute='_compute_currency_id')
     
     @api.depends('line_ids.amount_total')
@@ -228,6 +228,7 @@ class AccountMoveBalanceTransferWizard(models.TransientModel):
                 'company_id': company.id,
                 'journal_id': journal.id,
                 'currency_id': currency.id,
+                'invoice_user_id': partner.user_id.id or self.env.uid,
                 'invoice_date': fields.Date.context_today(self),
                 'invoice_line_ids': [
                     (0, 0, {
@@ -263,6 +264,7 @@ class AccountMoveBalanceTransferWizard(models.TransientModel):
                 'company_id': company_destination.id,
                 'journal_id': journal_destination.id,
                 'currency_id': currency.id,
+                'invoice_user_id': partner_destination.user_id.id or self.env.uid,
                 'invoice_date': fields.Date.context_today(self),
                 'invoice_line_ids': [
                     (0, 0, {

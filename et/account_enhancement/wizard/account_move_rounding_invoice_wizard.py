@@ -206,6 +206,7 @@ class AccountMoveRoundingInvoiceWizard(models.TransientModel):
                 'company_id': company.id,
                 'journal_id': journal.id,
                 'currency_id': currency.id,
+                'invoice_user_id': partner.user_id.id or self.env.uid,
                 'invoice_date': fields.Date.context_today(self),
                 'invoice_line_ids': [
                     (0, 0, {
