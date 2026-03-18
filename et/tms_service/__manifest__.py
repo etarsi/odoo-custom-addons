@@ -25,6 +25,7 @@
 
     # always loaded
     'data': [
+        'data/tms_security.xml',
         'security/ir.model.access.csv',
         'data/tms_sequences.xml',
         'data/tms_stock_picking_server_actions.xml',

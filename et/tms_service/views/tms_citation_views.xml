@@ -36,13 +36,17 @@
         <field name="arch" type="xml">
             <form string="Citación">
                 <header>
-                    <button name="action_post" type="object" string="Confirmar" class="btn-secondary" attrs="{'invisible': [('state', '!=', 'draft')]}"/>
-                    <button name="action_completed" type="object" string="Completar Citación" class="btn-success" attrs="{'invisible': [('state', '!=', 'pending')]}"/>
-                    <button name="action_cancel" type="object" string="Cancelar Citación" class="btn-danger" attrs="{'invisible': [('state', '=', 'canceled')]}" confirm="¿Está seguro de que desea cancelar esta citación?"/>
-                    <button name="action_draft" type="object" string="Revertir a Borrador" class="btn-secondary" attrs="{'invisible': [('state', '!=', 'canceled')]}" confirm="¿Está seguro de que desea revertir esta citación a borrador?"/>
-                    <field name="state"
-                           widget="statusbar"
-                           statusbar_visible="draft,pending,completed"/>
+                    <button name="action_post" type="object" string="Confirmar" class="btn-secondary"
+                            attrs="{'invisible': [('state', '!=', 'draft')]}"/>
+                    <button name="action_completed" type="object" string="Completar Citación" class="btn-success"
+                            attrs="{'invisible': [('state', '!=', 'pending')]}"/>
+                    <button name="action_cancel" type="object" string="Cancelar Citación" class="btn-danger"
+                            attrs="{'invisible': [('state', '=', 'canceled')]}"
+                            confirm="¿Está seguro de que desea cancelar esta citación?"/>
+                    <button name="action_draft" type="object" string="Revertir a Borrador" class="btn-secondary"
+                            attrs="{'invisible': [('state', '!=', 'canceled')]}"
+                            confirm="¿Está seguro de que desea revertir esta citación a borrador?"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,pending,completed"/>
                 </header>
 
                 <sheet>
@@ -51,30 +55,96 @@
                             <field name="name" readonly="1"/>
                         </h1>
                     </div>
+
                     <group>
                         <group>
-                            <field name="empresa_id" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
-                            <field name="transport_id" domain="[('active', '=', True), ('delivery_carrier_id', '=', empresa_id)]" 
-                                    attrs="{'readonly': [('state', '!=', 'draft')]}"/>
-                            <field name="transport_type_id" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
-                            <field name="patente_tractor" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
-                            <field name="patente_semi" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
-                            <field name="service_id" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
-                            <field name="area" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
-                            <field name="hiring_id" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+
+                            <!-- EMPRESA -->
+                            <field name="empresa_id"
+                                groups="base.group_user,!tms_service.group_tms_admin"
+                                attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                            <field name="empresa_id"
+                                groups="tms_service.group_tms_admin"/>
+
+                            <!-- VEHICULO -->
+                            <field name="transport_id"
+                                groups="base.group_user,!tms_service.group_tms_admin"
+                                domain="[('active', '=', True), ('delivery_carrier_id', '=', empresa_id)]"
+                                attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                            <field name="transport_id"
+                                groups="tms_service.group_tms_admin"
+                                domain="[('active', '=', True), ('delivery_carrier_id', '=', empresa_id)]"/>
+
+                            <!-- TIPO VEHICULO -->
+                            <field name="transport_type_id"
+                                groups="base.group_user,!tms_service.group_tms_admin"
+                                attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                            <field name="transport_type_id"
+                                groups="tms_service.group_tms_admin"/>
+
+                            <!-- PATENTES -->
+                            <field name="patente_tractor"
+                                groups="base.group_user,!tms_service.group_tms_admin"
+                                attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                            <field name="patente_tractor"
+                                groups="tms_service.group_tms_admin"/>
+
+                            <field name="patente_semi"
+                                groups="base.group_user,!tms_service.group_tms_admin"
+                                attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                            <field name="patente_semi"
+                                groups="tms_service.group_tms_admin"/>
+
+                            <!-- SERVICIO / AREA / CONTRATO -->
+                            <field name="service_id"
+                                groups="base.group_user,!tms_service.group_tms_admin"
+                                attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                            <field name="service_id"
+                                groups="tms_service.group_tms_admin"/>
+
+                            <field name="area"
+                                groups="base.group_user,!tms_service.group_tms_admin"
+                                attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                            <field name="area"
+                                groups="tms_service.group_tms_admin"/>
+
+                            <field name="hiring_id"
+                                groups="base.group_user,!tms_service.group_tms_admin"
+                                attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                            <field name="hiring_id"
+                                groups="tms_service.group_tms_admin"/>
+
                         </group>
 
                         <group>
                             <field name="date" widget="date"/>
                             <field name="mes" readonly="1"/>
-                            <field name="hour_citation" widget="float_time" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
-                            <field name="hour_arrival" widget="float_time" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
-                            <field name="total_bulk"/>
-                            <field name="total_bulk_verified"/>
-                            <field name="percentage_verified" widget="progressbar" options="{'max_value': 100}"/>
+
+                            <!-- HORAS -->
+                            <field name="hour_citation"
+                                widget="float_time"
+                                groups="base.group_user,!tms_service.group_tms_admin"
+                                attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                            <field name="hour_citation"
+                                widget="float_time"
+                                groups="tms_service.group_tms_admin"/>
+
+                            <field name="hour_arrival"
+                                widget="float_time"
+                                groups="base.group_user,!tms_service.group_tms_admin"
+                                attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                            <field name="hour_arrival"
+                                widget="float_time"
+                                groups="tms_service.group_tms_admin"/>
+
+                            <field name="total_bulk" readonly="1"/>
+                            <field name="total_bulk_verified" readonly="1"/>
+                            <field name="percentage_verified" widget="progressbar" options="{'max_value': 100}" readonly="1"/>
                             <field name="amount_service"/>
+
                         </group>
                     </group>
+
                     <notebook>
                         <page name="tms_roadmap_ids_page" string="Hojas de Ruta">
                             <group>
@@ -84,7 +154,12 @@
                                         class="btn-secondary"/>
                             </group>
 
-                            <field name="tms_roadmap_ids" context="{'default_citation_id': active_id}" mode="tree,form" attrs="{'readonly': [('state', '!=', 'draft')]}">
+                            <!-- NORMAL: readonly si no draft -->
+                            <field name="tms_roadmap_ids"
+                                groups="base.group_user,!tms_service.group_tms_admin"
+                                context="{'default_citation_id': active_id}"
+                                mode="tree,form"
+                                attrs="{'readonly': [('state', '!=', 'draft')]}">
                                 <tree string="Hojas de Ruta" delete="false">
                                     <field name="name"/>
                                     <field name="state" invisible="1"/>
@@ -93,7 +168,6 @@
                                     <field name="total_bulk_defendant"/>
                                     <field name="total_bulk_picking"/>
                                     <field name="total_lvl_compliance" widget="progressbar" options="{'max_value': 100}"/>
-                                    <!-- Botón por línea -->
                                     <button name="action_unlink_roadmap"
                                             type="object"
                                             string="Desvincular"
@@ -103,13 +177,47 @@
                                             attrs="{'invisible': [('state', 'in', ['canceled', 'completed'])]}"/>
                                 </tree>
                             </field>
+
+                            <!-- ADMIN: editable siempre -->
+                            <field name="tms_roadmap_ids"
+                                groups="tms_service.group_tms_admin"
+                                context="{'default_citation_id': active_id}"
+                                mode="tree,form">
+                                <tree string="Hojas de Ruta" delete="false">
+                                    <field name="name"/>
+                                    <field name="state" invisible="1"/>
+                                    <field name="in_ruta"/>
+                                    <field name="industry_ids" widget="many2many_tags"/>
+                                    <field name="total_bulk_defendant"/>
+                                    <field name="total_bulk_picking"/>
+                                    <field name="total_lvl_compliance" widget="progressbar" options="{'max_value': 100}"/>
+                                    <button name="action_unlink_roadmap"
+                                            type="object"
+                                            string="Desvincular"
+                                            icon="fa-unlink"
+                                            class="btn-link"
+                                            confirm="¿Desvincular esta hoja de ruta de la citación?"
+                                            attrs="{'invisible': [('state', 'in', ['canceled', 'completed'])]}"/>
+                                </tree>
+                            </field>
+
                         </page>
+
                         <page string="Observaciones" name="observations_page">
-                            <field name="observations" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+
+                            <!-- NORMAL -->
+                            <field name="observations"
+                                groups="base.group_user,!tms_service.group_tms_admin"
+                                attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+
+                            <!-- ADMIN -->
+                            <field name="observations"
+                                groups="tms_service.group_tms_admin"/>
+
                         </page>
                     </notebook>
                 </sheet>
-                <!-- Chatter -->
+
                 <div class="oe_chatter">
                     <field name="message_follower_ids" groups="base.group_user"/>
                     <field name="activity_ids"/>
@@ -118,6 +226,7 @@
             </form>
         </field>
     </record>
+
 
     <!-- SEARCH -->
     <record id="view_tms_citation_search" model="ir.ui.view">
