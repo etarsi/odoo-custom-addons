@@ -117,7 +117,13 @@
                                             string="Cancelar Envío"
                                             icon="fa-unlink"
                                             class="btn-link"
-                                            confirm="¿Cancelar esta línea de Hoja de Ruta?"
+                                            confirm="Deseas Cancelar esta línea de Hoja de Ruta?"
+                                            attrs="{'invisible': [('is_canceled', '=', True)]}"/>
+                                    <button name="unlink_roadmap_line"
+                                            type="object"
+                                            icon="fa-trash"
+                                            class="btn-link"
+                                            confirm="Deseas Eliminar esta línea de Hoja de Ruta?"
                                             attrs="{'invisible': [('is_canceled', '=', True)]}"/>
                                 </tree>
                             </field>

@@ -251,6 +251,11 @@ class TmsRoadmapLine(models.Model):
             rec.is_canceled = True
         return True
 
+    def unlink_roadmap_line(self):
+        for rec in self:
+            rec.unlink()
+        return True
+
     @api.depends("bulk_defendant", "bulk_picking")
     def _compute_lvl_compliance(self):
         for rec in self:
