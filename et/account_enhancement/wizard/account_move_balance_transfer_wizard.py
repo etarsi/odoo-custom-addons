@@ -14,6 +14,20 @@ class AccountMoveBalanceTransferWizard(models.TransientModel):
         'wizard_id',
         string='Líneas'
     )
+    
+    amount_total_invoice = fields.Monetary(string='Importe total a facturar', currency_field='currency_id', compute='_compute_amount_total_invoice')
+    currency_id = fields.Many2one('res.currency', string='Moneda', compute='_compute_currency_id')
+    
+    @api.depends('line_ids.amount_total')
+    def _compute_amount_total_invoice(self):
+        for record in self:
+            record.amount_total_invoice = sum(record.line_ids.mapped('amount_total'))
+    
+    @api.depends('line_ids.currency_id')
+    def _compute_currency_id(self):
+        for record in self:
+            currencies = record.line_ids.mapped('currency_id')
+            record.currency_id = currencies[0] if currencies else None
 
     @api.model
     def default_get(self, fields_list):
