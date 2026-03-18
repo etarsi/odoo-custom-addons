@@ -323,6 +323,7 @@ class AccountMoveBalanceTransferWizardLine(models.TransientModel):
                 record.amount_total = 0.00
             #Que no sobrepase el importe original sumando todas las lineas con el mismo partner_id y company_id
             total_amount = sum(self.filtered(lambda l: l.partner_id == record.partner_id and l.company_id == record.company_id).mapped('amount_total'))
+            _logger.info(f"Validando importe total para partner {record.partner_id.name} en compañía {record.company_id.name}: {total_amount} (límite: {record.amount_total_origin})")
             if total_amount > record.amount_total_origin:
                 raise UserError(_('El importe a facturar no puede ser mayor al importe original de %s %s.') % (record.amount_total_origin, record.currency_id.symbol))
             
