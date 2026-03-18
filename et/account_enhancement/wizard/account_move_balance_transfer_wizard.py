@@ -80,7 +80,8 @@ class AccountMoveBalanceTransferWizard(models.TransientModel):
 
         if not line_commands:
             raise UserError(_('No hay agrupaciones válidas para procesar.'))
-
+        res['amount_total_invoice'] = sum(cmd[2]['amount_total'] for cmd in line_commands)
+        res['currency_id'] = line_commands[0][2]['currency_id'] if line_commands else None
         res['line_ids'] = line_commands
         return res
 
