@@ -258,7 +258,7 @@ class MailMarketingDesign(models.Model):
             queued = 0
 
             for p in partners:
-                email_to = p.mail_alternative or p.mail_alternative_b or p.email
+                email_to = p.mail_alternative or p.mail_alternative_b
                 email_to = (email_to or '').strip()
 
                 # validar email simple
@@ -268,7 +268,7 @@ class MailMarketingDesign(models.Model):
                     continue
 
                 # Renderiza el template para ese partner, pero SIN enviarlo
-                values = rec.template_id.generate_email(p.id)
+                values = rec.template_id.generate_email(p.id, ['subject', 'body_html', 'email_from', 'reply_to', 'email_cc'])
 
                 mail_values = {
                     'subject': values.get('subject') or '',
