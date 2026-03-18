@@ -258,7 +258,7 @@ class MailMarketingDesign(models.Model):
             queued = 0
 
             for p in partners:
-                email_to = p.mail_alternative or p.mail_alternative_b
+                email_to = p.mail_alternative or p.mail_alternative_b or p.email
                 email_to = (email_to or '').strip()
 
                 # validar email simple
