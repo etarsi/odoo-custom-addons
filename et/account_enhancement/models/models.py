@@ -678,7 +678,25 @@ class AccountMoveLineInherit(models.Model):
                     sql_sale_order = "UPDATE sale_order_line SET product_id = %s, name = %s WHERE id = %s"
                     self.env.cr.execute(sql_sale_order, (product_replace.id, name_product, self.sale_line_ids.id))
             else:
-                raise ValidationError(f'No se encontró producto de reemplazo con código {search_code} para el producto {self.product_id.default_code}')      
+                raise ValidationError(f'No se encontró producto de reemplazo con código {search_code} para el producto {self.product_id.default_code}')     
+            
+    def action_open_balance_transfer_wizard(self):
+        action = self.env.ref(
+            'account_enhancement.action_account_move_line_balance_transfer_wizard'
+        ).read()[0]
+
+        wizard = self.env['account.move.balance.transfer.wizard'].with_context(
+            active_model='account.move.line',
+            active_ids=self.ids,
+        ).create({})
+
+        action.update({
+            'res_id': wizard.id,
+            'target': 'new',
+            'view_mode': 'form',
+        })
+        return action
+ 
                         
 class WmsCode(models.Model):
     _name = "wms.code"
@@ -707,23 +725,6 @@ class AccountPaymentInherit(models.TransientModel):
         res['journal_id'] = checks[0].l10n_latam_check_current_journal_id.id
         return res
     
-    def action_open_balance_transfer_wizard(self):
-        action = self.env.ref(
-            'account_enhancement.action_account_move_line_balance_transfer_wizard'
-        ).read()[0]
-
-        wizard = self.env['account.move.balance.transfer.wizard'].with_context(
-            active_model='account.move.line',
-            active_ids=self.ids,
-        ).create({})
-
-        action.update({
-            'res_id': wizard.id,
-            'target': 'new',
-            'view_mode': 'form',
-        })
-        return action
-
 class AccountMoveReversalInherit(models.TransientModel):
     _inherit = 'account.move.reversal'
 
