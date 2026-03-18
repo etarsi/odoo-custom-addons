@@ -10,6 +10,7 @@
                 <field name="name"/>
                 <field name="account_id"/>
                 <field name="product_id"/>
+                <field name="ref" filter_domain="[('ref', 'ilike', self)]"/>
                 <separator/>
                 <group expand="0" string="Agrupar Por">
                     <filter string="Asiento Contable" name="account_move_id" context="{'group_by': 'move_id'}"/>
