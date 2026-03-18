@@ -178,6 +178,8 @@ class AccountMoveBalanceTransferWizard(models.TransientModel):
         created_invoices = self.env['account.move']
 
         for wiz_line in self.line_ids.filtered(lambda l: l.amount_total > 0):
+            #validar el importe a facturar
+            wiz_line._onchange_amount_total()  # Esto lanzará un UserError si el importe no es válido
             company = wiz_line.company_id
             partner = wiz_line.partner_id
             account = wiz_line.account_id
