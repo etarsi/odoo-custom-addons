@@ -180,7 +180,7 @@ class MailMarketingDesign(models.Model):
     def _get_recipients(self):
         self.ensure_one()
         try:
-            domain = safe_eval("['|', ('mail_alternative','!=',False), ('mail_alternative_b','!=',False)]")
+            domain = safe_eval("['|', '|', ('mail_alternative','!=',False), ('mail_alternative_b','!=',False), ('email','!=',False)]")
         except Exception as e:
             raise UserError(_("Dominio inválido: %s") % e)
 
@@ -244,7 +244,9 @@ class MailMarketingDesign(models.Model):
         return f"\"{name}\" <{email}>"
 
     def action_send_mail(self):
-        """Envía a todos los partners que matchean el domain. No wizard."""
+        """Encola correos sin registrar mensaje en el chatter del partner."""
+        total_queued = 0
+
         for rec in self:
             if not rec.template_id:
                 rec.action_sync_template()
@@ -253,29 +255,50 @@ class MailMarketingDesign(models.Model):
             if not partners:
                 raise UserError(_("No hay destinatarios con ese filtro."))
 
-            sent = 0
-            # Encola mails (no force_send) para que los mande el scheduler/queue
+            queued = 0
+
             for p in partners:
-                rec.template_id.send_mail(
-                    p.id,
-                    force_send=True,
-                    email_values={
-                        # opcional: override dinámicos por envío
-                        "email_to": p.mail_alternative or p.mail_alternative_b,
-                        "email_from": rec._get_email_from_header(),
-                        "mail_server_id": rec.mail_from_id.id,
-                    },
-                    raise_exception=False,
-                )
-                sent += 1
+                email_to = p.mail_alternative or p.mail_alternative_b or p.email
+                email_to = (email_to or '').strip()
+
+                # validar email simple
+                if not email_to:
+                    continue
+                if not re.match(r'^[^@\s]+@[^@\s]+\.[^@\s]+$', email_to):
+                    continue
+
+                # Renderiza el template para ese partner, pero SIN enviarlo
+                values = rec.template_id.generate_email(p.id)
+
+                mail_values = {
+                    'subject': values.get('subject') or '',
+                    'body_html': values.get('body_html') or '',
+                    'email_to': email_to,
+                    'email_from': rec._get_email_from_header() or values.get('email_from') or False,
+                    'reply_to': values.get('reply_to') or False,
+                    'email_cc': values.get('email_cc') or False,
+                    'attachment_ids': [(6, 0, values.get('attachment_ids', []))],
+                    'mail_server_id': rec.mail_from_id.id if rec.mail_from_id else False,
+                    'auto_delete': True,
+
+                    # CLAVE: no vincular al partner => no chatter
+                    'model': False,
+                    'res_id': False,
+                }
+
+                self.env['mail.mail'].create(mail_values)
+                queued += 1
+
             rec.last_sent = fields.Datetime.now()
-            rec.sent_qty = (rec.sent_qty or 0) + sent
+            rec.sent_qty = (rec.sent_qty or 0) + queued
+            total_queued += queued
+
         return {
             "type": "ir.actions.client",
             "tag": "display_notification",
             "params": {
-                "title": _("¡Envío en proceso!"),
-                "message": _("Los correos se están enviando en segundo plano. Total destinatarios: %s") % sent,
+                "title": _("Envío en cola"),
+                "message": _("Se encolaron %s correos para envío en segundo plano.") % total_queued,
                 "sticky": False,
             },
         }

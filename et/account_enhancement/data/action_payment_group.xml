@@ -22,6 +22,15 @@ action = records._forzar_reemplazo_product_id_con_nueve()
         </field>
     </record>
 
+    <record id="server_action_account_move_line_balance_transfer_wizard" model="ir.actions.server">
+        <field name="name">Transferencia de Saldo</field>
+        <field name="model_id" ref="account.model_account_move_line"/>
+        <field name="binding_model_id" ref="account.model_account_move_line"/>
+        <field name="binding_view_types">list</field>
+        <field name="state">code</field>
+        <field name="code">action = records.action_open_balance_transfer_wizard()</field>
+    </record>
+
     <record id="action_forzar_reemplazo_product_id_sin_nueve" model="ir.actions.server">
         <field name="name">Corrección FC sin 9</field>
         <field name="model_id" ref="account.model_account_move_line"/>

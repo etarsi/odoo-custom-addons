@@ -707,6 +707,22 @@ class AccountPaymentInherit(models.TransientModel):
         res['journal_id'] = checks[0].l10n_latam_check_current_journal_id.id
         return res
     
+    def action_open_balance_transfer_wizard(self):
+        action = self.env.ref(
+            'account_enhancement.action_account_move_line_balance_transfer_wizard'
+        ).read()[0]
+
+        wizard = self.env['account.move.balance.transfer.wizard'].with_context(
+            active_model='account.move.line',
+            active_ids=self.ids,
+        ).create({})
+
+        action.update({
+            'res_id': wizard.id,
+            'target': 'new',
+            'view_mode': 'form',
+        })
+        return action
 
 class AccountMoveReversalInherit(models.TransientModel):
     _inherit = 'account.move.reversal'

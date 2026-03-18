@@ -39,7 +39,5 @@
         <field name="view_mode">form</field>
         <field name="view_id" ref="view_account_move_balance_transfer_wizard_form"/>
         <field name="target">new</field>
-        <field name="binding_model_id" ref="account.model_account_move_line"/>
-        <field name="binding_view_types">list</field>
     </record>
 </odoo>

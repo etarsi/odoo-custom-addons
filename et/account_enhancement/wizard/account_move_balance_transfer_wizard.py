@@ -301,28 +301,17 @@ class AccountMoveBalanceTransferWizardLine(models.TransientModel):
 
     
     def action_duplicate_line(self):
-        #DUPLICAR LA LINEA Y CREARLA CON LOS MISMOS VALORES PERO CON EL IMPORTE EN 0 PARA PODER FACTURAR UN NUEVO MONTO SIN PERDER LA REFERENCIA A LAS LINEAS ORIGINALES
         self.ensure_one()
-        new_line = self.copy({
-            'partner_id': self.partner_id.id,
-            'company_id': self.company_id.id,
-            'account_id': self.account_id.id,
-            'currency_id': self.currency_id.id,
-            'move_ids': [(6, 0, self.move_ids.ids)],
-            'move_line_ids': [(6, 0, self.move_line_ids.ids)],
-            'move_count': self.move_count,
-            'line_count': self.line_count,
-            'amount_total': 0.00,  # Se resetea el importe para la nueva línea
-            'move_names': self.move_names,
-            'journal_id': self.journal_id.id,
-            'product_id': self.product_id.id,
-            'partner_id_destination': self.partner_id_destination.id,
-            'company_id_destination': self.company_id_destination.id,
-            'amount_total_origin': self.amount_total_origin,
+        self.copy({
+            'amount_total': 0.0,
         })
-        #CREAR LA NUEVA LINEA CON EL MISMO WIZARD_ID
-        new_line.wizard_id = self.wizard_id
-        return True
+        return {
+            'type': 'ir.actions.act_window',
+            'res_model': 'account.move.balance.transfer.wizard',
+            'res_id': self.wizard_id.id,
+            'view_mode': 'form',
+            'target': 'new',
+        }
     
     
     @api.onchange('amount_total')
