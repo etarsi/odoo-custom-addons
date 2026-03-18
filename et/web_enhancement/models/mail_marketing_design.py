@@ -180,7 +180,16 @@ class MailMarketingDesign(models.Model):
     def _get_recipients(self):
         self.ensure_one()
         try:
-            domain = safe_eval("['|', '|', ('mail_alternative','!=',False), ('mail_alternative_b','!=',False), ('email','!=',False)]")
+            domain = safe_eval("""
+            [
+                '&',
+                ('customer_rank', '>', 0),
+                '|', '|',
+                ('mail_alternative', '!=', False),
+                ('mail_alternative_b', '!=', False),
+                ('email', '!=', False)
+            ]
+            """)
         except Exception as e:
             raise UserError(_("Dominio inválido: %s") % e)
 
@@ -258,7 +267,7 @@ class MailMarketingDesign(models.Model):
             queued = 0
 
             for p in partners:
-                email_to = p.mail_alternative or p.mail_alternative_b # or p.email
+                email_to = p.mail_alternative or p.mail_alternative_b
                 email_to = (email_to or '').strip()
 
                 # validar email simple
