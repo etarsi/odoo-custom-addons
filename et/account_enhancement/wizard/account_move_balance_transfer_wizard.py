@@ -316,14 +316,38 @@ class AccountMoveBalanceTransferWizardLine(models.TransientModel):
         }
     
     
-    @api.onchange('amount_total')
+    @api.onchange('amount_total', 'partner_id', 'company_id')
     def _onchange_amount_total(self):
         for record in self:
             if record.amount_total < 0:
-                record.amount_total = 0.00
-            #Que no sobrepase el importe original sumando todas las lineas con el mismo partner_id y company_id
-            total_amount = sum(self.filtered(lambda l: l.partner_id == record.partner_id and l.company_id == record.company_id).mapped('amount_total'))
-            _logger.info(f"Validando importe total para partner {record.partner_id.name} en compañía {record.company_id.name}: {total_amount} (límite: {record.amount_total_origin})")
+                record.amount_total = 0.0
+
+            if not record.wizard_id or not record.partner_id or not record.company_id:
+                continue
+
+            same_lines = record.wizard_id.line_ids.filtered(
+                lambda l: l.partner_id == record.partner_id
+                and l.company_id == record.company_id
+            )
+
+            total_amount = sum(same_lines.mapped('amount_total'))
+
+            _logger.info(
+                "Validando importe total para partner %s en compañía %s: %s (límite: %s)",
+                record.partner_id.name,
+                record.company_id.name,
+                total_amount,
+                record.amount_total_origin,
+            )
+
             if total_amount > record.amount_total_origin:
-                raise UserError(_('El importe a facturar no puede ser mayor al importe original de %s %s.') % (record.amount_total_origin, record.currency_id.symbol))
-            
+                record.amount_total = 0.0
+                raise UserError(_(
+                    'El importe total entre las líneas del cliente %s en la compañía %s '
+                    'no puede ser mayor a %s %s.'
+                ) % (
+                    record.partner_id.display_name,
+                    record.company_id.display_name,
+                    record.amount_total_origin,
+                    record.currency_id.symbol or ''
+                ))
