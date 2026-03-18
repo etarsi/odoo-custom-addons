@@ -329,17 +329,7 @@ class AccountMoveBalanceTransferWizardLine(models.TransientModel):
                 lambda l: l.partner_id == record.partner_id
                 and l.company_id == record.company_id
             )
-
             total_amount = sum(same_lines.mapped('amount_total'))
-
-            _logger.info(
-                "Validando importe total para partner %s en compañía %s: %s (límite: %s)",
-                record.partner_id.name,
-                record.company_id.name,
-                total_amount,
-                record.amount_total_origin,
-            )
-
             if total_amount > record.amount_total_origin:
                 record.amount_total = 0.0
                 raise UserError(_(
