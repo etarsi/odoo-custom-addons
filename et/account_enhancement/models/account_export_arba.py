@@ -102,37 +102,71 @@ class AccountExportArba(models.Model):
             raise ValidationError(_("El CUIT '%s' no tiene 11 dígitos.") % (vat,))
         return '%s-%s-%s' % (digits[:2], digits[2:10], digits[10:11])
 
-    def _split_document_number(self, doc_number):
-        """
-        Espera algo tipo 0001-00001234 y devuelve:
-        sucursal=00001, emisión=00001234
-        """
-        raw = doc_number or ''
+    def _split_arba_document_number(self, move):
+        raw = move.l10n_latam_document_number or ''
         nums = re.findall(r'\d+', raw)
 
         if len(nums) >= 2:
-            sucursal = nums[-2]
-            emision = nums[-1]
-        else:
-            digits = re.sub(r'[^0-9]', '', raw)
-            if len(digits) >= 12:
-                sucursal = digits[:-8]
-                emision = digits[-8:]
-            elif len(digits) >= 8:
-                sucursal = '0'
-                emision = digits[-8:]
-            else:
-                raise ValidationError(_("No se pudo interpretar el número de comprobante '%s'.") % raw)
+            sucursal = str(int(nums[-2])).zfill(5)
+            emision = str(int(nums[-1])).zfill(8)
+            return sucursal, emision
 
-        sucursal = str(int(sucursal)).zfill(5)
-        emision = str(int(emision)).zfill(8)
+        raise ValidationError(_(
+            'No se pudo separar sucursal y emisión del comprobante "%s" (%s).'
+        ) % (move.display_name, raw))
 
-        if int(sucursal) <= 0:
-            raise ValidationError(_("La sucursal del comprobante '%s' debe ser mayor a cero.") % raw)
-        if int(emision) <= 0:
-            raise ValidationError(_("La emisión del comprobante '%s' debe ser mayor a cero.") % raw)
+    def _get_arba_tipo_comp_y_letra(self, move):
+        """
+        Devuelve:
+        tipo_comp ARBA: F/E/C/H/D/I/R
+        letra: A/B/C o ' '
+        """
+        doc = move.l10n_latam_document_type_id
+        if not doc:
+            raise ValidationError(_("El asiento %s no tiene tipo de documento.") % move.display_name)
 
-        return sucursal, emision
+        name = (doc.name or '').upper().strip()
+        prefix = (doc.doc_code_prefix or '').upper().strip()
+        internal_type = doc.internal_type
+        letter = (doc.l10n_ar_letter or ' ').strip() or ' '
+
+        # En la versión base de ARBA común, trabajamos sólo con A/B/C o blanco
+        if letter not in ['A', 'B', 'C']:
+            # para M, E, I, etc. mejor bloquear hasta definir regla
+            raise ValidationError(_(
+                'El comprobante "%s" tiene letra "%s" y no está contemplado en la exportación ARBA común.'
+            ) % (doc.display_name, letter))
+
+        # FACTURAS
+        if internal_type == 'invoice':
+            # Factura de crédito electrónica MiPyME
+            if 'FCE' in prefix or 'ELECTRONICA' in name:
+                return 'E', letter
+
+            # Factura común
+            if 'FACTURA' in name:
+                return 'F', letter
+
+            # Recibo
+            if 'RECIBO' in name:
+                return 'R', letter
+
+        # NOTAS DE CREDITO
+        elif internal_type == 'credit_note':
+            if 'NCE' in prefix or 'ELECTRONICA' in name:
+                return 'H', letter
+            return 'C', letter
+
+        # NOTAS DE DEBITO
+        elif internal_type == 'debit_note':
+            if 'NDE' in prefix or 'ELECTRONICA' in name:
+                return 'I', letter
+            return 'D', letter
+
+        raise ValidationError(_(
+            'No se pudo mapear el tipo de documento "%s" al tipo de comprobante ARBA.'
+        ) % doc.display_name)        
+            
 
     def _format_amount_arba(self, amount, total_len, decimals=2, signed=False):
         """
@@ -242,10 +276,8 @@ class AccountExportArba(models.Model):
 
         cuit = self._format_cuit_arba(partner.vat)
         fecha = self._format_date_arba(line.date)
-        tipo_comp = self._get_arba_perception_doc_type(move)
-        letra = self._get_arba_letter(move)
-        sucursal, emision = self._split_document_number(move.l10n_latam_document_number)
-
+        tipo_comp, letra = self._get_arba_tipo_comp_y_letra(move)
+        sucursal, emision = self._split_arba_document_number(move)
         base_amount = float_round(line.tax_base_amount or 0.0, precision_digits=2)
         alicuota = self._get_alicuota_arba(tax, partner, line.date)
 
@@ -266,16 +298,16 @@ class AccountExportArba(models.Model):
         tipo_operacion = self._get_arba_operation_type(line)
 
         content = ''
-        content += cuit                                      # 13
-        content += fecha                                     # 10
-        content += tipo_comp                                 # 1
-        content += letra                                     # 1
-        content += sucursal                                  # 5
-        content += emision                                   # 8
+        content += cuit
+        content += fecha
+        content += tipo_comp
+        content += letra
+        content += sucursal
+        content += emision
         content += self._format_amount_arba(base_amount, 14, 2, signed=True)   # 14
         content += self._format_amount_arba(alicuota, 5, 2, signed=False)      # 5
         content += self._format_amount_arba(importe, 13, 2, signed=True)       # 13
-        content += tipo_operacion                            # 1
+        content += tipo_operacion
 
         if len(content) != 71:
             raise ValidationError(_("La línea ARBA Percepción 1.1 quedó con largo %s y debe ser 71.") % len(content))
@@ -312,8 +344,7 @@ class AccountExportArba(models.Model):
 
         cuit = self._format_cuit_arba(partner.vat)
         fecha = self._format_date_arba(line.date)
-        sucursal, emision = self._split_document_number(doc_number)
-
+        sucursal, emision = self._split_arba_document_number(move)
         base_amount = float_round(abs(line.tax_base_amount or 0.0), precision_digits=2)
         alicuota = self._get_alicuota_arba(tax, partner, line.date)
 
