@@ -149,6 +149,11 @@ class ImportContainerExcelWizard(models.TransientModel):
         created_container_ids = []
 
         # -------- 2) Recorrer CADA CONTENEDOR (A, B, ...) --------
+        header_rows = sorted(header_rows)
+        container_rows = sorted(container_rows, key=lambda x: x['row'])
+
+        prev_container_row = 0
+
         for cont in container_rows:
             cont_row = cont['row']
             cont_code = cont['code'] or '/'
@@ -162,10 +167,10 @@ class ImportContainerExcelWizard(models.TransientModel):
                     break
 
             if not header_for_block:
-                # Por seguridad, si no se encuentra header anterior, saltamos este bloque
                 continue
 
-            start_row = header_for_block + 1
+            # CLAVE: arrancar después del header o después del contenedor anterior
+            start_row = max(header_for_block, prev_container_row) + 1
             end_row = cont_row - 1
 
             # ---- Crear contenedor ----
@@ -178,7 +183,6 @@ class ImportContainerExcelWizard(models.TransientModel):
             }
             container = self.env['container'].create(vals_container)
             created_container_ids.append(container.id)
-            vals_line = {}
 
             # ---- Crear líneas del contenedor ----
             line_vals_to_create = []
@@ -187,8 +191,12 @@ class ImportContainerExcelWizard(models.TransientModel):
             for r in range(start_row, end_row + 1):
                 sb_val = ws.cell(row=r, column=col_sb_code).value if col_sb_code else None
                 sb_code = self._normalize_code(sb_val)
+
                 if not sb_code:
-                    # filas de totales parciales (solo números) se saltan solas
+                    continue
+
+                # por seguridad, saltar filas que sean encabezados repetidos
+                if sb_code.upper() in ['SB CODE', 'CODIGO CAJA', 'ITEM CODE', 'CONTAINER']:
                     continue
 
                 product = self.env['product.product'].search(
@@ -201,14 +209,13 @@ class ImportContainerExcelWizard(models.TransientModel):
                 qty_bultos = ws.cell(row=r, column=col_ctns).value if col_ctns else 0
                 qty_cantidad = ws.cell(row=r, column=col_pcs).value if col_pcs else 0
 
-                vals_line = {
+                line_vals_to_create.append({
                     'container': container.id,
                     'product_id': product.id,
                     'quantity_send': self._to_float(qty_cantidad),
                     'bultos': self._to_float(qty_bultos),
                     'quantity_picked': 0,
-                }
-                line_vals_to_create.append(vals_line)
+                })
 
             if missing_codes:
                 missing_txt = ', '.join(sorted(set(missing_codes)))
@@ -217,8 +224,10 @@ class ImportContainerExcelWizard(models.TransientModel):
                     "no se encontraron como productos en Odoo (default_code):\n%s"
                 ) % (cont_code, missing_txt))
 
-            for vals_line in line_vals_to_create:
-                self.env['container.line'].create(vals_line)
+            self.env['container.line'].create(line_vals_to_create)
+
+            # actualizar límite para el próximo bloque
+            prev_container_row = cont_row
 
         # -------- 3) Volver mostrando los contenedores creados --------
         if not created_container_ids:
