@@ -105,7 +105,7 @@ class ImportContainerExcelWizard(models.TransientModel):
                 continue
 
             # Header de bloque
-            if 'ITEM CODE' in row_text_upper and 'CTNS' in row_text_upper:
+            if 'SB CODE' in row_text_upper and 'CTNS' in row_text_upper:
                 header_rows.append(r)
 
             # Fila CONTAINER A#/B#...
