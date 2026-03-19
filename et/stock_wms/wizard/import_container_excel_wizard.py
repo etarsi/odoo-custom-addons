@@ -105,7 +105,7 @@ class ImportContainerExcelWizard(models.TransientModel):
                 continue
 
             # Header de bloque
-            if 'SB CODE' in row_text_upper and 'CTNS' in row_text_upper:
+            if 'CODIGO CAJA' in row_text_upper and 'CTNS' in row_text_upper:
                 header_rows.append(r)
 
             # Fila CONTAINER A#/B#...
@@ -178,6 +178,7 @@ class ImportContainerExcelWizard(models.TransientModel):
             }
             container = self.env['container'].create(vals_container)
             created_container_ids.append(container.id)
+            vals_line = {}
 
             # ---- Crear líneas del contenedor ----
             line_vals_to_create = []
