@@ -68,22 +68,6 @@ class AccountExportArba(models.Model):
     def line_move_lines(self):
         return self.env['account.move.line'].search([('id','in',eval(self.move_lines_ids_txt))])
 
-    def get_lines_of_group(self, type_tax_use, group):
-        move_line_obj = self.env['account.move.line']
-        tax_obj = self.env['account.tax']
-        retencion_ids = tax_obj.search([('type_tax_use', 'in', [type_tax_use]),
-                                        ('tax_group_id.name', 'ilike', group)
-                                        ])
-        return retencion_ids
-
-    def get_withholding_payments(self):
-        """ Obtiene los pagos a proveedor que son retenciones y que
-            estan en el periodo seleccionado
-        """
-        #ref_retencion_group = self.env.ref('l10n_ar.tax_group_retencion_iibb')
-        retencion_ids = self.get_lines_of_group(type_tax_use='supplier', group='iibb')
-        return retencion_ids
-
     # ---------------------------------------------------------
     # HELPERS
     # ---------------------------------------------------------
@@ -413,8 +397,8 @@ class AccountExportArba(models.Model):
             exported_ids.append(line.id)
 
         self.write({
-            'export_arba_data': ret_lines_txt,
-            'export_arba_data_credito': per_lines_txt,
+            'export_arba_data': per_lines_txt,
+            'export_arba_data_credito': ret_lines_txt,
             'move_lines_ids_txt': [(6, 0, exported_ids)],
         })
 
