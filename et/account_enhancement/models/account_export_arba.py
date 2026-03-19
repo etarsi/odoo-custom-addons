@@ -45,11 +45,11 @@ class AccountExportArba(models.Model):
     state = fields.Selection([('draft','Borrador'),('done','Hecho'),],string='Estado',default='draft',copy=False,readonly=False)
     move_lines_ids_txt = fields.Text('move_ids')
     move_lines_ids = fields.One2many('account.move.line','id','Movimientos',_compute="list_move_lines")
-
-    def line_move_lines(self):
-        return self.env['account.move.line'].search([('id','in',eval(self.move_lines_ids_txt))])
-
-
+    export_arba_filename = fields.Char('Archivo_ARBA',compute='_compute_files')
+    export_arba_file = fields.Binary('Archivo_ARBA',readonly=True)
+    export_arba_filename_credito = fields.Char('Archivo_ARBA_Credito',compute='_compute_files')
+    export_arba_file_credito = fields.Binary('Archivo_ARBA_Credito',readonly=True)    
+    
 
     @api.depends('export_arba_data','export_arba_data_credito')
     def _compute_files(self):
@@ -64,11 +64,9 @@ class AccountExportArba(models.Model):
         self.export_arba_filename_credito = 'NC Perc/Ret IIBB ARBA Aplicadas.txt'
         if self.export_arba_data_credito:
            self.export_arba_file_credito = base64.encodestring(self.export_arba_data_credito.encode('ISO-8859-1'))
-
-    export_arba_filename = fields.Char('Archivo_ARBA',compute='_compute_files')
-    export_arba_file = fields.Binary('Archivo_ARBA',readonly=True)
-    export_arba_filename_credito = fields.Char('Archivo_ARBA_Credito',compute='_compute_files')
-    export_arba_file_credito = fields.Binary('Archivo_ARBA_Credito',readonly=True)
+           
+    def line_move_lines(self):
+        return self.env['account.move.line'].search([('id','in',eval(self.move_lines_ids_txt))])
 
     def get_lines_of_group(self, type_tax_use, group):
         move_line_obj = self.env['account.move.line']
@@ -86,308 +84,319 @@ class AccountExportArba(models.Model):
         retencion_ids = self.get_lines_of_group(type_tax_use='supplier', group='iibb')
         return retencion_ids
 
+    # ---------------------------------------------------------
+    # HELPERS
+    # ---------------------------------------------------------
 
-    #def iibb_aplicado_agip_files_values(self, move_lines):
-    def compute_arba_data(self):
-        """ Ver readme del modulo para descripcion del formato. Tambien
-        archivos de ejemplo en /doc
+    def _format_date_arba(self, date_value):
+        if not date_value:
+            raise ValidationError(_("Falta una fecha requerida para ARBA."))
+        return fields.Date.to_date(date_value).strftime('%d/%m/%Y')
+
+    def _format_cuit_arba(self, vat):
+        """ARBA layout común: 99-99999999-9"""
+        if not vat:
+            raise ValidationError(_("Falta CUIT/CUIL."))
+        digits = re.sub(r'[^0-9]', '', vat or '')
+        if len(digits) != 11:
+            raise ValidationError(_("El CUIT '%s' no tiene 11 dígitos.") % (vat,))
+        return '%s-%s-%s' % (digits[:2], digits[2:10], digits[10:11])
+
+    def _split_document_number(self, doc_number):
         """
+        Espera algo tipo 0001-00001234 y devuelve:
+        sucursal=00001, emisión=00001234
+        """
+        raw = doc_number or ''
+        nums = re.findall(r'\d+', raw)
+
+        if len(nums) >= 2:
+            sucursal = nums[-2]
+            emision = nums[-1]
+        else:
+            digits = re.sub(r'[^0-9]', '', raw)
+            if len(digits) >= 12:
+                sucursal = digits[:-8]
+                emision = digits[-8:]
+            elif len(digits) >= 8:
+                sucursal = '0'
+                emision = digits[-8:]
+            else:
+                raise ValidationError(_("No se pudo interpretar el número de comprobante '%s'.") % raw)
+
+        sucursal = str(int(sucursal)).zfill(5)
+        emision = str(int(emision)).zfill(8)
+
+        if int(sucursal) <= 0:
+            raise ValidationError(_("La sucursal del comprobante '%s' debe ser mayor a cero.") % raw)
+        if int(emision) <= 0:
+            raise ValidationError(_("La emisión del comprobante '%s' debe ser mayor a cero.") % raw)
+
+        return sucursal, emision
+
+    def _format_amount_arba(self, amount, total_len, decimals=2, signed=False):
+        """
+        Devuelve importe con separador decimal y largo fijo.
+        Ej:
+          total_len=14 -> 99999999999.99
+          total_len=13 -> 9999999999.99
+        Si signed=True y es negativo, el signo ocupa la 1ra posición.
+        """
+        if amount is None:
+            amount = 0.0
+
+        amount = float_round(amount, precision_digits=decimals)
+        negative = amount < 0
+        abs_amt = abs(amount)
+
+        fmt = f"{{:0{total_len}.{decimals}f}}"
+        txt = fmt.format(abs_amt)
+
+        if len(txt) > total_len:
+            raise ValidationError(_("El importe %s excede el largo permitido (%s).") % (amount, total_len))
+
+        if negative:
+            if not signed:
+                raise ValidationError(_("El importe %s no puede ser negativo para este diseño ARBA.") % amount)
+            txt = '-' + txt[1:]
+        return txt
+
+    def _get_arba_operation_type(self, line):
+        """
+        ARBA pide:
+        A = Alta
+        B = Baja
+        M = Modificación
+
+        Base simple: todo exportado normal -> A
+        """
+        return 'A'
+
+    def _get_arba_perception_doc_type(self, move):
+        """
+        Mapea tipos de comprobante ARBA:
+        F=Factura, R=Recibo, C=Nota Crédito, D=Nota Débito,
+        V=Nota de Venta, E/H/I electrónicos
+        """
+        internal_type = move.l10n_latam_document_type_id.internal_type
+        doc_name = (move.l10n_latam_document_type_id.name or '').lower()
+        doc_code = (move.l10n_latam_document_type_id.code or '').lower()
+
+        is_electronic = 'electr' in doc_name or 'electr' in doc_code
+
+        if internal_type == 'invoice':
+            return 'E' if is_electronic else 'F'
+        elif internal_type == 'credit_note':
+            return 'H' if is_electronic else 'C'
+        elif internal_type == 'debit_note':
+            return 'I' if is_electronic else 'D'
+
+        # fallback conservador
+        return 'F'
+
+    def _get_arba_letter(self, move):
+        letter = move.l10n_latam_document_type_id.l10n_ar_letter or ' '
+        return letter if letter in ['A', 'B', 'C'] else ' '
+
+    def _get_alicuota_arba(self, tax, partner, date):
+        alicuot_line = tax.get_partner_alicuot(partner, date)
+        if not alicuot_line:
+            raise ValidationError(_(
+                'No hay alícuota configurada para el partner "%s" con el impuesto "%s".'
+            ) % (partner.display_name, tax.display_name))
+
+        # percepción vs retención
+        if tax.type_tax_use in ['sale', 'purchase']:
+            return alicuot_line.alicuota_percepcion
+        return alicuot_line.alicuota_retencion
+
+    # ---------------------------------------------------------
+    # LAYOUTS ARBA
+    # ---------------------------------------------------------
+
+    def _build_arba_percepcion_11(self, line):
+        """
+        1.1 Percepciones (excepto act. 29, 7 quincenal y 17 bancos)
+        Posiciones:
+        1-13  CUIT
+        14-23 Fecha percepción
+        24    Tipo comp.
+        25    Letra
+        26-30 Sucursal
+        31-38 Emisión
+        39-52 Monto imponible
+        53-57 Alícuota
+        58-70 Importe percepción
+        71    Tipo operación
+        """
+        move = line.move_id
+        partner = line.partner_id
+        tax = line.tax_line_id
+
+        if not partner:
+            raise ValidationError(_("La línea %s no tiene partner.") % line.display_name)
+        if not tax:
+            raise ValidationError(_("La línea %s no tiene tax_line_id.") % line.display_name)
+        if not move.l10n_latam_document_number:
+            raise ValidationError(_("El comprobante %s no tiene número.") % move.display_name)
+
+        cuit = self._format_cuit_arba(partner.vat)
+        fecha = self._format_date_arba(line.date)
+        tipo_comp = self._get_arba_perception_doc_type(move)
+        letra = self._get_arba_letter(move)
+        sucursal, emision = self._split_document_number(move.l10n_latam_document_number)
+
+        base_amount = float_round(line.tax_base_amount or 0.0, precision_digits=2)
+        alicuota = self._get_alicuota_arba(tax, partner, line.date)
+
+        # Importe practicado
+        if line.currency_id and line.currency_id != line.company_id.currency_id:
+            importe = float_round(base_amount * alicuota / 100.0, precision_digits=2)
+        else:
+            importe = float_round(-line.balance, precision_digits=2)
+
+        # Nota de crédito: base e importe negativos
+        if move.l10n_latam_document_type_id.internal_type == 'credit_note':
+            base_amount = -abs(base_amount)
+            importe = -abs(importe)
+        else:
+            base_amount = abs(base_amount)
+            importe = abs(importe)
+
+        tipo_operacion = self._get_arba_operation_type(line)
+
+        content = ''
+        content += cuit                                      # 13
+        content += fecha                                     # 10
+        content += tipo_comp                                 # 1
+        content += letra                                     # 1
+        content += sucursal                                  # 5
+        content += emision                                   # 8
+        content += self._format_amount_arba(base_amount, 14, 2, signed=True)   # 14
+        content += self._format_amount_arba(alicuota, 5, 2, signed=False)      # 5
+        content += self._format_amount_arba(importe, 13, 2, signed=True)       # 13
+        content += tipo_operacion                            # 1
+
+        if len(content) != 71:
+            raise ValidationError(_("La línea ARBA Percepción 1.1 quedó con largo %s y debe ser 71.") % len(content))
+
+        return content + '\r\n'
+
+    def _build_arba_retencion_17(self, line):
+        """
+        1.7 Retenciones (excepto act. 26, 6 bancos y 17 bancos/no bancos)
+        Posiciones:
+        1-13  CUIT
+        14-23 Fecha retención
+        24-28 Sucursal
+        29-36 Emisión
+        37-50 Monto imponible
+        51-55 Alícuota
+        56-68 Importe retención
+        69    Tipo operación
+        """
+        move = line.move_id
+        partner = line.partner_id
+        tax = line.tax_line_id
+        payment = line.payment_id
+
+        if not partner:
+            raise ValidationError(_("La línea %s no tiene partner.") % line.display_name)
+        if not tax:
+            raise ValidationError(_("La línea %s no tiene tax_line_id.") % line.display_name)
+
+        # Para retenciones normalmente tomamos comprobante del pago/retención
+        doc_number = (payment and payment.withholding_number) or move.l10n_latam_document_number
+        if not doc_number:
+            raise ValidationError(_("La línea %s no tiene número de comprobante/retención.") % line.display_name)
+
+        cuit = self._format_cuit_arba(partner.vat)
+        fecha = self._format_date_arba(line.date)
+        sucursal, emision = self._split_document_number(doc_number)
+
+        base_amount = float_round(abs(line.tax_base_amount or 0.0), precision_digits=2)
+        alicuota = self._get_alicuota_arba(tax, partner, line.date)
+
+        if line.currency_id and line.currency_id != line.company_id.currency_id:
+            importe = float_round(base_amount * alicuota / 100.0, precision_digits=2)
+        else:
+            importe = float_round(abs(line.balance), precision_digits=2)
+
+        tipo_operacion = self._get_arba_operation_type(line)
+
+        content = ''
+        content += cuit                                      # 13
+        content += fecha                                     # 10
+        content += sucursal                                  # 5
+        content += emision                                   # 8
+        content += self._format_amount_arba(base_amount, 14, 2, signed=False)  # 14
+        content += self._format_amount_arba(alicuota, 5, 2, signed=False)      # 5
+        content += self._format_amount_arba(importe, 13, 2, signed=False)      # 13
+        content += tipo_operacion                            # 1
+
+        if len(content) != 69:
+            raise ValidationError(_("La línea ARBA Retención 1.7 quedó con largo %s y debe ser 69.") % len(content))
+
+        return content + '\r\n'
+
+    # ---------------------------------------------------------
+    # PROCESO
+    # ---------------------------------------------------------
+
+    def compute_arba_data(self):
         self.ensure_one()
-        moves_ids =[]
-        ret_perc = ''
-        credito = ''
-        move_lines_per = self.env['account.move.line'].search([("parent_state", "=", "posted"), ("account_id.code", "ilike", '2.1.3.02.060'),("company_id","=",self.company_id.id)])
-        move_lines_ret = self.env['account.move.line'].search([("parent_state", "=", "posted"), ("account_id.code", "ilike", '2.1.3.02.050'),("company_id","=",self.company_id.id)])
-        move_lines = move_lines_per + move_lines_ret
-        _logger.info('move_lines_per %s' % move_lines_per)
-        _logger.info('move_lines_ret %s' % move_lines_ret)
-        company_currency = self.company_id.currency_id
-        for line in move_lines.sorted('date'):
-            _logger.info('Procesando linea %s' % line)
-            _logger.info('ARBA',line)
-            if line.date < self.date_from or line.date > self.date_to:
-                continue
+
+        ret_lines_txt = ''
+        per_lines_txt = ''
+        exported_ids = []
+
+        # Ajustá estas cuentas a tus cuentas reales
+        move_lines_per = self.env['account.move.line'].search([
+            ('parent_state', '=', 'posted'),
+            ('account_id.code', '=', '2.1.3.02.060'),
+            ('company_id', '=', self.company_id.id),
+            ('date', '>=', self.date_from),
+            ('date', '<=', self.date_to),
+        ])
+
+        move_lines_ret = self.env['account.move.line'].search([
+            ('parent_state', '=', 'posted'),
+            ('account_id.code', '=', '2.1.3.02.050'),
+            ('company_id', '=', self.company_id.id),
+            ('date', '>=', self.date_from),
+            ('date', '<=', self.date_to),
+        ])
+
+        # PERCEPCIONES -> layout 1.1
+        for line in move_lines_per.sorted(lambda l: (l.date, l.id)):
             if not line.partner_id:
                 continue
-            moves_ids.append(line.id)
+            per_lines_txt += self._build_arba_percepcion_11(line)
+            exported_ids.append(line.id)
 
-            # pay_group = payment.payment_group_id
-            move = line.move_id
-            payment = line.payment_id
-            tax = line.tax_line_id
-            partner = line.partner_id
-            internal_type = line.l10n_latam_document_type_id.internal_type
-
-            if not partner.vat:
-                _logger.info('%s' % line)
-                raise ValidationError(_(
-                    'El partner "%s" (id %s) no tiene número de identificación '
-                    'seteada') % (partner.name, partner.id))
-
-            alicuot_line = tax.get_partner_alicuot(partner, line.date)
-            if not alicuot_line:
-                raise ValidationError(_(
-                    'No hay alicuota configurada en el partner '
-                    '"%s" (id: %s) %s') % (partner.name, partner.id,tax))
-
-            ret_perc_applied = False
-            es_percepcion = False
-            # 1 - Tipo de Operación
-            if tax.type_tax_use in ['sale', 'purchase']:
-                    # tax.amount_type == 'partner_tax':
-                es_percepcion = True
-                content = '2'
-                alicuot = alicuot_line.alicuota_percepcion
-            elif tax.type_tax_use in ['customer', 'supplier']:
-                    # tax.withholding_type == 'partner_tax':
-                content = '1'
-                alicuot = alicuot_line.alicuota_retencion
-
-            # notas de credito
-            if internal_type == 'credit_note':
-                # 2 - Nro. Nota de crédito
-                content += '%012d' % int(
-                    re.sub('[^0-9]', '', move.l10n_latam_document_number or ''))
-
-                # 3 - Fecha Nota de crédito
-                content += fields.Date.from_string(
-                    line.date).strftime('%d/%m/%Y')
-
-                # 4 - Monto nota de crédito
-                # TODO implementar devoluciones de pagos
-                # content += format_amount(
-                #     line.move_id.cc_amount_total, 16, 2, ',')
-                # la especificacion no lo dice claro pero un errror al importar
-                # si, lo que se espera es el importe base, ya que dice que
-                # este, multiplicado por la alícuota, debe ser igual al importe
-                # a retener/percibir
-                taxable_amount = line.tax_base_amount
-                content += format_amount(taxable_amount, 16, 2, ',')
-
-                # 5 - Nro. certificado propio
-                # opcional y el que nos pasaron no tenia
-                content += '                '
-
-                # segun interpretamos de los datos que nos pasaron 6, 7, 8 y 11
-                # son del comprobante original
-                #or_inv = line.move_id._found_related_invoice()
-                or_inv = line.move_id.reversed_entry_id
-                if not or_inv:
-                    raise ValidationError(_(
-                        'No pudimos encontrar el comprobante original para %s '
-                        '(id %s). Verifique que en la nota de crédito "%s", el'
-                        ' campo origen es el número de la factura original'
-                    ) % (
-                        line.move_id.display_name,
-                        line.move_id.id,
-                        line.move_id.display_name))
-
-                # 6 - Tipo de comprobante origen de la retención
-                # por ahora solo tenemos facturas implementadas
-                content += '01'
-
-                # 7 - Letra del Comprobante
-                if payment:
-                    content += ' '
-                else:
-                    content += or_inv.l10n_latam_document_type_id.l10n_ar_letter
-
-                # 8 - Nro de comprobante (original)
-                content += '%016d' % int(
-                    re.sub('[^0-9]', '', or_inv.l10n_latam_document_number or ''))
-
-                # 9 - Nro de documento del Retenido
-                content += str(partner._get_id_number_sanitize())
-
-                # 10 - Código de norma
-                # por ahora solo padron regimenes generales
-                content += '029'
-
-                # 11 - Fecha de retención/percepción
-                content += fields.Date.from_string(
-                    or_inv.invoice_date).strftime('%d/%m/%Y')
-
-                # 12 - Ret/percep a deducir
-
-                # si la línea tiene moneda diferente de la moneda de la compañía queremos que la ret/perc
-                # se calcule aplicando la alícuota sobre la base imponible en la moneda de la compañía
-                if line.currency_id and line.currency_id != line.company_id.currency_id:
-                    ret_perc_applied = float_round((taxable_amount*alicuot/100), precision_digits=2)
-                content += format_amount((line.balance if not ret_perc_applied else ret_perc_applied), 16, 2, ',')
-
-                # 13 - Alícuota
-                content += format_amount(alicuot, 5, 2, ',')
-
-                content += '\r\n'
-
-                credito += content
+        # RETENCIONES -> layout 1.7
+        for line in move_lines_ret.sorted(lambda l: (l.date, l.id)):
+            if not line.partner_id:
                 continue
+            ret_lines_txt += self._build_arba_retencion_17(line)
+            exported_ids.append(line.id)
 
-            # 2 - Código de Norma
-            # por ahora solo padron regimenes generales
-            content += '029'
+        self.write({
+            'export_arba_data': ret_lines_txt,
+            'export_arba_data_credito': per_lines_txt,
+            'move_lines_ids_txt': [(6, 0, exported_ids)],
+        })
 
-            # 3 - Fecha de retención/percepción
-            content += fields.Date.from_string(line.date).strftime('%d/%m/%Y')
-
-            # 4 - Tipo de comprobante origen de la retención
-            if internal_type == 'invoice':
-                content += '01'
-            elif internal_type == 'debit_note':
-                if es_percepcion:
-                    content += '09'
-                else:
-                    content += '02'
-            else:
-                # orden de pago
-                content += '03'
-
-            # 5 - Letra del Comprobante
-            # segun vemos en los archivos de ejemplo solo en percepciones
-            if payment:
-                content += ' '
-            else:
-                content += line.l10n_latam_document_type_id.l10n_ar_letter
-
-            # 6 - Nro de comprobante
-            content += '%016d' % int(
-                re.sub('[^0-9]', '', move.l10n_latam_document_number or ''))
-
-            # 7 - Fecha del comprobante
-            content += fields.Date.from_string(move.date).strftime('%d/%m/%Y')
-
-            # obtenemos montos de los comprobantes
-            payment_group = line.payment_id.payment_group_id
-            if payment_group:
-                # solo en comprobantes A, M segun especificacion
-                vat_amount = 0.0
-                total_amount = float_round(payment_group.payments_amount, precision_digits=2)
-                # es lo mismo que payment_group.matched_amount_untaxed
-                taxable_amount = float_round(payment.withholdable_base_amount, precision_digits=2)
-
-                # lo sacamos por diferencia
-                other_taxes_amount = company_currency.round(
-                    total_amount - taxable_amount - vat_amount)
-            elif line.move_id.is_invoice():
-                amounts = line.move_id._l10n_ar_get_amounts(company_currency=True)
-                # segun especificacion el iva solo se reporta para estos
-                if line.l10n_latam_document_type_id.l10n_ar_letter in ['A', 'M']:
-                    vat_amount = amounts['vat_amount']
-                else:
-                    vat_amount = 0.0
-
-                total_amount = (1 if line.move_id.is_inbound() else -1) * line.move_id.amount_total_signed
-
-                # por si se olvidaron de poner agip en una linea de factura
-                # la base la sacamos desde las lineas de impuesto
-                # taxable_amount = line.move_id.cc_amount_untaxed
-                taxable_amount = line.tax_base_amount
-
-                # tambien lo sacamos por diferencia para no tener error (por el
-                # calculo trucado de taxable_amount por ejemplo) y
-                # ademas porque el iva solo se reporta si es factura A, M
-                other_taxes_amount = company_currency.round(
-                    total_amount - taxable_amount - vat_amount)
-                # other_taxes_amount = line.move_id.cc_other_taxes_amount
-            else:
-                raise ValidationError(_('El impuesto no está asociado'))
-
-            # 8 - Monto del comprobante
-            content += format_amount(total_amount, 16, 2, ',')
-
-            # 9 - Nro de certificado propio
-            content += (payment.withholding_number or '').rjust(16, ' ')
-
-            # 10 - Tipo de documento del Retenido
-            # vat
-            if partner.l10n_latam_identification_type_id.name not in ['CUIT', 'CUIL', 'CDI']:
-                raise ValidationError(_(
-                    'EL el partner "%s" (id %s), el tipo de identificación '
-                    'debe ser una de siguientes: CUIT, CUIL, CDI.' % (partner.id, partner.name)))
-            doc_type_mapping = {'CUIT': '3', 'CUIL': '2', 'CDI': '1'}
-            content += doc_type_mapping[partner.l10n_latam_identification_type_id.name]
-
-            # 11 - Nro de documento del Retenido
-            content += str(partner._get_id_number_sanitize())
-
-            # 12 - Situación IB del Retenido
-            # 1: Local 2: Convenio Multilateral
-            # 4: No inscripto 5: Reg.Simplificado
-            if not partner.l10n_ar_gross_income_type:
-                #raise ValidationError(_(
-                    #'Debe setear el tipo de inscripción de IIBB del partner '
-                    #'"%s" (id: %s)') % (partner.name, partner.id))
-                partner.l10n_ar_gross_income_type = 'multilateral'
-
-            # ahora se reportaria para cualquier inscripto el numero de cuit
-            gross_income_mapping = {
-                'local': '5', 'multilateral': '2', 'exempt': '4'}
-            content += gross_income_mapping[partner.l10n_ar_gross_income_type]
-
-            # 13 - Nro Inscripción IB del Retenido
-            if partner.l10n_ar_gross_income_type == 'exempt':
-                content += '00000000000'
-            else:
-                content += partner.ensure_vat()
-
-            # 14 - Situación frente al IVA del Retenido
-            # 1 - Responsable Inscripto
-            # 3 - Exento
-            # 4 - Monotributo
-            res_iva = partner.l10n_ar_afip_responsibility_type_id
-            if res_iva.code in ['1', '1FM']:
-                # RI
-                content += '1'
-            elif res_iva.code == '4':
-                # EXENTO
-                content += '3'
-            elif res_iva.code == '6':
-                # MONOT
-                content += '4'
-            else:
-                raise ValidationError(_(
-                    'La responsabilidad frente a IVA "%s" no está soportada '
-                    'para ret/perc AGIP (partner %s)') % (res_iva.name,partner.name) )
-
-            # 15 - Razón Social del Retenido
-            content += '{:30.30}'.format(partner.name)
-
-            # 16 - Importe otros conceptos
-            content += format_amount(other_taxes_amount, 16, 2, ',')
-
-            # 17 - Importe IVA
-            content += format_amount(vat_amount, 16, 2, ',')
-
-            # 18 - Monto Sujeto a Retención/ Percepción
-            content += format_amount(taxable_amount, 16, 2, ',')
-
-            # 19 - Alícuota
-            content += format_amount(alicuot, 5, 2, ',')
-
-            # 20 - Retención/Percepción Practicada
-
-            # si la línea tiene moneda diferente de la moneda de la compañía queremos que la ret/perc
-            # se calcule aplicando la alícuota sobre la base imponible en la moneda de la compañía
-            if line.currency_id and line.currency_id != line.company_id.currency_id:
-                ret_perc_applied = float_round((taxable_amount*alicuot/100), precision_digits=2)
-            content += format_amount((-line.balance if not ret_perc_applied else ret_perc_applied), 16, 2, ',')
-
-            # 21 - Monto Total Retenido/Percibido
-            content += format_amount((-line.balance if not ret_perc_applied else ret_perc_applied), 16, 2, ',')
-
-            content += '\r\n'
-
-            ret_perc += content
-
-        _logger.info(move_lines.ids)
-        self.write({'export_arba_data':ret_perc,'export_arba_data_credito':credito,'move_lines_ids_txt' : move_lines.ids})
-        return [{
-                'txt_filename': 'Perc/Ret IIBB ARBA Aplicadas.txt',
-                'txt_content': ret_perc,
-                }, {
-                'txt_filename': 'NC Perc/Ret IIBB ARBA Aplicadas.txt',
-                'txt_content': credito,
-                }]
+        return [
+            {
+                'txt_filename': 'ARBA_Retenciones_1_7.txt',
+                'txt_content': ret_lines_txt,
+            },
+            {
+                'txt_filename': 'ARBA_Percepciones_1_1.txt',
+                'txt_content': per_lines_txt,
+            }
+        ]
 
 
 
