@@ -151,7 +151,6 @@ class ImportContainerExcelWizard(models.TransientModel):
         # -------- 2) Recorrer CADA CONTENEDOR (A, B, ...) --------
         header_rows = sorted(header_rows)
         container_rows = sorted(container_rows, key=lambda x: x['row'])
-
         prev_container_row = 0
 
         for cont in container_rows:

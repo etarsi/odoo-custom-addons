@@ -146,11 +146,13 @@ class ImportContainerExcelTaskWizard(models.TransientModel):
 
         # N° de licencia arriba: "PACKING LIST - LIC. 22508"
         license_number = self._find_license_number(ws)
-        china_purchase = self.env['china.purchase'].search([], limit=1)
-
         created_wms_task_ids = []
 
         # -------- 2) Recorrer CADA CONTENEDOR (A, B, ...) --------
+        header_rows = sorted(header_rows)
+        container_rows = sorted(container_rows, key=lambda x: x['row'])
+        prev_container_row = 0
+
         for cont in container_rows:
             cont_row = cont['row']
             cont_code = cont['code'] or '/'
@@ -164,10 +166,10 @@ class ImportContainerExcelTaskWizard(models.TransientModel):
                     break
 
             if not header_for_block:
-                # Por seguridad, si no se encuentra header anterior, saltamos este bloque
                 continue
 
-            start_row = header_for_block + 1
+            # CLAVE: arrancar después del header o después del contenedor anterior
+            start_row = max(header_for_block, prev_container_row) + 1
             end_row = cont_row - 1
             
             wms_task = self.env['wms.task'].search([('container', '=', cont_code)], limit=1)
@@ -224,6 +226,8 @@ class ImportContainerExcelTaskWizard(models.TransientModel):
 
             for vals_line in line_vals_to_create:
                 self.env['wms.task.line'].create(vals_line)
+            # actualizar límite para el próximo bloque
+            prev_container_row = cont_row
                 
             # --------------------------------------------------
             # 1) AGRUPAR POR PRODUCTO
