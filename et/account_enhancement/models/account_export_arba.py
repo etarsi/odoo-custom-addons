@@ -99,9 +99,11 @@ class AccountExportArba(models.Model):
         move_lines_per = self.env['account.move.line'].search([("parent_state", "=", "posted"), ("account_id.code", "ilike", '2.1.3.02.060'),("company_id","=",self.company_id.id)])
         move_lines_ret = self.env['account.move.line'].search([("parent_state", "=", "posted"), ("account_id.code", "ilike", '2.1.3.02.050'),("company_id","=",self.company_id.id)])
         move_lines = move_lines_per + move_lines_ret
-
+        _logger.info('move_lines_per %s' % move_lines_per)
+        _logger.info('move_lines_ret %s' % move_lines_ret)
         company_currency = self.company_id.currency_id
         for line in move_lines.sorted('date'):
+            _logger.info('Procesando linea %s' % line)
             _logger.info('ARBA',line)
             if line.date < self.date_from or line.date > self.date_to:
                 continue

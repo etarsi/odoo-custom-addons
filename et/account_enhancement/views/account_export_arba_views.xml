@@ -9,9 +9,9 @@
                 <form>
                     <header>
                         <button name="compute_arba_data" string="Generar ARBA" type="object" />
-                                    <button name="set_done" string="Hecho" type="object" attrs="{'invisible': ['|',('state', '=', 'done'),('export_arba_file', '=', False)]}" />
-                                    <button name="set_draft" string="Borrador" type="object" attrs="{'invisible': [('state', '=', 'draft')]}" />
-                                    <field name="state" widget="statusbar" statusbar_visible="draft,done" />
+                        <button name="set_done" string="Hecho" type="object" attrs="{'invisible': ['|',('state', '=', 'done'),('export_arba_file', '=', False)]}" />
+                        <button name="set_draft" string="Borrador" type="object" attrs="{'invisible': [('state', '=', 'draft')]}" />
+                        <field name="state" widget="statusbar" statusbar_visible="draft,done" />
                     </header>
                     <sheet>
                         <h1><field name="name" required="1"/></h1>
@@ -79,9 +79,9 @@
         </record>
 
         <menuitem id="menu_account_export_arba"
-                    action="action_account_export_arba"
-                    parent="l10n_ar.account_reports_ar_statements_menu"
-                    sequence="8"/>
+            action="action_account_export_arba"
+            parent="l10n_ar.account_reports_ar_statements_menu"
+            sequence="8"/>
     </data>
 </odoo>
 
