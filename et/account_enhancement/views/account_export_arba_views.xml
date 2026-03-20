@@ -9,7 +9,7 @@
                 <form>
                     <header>
                         <button name="compute_arba_data" string="Generar ARBA" type="object" />
-                        <button name="set_done" string="Hecho" type="object" attrs="{'invisible': ['|',('state', '=', 'done'),('export_arba_file', '=', False)]}" />
+                        <button name="set_done" string="Hecho" type="object" attrs="{'invisible': ['|',('state', '=', 'done'),('export_percep_arba_file', '=', False)]}" />
                         <button name="set_draft" string="Borrador" type="object" attrs="{'invisible': [('state', '=', 'draft')]}" />
                         <field name="state" widget="statusbar" statusbar_visible="draft,done" />
                     </header>
