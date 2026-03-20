@@ -46,12 +46,12 @@ class AccountExportArba(models.Model):
     state = fields.Selection([('draft','Borrador'),('done','Hecho'),],string='Estado',default='draft',copy=False,readonly=False)
     move_lines_ids_txt = fields.Text('move_ids')
     move_lines_ids = fields.One2many('account.move.line','id','Movimientos',_compute="list_move_lines")
-    export_percep_arba_filename = fields.Char('Archivo Percepciones ARBA',compute='_compute_files')
-    export_percep_arba_file = fields.Binary('Archivo Percepciones ARBA', readonly=True)
-    export_nc_percep_arba_filename = fields.Char('Archivo NC Percepciones ARBA',compute='_compute_files')
-    export_nc_percep_arba_file = fields.Binary('Archivo NC Percepciones ARBA',readonly=True)    
-    export_retenc_arba_filename = fields.Char('Archivo Retenciones ARBA',compute='_compute_files')
-    export_retenc_arba_file = fields.Binary('Archivo Retenciones ARBA',readonly=True)  
+    export_percep_arba_filename = fields.Char('Percepciones ARBA',compute='_compute_files')
+    export_percep_arba_file = fields.Binary('Percepciones ARBA', readonly=True)
+    export_nc_percep_arba_filename = fields.Char('NC Percepciones ARBA',compute='_compute_files')
+    export_nc_percep_arba_file = fields.Binary('NC Percepciones ARBA',readonly=True)    
+    export_retenc_arba_filename = fields.Char('Retenciones ARBA',compute='_compute_files')
+    export_retenc_arba_file = fields.Binary('Retenciones ARBA',readonly=True)  
     
 
     @api.depends('export_percep_arba_data','export_nc_percep_arba_data','export_retenc_arba_data')

@@ -373,6 +373,8 @@ class AccountImportAfipFacprovWizard(models.TransientModel):
                     'price_unit': import_total,
                     'tax_ids': [(6, 0, [tax.id])]
                 }))
+            
+            _logger.info("Líneas a crear para la factura: %s", lines)
 
             vals = {
                 'move_type': move_type,
@@ -388,7 +390,7 @@ class AccountImportAfipFacprovWizard(models.TransientModel):
                 'l10n_ar_currency_rate': tipo_cambio,
                 'l10n_latam_document_number': numero_factura,
             }
-
+            _logger.info("Creando factura proveedor con vals: %s", vals)
             move = Move.create(vals)
             created_move_ids.append(move.id)
 
