@@ -90,7 +90,7 @@ class TmsRoadmap(models.Model):
             if rec.total_bulk_defendant > 0 and rec.total_bulk_picking > 0:
                 amount_defendant = rec.total_bulk_defendant - rec.total_bulk_picking
                 percentage =  (amount_defendant / rec.total_bulk_picking) * 100
-                rec.total_lvl_compliance = min(percentage, 100.0)  # tope 100%
+                rec.total_lvl_compliance = max(0.0, min(100.0, 100 - percentage))  # tope entre 0% y 100%
             else:
                 rec.total_lvl_compliance = 0.0
                 
