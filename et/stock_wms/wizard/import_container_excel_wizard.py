@@ -83,7 +83,7 @@ class ImportContainerExcelWizard(models.TransientModel):
         if not sheetnames:
             raise UserError(_(
                 "El archivo Excel no contiene hojas válidas.\n"
-                "Verifique que no esté vacío, dañado o que realmente sea un archivo .xlsx."
+                "Verifique que no esté vacío, dañado o que realmente sea un archivo .xlsx., verifique que se hizo bien la conversion a .xlsx desde el formato original (ej. .xls)."
             ))
         # Buscar PACKING LIST ignorando mayúsculas y espacios
         sheet_name = next((s for s in sheetnames if str(s).strip().upper() == 'PACKING LIST'), sheetnames[0])
