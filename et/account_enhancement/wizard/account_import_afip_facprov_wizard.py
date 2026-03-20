@@ -250,17 +250,9 @@ class AccountImportAfipFacprovWizard(models.TransientModel):
             if not partner.cuenta_prov_afip_import_id:
                 fila_no_registrada += f"\n , Fila: {r} - El proveedor {partner.name} no tiene configurada la cuenta para Facturas AFIP Import."
                 continue
-            _logger.warning("Importando factura proveedor: %s - %s", numero_factura, partner.name)
-            _logger.warning("Tipo comprobante: %s", tipo_comprobante.name)
-            _logger.warning("Fecha: %s", fecha)
-            _logger.warning("Tipo cambio: %s", tipo_cambio)
-            _logger.warning("Moneda: %s", moneda_symbol or 'ARS')
-            _logger.warning("partner_id: %s", partner.id)
-            _logger.warning("account_id: %s y code: %s", partner.cuenta_prov_afip_import_id.name, partner.cuenta_prov_afip_import_id.code)
             fac_proveedor = self.env['account.move'].search([('name', 'ilike', numero_factura), ('partner_id', '=', partner.id), ('company_id', '=', company_id.id), ('move_type', '=', move_type)], limit=1)                     
             if fac_proveedor:
                 _logger.warning("La factura ya existe en el sistema: %s", fac_proveedor.name)
-                _logger.warning("Se omite la importación de esta fila.")
                 continue
             
             if partner.diario_prov_afip_import_id == 'lavalle':
@@ -274,7 +266,7 @@ class AccountImportAfipFacprovWizard(models.TransientModel):
                 raise ValidationError(_("No se encontró el diario para Facturas de Proveedores."))
             
             account_id = partner.cuenta_prov_afip_import_id
-            account_id = self.env['account.account'].search([('name', '=', account_id.name), ('company_id', '=', company_id.id)], limit=1)
+            account_id = self.env['account.account'].search([('code', '=', account_id.code), ('company_id', '=', company_id.id)], limit=1)
             if not account_id:
                 fila_no_registrada += f"\n , Fila: {r} - No se encontró la cuenta para Facturas de Proveedores: {partner.cuenta_prov_afip_import_id.name}"
                 continue
@@ -375,7 +367,13 @@ class AccountImportAfipFacprovWizard(models.TransientModel):
                     'price_unit': import_total,
                     'tax_ids': [(6, 0, [tax.id])]
                 }))
-            
+            _logger.warning("Importando factura proveedor: %s - %s", numero_factura, partner.name)
+            _logger.warning("Tipo comprobante: %s", tipo_comprobante.name)
+            _logger.warning("Fecha: %s", fecha)
+            _logger.warning("Tipo cambio: %s", tipo_cambio)
+            _logger.warning("Moneda: %s", moneda_symbol or 'ARS')
+            _logger.warning("partner_id: %s", partner.id)
+            _logger.warning("account_id: %s y code: %s", partner.cuenta_prov_afip_import_id.name, partner.cuenta_prov_afip_import_id.code)
             _logger.warning("Líneas a crear para la factura: %s", lines)
 
             vals = {
