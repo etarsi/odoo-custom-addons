@@ -250,15 +250,17 @@ class AccountImportAfipFacprovWizard(models.TransientModel):
             if not partner.cuenta_prov_afip_import_id:
                 fila_no_registrada += f"\n , Fila: {r} - El proveedor {partner.name} no tiene configurada la cuenta para Facturas AFIP Import."
                 continue
-            _logger.info("Importando factura proveedor: %s - %s", numero_factura, partner.name)
-            _logger.info("Tipo comprobante: %s", tipo_comprobante.name)
-            _logger.info("Fecha: %s", fecha)
-            _logger.info("Tipo cambio: %s", tipo_cambio)
-            _logger.info("Moneda: %s", moneda_symbol or 'ARS')
+            _logger.warning("Importando factura proveedor: %s - %s", numero_factura, partner.name)
+            _logger.warning("Tipo comprobante: %s", tipo_comprobante.name)
+            _logger.warning("Fecha: %s", fecha)
+            _logger.warning("Tipo cambio: %s", tipo_cambio)
+            _logger.warning("Moneda: %s", moneda_symbol or 'ARS')
+            _logger.warning("partner_id: %s", partner.id)
+            _logger.warning("account_id: %s y code: %s", partner.cuenta_prov_afip_import_id.name, partner.cuenta_prov_afip_import_id.code)
             fac_proveedor = self.env['account.move'].search([('name', 'ilike', numero_factura), ('partner_id', '=', partner.id), ('company_id', '=', company_id.id), ('move_type', '=', move_type)], limit=1)                     
             if fac_proveedor:
-                _logger.info("La factura ya existe en el sistema: %s", fac_proveedor.name)
-                _logger.info("Se omite la importación de esta fila.")
+                _logger.warning("La factura ya existe en el sistema: %s", fac_proveedor.name)
+                _logger.warning("Se omite la importación de esta fila.")
                 continue
             
             if partner.diario_prov_afip_import_id == 'lavalle':
@@ -374,7 +376,7 @@ class AccountImportAfipFacprovWizard(models.TransientModel):
                     'tax_ids': [(6, 0, [tax.id])]
                 }))
             
-            _logger.info("Líneas a crear para la factura: %s", lines)
+            _logger.warning("Líneas a crear para la factura: %s", lines)
 
             vals = {
                 'move_type': move_type,
@@ -390,7 +392,7 @@ class AccountImportAfipFacprovWizard(models.TransientModel):
                 'l10n_ar_currency_rate': tipo_cambio,
                 'l10n_latam_document_number': numero_factura,
             }
-            _logger.info("Creando factura proveedor con vals: %s", vals)
+            _logger.warning("Creando factura proveedor con vals: %s", vals)
             move = Move.create(vals)
             created_move_ids.append(move.id)
 
