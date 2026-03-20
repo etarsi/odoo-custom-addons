@@ -114,13 +114,12 @@ class ImportContainerExcelWizard(models.TransientModel):
             if 'CODIGO CAJA' in row_text_upper and 'CTNS' in row_text_upper:
                 header_rows.append(r)
 
-            # Fila CONTAINER A#/B#...
-            if any('CONTAINER' in v for v in row_text_upper):
-                cont_cell = next(
-                    (v for v in row_vals_raw if v and 'CONTAINER' in str(v).upper()),
-                    None
-                )
-                cont_code = self._extract_container_code(cont_cell) if cont_cell else False
+            # Fila CONTAINER A#/B#... solo en columna B
+            cell_b = ws.cell(row=r, column=2).value
+            cell_b_text = str(cell_b).strip().upper() if cell_b not in (None, '') else ''
+
+            if 'CONTAINER' in cell_b_text:
+                cont_code = self._extract_container_code(cell_b) if cell_b else False
                 container_rows.append({'row': r, 'code': cont_code})
 
         if not header_rows or not container_rows:
