@@ -89,7 +89,7 @@ class TmsRoadmap(models.Model):
             rec.total_bulk_picking = sum(rec.road_maps_line_ids.mapped("bulk_picking"))
             if rec.total_bulk_defendant > 0 and rec.total_bulk_picking > 0:
                  amount_defendant = rec.total_bulk_defendant - rec.total_bulk_picking
-                 percentage = (amount_defendant / rec.total_bulk_picking) * 100
+                 percentage =  amount_defendant * 100
                  # Si el porcentaje es negativo, significa que se pickearon más bultos de los demandados, lo cual es un cumplimiento del 100%
                  rec.total_lvl_compliance = max(0.0, min(100.0, 100 - percentage))  # tope entre 0% y 100%
             else:
