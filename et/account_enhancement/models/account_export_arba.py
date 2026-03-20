@@ -39,31 +39,37 @@ class AccountExportArba(models.Model):
     name = fields.Char('Name')
     date_from = fields.Date('Fecha desde')
     date_to = fields.Date('Fecha hasta')
-    export_arba_data = fields.Text('Contenidos archivo ARBA')
-    export_arba_data_credito = fields.Text('Contenidos archivo ARBA Credito')
+    export_percep_arba_data = fields.Text('Contenidos archivo ARBA')
+    export_nc_percep_arba_data = fields.Text('Contenidos archivo ARBA Credito')
+    export_retenc_arba_data = fields.Text('Contenidos archivo ARBA Retenciones')
     company_id = fields.Many2one('res.company','Compañía')
     state = fields.Selection([('draft','Borrador'),('done','Hecho'),],string='Estado',default='draft',copy=False,readonly=False)
     move_lines_ids_txt = fields.Text('move_ids')
     move_lines_ids = fields.One2many('account.move.line','id','Movimientos',_compute="list_move_lines")
-    export_arba_filename = fields.Char('Archivo_ARBA',compute='_compute_files')
-    export_arba_file = fields.Binary('Archivo_ARBA',readonly=True)
-    export_arba_filename_credito = fields.Char('Archivo_ARBA_Credito',compute='_compute_files')
-    export_arba_file_credito = fields.Binary('Archivo_ARBA_Credito',readonly=True)    
+    export_percep_arba_filename = fields.Char('Archivo Percepciones ARBA',compute='_compute_files')
+    export_percep_arba_file = fields.Binary('Archivo Percepciones ARBA', readonly=True)
+    export_nc_percep_arba_filename = fields.Char('Archivo NC Percepciones ARBA',compute='_compute_files')
+    export_nc_percep_arba_file = fields.Binary('Archivo NC Percepciones ARBA',readonly=True)    
+    export_retenc_arba_filename = fields.Char('Archivo Retenciones ARBA',compute='_compute_files')
+    export_retenc_arba_file = fields.Binary('Archivo Retenciones ARBA',readonly=True)  
     
 
-    @api.depends('export_arba_data','export_arba_data_credito')
+    @api.depends('export_percep_arba_data','export_nc_percep_arba_data','export_retenc_arba_data')
     def _compute_files(self):
         self.ensure_one()
         # segun vimos aca la afip espera "ISO-8859-1" en vez de utf-8
         # http://www.planillasutiles.com.ar/2015/08/
         # como-descargar-los-archivos-de.html
         #if self.export_arba_data:
-        self.export_arba_filename = 'Perc/Ret IIBB ARBA Aplicadas.txt'
-        if self.export_arba_data:
-           self.export_arba_file = base64.encodestring(self.export_arba_data.encode('ISO-8859-1'))
-        self.export_arba_filename_credito = 'NC Perc/Ret IIBB ARBA Aplicadas.txt'
-        if self.export_arba_data_credito:
-           self.export_arba_file_credito = base64.encodestring(self.export_arba_data_credito.encode('ISO-8859-1'))
+        self.export_percep_arba_filename = 'Perc IIBB ARBA Aplicada.txt'
+        if self.export_percep_arba_data:
+           self.export_percep_arba_file = base64.encodestring(self.export_percep_arba_data.encode('ISO-8859-1'))
+        self.export_nc_percep_arba_filename = 'NC Perc IIBB ARBA Aplicada.txt'
+        if self.export_nc_percep_arba_data:
+           self.export_nc_percep_arba_file = base64.encodestring(self.export_nc_percep_arba_data.encode('ISO-8859-1'))
+        self.export_retenc_arba_filename = 'Retenc ARBA Aplicada.txt'
+        if self.export_retenc_arba_data:
+           self.export_retenc_arba_file = base64.encodestring(self.export_retenc_arba_data.encode('ISO-8859-1'))
            
     def line_move_lines(self):
         return self.env['account.move.line'].search([('id','in',eval(self.move_lines_ids_txt))])
@@ -363,6 +369,7 @@ class AccountExportArba(models.Model):
 
         ret_lines_txt = ''
         per_lines_txt = ''
+        nc_per_lines_txt = ''
         exported_ids = []
 
         # Ajustá estas cuentas a tus cuentas reales
@@ -386,7 +393,8 @@ class AccountExportArba(models.Model):
         for line in move_lines_per.sorted(lambda l: (l.date, l.id)):
             if not line.partner_id:
                 continue
-            per_lines_txt += self._build_arba_percepcion_11(line)
+            per_lines_txt += self._build_arba_percepcion_11(line) if line.move_id.l10n_latam_document_type_id.internal_type != 'credit_note' else ''
+            nc_per_lines_txt += self._build_arba_percepcion_11(line) if line.move_id.l10n_latam_document_type_id.internal_type == 'credit_note' else ''
             exported_ids.append(line.id)
 
         # RETENCIONES -> layout 1.7
@@ -397,20 +405,25 @@ class AccountExportArba(models.Model):
             exported_ids.append(line.id)
 
         self.write({
-            'export_arba_data': per_lines_txt,
-            'export_arba_data_credito': ret_lines_txt,
+            'export_percep_arba_data': per_lines_txt,
+            'export_nc_percep_arba_data': nc_per_lines_txt,
+            'export_retenc_arba_data': ret_lines_txt,
             'move_lines_ids_txt': [(6, 0, exported_ids)],
         })
 
         return [
             {
+                'txt_filename': 'ARBA_Percepciones_1_1.txt',
+                'txt_content': per_lines_txt,
+            },
+            {
+                'txt_filename': 'ARBA_NC_Percepciones_1_1.txt',
+                'txt_content': nc_per_lines_txt,
+            },
+            {
                 'txt_filename': 'ARBA_Retenciones_1_7.txt',
                 'txt_content': ret_lines_txt,
             },
-            {
-                'txt_filename': 'ARBA_Percepciones_1_1.txt',
-                'txt_content': per_lines_txt,
-            }
         ]
 
 
