@@ -85,43 +85,31 @@ class TmsRoadmap(models.Model):
     @api.depends("road_maps_line_ids.bulk_defendant", "road_maps_line_ids.bulk_picking")
     def _compute_totals(self):
         for rec in self:
-            rec.total_bulk_defendant = sum(rec.road_maps_line_ids.mapped("bulk_defendant"))
-            rec.total_bulk_picking = sum(rec.road_maps_line_ids.mapped("bulk_picking"))
+            rec.total_bulk_defendant = sum(rec.road_maps_line_ids.filtered(lambda l: not l.is_canceled).mapped("bulk_defendant"))
+            rec.total_bulk_picking = sum(rec.road_maps_line_ids.filtered(lambda l: not l.is_canceled).mapped("bulk_picking"))
             if rec.total_bulk_defendant > 0 and rec.total_bulk_picking > 0:
-                 amount_defendant = rec.total_bulk_defendant - rec.total_bulk_picking
-                 percentage =  amount_defendant * 100
-                 # Si el porcentaje es negativo, significa que se pickearon más bultos de los demandados, lo cual es un cumplimiento del 100%
-                 rec.total_lvl_compliance = max(0.0, min(100.0, 100 - percentage))  # tope entre 0% y 100%
+                amount_defendant = rec.total_bulk_defendant - rec.total_bulk_picking
+                percentage =  (amount_defendant / rec.total_bulk_picking) * 100
+                rec.total_lvl_compliance = min(percentage, 100.0)  # tope 100%
             else:
                 rec.total_lvl_compliance = 0.0
                 
     @api.depends("road_maps_line_ids.industry_id")
     def _compute_industry_ids(self):
         for rec in self:
-            inds = rec.road_maps_line_ids.mapped("industry_id").ids
+            inds = rec.road_maps_line_ids.filtered(lambda l: not l.is_canceled).mapped("industry_id").ids
             rec.industry_ids = [(6, 0, list(set(inds)))]
 
     @api.depends("road_maps_line_ids.type_roadmap")  # ajustá el One2many real
     def _compute_type_flags(self):
         for rec in self:
-            types = set(rec.road_maps_line_ids.mapped("type_roadmap"))
+            types = set(rec.road_maps_line_ids.filtered(lambda l: not l.is_canceled).mapped("type_roadmap"))
             rec.has_delivery = "delivery" in types
             rec.has_pickup = "pickup" in types    
 
     def _compute_citation_count(self):
         for rec in self:
             rec.citation_count = 1 if rec.citation_id else 0
-
-    @api.depends("total_bulk_defendant", "total_bulk_picking")
-    def _compute_total_lvl_compliance(self):
-        for rec in self:
-            denom = rec.total_bulk_defendant or 0.0
-            num = rec.total_bulk_picking or 0.0
-            if denom > 0.0:
-                pct = (num / denom) * 100.0
-                rec.total_lvl_compliance = min(pct, 100.0)  # tope 100%
-            else:
-                rec.total_lvl_compliance = 0.0
 
     @api.depends("road_maps_line_ids.is_canceled")
     def _compute_porcentage_efective_hdr(self):
