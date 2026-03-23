@@ -368,7 +368,7 @@ class ImportSaleOrderMasiveWizard(models.TransientModel):
         for group_key, data in grouped.items():
             with self.env.cr.savepoint():
                 header_data = data['header']
-                tipo = header_data['tipo']
+                tipo = header_data['condicion_m2m']
                 discounts = {d for d in data['discounts'] if d}
 
                 # Si mezcla rubros y usa global_discount, no se puede representar más de un descuento
