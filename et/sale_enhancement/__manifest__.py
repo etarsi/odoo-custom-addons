@@ -29,6 +29,7 @@
         'reports/report_saleorder_document.xml',
         #wizards
         'views/sale_order_tipo_venta_wizard.xml',
+        'wizard/import_sale_order_masive_wizard_view.xml',
         #data
         'data/groups.xml',
         'data/actions.xml',
@@ -38,6 +39,8 @@
         'views/product_template_views.xml',
         'views/product_pricelist_view.xml',
         'views/sale_order_views_tree.xml',
+        'views/menu.xml',
+        
     ],
     # only loaded in demonstration mode
     'demo': [

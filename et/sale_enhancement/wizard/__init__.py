@@ -1,1 +1,1 @@
-from . import sale_order_tipo_venta_wizard
+from . import sale_order_tipo_venta_wizard, import_sale_order_masive_wizard

@@ -18,15 +18,6 @@ class ImportSaleOrderMasiveWizard(models.TransientModel):
     filename = fields.Char(string='Nombre del Archivo')
     sheet_name = fields.Char(string='Hoja', default='Sheet1')
 
-    company_default_id = fields.Many2one(
-        'res.company',
-        string='Empresa por Defecto',
-        help='Si se completa, fuerza esta empresa para todos los pedidos.'
-    )
-
-    log = fields.Text(string='Log', readonly=True)
-    validated_line_count = fields.Integer(string='Líneas válidas', readonly=True)
-    created_order_count = fields.Integer(string='Pedidos creados', readonly=True)
 
     def _normalize(self, value):
         if value is None:
@@ -73,7 +64,8 @@ class ImportSaleOrderMasiveWizard(models.TransientModel):
         H Descuento
         I Producto
         J Cantidad
-        K Company Default
+        K Rubro
+        M Compania forzada (opcional)
 
         Las filas heredan contexto de filas anteriores si vienen vacías.
         """
@@ -105,7 +97,8 @@ class ImportSaleOrderMasiveWizard(models.TransientModel):
             descuento = ws[f'H{row_idx}'].value
             producto_codigo = self._normalize(ws[f'I{row_idx}'].value)
             cantidad = ws[f'J{row_idx}'].value
-            company_default = self._normalize(ws[f'K{row_idx}'].value)
+            rubro = self._normalize(ws[f'K{row_idx}'].value)
+            company_default = self._normalize(ws[f'M{row_idx}'].value)
 
             # Saltar fila vacía total
             if not any([
@@ -132,6 +125,8 @@ class ImportSaleOrderMasiveWizard(models.TransientModel):
                 current['descuento_rubro'] = descuento_rubro
             if descuento not in (None, '', False):
                 current['descuento'] = self._float_or_zero(descuento)
+            if rubro:
+                current['rubro'] = rubro
             if company_default:
                 current['company_default'] = company_default
 
@@ -149,12 +144,11 @@ class ImportSaleOrderMasiveWizard(models.TransientModel):
                     'descuento': current['descuento'],
                     'producto_codigo': producto_codigo,
                     'cantidad': self._float_or_zero(cantidad),
+                    'rubro': current['rubro'],
                     'company_default': current['company_default'],
                 })
-
         if not rows:
             raise UserError(_('No se encontraron líneas importables en la hoja %s.') % self.sheet_name)
-
         return rows
 
     def _build_master_data(self, rows):
@@ -176,7 +170,6 @@ class ImportSaleOrderMasiveWizard(models.TransientModel):
         partners = self.env['res.partner'].search([('name', 'in', list(partner_names))])
         products = self.env['product.product'].search([('default_code', 'in', list(product_codes))])
         companies = self.env['res.company'].search([('name', 'in', list(company_names))]) if company_names else self.env['res.company']
-
         partner_map = {p.name.strip(): p for p in partners if p.name}
         product_map = {p.default_code.strip(): p for p in products if p.default_code}
         company_map = {c.name.strip(): c for c in companies if c.name}
@@ -295,18 +288,7 @@ class ImportSaleOrderMasiveWizard(models.TransientModel):
                 errors.append(_('Fila %s: cantidad inválida.') % row['excel_row'])
 
         if errors:
-            self.write({
-                'state': 'draft',
-                'validated_line_count': 0,
-                'log': '\n'.join(errors),
-            })
             raise UserError(_('Se encontraron errores:\n\n%s') % '\n'.join(errors[:80]))
-
-        self.write({
-            'state': 'validated',
-            'validated_line_count': len(rows),
-            'log': _('Archivo validado correctamente. Líneas detectadas: %s') % len(rows),
-        })
 
         return {
             'type': 'ir.actions.act_window',
@@ -322,7 +304,7 @@ class ImportSaleOrderMasiveWizard(models.TransientModel):
         rows = self._read_sheet1_rows()
         master_data = self._build_master_data(rows)
 
-        SaleOrder = self.env['sale.order'].with_context(
+        sale_order = self.env['sale.order'].with_context(
             tracking_disable=True,
             mail_create_nolog=True,
             mail_notrack=True,
@@ -367,25 +349,17 @@ class ImportSaleOrderMasiveWizard(models.TransientModel):
                 errors.append(str(e))
 
         if errors:
-            self.write({'log': '\n'.join(errors)})
             raise UserError(_('Errores antes de importar:\n\n%s') % '\n'.join(errors[:80]))
 
         created_orders = self.env['sale.order']
 
         for group_key, data in grouped.items():
             with self.env.cr.savepoint():
-                order = SaleOrder.create(data['header'])
+                order = sale_order.create(data['header'])
                 order.write({
                     'order_line': [(0, 0, vals) for vals in data['lines']]
                 })
                 created_orders |= order
-
-        self.write({
-            'state': 'done',
-            'validated_line_count': len(rows),
-            'created_order_count': len(created_orders),
-            'log': _('Importación finalizada. Pedidos creados en borrador: %s') % len(created_orders),
-        })
 
         action = self.env.ref('sale.action_orders').read()[0]
         action['domain'] = [('id', 'in', created_orders.ids)]
