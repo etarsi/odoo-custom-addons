@@ -72,3 +72,7 @@ class SaleOrderLineInherit(models.Model):
     
     wms_qty_delivered = fields.Float(string="Cantidad Entregada")
     wms_qty_invoiced = fields.Float(string="Cantidad Facturada")
+
+
+    def _action_launch_stock_rule(self):
+        return

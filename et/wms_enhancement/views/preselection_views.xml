@@ -51,6 +51,7 @@
         <field name="arch" type="xml">
             <tree string="Preselección">
                 <field name="date"/>
+                <field name="name" string="Nombre"/>
                 <field name="partner_id" optional="show"/>
                 <field name="transfer_id" optional="show"/>                
                 <!-- <field name="items_id" widget="many2many_tags" optional="show"/>             -->
