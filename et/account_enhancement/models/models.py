@@ -235,6 +235,7 @@ class AccountMoveInherit(models.Model):
                             line.write({'tax_ids': [(6, 0, line_tax_ids.ids)]})
         return res
     
+    
     def _action_create_payment_group_automatic(self):
         """Crea un grupo de pagos para esta factura, si no existe ya uno relacionado."""
         self.ensure_one()
@@ -262,6 +263,30 @@ class AccountMoveInherit(models.Model):
         self.env['account.payment'].create(payment_vals)
         payment_group.post()
 
+
+    def action_inverse_debit_credit(self):
+        for record in self:
+            if record.state != 'draft':
+                raise UserError('El asiento debe estar en borrador para realizar esta acción.')
+
+            if record.move_type != 'entry':
+                raise UserError('El asiento debe ser manual para realizar esta acción.')
+            
+
+            commands = []
+            for line in record.line_ids:
+                commands.append((1, line.id, {
+                    'debit': line.credit,
+                    'credit': line.debit,
+                }))
+
+            if commands:
+                record.with_context(check_move_validity=False).write({
+                    'line_ids': commands
+                })
+
+                record._check_balanced()
+
     @api.depends('line_ids.product_id')
     def _compute_category_ids(self):
         for record in self:
@@ -271,6 +296,7 @@ class AccountMoveInherit(models.Model):
                 record.category_ids = [(6, 0, categories_ids)]
             else:
                 record.category_ids = [(5, 0, 0)]
+
 
     def _reverse_moves(self, default_values_list=None, cancel=False):
         reversed_moves = super()._reverse_moves(default_values_list=default_values_list, cancel=cancel)
@@ -283,6 +309,7 @@ class AccountMoveInherit(models.Model):
                     new_move.team_id = origin.team_id.id
         return reversed_moves
     
+
     @api.depends('invoice_payments_widget')
     def _compute_total_amount_paid(self):
         for move in self:
@@ -307,12 +334,14 @@ class AccountMoveInherit(models.Model):
                 amt = float(item.get('amount') or 0.0)
                 move.total_amount_paid += amt
 
+
     def _compute_calendar_color_state(self):
         for move in self:
             if move.payment_state == 'paid':
                 move.calendar_color_state = 'paid'
             else:
                 move.calendar_color_state = 'not_paid'
+
 
     @api.depends('invoice_payments_widget')
     def _compute_payment_html(self):
