@@ -81,6 +81,7 @@ class ImportSaleOrderMasiveWizard(models.TransientModel):
             'notas_internas': '',
             'company_default': '',
             'discount_map': {},
+            'default_discount': 0.0,
         }
 
         # Empieza en fila 2 porque fila 1 es encabezado
@@ -109,6 +110,7 @@ class ImportSaleOrderMasiveWizard(models.TransientModel):
             # Cuando arranca un bloque nuevo de cliente, reseteo mapa de descuentos
             if cliente:
                 current['discount_map'] = {}
+                current['default_discount'] = 0.0
             # Herencia de contexto cabecera
             if cliente:
                 current['cliente'] = cliente
@@ -128,8 +130,12 @@ class ImportSaleOrderMasiveWizard(models.TransientModel):
                 current['company_default'] = company_default
 
             # Mapa de descuentos por rubro
-            if descuento_rubro and descuento not in (None, '', False):
-                current['discount_map'][descuento_rubro.strip().upper()] = self._float_or_zero(descuento)
+            if descuento not in (None, '', False):
+                descuento_val = self._float_or_zero(descuento)
+                if descuento_rubro:
+                    current['discount_map'][descuento_rubro.strip().upper()] = descuento_val
+                else:
+                    current['default_discount'] = descuento_val
             # Solo se importa si hay producto y cantidad
             if producto_codigo and cantidad not in (None, '', False):
                 rows.append({
@@ -145,8 +151,8 @@ class ImportSaleOrderMasiveWizard(models.TransientModel):
                     'rubro': current['rubro'],
                     'company_default': current['company_default'],
                     'discount_map': dict(current['discount_map']),
+                    'default_discount': current['default_discount'],
                 })
-                _logger.warning('Fila %s: cliente=%s, producto=%s, cantidad=%s, rubro=%s, descuento_map=%s', row_idx, current['cliente'], producto_codigo, cantidad, current['rubro'], current['discount_map'])
         if not rows:
             raise UserError(_('No se encontraron líneas importables en la hoja %s.') % self.sheet_name)
         return rows
@@ -366,4 +372,10 @@ class ImportSaleOrderMasiveWizard(models.TransientModel):
     def _get_discount_for_row(self, row, rubro_real):
         rubro_key = (rubro_real or row.get('rubro') or '').strip().upper()
         discount_map = row.get('discount_map') or {}
-        return self._float_or_zero(discount_map.get(rubro_key, 0.0))
+
+        # 1) si el rubro tiene descuento específico, manda ese
+        if rubro_key in discount_map:
+            return self._float_or_zero(discount_map[rubro_key])
+
+        # 2) si no tiene específico, usar descuento general del bloque
+        return self._float_or_zero(row.get('default_discount', 0.0))
