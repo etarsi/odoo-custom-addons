@@ -29,7 +29,7 @@
         'reports/report_saleorder_document.xml',
         #wizards
         'views/sale_order_tipo_venta_wizard.xml',
-        'wizard/import_sale_order_masive_wizard_views.xml',
+        'views/wizard/import_sale_order_masive_wizard_views.xml',
         #data
         'data/groups.xml',
         'data/actions.xml',
