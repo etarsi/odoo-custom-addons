@@ -282,6 +282,7 @@ class ImportSaleOrderMasiveWizard(models.TransientModel):
             'header': False,
             'lines': [],
             'discounts': set(),
+            'tipo': '',
         })
         errors = []
 
@@ -313,20 +314,15 @@ class ImportSaleOrderMasiveWizard(models.TransientModel):
                 company = self._resolve_company(row, master_data)
                 group_key = self._build_group_key(row, partner, shipping, company, product)
                 rubro_real = self._get_rubro_from_product(product)
-                _logger.warning('Procesando fila %s: group_key=%s, rubro_real=%s', row['excel_row'], group_key, rubro_real)
-                # descuento según rubro de la línea
+                tipo = (row.get('condicion_venta') or '').strip().upper()
                 descuento = self._get_discount_for_row(row, rubro_real)
-                _logger.warning('Descuento para fila %s: %s', row['excel_row'], descuento)
 
                 if not grouped[group_key]['header']:
                     grouped[group_key]['header'] = self._prepare_order_vals(
                         row, partner, shipping, company, descuento, condicion_m2m, payment_term
                     )
-
-                grouped[group_key]['lines'].append(
-                    self._prepare_order_line_vals(row, product)
-                )
-                
+                grouped[group_key]['tipo'] = tipo
+                grouped[group_key]['lines'].append(self._prepare_order_line_vals(row, product))
                 grouped[group_key]['discounts'].add(descuento)
             except Exception as e:
                 errors.append(str(e))
@@ -338,8 +334,7 @@ class ImportSaleOrderMasiveWizard(models.TransientModel):
 
         for group_key, data in grouped.items():
             with self.env.cr.savepoint():
-                header_data = data['header']
-                tipo = header_data['condicion_m2m']
+                tipo = data['tipo']
                 discounts = {d for d in data['discounts'] if d}
 
                 # Si mezcla rubros y usa global_discount, no se puede representar más de un descuento
@@ -369,6 +364,6 @@ class ImportSaleOrderMasiveWizard(models.TransientModel):
         return action
     
     def _get_discount_for_row(self, row, rubro_real):
-        rubro_key = (row.get('rubro') or rubro_real or '').strip().upper()
+        rubro_key = (rubro_real or row.get('rubro') or '').strip().upper()
         discount_map = row.get('discount_map') or {}
         return self._float_or_zero(discount_map.get(rubro_key, 0.0))
