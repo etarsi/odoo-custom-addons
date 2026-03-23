@@ -80,8 +80,6 @@ class ImportSaleOrderMasiveWizard(models.TransientModel):
             'plazos_pago': '',
             'terminos_condiciones': '',
             'notas_internas': '',
-            'descuento_rubro': '',
-            'descuento': 0.0,
             'company_default': '',
             'discount_map': {},
         }
@@ -125,10 +123,6 @@ class ImportSaleOrderMasiveWizard(models.TransientModel):
                 current['terminos_condiciones'] = terminos_condiciones
             if notas_internas:
                 current['notas_internas'] = notas_internas
-            if descuento_rubro:
-                current['descuento_rubro'] = descuento_rubro
-            if descuento not in (None, '', False):
-                current['descuento'] = self._float_or_zero(descuento)
             if rubro:
                 current['rubro'] = rubro
             if company_default:
@@ -147,8 +141,6 @@ class ImportSaleOrderMasiveWizard(models.TransientModel):
                     'plazos_pago': current['plazos_pago'],
                     'terminos_condiciones': current['terminos_condiciones'],
                     'notas_internas': current['notas_internas'],
-                    'descuento_rubro': current['descuento_rubro'],
-                    'descuento': current['descuento'],
                     'producto_codigo': producto_codigo,
                     'cantidad': self._float_or_zero(cantidad),
                     'rubro': current['rubro'],
