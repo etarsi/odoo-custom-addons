@@ -181,9 +181,6 @@ class ImportSaleOrderMasiveWizard(models.TransientModel):
         }
 
     def _resolve_company(self, row, master_data):
-        if self.company_default_id:
-            return self.company_default_id
-
         company_name = (row.get('company_default') or '').strip()
         if company_name and company_name in master_data['company_map']:
             return master_data['company_map'][company_name]
