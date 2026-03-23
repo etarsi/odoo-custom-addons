@@ -15,8 +15,7 @@ class ImportSaleOrderMasiveWizard(models.TransientModel):
     _description = 'Wizard: Importar Pedido de Venta Masivo'
 
     file = fields.Binary(string='Archivo Excel', required=True)
-    filename = fields.Char(string='Nombre del Archivo')
-    sheet_name = fields.Char(string='Hoja', default='Sheet1')
+    sheet_name = fields.Char(string='Hoja', default='Sheet1', readonly=True)
 
 
     def _normalize(self, value):
@@ -348,8 +347,10 @@ class ImportSaleOrderMasiveWizard(models.TransientModel):
                 company = self._resolve_company(row, master_data)
                 group_key = self._build_group_key(row, partner, shipping, company, product)
                 rubro_real = self._get_rubro_from_product(product)
+                _logger.warning('Procesando fila %s: group_key=%s, rubro_real=%s', row['excel_row'], group_key, rubro_real)
                 # descuento según rubro de la línea
                 descuento = self._get_discount_for_row(row, rubro_real)
+                _logger.warning('Descuento para fila %s: %s', row['excel_row'], descuento)
 
                 if not grouped[group_key]['header']:
                     grouped[group_key]['header'] = self._prepare_order_vals(
