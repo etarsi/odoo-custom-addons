@@ -365,6 +365,10 @@ class ImportSaleOrderMasiveWizard(models.TransientModel):
 
         for group_key, data in grouped.items():
             with self.env.cr.savepoint():
+                _logger.warning('Importando grupo: %s', group_key)
+                _logger.warning('Datos de cabecera: %s', data['header'])
+                _logger.warning('Número de líneas: %s', len(data['lines']))
+                _logger.warning('Primeras líneas: %s', data['lines'])
                 order = sale_order.create(data['header'])
                 order.write({
                     'order_line': [(0, 0, vals) for vals in data['lines']]
