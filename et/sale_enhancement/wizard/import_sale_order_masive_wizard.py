@@ -157,6 +157,7 @@ class ImportSaleOrderMasiveWizard(models.TransientModel):
         product_codes = set()
         company_names = set()
         condicion_m2ms = set()
+        payment_terms = set()
 
         for row in rows:
             if row['cliente']:
@@ -169,21 +170,25 @@ class ImportSaleOrderMasiveWizard(models.TransientModel):
                 company_names.add(row['company_default'])
             if row['condicion_venta']:
                 condicion_m2ms.add(row['condicion_venta'])
-
+            if row['plazos_pago']:
+                payment_terms.add(row['plazos_pago'])
         partners = self.env['res.partner'].search([('name', 'in', list(partner_names))])
         products = self.env['product.product'].search([('default_code', 'in', list(product_codes))])
         condicion_m2ms = self.env['condicion.venta'].search([('name', 'in', list(condicion_m2ms))]) if condicion_m2ms else self.env['condicion.venta']
         companies = self.env['res.company'].search([('name', 'in', list(company_names))]) if company_names else self.env['res.company']
+        payment_terms = self.env['account.payment.term'].search([('name', 'in', list(payment_terms))]) if payment_terms else self.env['account.payment.term']
         partner_map = {p.name.strip(): p for p in partners if p.name}
         product_map = {p.default_code.strip(): p for p in products if p.default_code}
         company_map = {c.name.strip(): c for c in companies if c.name}
         condicion_m2m_map = {c.name.strip(): c for c in condicion_m2ms if c.name}
+        payment_term_map = {p.name.strip(): p for p in payment_terms if p.name}
 
         return {
             'partner_map': partner_map,
             'product_map': product_map,
             'company_map': company_map,
             'condicion_m2m_map': condicion_m2m_map,
+            'payment_term_map': payment_term_map,
         }
 
     def _resolve_company(self, row, master_data):
@@ -236,7 +241,7 @@ class ImportSaleOrderMasiveWizard(models.TransientModel):
             rubro_real,
         )
 
-    def _prepare_order_vals(self, row, partner, shipping, company, global_discount, condicion_m2m):
+    def _prepare_order_vals(self, row, partner, shipping, company, global_discount, condicion_m2m, payment_term):
         note_parts = []
         if row.get('plazos_pago'):
             note_parts.append('Plazos de pago: %s' % row['plazos_pago'])
@@ -254,6 +259,7 @@ class ImportSaleOrderMasiveWizard(models.TransientModel):
             'global_discount': global_discount if global_discount > 0 else 0.0,
             'client_order_ref': False,
             'origin': 'IMPORT MASIVO',
+            'payment_term_id': payment_term.id if payment_term else False,
         }
 
     def _prepare_order_line_vals(self, row, product):
@@ -304,20 +310,14 @@ class ImportSaleOrderMasiveWizard(models.TransientModel):
 
     def action_import_file(self):
         self.ensure_one()
-
         rows = self._read_sheet1_rows()
         master_data = self._build_master_data(rows)
-
-        sale_order = self.env['sale.order'].with_context(
-            mail_notrack=True,
-        )
-
+        sale_order = self.env['sale.order'].with_context(mail_notrack=True)
         grouped = defaultdict(lambda: {
             'header': False,
             'lines': [],
             'discounts': set(),
         })
-
         errors = []
 
         for row in rows:
@@ -333,7 +333,11 @@ class ImportSaleOrderMasiveWizard(models.TransientModel):
                     raise UserError(_('Fila %s: condición de venta no encontrada "%s".') % (
                         row['excel_row'], row['condicion_venta']
                     ))              
-                
+                payment_term = master_data['payment_term_map'].get((row['plazos_pago'] or '').strip())
+                if row['plazos_pago'] and not payment_term:
+                    raise UserError(_('Fila %s: plazo de pago no encontrado "%s".') % (
+                        row['excel_row'], row['plazos_pago']
+                    ))
                 product = master_data['product_map'].get((row['producto_codigo'] or '').strip())
                 if not product:
                     raise UserError(_('Fila %s: producto no encontrado "%s".') % (
@@ -349,7 +353,7 @@ class ImportSaleOrderMasiveWizard(models.TransientModel):
 
                 if not grouped[group_key]['header']:
                     grouped[group_key]['header'] = self._prepare_order_vals(
-                        row, partner, shipping, company, descuento, condicion_m2m
+                        row, partner, shipping, company, descuento, condicion_m2m, payment_term
                     )
 
                 grouped[group_key]['lines'].append(
