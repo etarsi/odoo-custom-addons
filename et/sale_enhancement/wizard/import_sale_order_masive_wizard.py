@@ -353,12 +353,6 @@ class ImportSaleOrderMasiveWizard(models.TransientModel):
                     global_discount = list(discounts)[0] if discounts else 0.0
                 else:
                     global_discount = list(discounts)[0] if discounts else 0.0
-                _logger.warning('------------------------------------------------------------------------------------------------')
-                _logger.warning('Importando grupo: %s', group_key)
-                _logger.warning('Datos de cabecera: %s', data['header'])
-                _logger.warning('Número de líneas: %s', len(data['lines']))
-                _logger.warning('Primeras líneas: %s', data['lines'])
-                _logger.warning('------------------------------------------------------------------------------------------------')
                 vals= dict(data['header'])
                 vals['global_discount'] = global_discount if global_discount > 0 else 0.0
                 vals['order_line'] = [(0, 0, line_vals) for line_vals in data['lines']]
