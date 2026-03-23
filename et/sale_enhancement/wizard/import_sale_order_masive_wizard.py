@@ -83,6 +83,7 @@ class ImportSaleOrderMasiveWizard(models.TransientModel):
             'descuento_rubro': '',
             'descuento': 0.0,
             'company_default': '',
+            'discount_map': {},
         }
 
         # Empieza en fila 2 porque fila 1 es encabezado
@@ -107,7 +108,10 @@ class ImportSaleOrderMasiveWizard(models.TransientModel):
                 producto_codigo, cantidad, company_default
             ]):
                 continue
-
+            
+            # Cuando arranca un bloque nuevo de cliente, reseteo mapa de descuentos
+            if cliente:
+                current['discount_map'] = {}
             # Herencia de contexto cabecera
             if cliente:
                 current['cliente'] = cliente
@@ -130,6 +134,9 @@ class ImportSaleOrderMasiveWizard(models.TransientModel):
             if company_default:
                 current['company_default'] = company_default
 
+            # Mapa de descuentos por rubro
+            if descuento_rubro and descuento not in (None, '', False):
+                current['discount_map'][descuento_rubro.strip().upper()] = self._float_or_zero(descuento)
             # Solo se importa si hay producto y cantidad
             if producto_codigo and cantidad not in (None, '', False):
                 rows.append({
@@ -146,6 +153,7 @@ class ImportSaleOrderMasiveWizard(models.TransientModel):
                     'cantidad': self._float_or_zero(cantidad),
                     'rubro': current['rubro'],
                     'company_default': current['company_default'],
+                    'discount_map': dict(current['discount_map']),
                 })
         if not rows:
             raise UserError(_('No se encontraron líneas importables en la hoja %s.') % self.sheet_name)
@@ -236,7 +244,7 @@ class ImportSaleOrderMasiveWizard(models.TransientModel):
             rubro_real,
         )
 
-    def _prepare_order_vals(self, row, partner, shipping, company, descuento, condicion_m2m):
+    def _prepare_order_vals(self, row, partner, shipping, company, global_discount, condicion_m2m):
         note_parts = []
         if row.get('plazos_pago'):
             note_parts.append('Plazos de pago: %s' % row['plazos_pago'])
@@ -251,7 +259,7 @@ class ImportSaleOrderMasiveWizard(models.TransientModel):
             'company_id': company.id,
             'note': '\n'.join(note_parts) if note_parts else False,
             'condicion_m2m': condicion_m2m.id if condicion_m2m else False,
-            'global_discount': descuento if descuento > 0 else 0.0,
+            'global_discount': global_discount if global_discount > 0 else 0.0,
             'client_order_ref': False,
             'origin': 'IMPORT MASIVO',
         }
@@ -309,8 +317,6 @@ class ImportSaleOrderMasiveWizard(models.TransientModel):
         master_data = self._build_master_data(rows)
 
         sale_order = self.env['sale.order'].with_context(
-            tracking_disable=True,
-            mail_create_nolog=True,
             mail_notrack=True,
         )
 
@@ -344,7 +350,9 @@ class ImportSaleOrderMasiveWizard(models.TransientModel):
                 shipping = self._resolve_shipping_partner(row, partner)
                 company = self._resolve_company(row, master_data)
                 group_key = self._build_group_key(row, partner, shipping, company, product)
-                descuento = 20
+                rubro_real = self._get_rubro_from_product(product)
+                # descuento según rubro de la línea
+                descuento = self._get_discount_for_row(row, rubro_real)
 
                 if not grouped[group_key]['header']:
                     grouped[group_key]['header'] = self._prepare_order_vals(
@@ -354,7 +362,8 @@ class ImportSaleOrderMasiveWizard(models.TransientModel):
                 grouped[group_key]['lines'].append(
                     self._prepare_order_line_vals(row, product)
                 )
-
+                
+                grouped[group_key]['discounts'].add(descuento)
             except Exception as e:
                 errors.append(str(e))
 
@@ -365,27 +374,37 @@ class ImportSaleOrderMasiveWizard(models.TransientModel):
 
         for group_key, data in grouped.items():
             with self.env.cr.savepoint():
+                header_data = data['header']
+                tipo = header_data['tipo']
+                discounts = {d for d in data['discounts'] if d}
+
+                # Si mezcla rubros y usa global_discount, no se puede representar más de un descuento
+                if tipo == 'TIPO 3':
+                    if len(discounts) > 1:
+                        raise UserError(_(
+                            'El grupo %s es TIPO 3 y mezcla rubros con descuentos distintos. '
+                            'No se puede guardar en un solo global_discount.'
+                        ) % (group_key,))
+                    global_discount = list(discounts)[0] if discounts else 0.0
+                else:
+                    global_discount = list(discounts)[0] if discounts else 0.0
+                _logger.warning('------------------------------------------------------------------------------------------------')
                 _logger.warning('Importando grupo: %s', group_key)
                 _logger.warning('Datos de cabecera: %s', data['header'])
                 _logger.warning('Número de líneas: %s', len(data['lines']))
                 _logger.warning('Primeras líneas: %s', data['lines'])
-                order = sale_order.create(data['header'])
-                order.write({
-                    'order_line': [(0, 0, vals) for vals in data['lines']]
-                })
+                _logger.warning('------------------------------------------------------------------------------------------------')
+                vals= dict(data['header'])
+                vals['global_discount'] = global_discount if global_discount > 0 else 0.0
+                vals['order_line'] = [(0, 0, line_vals) for line_vals in data['lines']]
+                order = sale_order.create(vals)
                 created_orders |= order
 
         action = self.env.ref('sale.action_orders').read()[0]
         action['domain'] = [('id', 'in', created_orders.ids)]
         return action
-
-    def _descuento_from_rubro(self, rubro):
-        if not rubro:
-            return 0.0
-
-        mapping = {
-            'RUBRO 1': 10.0,
-            'RUBRO 2': 5.0,
-            'RUBRO 3': 2.5,
-        }
-        return mapping.get(rubro.upper(), 0.0)
+    
+    def _get_discount_for_row(self, row, rubro_real):
+        rubro_key = (row.get('rubro') or rubro_real or '').strip().upper()
+        discount_map = row.get('discount_map') or {}
+        return self._float_or_zero(discount_map.get(rubro_key, 0.0))
