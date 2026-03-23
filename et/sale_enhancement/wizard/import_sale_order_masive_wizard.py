@@ -315,6 +315,7 @@ class ImportSaleOrderMasiveWizard(models.TransientModel):
         grouped = defaultdict(lambda: {
             'header': False,
             'lines': [],
+            'discounts': set(),
         })
 
         errors = []
