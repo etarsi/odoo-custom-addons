@@ -146,6 +146,7 @@ class ImportSaleOrderMasiveWizard(models.TransientModel):
                     'company_default': current['company_default'],
                     'discount_map': dict(current['discount_map']),
                 })
+                _logger.warning('Fila %s: cliente=%s, producto=%s, cantidad=%s, rubro=%s, descuento_map=%s', row_idx, current['cliente'], producto_codigo, cantidad, current['rubro'], current['discount_map'])
         if not rows:
             raise UserError(_('No se encontraron líneas importables en la hoja %s.') % self.sheet_name)
         return rows
@@ -270,41 +271,6 @@ class ImportSaleOrderMasiveWizard(models.TransientModel):
             'product_id': product.id,
             'name': product.get_product_multiline_description_sale() or product.display_name,
             'product_uom_qty': qty,
-        }
-
-    def action_validate_file(self):
-        self.ensure_one()
-
-        rows = self._read_sheet1_rows()
-        master_data = self._build_master_data(rows)
-
-        errors = []
-
-        for row in rows:
-            partner = master_data['partner_map'].get((row['cliente'] or '').strip())
-            if not partner:
-                errors.append(_('Fila %s: no se encontró el cliente "%s".') % (
-                    row['excel_row'], row['cliente']
-                ))
-
-            product = master_data['product_map'].get((row['producto_codigo'] or '').strip())
-            if not product:
-                errors.append(_('Fila %s: no se encontró el producto "%s".') % (
-                    row['excel_row'], row['producto_codigo']
-                ))
-
-            if (row.get('cantidad') or 0.0) <= 0:
-                errors.append(_('Fila %s: cantidad inválida.') % row['excel_row'])
-
-        if errors:
-            raise UserError(_('Se encontraron errores:\n\n%s') % '\n'.join(errors[:80]))
-
-        return {
-            'type': 'ir.actions.act_window',
-            'res_model': self._name,
-            'view_mode': 'form',
-            'res_id': self.id,
-            'target': 'new',
         }
 
     def action_import_file(self):
