@@ -95,10 +95,10 @@ class HrEnhancementApi(models.AbstractModel):
                         })
                         if check_utc > start_limit_day_inicio_marcado_employee:
                             self._create_temp_attendance_record(employee.id, check_utc, 'Intento marcar Entrada fuera del rango diurno (%s-%s)' % (start_limit_day.strftime("%H:%M"), end_limit_day.strftime("%H:%M")))
-                            self.action_create_asistencia(hr_attendance, employee, check_utc, type_income='PT')
+                            self.action_create_asistencia(hr_attendance, employee, check_utc, checkin_origin='reader_face', type_income='PT')
                             message += '--asistencia fuera del rango diurno de inicio de marcado, pero se registró como PT'
                         else:
-                            open_att = self.action_create_asistencia(hr_attendance, employee, check_utc)
+                            open_att = self.action_create_asistencia(hr_attendance, employee, check_utc, checkin_origin='reader_face')
                             message += f'--asistencia abierta: {open_att.id}, {employee.name}'
                     else:
                         # Limites del día (para agrupar por día local)
@@ -125,6 +125,7 @@ class HrEnhancementApi(models.AbstractModel):
                                     'employee_id': employee.id,
                                     'check_in': check_utc,
                                     'create_lector': True,
+                                    'checkin_origin': 'reader_face',
                                 })
                                 message += f'--asistencia abierta: {open_att.id} (empleado en borrador)'
                         else:
@@ -301,11 +302,12 @@ class HrEnhancementApi(models.AbstractModel):
                 env.cr.rollback()
                 return {'success': False, 'error': str(e), 'received': data, 'status_code': 500}
     
-    def action_create_asistencia(self, hr_attendance, employee, check_utc, type_income=False):
+    def action_create_asistencia(self, hr_attendance, employee, check_utc, checkin_origin, type_income=False):
         open_att = hr_attendance.create({
             'employee_id': employee.id,
             'check_in': check_utc,
             'create_lector': True,
+            'checkin_origin': checkin_origin,
             'type_income': type_income if type_income else 'P',
         })
         return open_att

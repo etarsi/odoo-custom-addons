@@ -205,18 +205,33 @@ class ImportSaleOrderMasiveWizard(models.TransientModel):
         if not shipping_name:
             return partner
 
+        shipping_name_clean = shipping_name
+        if ',' in shipping_name:
+            parts = [part.strip() for part in shipping_name.split(',')]
+            if len(parts) >= 2:
+                shipping_name_clean = parts[-1]
+
         shipping = self.env['res.partner'].search([
-            ('name', '=', shipping_name),
+            ('name', '=', shipping_name_clean),
             ('parent_id', '=', partner.id),
         ], limit=1)
-
         if shipping:
             return shipping
 
         shipping = self.env['res.partner'].search([
-            ('name', '=', shipping_name),
+            ('name', '=', shipping_name_clean),
         ], limit=1)
+        if shipping:
+            return shipping
 
+        # fallback por si viene alguna diferencia mínima
+        shipping = self.env['res.partner'].search([
+            ('name', 'ilike', shipping_name_clean),
+            ('parent_id', '=', partner.id),
+        ], limit=1)
+        if shipping:
+            return shipping
+        shipping = self.env['res.partner'].search([('name', 'ilike', shipping_name_clean)], limit=1)
         return shipping or partner
 
     def _get_rubro_from_product(self, product):
