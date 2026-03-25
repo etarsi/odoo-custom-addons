@@ -57,12 +57,16 @@ class ImportAfipArbaWizard(models.TransientModel):
         # Todos los clientes activos
         partners = self.env['res.partner'].search([('active', '=', True), ('vat', '!=', False)])
         errors = []
+        tag_id = self.env['account.account.tag'].search([('name', '=', 'Ret/Perc IIBB ARBA')], limit=1)
+        if not tag_id:
+            raise UserError(_("No se encontró el tag 'Ret/Perc IIBB ARBA'. Por favor, cree este tag antes de ejecutar la consulta."))
+        create=0
+        update=0
         for partner in partners:
             cuit = self._get_partner_cuit_clean(partner)
             if not cuit or not cuit.isdigit() or len(cuit) != 11:
                 errors.append("Partner %s tiene CUIT inválido: %s" % (partner.name, partner.vat))
                 continue
-            _logger.info("Conexión a ARBA IIBB realizada. Con URL: %s | Testing: %s", url, self.arba_iibb_testing)
             ok = iibb.ConsultarContribuyentes(
                 desde.strftime("%Y%m%d"),
                 hasta.strftime("%Y%m%d"),
@@ -70,14 +74,12 @@ class ImportAfipArbaWizard(models.TransientModel):
             )
             # limpiar resultados previos
             vals = {
-                "arba_alicuota_percepcion": 0.0,
-                "arba_alicuota_retencion": 0.0,
-                "arba_grupo_percepcion": False,
-                "arba_grupo_retencion": False,
-                "arba_numero_comprobante": False,
-                "arba_codigo_hash": False,
-                "arba_error": False,
-                "arba_xml_response": iibb.XmlResponse or False,
+                "alicuota_percepcion": 0.0,
+                "alicuota_retencion": 0.0,
+                "partner_id": False,
+                "tag_id": tag_id.id,
+                "from_date": desde,
+                "to_date": hasta,
             }
             if not ok:
                 errors.append("Error al consultar ARBA para partner %s (CUIT %s): %s" % (partner.name, partner.vat, iibb.MensajeError or "Error desconocido"))
@@ -86,20 +88,57 @@ class ImportAfipArbaWizard(models.TransientModel):
             leido = iibb.LeerContribuyente()
             vals.update({"arba_numero_comprobante": iibb.NumeroComprobante or False, "arba_codigo_hash": iibb.CodigoHash or False})
             if leido:
-                self.env['res.partner.arba.alicuot']
-
-
+                exist_alicuota =self.env['res.partner.arba.alicuota'].search([('from_date', '=', desde), ('to_date', '=', hasta),
+                                                                                ('partner_id', '=', partner.id), ('tag_id', '=', tag_id.id)], limit=1)
+                if not exist_alicuota:
+                    vals.update({
+                        "alicuota_percepcion": float(iibb.AlicuotaPercepcion) or 0.0,
+                        "alicuota_retencion": float(iibb.AlicuotaRetencion) or 0.0,
+                        "partner_id": partner.id,
+                    })
+                    self.env['res.partner.arba.alicuota'].create(vals)
+                    create += 1
+                else:
+                    exist_alicuota.write({
+                        "alicuota_percepcion": float(iibb.AlicuotaPercepcion) or 0.0,
+                        "alicuota_retencion": float(iibb.AlicuotaRetencion) or 0.0,
+                    })
+                    update += 1
             else:
-                vals["arba_error"] = "ARBA no devolvió contribuyente para el CUIT consultado."
                 errors.append("Error al consultar ARBA para partner %s (CUIT %s): %s" % (partner.name, partner.vat, vals["arba_error"]))
-
-        return {
-            "type": "ir.actions.client",
-            "tag": "display_notification",
-            "params": {
-                "title": _("Consulta ARBA"),
-                "message": _("Consulta realizada correctamente."),
-                "type": "success",
-                "sticky": False,
+                continue
+        if create == 0 and update == 0 and errors:
+            return {
+                "type": "ir.actions.client",
+                "tag": "display_notification",
+                "params": {
+                    "title": _("Consulta ARBA"),
+                    "message": "No se crearon ni actualizaron alícuotas para el período %s/%s. Errores:\n\n%s" % (self.month, self.year, "\n".join(errors)),
+                    "type": "warning",
+                    "sticky": True,
+                }
             }
-        }
+
+        elif create > 0 or update > 0 and errors:
+             return {
+                "type": "ir.actions.client",
+                "tag": "display_notification",
+                "params": {
+                    "title": _("Consulta ARBA"),
+                    "message": f"Se crearon {create} alícuotas y se actualizaron {update} alícuotas para el período {self.month}/{self.year}. Sin embargo, se encontraron algunos errores:\n\n" + "\n".join(errors),
+                    "type": "warning",
+                    "sticky": True,
+                }
+            }
+
+        elif create > 0 or update > 0 and not errors:
+            return {
+                "type": "ir.actions.client",
+                "tag": "display_notification",
+                "params": {
+                    "title": _("Consulta ARBA"),
+                    "message": f"Se crearon {create} alícuotas y se actualizaron {update} alícuotas para el período {self.month}/{self.year}.",
+                    "type": "success",
+                    "sticky": True,
+                }
+            }
