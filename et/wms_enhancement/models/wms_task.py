@@ -137,6 +137,10 @@ class WMSTask(models.Model):
 
         return super().create(vals)
 
+
+    def assing_next_name(self):
+        for record in self:
+            record.name = self.env['ir.sequence'].next_by_code('wms.task')
     
     @api.depends('invoice_ids')
     def _compute_invoice_count(self):
