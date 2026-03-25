@@ -389,11 +389,12 @@ class ImportSaleOrderMasiveWizard(models.TransientModel):
         
         if created_orders and msg_error:
             return {
-                'type': 'ir.actions.act_window',
+                'type': 'ir.actions.client',
                 'tag': 'display_notification',
                 'params': {
                     'title': _('Aviso'),
                     'message': _('Se han creado %s pedidos de venta.') % len(created_orders) + msg_error,
+                    'type': 'warning',
                     'sticky': False,
                     'next': {
                         'type': 'ir.actions.act_window',
@@ -409,12 +410,13 @@ class ImportSaleOrderMasiveWizard(models.TransientModel):
 
         elif created_orders and not errors:
             return {
-                'type': 'ir.actions.act_window',
+                'type': 'ir.actions.client',
                 'tag': 'display_notification',
                 'params': {
                     'title': _('Éxito'),
                     'message': msg_ok,
                     'sticky': False,
+                    'type': 'success',
                     'next': {
                         'type': 'ir.actions.act_window',
                         'name': _('Pedidos de Venta Importados'),
