@@ -11,7 +11,7 @@ _logger = logging.getLogger(__name__)
 
 ARBA_TEST_URL = "https://dfe.test.arba.gov.ar/DomicilioElectronico/SeguridadCliente/dfeServicioConsulta.do"
 ARBA_PROD_URL = "https://dfe.arba.gov.ar/DomicilioElectronico/SeguridadCliente/dfeServicioConsulta.do"
-
+COMPANY_IDS = [2, 3, 4] #SEBIGUS, BECHAR, FUNTOYS
 
 class ImportAfipArbaWizard(models.TransientModel):
     _name = 'import.afip.arba.wizard'
@@ -33,9 +33,9 @@ class ImportAfipArbaWizard(models.TransientModel):
     arba_iibb_password = fields.Char(string="ARBA IIBB Password")
     arba_iibb_testing = fields.Boolean(string="ARBA IIBB Testing", default=True)
 
-    def _get_partner_cuit_clean(self):
+    def _get_partner_cuit_clean(self, partner_id):
         self.ensure_one()
-        vat = '30707176284' # CUIT de prueba de ARBA para testing
+        vat = partner_id.vat or ""
         vat = vat.replace("-", "").replace(" ", "")
         if vat.upper().startswith("AR"):
             vat = vat[2:]
@@ -46,92 +46,52 @@ class ImportAfipArbaWizard(models.TransientModel):
 
         arba_iibb_user = '30708077034' # Usuario de prueba de ARBA para testing
         arba_iibb_password = 'Funtoys0205' # Password de prueba de ARBA para testing
-
-        cuit = self._get_partner_cuit_clean()
-        if not cuit or not cuit.isdigit() or len(cuit) != 11:
-            raise UserError(_("El partner debe tener un CUIT válido de 11 dígitos en VAT."))
-
-        hoy = self.month and self.year and date(int(self.year), int(self.month), 1)
-        desde = hoy.replace(day=1)
-        hasta = hoy.replace(day=monthrange(hoy.year, hoy.month)[1])
-
         iibb = IIBB()
         iibb.Usuario = arba_iibb_user
         iibb.Password = arba_iibb_password
-
-        url = ARBA_TEST_URL if self.arba_iibb_testing else ARBA_PROD_URL
+        url = ARBA_PROD_URL
         iibb.Conectar(url=url)
-        _logger.info("Conexión a ARBA IIBB realizada. Con URL: %s | Testing: %s", url, self.arba_iibb_testing)
-
-        ok = iibb.ConsultarContribuyentes(
-            desde.strftime("%Y%m%d"),
-            hasta.strftime("%Y%m%d"),
-            cuit
-        )
-        _logger.info("Consulta ARBA IIBB realizada. OK: %s | Excepción: %s | CódigoError: %s | MensajeError: %s | NumeroComprobante: %s | CodigoHash: %s",
-            ok,
-            iibb.Excepcion or "",
-            iibb.CodigoError or "",
-            iibb.MensajeError or "",
-            iibb.NumeroComprobante or "",
-            iibb.CodigoHash or "",
-        )
-
-        # limpiar resultados previos
-        vals = {
-            "arba_alicuota_percepcion": 0.0,
-            "arba_alicuota_retencion": 0.0,
-            "arba_grupo_percepcion": False,
-            "arba_grupo_retencion": False,
-            "arba_numero_comprobante": False,
-            "arba_codigo_hash": False,
-            "arba_error": False,
-            "arba_xml_response": iibb.XmlResponse or False,
-        }
-
-        if not ok:
-            vals["arba_error"] = "La operación devolvió False. Excepción: %s | Código: %s | Mensaje: %s" % (
-                iibb.Excepcion or "",
-                iibb.CodigoError or "",
-                iibb.MensajeError or "",
+        hoy = self.month and self.year and date(int(self.year), int(self.month), 1)
+        desde = hoy.replace(day=1)
+        hasta = hoy.replace(day=monthrange(hoy.year, hoy.month)[1])
+        # Todos los clientes activos
+        partners = self.env['res.partner'].search([('active', '=', True), ('vat', '!=', False)])
+        errors = []
+        for partner in partners:
+            cuit = self._get_partner_cuit_clean(partner)
+            if not cuit or not cuit.isdigit() or len(cuit) != 11:
+                errors.append("Partner %s tiene CUIT inválido: %s" % (partner.name, partner.vat))
+                continue
+            _logger.info("Conexión a ARBA IIBB realizada. Con URL: %s | Testing: %s", url, self.arba_iibb_testing)
+            ok = iibb.ConsultarContribuyentes(
+                desde.strftime("%Y%m%d"),
+                hasta.strftime("%Y%m%d"),
+                cuit
             )
-            raise UserError(_(vals["arba_error"]))
-
-        if iibb.Excepcion:
-            vals["arba_error"] = "Error interno: %s\n%s" % (iibb.Excepcion or "", iibb.Traceback or "")
-            raise UserError(_(vals["arba_error"]))
-
-        if iibb.CodigoError:
-            vals["arba_error"] = "ARBA devolvió error %s: %s" % (iibb.CodigoError, iibb.MensajeError or "")
-            vals["arba_numero_comprobante"] = iibb.NumeroComprobante or False
-            vals["arba_codigo_hash"] = iibb.CodigoHash or False
-            raise UserError(_(vals["arba_error"]))
-
-        # para un solo CUIT, intentamos leer el contribuyente devuelto
-        leido = iibb.LeerContribuyente()
-
-        vals.update({
-            "arba_numero_comprobante": iibb.NumeroComprobante or False,
-            "arba_codigo_hash": iibb.CodigoHash or False,
-        })
-
-        if leido:
-            vals.update({
-                "arba_alicuota_percepcion": iibb.AlicuotaPercepcion or 0.0,
-                "arba_alicuota_retencion": iibb.AlicuotaRetencion or 0.0,
-                "arba_grupo_percepcion": iibb.GrupoPercepcion or False,
-                "arba_grupo_retencion": iibb.GrupoRetencion or False,
+            # limpiar resultados previos
+            vals = {
+                "arba_alicuota_percepcion": 0.0,
+                "arba_alicuota_retencion": 0.0,
+                "arba_grupo_percepcion": False,
+                "arba_grupo_retencion": False,
+                "arba_numero_comprobante": False,
+                "arba_codigo_hash": False,
                 "arba_error": False,
-            })
-            raise UserError(_("Consulta ARBA realizada correctamente.\n\nAlic. Percepción: %s\nAlic. Retención: %s\nGrupo Percepción: %s\nGrupo Retención: %s") % (
-                vals["arba_alicuota_percepcion"],
-                vals["arba_alicuota_retencion"],
-                vals["arba_grupo_percepcion"],
-                vals["arba_grupo_retencion"],
-            ))
+                "arba_xml_response": iibb.XmlResponse or False,
+            }
+            if not ok:
+                errors.append("Error al consultar ARBA para partner %s (CUIT %s): %s" % (partner.name, partner.vat, iibb.MensajeError or "Error desconocido"))
+                continue
+            # para un solo CUIT, intentamos leer el contribuyente devuelto
+            leido = iibb.LeerContribuyente()
+            vals.update({"arba_numero_comprobante": iibb.NumeroComprobante or False, "arba_codigo_hash": iibb.CodigoHash or False})
+            if leido:
+                self.env['res.partner.arba.alicuot']
 
-        else:
-            vals["arba_error"] = "ARBA no devolvió contribuyente para el CUIT consultado."
+
+            else:
+                vals["arba_error"] = "ARBA no devolvió contribuyente para el CUIT consultado."
+                errors.append("Error al consultar ARBA para partner %s (CUIT %s): %s" % (partner.name, partner.vat, vals["arba_error"]))
 
         return {
             "type": "ir.actions.client",
