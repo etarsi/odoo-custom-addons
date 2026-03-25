@@ -873,7 +873,7 @@ class SaleOrderLineInherit(models.Model):
         if packaging_ids:
             self.write({'product_packaging_id': packaging_ids[0]})
     
-    @api.onchange('product_id', 'order_id.partner_id')
+    @api.onchange('product_id', 'order_id')
     def product_id_change(self):
         res = super(SaleOrderLineInherit, self).product_id_change()
         #ACTUALIZAR NOMBRE ALTERNATIVO EN PEDIDO DE VENTA
