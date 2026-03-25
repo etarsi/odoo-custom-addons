@@ -63,7 +63,6 @@ class ImportSaleOrderMasiveWizard(models.TransientModel):
         H Descuento
         I Producto
         J Cantidad
-        K Rubro
         M Compania forzada (opcional)
 
         Las filas heredan contexto de filas anteriores si vienen vacías.
@@ -96,7 +95,6 @@ class ImportSaleOrderMasiveWizard(models.TransientModel):
             descuento = ws[f'H{row_idx}'].value
             producto_codigo = self._normalize(ws[f'I{row_idx}'].value)
             cantidad = ws[f'J{row_idx}'].value
-            rubro = self._normalize(ws[f'K{row_idx}'].value)
             company_default = self._normalize(ws[f'M{row_idx}'].value)
 
             # Saltar fila vacía total
@@ -124,8 +122,6 @@ class ImportSaleOrderMasiveWizard(models.TransientModel):
                 current['terminos_condiciones'] = terminos_condiciones
             if notas_internas:
                 current['notas_internas'] = notas_internas
-            if rubro:
-                current['rubro'] = rubro
             if company_default:
                 current['company_default'] = company_default
 
@@ -148,13 +144,12 @@ class ImportSaleOrderMasiveWizard(models.TransientModel):
                     'notas_internas': current['notas_internas'],
                     'producto_codigo': producto_codigo,
                     'cantidad': self._float_or_zero(cantidad),
-                    'rubro': current['rubro'],
                     'company_default': current['company_default'],
                     'discount_map': dict(current['discount_map']),
                     'default_discount': current['default_discount'],
                 })
         if not rows:
-            raise UserError(_('No se encontraron líneas importables en la hoja %s.') % self.sheet_name)
+            return []
         return rows
 
     def _build_master_data(self, rows):
@@ -225,7 +220,11 @@ class ImportSaleOrderMasiveWizard(models.TransientModel):
 
     def _get_rubro_from_product(self, product):
         categ = product.categ_id
-        return (categ.parent_id or categ).name if categ else ''
+        if categ.parent_id:
+            rubro = categ.parent_id.name
+        else:
+            rubro = categ.name if categ else ''
+        return rubro
 
     def _build_group_key(self, row, partner, shipping, company, product):
         tipo = (row.get('condicion_venta') or '').strip().upper()
@@ -271,17 +270,21 @@ class ImportSaleOrderMasiveWizard(models.TransientModel):
     def _prepare_order_line_vals(self, row, product):
         qty = row.get('cantidad') or 0.0
         if qty <= 0:
-            raise UserError(_('Fila %s: la cantidad debe ser mayor a 0.') % row['excel_row'])
+            return False, _('Fila %s: la cantidad debe ser mayor a cero.') % row['excel_row']
 
-        return {
+        vals = {
             'product_id': product.id,
             'name': product.get_product_multiline_description_sale() or product.display_name,
             'product_uom_qty': qty,
         }
+        
+        return vals, False 
 
     def action_import_file(self):
         self.ensure_one()
         rows = self._read_sheet1_rows()
+        if not rows:
+            return self.notifi_action_warning(_('No se encontraron líneas importables en la hoja %s.') % self.sheet_name)
         master_data = self._build_master_data(rows)
         sale_order = self.env['sale.order'].with_context(mail_notrack=True)
         grouped = defaultdict(lambda: {
@@ -291,30 +294,37 @@ class ImportSaleOrderMasiveWizard(models.TransientModel):
             'tipo': '',
         })
         errors = []
+        created_orders = self.env['sale.order']
 
         for row in rows:
             try:
                 partner = master_data['partner_map'].get((row['cliente'] or '').strip())
                 if not partner:
-                    raise UserError(_('Fila %s: cliente no encontrado "%s".') % (
+                    errors.append(_('Fila %s: cliente no encontrado "%s".') % (
                         row['excel_row'], row['cliente']
                     ))
+                    continue
 
                 condicion_m2m = master_data['condicion_m2m_map'].get((row['condicion_venta'] or '').strip())
                 if row['condicion_venta'] and not condicion_m2m:
-                    raise UserError(_('Fila %s: condición de venta no encontrada "%s".') % (
+                    errors.append(_('Fila %s: condición de venta no encontrada "%s".') % (
                         row['excel_row'], row['condicion_venta']
-                    ))              
+                    ))
+                    continue
+                                  
                 payment_term = master_data['payment_term_map'].get((row['plazos_pago'] or '').strip())
                 if row['plazos_pago'] and not payment_term:
-                    raise UserError(_('Fila %s: plazo de pago no encontrado "%s".') % (
+                    errors.append(_('Fila %s: plazo de pago no encontrado "%s".') % (
                         row['excel_row'], row['plazos_pago']
                     ))
+                    continue
+                    
                 product = master_data['product_map'].get((row['producto_codigo'] or '').strip())
                 if not product:
-                    raise UserError(_('Fila %s: producto no encontrado "%s".') % (
+                    errors.append(_('Fila %s: producto no encontrado "%s".') % (
                         row['excel_row'], row['producto_codigo']
                     ))
+                    continue
 
                 shipping = self._resolve_shipping_partner(row, partner)
                 company = self._resolve_company(row, master_data)
@@ -322,13 +332,19 @@ class ImportSaleOrderMasiveWizard(models.TransientModel):
                 rubro_real = self._get_rubro_from_product(product)
                 tipo = (row.get('condicion_venta') or '').strip().upper()
                 descuento = self._get_discount_for_row(row, rubro_real)
+                
+                line_vals, line_error = self._prepare_order_line_vals(row, product)
+                if line_error:
+                    errors.append(line_error)
+                    continue
+                
 
                 if not grouped[group_key]['header']:
                     grouped[group_key]['header'] = self._prepare_order_vals(
                         row, partner, shipping, company, descuento, condicion_m2m, payment_term
                     )
                 grouped[group_key]['tipo'] = tipo
-                grouped[group_key]['lines'].append(self._prepare_order_line_vals(row, product))
+                grouped[group_key]['lines'].append(line_vals)
                 grouped[group_key]['discounts'].add(descuento)
             except Exception as e:
                 errors.append(str(e))
@@ -344,27 +360,40 @@ class ImportSaleOrderMasiveWizard(models.TransientModel):
                 discounts = {d for d in data['discounts'] if d}
 
                 # Si mezcla rubros y usa global_discount, no se puede representar más de un descuento
-                if tipo == 'TIPO 3':
-                    if len(discounts) > 1:
-                        raise UserError(_(
-                            'El grupo %s es TIPO 3 y mezcla rubros con descuentos distintos. '
-                            'No se puede guardar en un solo global_discount.'
-                        ) % (group_key,))
-                    global_discount = list(discounts)[0] if discounts else 0.0
-                else:
-                    global_discount = list(discounts)[0] if discounts else 0.0
+                if tipo == 'TIPO 3' and len(discounts) > 1:
+                    errors.append(_('No se puede importar el pedido para cliente "%s" porque tiene múltiples descuentos (%s) y condición de venta "Tipo 3".') % (
+                        data['header']['cliente'], ', '.join(str(d) for d in discounts)
+                    ))
+                    continue
+                global_discount = list(discounts)[0] if discounts else 0.0
                 vals= dict(data['header'])
                 vals['global_discount'] = global_discount if global_discount > 0 else 0.0
                 vals['order_line'] = [(0, 0, line_vals) for line_vals in data['lines']]
-                order = sale_order.create(vals)
-                created_orders |= order
-
-        action = self.env.ref('sale.action_orders').read()[0]
-        action['domain'] = [('id', 'in', created_orders.ids)]
-        return action
+                
+                try:
+                    with self.env.cr.savepoint():
+                        order = sale_order.create(vals)
+                        created_orders |= order
+                except Exception as e:
+                    errors.append(_('Error al crear pedido para cliente "%s": %s') % (
+                        data['header']['cliente'], str(e)
+                    ))
+                    continue
+        msg_ok = _('Importación finalizada. Pedidos creados: %s.') % len(created_orders)
+        msg_error = _('Importación finalizada con errores. Pedidos creados: %s. Errores:\n\n%s') % (
+            len(created_orders), '\n'.join(errors[:80])
+        )
+        full_message = '%s\n\n%s' % (msg_ok, msg_error)
+        _logger.warning('RESULTADO IMPORTACION MASIVA: %s', full_message)
+        
+        if created_orders:
+            action = self.env.ref('sale.action_orders').read()[0]
+            action['domain'] = [('id', 'in', created_orders.ids)]
+            return action
+        return self.notifi_action_warning(full_message)
     
     def _get_discount_for_row(self, row, rubro_real):
-        rubro_key = (rubro_real or row.get('rubro') or '').strip().upper()
+        rubro_key = rubro_real.strip().upper() if rubro_real else ''
         discount_map = row.get('discount_map') or {}
 
         # 1) si el rubro tiene descuento específico, manda ese
@@ -373,3 +402,14 @@ class ImportSaleOrderMasiveWizard(models.TransientModel):
 
         # 2) si no tiene específico, usar descuento general del bloque
         return self._float_or_zero(row.get('default_discount', 0.0))
+    
+    def notifi_action_warning(self, message):
+        return {
+            'type': 'ir.actions.client',
+            'tag': 'display_notification',
+            'params': {
+                'title': _('Advertencia'),
+                'message': message,
+                'sticky': False,
+            }
+        }
