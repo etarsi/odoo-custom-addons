@@ -430,6 +430,9 @@ class ImportSaleOrderMasiveWizard(models.TransientModel):
                     }
                 }
             }
+        
+        elif not created_orders and errors:
+            return self.notifi_action_warning(msg_error)
     
     def _get_discount_for_row(self, row, rubro_real):
         rubro_key = rubro_real.strip().upper() if rubro_real else ''
