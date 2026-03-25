@@ -361,8 +361,9 @@ class ImportSaleOrderMasiveWizard(models.TransientModel):
 
             # Si mezcla rubros y usa global_discount, no se puede representar más de un descuento
             if tipo == 'TIPO 3' and len(discounts) > 1:
+                partner = self.env['res.partner'].browse(data['header']['partner_id'])
                 errors.append(_('No se puede importar el pedido para cliente "%s" porque tiene múltiples descuentos (%s) y condición de venta "Tipo 3".') % (
-                    data['header']['partner_id'], ', '.join(str(d) for d in discounts)
+                    partner.name, ', '.join(str(d) for d in discounts)
                 ))
                 continue
             global_discount = list(discounts)[0] if discounts else 0.0
@@ -375,10 +376,11 @@ class ImportSaleOrderMasiveWizard(models.TransientModel):
                     order = sale_order.create(vals)
                     created_orders |= order
             except Exception as e:
+                partner = self.env['res.partner'].browse(data['header']['partner_id'])  
                 errors.append(_('Error al crear pedido para cliente "%s": %s') % (
-                    data['header']['partner_id'], str(e)
+                    partner.name, str(e)
                 ))
-                _logger.warning('Error al crear pedido para cliente "%s": %s', data['header']['partner_id'], str(e))
+                _logger.warning('Error al crear pedido para cliente "%s": %s', partner.name, str(e))
                 continue
         msg_ok = _('Importación finalizada. Pedidos creados: %s.') % len(created_orders)
         msg_error = _('Importación finalizada con errores. Pedidos creados: %s. Errores:\n\n%s') % (
