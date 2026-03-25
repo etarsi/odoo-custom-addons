@@ -378,6 +378,7 @@ class ImportSaleOrderMasiveWizard(models.TransientModel):
                 errors.append(_('Error al crear pedido para cliente "%s": %s') % (
                     data['header']['partner_id'], str(e)
                 ))
+                _logger.warning('Error al crear pedido para cliente "%s": %s', data['header']['partner_id'], str(e))
                 continue
         msg_ok = _('Importación finalizada. Pedidos creados: %s.') % len(created_orders)
         msg_error = _('Importación finalizada con errores. Pedidos creados: %s. Errores:\n\n%s') % (
