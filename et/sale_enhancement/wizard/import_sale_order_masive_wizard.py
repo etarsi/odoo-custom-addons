@@ -387,11 +387,42 @@ class ImportSaleOrderMasiveWizard(models.TransientModel):
         full_message = '%s\n\n%s' % (msg_ok, msg_error)
         _logger.warning('RESULTADO IMPORTACION MASIVA: %s', full_message)
         
-        if created_orders:
-            action = self.env.ref('sale.action_orders').read()[0]
-            action['domain'] = [('id', 'in', created_orders.ids)]
-            return action
-        return self.notifi_action_warning(full_message)
+        if created_orders and msg_error:
+            return {
+                'type': 'ir.actions.act_window',
+                'name': _('Pedidos de Venta Importados'),
+                'res_model': 'sale.order',
+                'view_mode': 'tree,form',
+                'domain': [('id', 'in', created_orders.ids)],
+                'target': 'current',
+                'next': {
+                    'type': 'ir.actions.act_window',
+                    'tag': 'display_notification',
+                    'params': {
+                        'title': _('Aviso'),
+                        'message': _('Se han creado %s pedidos de venta.') % len(created_orders) + msg_error,
+                        'sticky': False,
+                    }
+                }
+            }
+        elif created_orders and not errors:
+            return {
+                'type': 'ir.actions.act_window',
+                'name': _('Pedidos de Venta Importados'),
+                'res_model': 'sale.order',
+                'view_mode': 'tree,form',
+                'domain': [('id', 'in', created_orders.ids)],
+                'target': 'current',
+                'next': {
+                    'type': 'ir.actions.act_window',
+                    'tag': 'display_notification',
+                    'params': {
+                        'title': _('Éxito'),
+                        'message': msg_ok,
+                        'sticky': False,
+                    }
+                }
+            }
     
     def _get_discount_for_row(self, row, rubro_real):
         rubro_key = rubro_real.strip().upper() if rubro_real else ''
