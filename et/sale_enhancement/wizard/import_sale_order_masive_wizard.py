@@ -395,7 +395,7 @@ class ImportSaleOrderMasiveWizard(models.TransientModel):
                     'title': _('Aviso'),
                     'message': _('Se han creado %s pedidos de venta.') % len(created_orders) + msg_error,
                     'type': 'warning',
-                    'sticky': False,
+                    'sticky': True,
                     'next': {
                         'type': 'ir.actions.act_window',
                         'name': _('Pedidos de Venta Importados'),
@@ -415,7 +415,7 @@ class ImportSaleOrderMasiveWizard(models.TransientModel):
                 'params': {
                     'title': _('Éxito'),
                     'message': msg_ok,
-                    'sticky': False,
+                    'sticky': True,
                     'type': 'success',
                     'next': {
                         'type': 'ir.actions.act_window',
