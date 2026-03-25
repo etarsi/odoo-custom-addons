@@ -390,36 +390,37 @@ class ImportSaleOrderMasiveWizard(models.TransientModel):
         if created_orders and msg_error:
             return {
                 'type': 'ir.actions.act_window',
-                'name': _('Pedidos de Venta Importados'),
-                'res_model': 'sale.order',
-                'view_mode': 'tree,form',
-                'domain': [('id', 'in', created_orders.ids)],
-                'target': 'current',
-                'next': {
-                    'type': 'ir.actions.act_window',
-                    'tag': 'display_notification',
-                    'params': {
-                        'title': _('Aviso'),
-                        'message': _('Se han creado %s pedidos de venta.') % len(created_orders) + msg_error,
-                        'sticky': False,
+                'tag': 'display_notification',
+                'params': {
+                    'title': _('Aviso'),
+                    'message': _('Se han creado %s pedidos de venta.') % len(created_orders) + msg_error,
+                    'sticky': False,
+                    'next': {
+                        'type': 'ir.actions.act_window',
+                        'name': _('Pedidos de Venta Importados'),
+                        'res_model': 'sale.order',
+                        'view_mode': 'tree,form',
+                        'domain': [('id', 'in', created_orders.ids)],
+                        'target': 'current',
                     }
                 }
             }
+
         elif created_orders and not errors:
             return {
                 'type': 'ir.actions.act_window',
-                'name': _('Pedidos de Venta Importados'),
-                'res_model': 'sale.order',
-                'view_mode': 'tree,form',
-                'domain': [('id', 'in', created_orders.ids)],
-                'target': 'current',
-                'next': {
-                    'type': 'ir.actions.act_window',
-                    'tag': 'display_notification',
-                    'params': {
-                        'title': _('Éxito'),
-                        'message': msg_ok,
-                        'sticky': False,
+                'tag': 'display_notification',
+                'params': {
+                    'title': _('Éxito'),
+                    'message': msg_ok,
+                    'sticky': False,
+                    'next': {
+                        'type': 'ir.actions.act_window',
+                        'name': _('Pedidos de Venta Importados'),
+                        'res_model': 'sale.order',
+                        'view_mode': 'tree,form',
+                        'domain': [('id', 'in', created_orders.ids)],
+                        'target': 'current',
                     }
                 }
             }
