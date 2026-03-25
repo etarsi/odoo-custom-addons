@@ -22,7 +22,8 @@
 
             </xpath>
             <xpath expr="//field[@name='date_order']" position="before">
-                <field name="preselection_id" attrs="{'invisible': [('preselection_id', '=', False)], 'readonly': [('state', '!=', False)]}"/>
+                <field name="preselection_id" attrs="{'invisible': [('preselection_id', '=', False)], 'readonly': [('state', '!=', 'draft')]}"/>
+            </xpath>
         </field>
     </record>
 
