@@ -94,7 +94,10 @@ class ImportAfipArbaWizard(models.TransientModel):
             ('partner_id', 'in', partners.ids),
             ('company_id', 'in', COMPANY_IDS),
         ])
-        existing_map = {rec.partner_id.id: rec for rec in existing_records}
+        existing_map = {
+            (rec.partner_id.id, rec.company_id.id): rec
+            for rec in existing_records
+        }
 
         errors = []
         create_vals = []
@@ -136,22 +139,27 @@ class ImportAfipArbaWizard(models.TransientModel):
             alicuota_percepcion = self._to_float_ar(iibb.AlicuotaPercepcion)
             alicuota_retencion = self._to_float_ar(iibb.AlicuotaRetencion)
 
-            existing = existing_map.get(partner.id)
-            if existing:
-                to_update.append((existing, {
-                    "alicuota_percepcion": alicuota_percepcion,
-                    "alicuota_retencion": alicuota_retencion,
-                }))
-            else:
-                create_vals.append({
-                    "partner_id": partner.id,
-                    "tag_id": tag_id.id,
-                    "from_date": desde,
-                    "to_date": hasta,
-                    "alicuota_percepcion": alicuota_percepcion,
-                    "alicuota_retencion": alicuota_retencion,
-                })
+            for company_id in COMPANY_IDS:
+                key = (partner.id, company_id)
+                existing = existing_map.get(key)
 
+                if existing:
+                    if (existing.alicuota_percepcion != alicuota_percepcion or
+                        existing.alicuota_retencion != alicuota_retencion):
+                        to_update.append((existing, {
+                            "alicuota_percepcion": alicuota_percepcion,
+                            "alicuota_retencion": alicuota_retencion,
+                        }))
+                else:
+                    create_vals.append({
+                        "partner_id": partner.id,
+                        "company_id": company_id,
+                        "tag_id": tag_id.id,
+                        "from_date": desde,
+                        "to_date": hasta,
+                        "alicuota_percepcion": alicuota_percepcion,
+                        "alicuota_retencion": alicuota_retencion,
+                    })
             if idx % 100 == 0:
                 _logger.warning("ARBA IIBB procesados %s/%s partners", idx, len(partners))
 
