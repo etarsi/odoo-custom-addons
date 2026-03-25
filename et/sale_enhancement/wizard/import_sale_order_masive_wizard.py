@@ -356,30 +356,29 @@ class ImportSaleOrderMasiveWizard(models.TransientModel):
         created_orders = self.env['sale.order']
 
         for group_key, data in grouped.items():
-            with self.env.cr.savepoint():
-                tipo = data['tipo']
-                discounts = {d for d in data['discounts'] if d}
+            tipo = data['tipo']
+            discounts = {d for d in data['discounts'] if d}
 
-                # Si mezcla rubros y usa global_discount, no se puede representar más de un descuento
-                if tipo == 'TIPO 3' and len(discounts) > 1:
-                    errors.append(_('No se puede importar el pedido para cliente "%s" porque tiene múltiples descuentos (%s) y condición de venta "Tipo 3".') % (
-                        data['header']['partner_id'], ', '.join(str(d) for d in discounts)
-                    ))
-                    continue
-                global_discount = list(discounts)[0] if discounts else 0.0
-                vals= dict(data['header'])
-                vals['global_discount'] = global_discount if global_discount > 0 else 0.0
-                vals['order_line'] = [(0, 0, line_vals) for line_vals in data['lines']]
-                
-                try:
-                    with self.env.cr.savepoint():
-                        order = sale_order.create(vals)
-                        created_orders |= order
-                except Exception as e:
-                    errors.append(_('Error al crear pedido para cliente "%s": %s') % (
-                        data['header']['partner_id'], str(e)
-                    ))
-                    continue
+            # Si mezcla rubros y usa global_discount, no se puede representar más de un descuento
+            if tipo == 'TIPO 3' and len(discounts) > 1:
+                errors.append(_('No se puede importar el pedido para cliente "%s" porque tiene múltiples descuentos (%s) y condición de venta "Tipo 3".') % (
+                    data['header']['partner_id'], ', '.join(str(d) for d in discounts)
+                ))
+                continue
+            global_discount = list(discounts)[0] if discounts else 0.0
+            vals= dict(data['header'])
+            vals['global_discount'] = global_discount if global_discount > 0 else 0.0
+            vals['order_line'] = [(0, 0, line_vals) for line_vals in data['lines']]
+            _logger.warning('Creando pedido para cliente "%s" con %s líneas y descuento global %s%%', vals['partner_id'], len(data['lines']), vals['global_discount'])
+            try:
+                with self.env.cr.savepoint():
+                    order = sale_order.create(vals)
+                    created_orders |= order
+            except Exception as e:
+                errors.append(_('Error al crear pedido para cliente "%s": %s') % (
+                    data['header']['partner_id'], str(e)
+                ))
+                continue
         msg_ok = _('Importación finalizada. Pedidos creados: %s.') % len(created_orders)
         msg_error = _('Importación finalizada con errores. Pedidos creados: %s. Errores:\n\n%s') % (
             len(created_orders), '\n'.join(errors[:80])
