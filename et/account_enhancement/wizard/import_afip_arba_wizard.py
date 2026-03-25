@@ -86,7 +86,6 @@ class ImportAfipArbaWizard(models.TransientModel):
                 continue
             # para un solo CUIT, intentamos leer el contribuyente devuelto
             leido = iibb.LeerContribuyente()
-            vals.update({"arba_numero_comprobante": iibb.NumeroComprobante or False, "arba_codigo_hash": iibb.CodigoHash or False})
             if leido:
                 exist_alicuota =self.env['res.partner.arba_alicuot'].search([('from_date', '=', desde), ('to_date', '=', hasta),
                                                                                 ('partner_id', '=', partner.id), ('tag_id', '=', tag_id.id)], limit=1)
