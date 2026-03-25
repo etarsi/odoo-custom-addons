@@ -117,8 +117,8 @@ class ImportAfipArbaWizard(models.TransientModel):
 
         if leido:
             vals.update({
-                "arba_alicuota_percepcion": float(iibb.AlicuotaPercepcion or 0.0),
-                "arba_alicuota_retencion": float(iibb.AlicuotaRetencion or 0.0),
+                "arba_alicuota_percepcion": iibb.AlicuotaPercepcion or 0.0,
+                "arba_alicuota_retencion": iibb.AlicuotaRetencion or 0.0,
                 "arba_grupo_percepcion": iibb.GrupoPercepcion or False,
                 "arba_grupo_retencion": iibb.GrupoRetencion or False,
                 "arba_error": False,

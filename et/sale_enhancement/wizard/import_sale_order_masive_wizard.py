@@ -437,11 +437,9 @@ class ImportSaleOrderMasiveWizard(models.TransientModel):
     def _get_discount_for_row(self, row, rubro_real):
         rubro_key = rubro_real.strip().upper() if rubro_real else ''
         discount_map = row.get('discount_map') or {}
-
         # 1) si el rubro tiene descuento específico, manda ese
         if rubro_key in discount_map:
             return self._float_or_zero(discount_map[rubro_key])
-
         # 2) si no tiene específico, usar descuento general del bloque
         return self._float_or_zero(row.get('default_discount', 0.0))
     

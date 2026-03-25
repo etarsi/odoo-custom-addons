@@ -12,13 +12,11 @@ class HrAttendance(models.Model):
         compute="_compute_worked_hours",
         help="Horas extras del día (sin decimales, regla 30m -> 1h por tramo)."
     )
-    # Ejemplo básico: horas trabajadas en feriado (ajustar a tu lógica)
     holiday_hours = fields.Float(
         string='Horas al 100%/Feriados/Sábados',
         compute="_compute_worked_hours",
         help="Horas trabajadas en feriados/Sábados después del medio día."
     )
-    
     hours_late = fields.Float(
         string='Horas de retraso',
         store=True,
@@ -50,6 +48,20 @@ class HrAttendance(models.Model):
             ('PT', 'Presente Tarde'),
             ('F', 'Falta')],
             string='Tipo de Ingreso', default='P', index=True)
+    no_checkout = fields.Boolean(string='No Marcó Salida', default=False, tracking=True)
+    auto_checkout = fields.Boolean(string='Salida Automática', default=False, tracking=True)
+    checkin_origin = fields.Selection([
+        ('manual', 'Manual'),
+        ('reader_face', 'Lector Facial'),
+        ('reader_finger', 'Lector Huella'),
+        ('auto', 'Automático'),
+    ], string='Origen de Entrada', default='manual', tracking=True)
+    checkout_origin = fields.Selection([
+        ('manual', 'Manual'),
+        ('reader_face', 'Lector Facial'),
+        ('reader_finger', 'Lector Huella'),
+        ('auto', 'Automático'),
+    ], string='Origen de Salida', tracking=True)
 
     @api.depends('check_in')
     def _compute_day_of_week(self):
