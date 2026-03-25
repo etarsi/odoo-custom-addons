@@ -21,7 +21,7 @@
                 </button>
 
             </xpath>
-            <xpath expr="//field[@name='date_order']" position="before">
+            <xpath expr="//field[@name='validity_date']" position="before">
                 <field name="preselection_id" attrs="{'invisible': [('preselection_id', '=', False)], 'readonly': [('state', '!=', 'draft')]}"/>
             </xpath>
         </field>
