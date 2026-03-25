@@ -92,16 +92,16 @@ class ImportAfipArbaWizard(models.TransientModel):
                                                                                 ('partner_id', '=', partner.id), ('tag_id', '=', tag_id.id)], limit=1)
                 if not exist_alicuota:
                     vals.update({
-                        "alicuota_percepcion": float(iibb.AlicuotaPercepcion) or 0.0,
-                        "alicuota_retencion": float(iibb.AlicuotaRetencion) or 0.0,
+                        "alicuota_percepcion": float((iibb.AlicuotaPercepcion or '0').replace(",", ".")),
+                        "alicuota_retencion": float((iibb.AlicuotaRetencion or '0').replace(",", ".")),
                         "partner_id": partner.id,
                     })
                     self.env['res.partner.arba_alicuot'].create(vals)
                     create += 1
                 else:
                     exist_alicuota.write({
-                        "alicuota_percepcion": float(iibb.AlicuotaPercepcion) or 0.0,
-                        "alicuota_retencion": float(iibb.AlicuotaRetencion) or 0.0,
+                        "alicuota_percepcion": float((iibb.AlicuotaPercepcion or '0').replace(",", ".")),
+                        "alicuota_retencion": float((iibb.AlicuotaRetencion or '0').replace(",", ".")),
                     })
                     update += 1
             else:
