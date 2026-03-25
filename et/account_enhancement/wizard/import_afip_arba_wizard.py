@@ -105,7 +105,7 @@ class ImportAfipArbaWizard(models.TransientModel):
                     })
                     update += 1
             else:
-                errors.append("Error al consultar ARBA para partner %s (CUIT %s): %s" % (partner.name, partner.vat, vals["arba_error"]))
+                errors.append("Error al consultar ARBA para partner %s (CUIT %s): %s" % (partner.name, partner.vat, "No se devolvió información del contribuyente"))
                 continue
         if create == 0 and update == 0 and errors:
             return {
