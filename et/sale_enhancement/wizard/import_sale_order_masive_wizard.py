@@ -449,7 +449,8 @@ class ImportSaleOrderMasiveWizard(models.TransientModel):
             'tag': 'display_notification',
             'params': {
                 'title': _('Advertencia'),
+                'type': 'warning',
                 'message': message,
-                'sticky': False,
+                'sticky': True,
             }
         }
