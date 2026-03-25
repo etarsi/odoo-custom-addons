@@ -88,7 +88,7 @@ class ImportAfipArbaWizard(models.TransientModel):
             leido = iibb.LeerContribuyente()
             vals.update({"arba_numero_comprobante": iibb.NumeroComprobante or False, "arba_codigo_hash": iibb.CodigoHash or False})
             if leido:
-                exist_alicuota =self.env['res.partner.arba.alicuota'].search([('from_date', '=', desde), ('to_date', '=', hasta),
+                exist_alicuota =self.env['res.partner.arba_alicuot'].search([('from_date', '=', desde), ('to_date', '=', hasta),
                                                                                 ('partner_id', '=', partner.id), ('tag_id', '=', tag_id.id)], limit=1)
                 if not exist_alicuota:
                     vals.update({
@@ -96,7 +96,7 @@ class ImportAfipArbaWizard(models.TransientModel):
                         "alicuota_retencion": float(iibb.AlicuotaRetencion) or 0.0,
                         "partner_id": partner.id,
                     })
-                    self.env['res.partner.arba.alicuota'].create(vals)
+                    self.env['res.partner.arba_alicuot'].create(vals)
                     create += 1
                 else:
                     exist_alicuota.write({
