@@ -73,14 +73,11 @@ class TmsRoadmap(models.Model):
         ("uniq_tms_roadmap_name", "unique(name)", "La referencia de Hoja de Ruta debe ser única."),
     ]
 
-    @api.depends("road_maps_line_ids")
+    @api.depends("road_maps_line_ids.in_ruta")
     def _compute_in_ruta(self):
         for rec in self:
-            in_ruta_values = rec.road_maps_line_ids.mapped("in_ruta")
-            if in_ruta_values:
-                rec.in_ruta = max(in_ruta_values)  # asigna el valor máximo de in_ruta entre las líneas
-            else:
-                rec.in_ruta = '1'
+            values = [v for v in rec.road_maps_line_ids.mapped("in_ruta") if v]  # filtra valores vacíos o falsos
+            rec.in_ruta = max(values, key=int) if values else '1'  # asigna el valor máximo de in_ruta entre las líneas, o '1' si no hay valores
 
     @api.depends("road_maps_line_ids.bulk_defendant", "road_maps_line_ids.bulk_picking")
     def _compute_totals(self):
