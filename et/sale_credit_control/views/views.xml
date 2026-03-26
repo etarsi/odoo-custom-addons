@@ -26,7 +26,7 @@
                 <field name="last_sale_date" string="Última Compra"/>
                 <field name="days_without_purchase" string="Días sin comprar"/>
 
-                <field name="order_control_state" widget="badge" decoration-danger="order_control_state = 'blocked'" decoration-success="order_control_state = 'approved'"/>
+                <field name="order_control_state" widget="badge" decoration-danger="order_control_state == 'blocked'" decoration-success="order_control_state == 'approved'"/>
                 <field name="credit_alert"/>
 
             </tree>
