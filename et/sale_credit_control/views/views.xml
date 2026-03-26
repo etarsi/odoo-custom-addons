@@ -9,7 +9,6 @@
         <field name="arch" type="xml">
             <tree string="Control de Pedidos"
                 decoration-danger="order_control_state == 'blocked'"
-                decoration-warning="order_control_state == 'unreviewed'"
                 decoration-success="order_control_state == 'approved'">
 
                 <field name="name"/>
