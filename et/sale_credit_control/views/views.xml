@@ -1,30 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <odoo>
-    <!-- ACCIÓN -->
-    <record id="action_order_control" model="ir.actions.act_window">
-        <field name="name">Clientes</field>
-        <field name="res_model">res.partner</field>
-        <field name="view_mode">tree,form</field>
-        <field name="view_id" ref="view_partner_tree_order_control"/>
-        <field name="domain">[('customer_rank', '>', 0)]</field>
-    </record>
-
-    <!-- MENÚ ROOT -->
-    <menuitem 
-        id="menu_order_control_root"
-        name="Control de Pedidos"
-        sequence="100"
-    />
-
-    <!-- SUBMENÚ CLIENTES -->
-    <menuitem 
-        id="menu_order_control_clients"
-        name="Clientes"
-        parent="menu_order_control_root"
-        action="action_order_control"
-        sequence="10"
-    />
-   
 
     <!-- TREE VIEW -->
 
@@ -58,6 +33,31 @@
         </field>
     </record>
 
+
+    <!-- ACCIÓN -->
+    <record id="action_order_control" model="ir.actions.act_window">
+        <field name="name">Clientes</field>
+        <field name="res_model">res.partner</field>
+        <field name="view_mode">tree,form</field>
+        <field name="view_id" ref="view_partner_tree_order_control"/>
+        <field name="domain">[('customer_rank', ">", 0)]</field>
+    </record>
+
+    <!-- MENÚ ROOT -->
+    <menuitem 
+        id="menu_order_control_root"
+        name="Control de Pedidos"
+        sequence="100"
+    />
+
+    <!-- SUBMENÚ CLIENTES -->
+    <menuitem 
+        id="menu_order_control_clients"
+        name="Clientes"
+        parent="menu_order_control_root"
+        action="action_order_control"
+        sequence="10"
+    />
 
     <!-- FORM VIEW -->
 
