@@ -76,7 +76,7 @@ class TmsRoadmap(models.Model):
     @api.depends("road_maps_line_ids.in_ruta")
     def _compute_in_ruta(self):
         for rec in self:
-            values = [v for v in rec.road_maps_line_ids.mapped("in_ruta") if v]  # filtra valores vacíos o falsos
+            values = [v for v in rec.road_maps_line_ids.filtered(lambda l: not l.is_canceled).mapped("in_ruta") if v]  # filtra valores vacíos o falsos
             rec.in_ruta = max(values, key=int) if values else '1'  # asigna el valor máximo de in_ruta entre las líneas, o '1' si no hay valores
 
     @api.depends("road_maps_line_ids.bulk_defendant", "road_maps_line_ids.bulk_picking")
