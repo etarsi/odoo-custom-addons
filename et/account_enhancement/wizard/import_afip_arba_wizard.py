@@ -76,7 +76,6 @@ class ImportAfipArbaWizard(models.TransientModel):
         partners = self.env['res.partner'].search([
             ('active', '=', True),
             ('vat', '!=', False),
-            ('customer_rank', '>', 0),
         ])
 
         _logger.warning(
