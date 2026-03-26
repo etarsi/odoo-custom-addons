@@ -1,0 +1,36 @@
+<odoo>
+
+    <record id="sale_order_form_inherit_order_control_block" model="ir.ui.view">
+        <field name="name">sale.order.form.inherit.order.control.block</field>
+        <field name="model">sale.order</field>
+        <field name="inherit_id" ref="sale.view_order_form"/>
+        <field name="arch" type="xml">
+
+            <xpath expr="//sheet" position="inside">
+                <div class="alert alert-danger"
+                     role="alert"
+                     attrs="{'invisible': [('state', '!=', 'blocked')]}">
+                    <strong>Pedido bloqueado.</strong>
+                    <br/>
+                    <field name="blocked_reason" readonly="1" nolabel="1"/>
+                </div>
+            </xpath>
+
+        </field>
+    </record>
+
+
+    <record id="sale_order_form_inherit_order_control_statusbar" model="ir.ui.view">
+        <field name="name">sale.order.form.inherit.order.control.statusbar</field>
+        <field name="model">sale.order</field>
+        <field name="inherit_id" ref="sale.view_order_form"/>
+        <field name="arch" type="xml">
+
+            <xpath expr="//field[@name='state']" position="attributes">
+                <attribute name="statusbar_visible">draft,sent,blocked,sale,done</attribute>
+            </xpath>
+
+        </field>
+    </record>
+    
+</odoo>
