@@ -101,46 +101,36 @@ class HrEnhancementApi(models.AbstractModel):
                             open_att = self.action_create_asistencia(hr_attendance, employee, check_utc, checkin_origin='reader_face')
                             message += f'--asistencia abierta: {open_att.id}, {employee.name}'
                     else:
+                        day_start= datetime.combine(check_utc.date(), time.min)
+                        day_end = datetime.combine(check_utc.date(), time.max)
                         # Limites del día (para agrupar por día local)
                         open_att = hr_attendance.search([
                             ('employee_id', '=', employee.id),
-                            ('check_out', '=', False),
-                            ('blocked', '=', False)], limit=1, order='check_in desc')
+                            ('check_in', '>=', day_start),
+                            ('check_in', '<=', day_end)], limit=1, order='check_in desc')
                         if open_att:
-                            # es del mismo dia
-                            if open_att.check_in.date() == check_utc.date():
-                                open_att.write({'check_out': check_utc})
-                                message += f' (asistencia cerrada: {open_att.id})'
-                            else:
-                                justification_text = ''
-                                if open_att.justification:
-                                    justification_text = open_att.justification
-                                open_att.write({'blocked': True, 'check_out': open_att.check_in.replace(hour=20, minute=0, second=0, microsecond=0), 'justification': f'{justification_text} / Bloqueo automático por nuevo ingreso desde lector facial. y cierre a las 17:00 hrs.'})
-                                # Crear asistencia abierta
-                                if check_utc > start_limit_day_inicio_marcado_employee:
-                                    self._create_temp_attendance_record(employee.id, check_utc, 'Intento marcar Entrada fuera del rango diurno (%s-%s)' % (start_limit_day.strftime("%H:%M"), end_limit_day.strftime("%H:%M")))
-                                    message += '--asistencia fuera del rango diurno de inicio de marcado'
-                                    return {'success': False, 'error': message, 'received': data}
-                                open_att = hr_attendance.create({
-                                    'employee_id': employee.id,
-                                    'check_in': check_utc,
-                                    'create_lector': True,
-                                    'checkin_origin': 'reader_face',
-                                })
-                                message += f'--asistencia abierta: {open_att.id} (empleado en borrador)'
+                            #que no marque salida antes de 60 minutos de la entrada
+                            min_minutes = 60
+                            delta_minutes = (check_utc - open_att.check_in).total_seconds() / 60.0
+                            if delta_minutes < min_minutes:
+                                self._create_temp_attendance_record(employee.id, check_utc, 'Intento marcar la salida antes de %d minutos de la entrada (%s)' % (min_minutes, open_att.check_in.strftime("%Y-%m-%d %H:%M")))    
+                                message += f'--la salida debe ser al menos {min_minutes} minutos después de la entrada ({open_att.check_in.strftime("%Y-%m-%d %H:%M")})'
+                                return {'success': False, 'error': message, 'received': data}
+                            open_att.write({
+                                'check_out': check_utc,
+                                'checkout_origin': 'reader_face',
+                                'auto_checkout': True,
+                                'blocked': True,
+                            })
+                            message += f' (asistencia cerrada: {open_att.id})'
                         else:
                             if check_utc > start_limit_day_inicio_marcado_employee:
                                 self._create_temp_attendance_record(employee.id, check_utc, 'Intento marcar Entrada fuera del rango diurno (%s-%s)' % (start_limit_day.strftime("%H:%M"), end_limit_day.strftime("%H:%M")))
-                                message += '--asistencia fuera del rango diurno de inicio de marcado'
-                                return {'success': False, 'error': message, 'received': data}
+                                self.action_create_asistencia(hr_attendance, employee, check_utc, checkin_origin='reader_face', type_income='PT')
+                                message += '--asistencia fuera del rango diurno de inicio de marcado, pero se registró como PT'
                             else:
-                                open_att = hr_attendance.create({
-                                    'employee_id': employee.id,
-                                    'check_in': check_utc,
-                                    'create_lector': True,
-                                })
-                                message += f'--asistencia abierta: {open_att.id}, {open_att.employee_id.name}'
-                                return {'success': True, 'message': message, 'status_code': 200, 'received': data}
+                                open_att = self.action_create_asistencia(hr_attendance, employee, check_utc, checkin_origin='reader_face')
+                                message += f'--asistencia abierta: {open_att.id}, {employee.name}'
                 elif open_method == 'FINGERPRINT':
                     if not employee:
                         employee = hr_employee.create({

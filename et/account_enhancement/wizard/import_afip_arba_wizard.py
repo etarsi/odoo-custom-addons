@@ -122,18 +122,10 @@ class ImportAfipArbaWizard(models.TransientModel):
                 continue
 
             if not ok:
-                errors.append(
-                    "Error al consultar ARBA para partner %s (CUIT %s): %s"
-                    % (partner.name, partner.vat, iibb.MensajeError or "Error desconocido")
-                )
                 continue
 
             leido = iibb.LeerContribuyente()
             if not leido:
-                errors.append(
-                    "No se pudo leer contribuyente ARBA para partner %s (CUIT %s)"
-                    % (partner.name, partner.vat)
-                )
                 continue
 
             alicuota_percepcion = self._to_float_ar(iibb.AlicuotaPercepcion)

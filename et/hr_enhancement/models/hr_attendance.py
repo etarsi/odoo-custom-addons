@@ -10,12 +10,14 @@ class HrAttendance(models.Model):
     overtime = fields.Float(
         string='Horas al 50%/Extra',
         compute="_compute_worked_hours",
-        help="Horas extras del día (sin decimales, regla 30m -> 1h por tramo)."
+        help="Horas extras del día (sin decimales, regla 30m -> 1h por tramo).",
+        store=True
     )
     holiday_hours = fields.Float(
         string='Horas al 100%/Feriados/Sábados',
         compute="_compute_worked_hours",
-        help="Horas trabajadas en feriados/Sábados después del medio día."
+        help="Horas trabajadas en feriados/Sábados después del medio día.",
+        store=True
     )
     hours_late = fields.Float(
         string='Horas de retraso',
