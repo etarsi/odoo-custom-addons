@@ -8,9 +8,9 @@
         <field name="model">res.partner</field>
         <field name="arch" type="xml">
             <tree string="Control de Pedidos"
-                decoration-danger="estado_crediticio == 'blocked'"
-                decoration-warning="estado_crediticio == 'no_review'"
-                decoration-success="estado_crediticio == 'approved'">
+                decoration-danger="order_control_state == 'blocked'"
+                decoration-warning="order_control_state == 'unreviewed'"
+                decoration-success="order_control_state == 'approved'">
 
                 <field name="name"/>
                 <field name="vat" string="CUIT"/>
@@ -26,7 +26,7 @@
                 <field name="last_sale_date" string="Última Compra"/>
                 <field name="days_without_purchase" string="Días sin comprar"/>
 
-                <field name="order_control_state" widget="badge" decoration-danger="estado_crediticio = 'blocked'" decoration-success="estado_crediticio = 'approved'"/>
+                <field name="order_control_state" widget="badge" decoration-danger="order_control_state = 'blocked'" decoration-success="order_control_state = 'approved'"/>
                 <field name="credit_alert"/>
 
             </tree>
