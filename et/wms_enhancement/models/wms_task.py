@@ -658,7 +658,7 @@ class WMSTask(models.Model):
             },
             'line_lines': lines,
             'total_bultos': task.packages_count,
-            'total_units': task.bultos_count,
+            'total_units': task.bultos_prepared,
             'total_value': task.declared_value,
             'company_name': company_id.name,
         }
