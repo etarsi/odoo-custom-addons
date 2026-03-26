@@ -129,6 +129,9 @@ class ImportAfipArbaWizard(models.TransientModel):
 
             alicuota_percepcion = self._to_float_ar(iibb.AlicuotaPercepcion)
             alicuota_retencion = self._to_float_ar(iibb.AlicuotaRetencion)
+            
+            if alicuota_percepcion == 0 and alicuota_retencion == 0:
+                continue
 
             for company_id in COMPANY_IDS:
                 key = (partner.id, company_id)
