@@ -27,7 +27,7 @@
         <field name="arch" type="xml">
 
             <xpath expr="//field[@name='state']" position="attributes">
-                <attribute name="statusbar_visible">draft,sent,blocked,sale,done</attribute>
+                <attribute name="statusbar_visible">draft,sale</attribute>
             </xpath>
 
         </field>
