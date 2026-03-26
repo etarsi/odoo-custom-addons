@@ -38,7 +38,7 @@
         <field name="name">Clientes</field>
         <field name="res_model">res.partner</field>
         <field name="view_mode">tree,form</field>
-        <field name="domain">[('customer_rank', '&gt;', 0)]</field>
+        <field name="domain">[('customer_rank', '&gt;', 0), ('category_id', '!=', 'Propio')]</field>
     </record>
 
     <!-- ACTION VIEWS -->
