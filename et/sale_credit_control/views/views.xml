@@ -112,7 +112,6 @@
                             <field name="last_review_date" string="Última Revisión" readonly="1"/>
                             <field name="last_review_user_id" string="Revisado por" readonly="1"/>
                             <field name="draft_sale_order_count" string="Pedidos Borrador" readonly="1"/>
-                            <field name="credit_score" string="Score" readonly="1"/>
                         </group>
                     </group>
 
