@@ -26,7 +26,7 @@
                 <field name="last_purchase_amount" string="Monto Última Compra"/>
                 <field name="days_without_purchase" string="Días sin comprar"/>
 
-                <field name="order_control_state" widget="badge" decoration-danger="order_control_state == 'blocked'" decoration-success="order_control_state == 'approved'"/>
+                <field name="order_control_state" widget="badge" decoration-danger="order_control_state == 'blocked'" decoration-warning="order_control_state == 'unreviewed'" decoration-success="order_control_state == 'approved'"/>
                 <field name="credit_alert_summary"/>
 
             </tree>
@@ -60,7 +60,7 @@
     <menuitem 
         id="menu_order_control_root"
         name="Control de Pedidos"
-        sequence="100"
+        sequence="1"
     />
 
     <!-- SUBMENÚ CLIENTES -->
