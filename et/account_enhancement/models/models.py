@@ -58,6 +58,7 @@ class AccountMoveInherit(models.Model):
     method_to_pay = fields.Selection(string='Método de Pago', selection=[
         ('cash', 'Efectivo'),
     ], help='Seleccionar el método de pago para los pagos automáticos a proveedores de AFIP.', default='cash')
+    invoice_payment_term_id = fields.Many2one('account.payment.term', string='Plazos de pago', check_company=True, tracking=True, domain="['|', ('company_id', '=', False), ('company_id', '=', company_id)]")
 
     # ENVIO DE CORREO---------------------------------------------------------
     def _get_default_invoice_mail_template(self):
@@ -175,16 +176,25 @@ class AccountMoveInherit(models.Model):
 
     @api.model_create_multi
     def create(self, vals_list):
-        for vals in vals_list:
-            if vals.get("period_cut_locked"):
-                raise ValidationError(_("No se puede crear un movimiento con 'Período de Corte Bloqueado' activo."))
-        return super().create(vals_list)
+        res = super().create(vals_list)
+        locked_records = res.filtered('period_cut_locked')
+        if locked_records:
+            raise ValidationError(_("No se puede crear un movimiento con 'Período de Corte Bloqueado' activo."))
+        res.validate_invoice_payment_term_id()
+        return res
 
     def write(self, vals):
         for rec in self:
             if rec.period_cut_locked:
-                raise ValidationError(_("No se puede modificar un movimiento con 'Período de Corte Bloqueado' activo."))    
+                raise ValidationError(_("No se puede modificar un movimiento con 'Período de Corte Bloqueado' activo."))
+            rec.validate_invoice_payment_term_id()    
         return super().write(vals)
+    
+    def validate_invoice_payment_term_id(self):
+        for rec in self:
+            if rec.move_type == 'out_invoice':
+                if rec.l10n_latam_document_type_id.code in ['201', '206', '211'] and not rec.invoice_payment_term_id:
+                    raise ValidationError(_("El plazo de pago de la factura es obligatorio para facturas electrónicas de cliente."))
 
     def unlink(self):
         for rec in self:
@@ -218,6 +228,7 @@ class AccountMoveInherit(models.Model):
     def action_post(self):
         res = super().action_post()
         for move in self:
+            move.validate_invoice_payment_term_id()
             #validar nota de credito sea de tipo comprobante nota de credito
             if move.move_type == 'out_refund':
                 internal_type = move.l10n_latam_document_type_id.internal_type

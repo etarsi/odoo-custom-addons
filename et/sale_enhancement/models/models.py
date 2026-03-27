@@ -52,8 +52,8 @@ class SaleOrderInherit(models.Model):
         readonly=True,
     )
     is_marketing = fields.Boolean(string="Venta de Marketing", default=False)
-
-
+    payment_term_id = fields.Many2one('account.payment.term', string='Plazos de pago', check_company=True,
+                                        tracking=True, domain="['|', ('company_id', '=', False), ('company_id', '=', company_id)]")
 
     @api.depends('partner_id', 'partner_id.category_id')
     def _compute_partner_tags(self):
@@ -70,7 +70,6 @@ class SaleOrderInherit(models.Model):
                     "No se puede borrar el pedido %s porque ya fue confirmado o procesado.") % order.name)
 
             order.unreserve_stock_sale_order()
-
         return super().unlink()
 
     def unreserve_stock_sale_order(self):
@@ -278,6 +277,12 @@ class SaleOrderInherit(models.Model):
             order.company_id = company.id
             order.warehouse_id = wh.id
 
+    def write(self, vals):
+        res = super().write(vals)
+        for order in self:
+            order.validation_payment_term_id()
+        return res
+
     @api.model
     def create(self, vals):
         #self.check_partner_origin()
@@ -442,7 +447,13 @@ class SaleOrderInherit(models.Model):
         order.check_order()
         if not order.message_ids:
             order.message_post(body=_("Orden de venta creada."))
+        order.validation_payment_term_id()
         return order
+
+    def validation_payment_term_id(self):
+        for record in self:
+            if not record.is_marketing and not record.payment_term_id:
+                raise ValidationError(_("El plazo de pago es obligatorio para pedidos que no son de Marketing."))
 
     @api.onchange('state')
     def _onchange_state_name(self):
