@@ -479,9 +479,9 @@ class ImportSaleOrderMasiveWizard(models.TransientModel):
         lines_by_company = defaultdict(list)
         for line in vals['order_line']:
             product = self.env['product.product'].browse(line[2]['product_id']) #line[2] porque viene en formato (0, 0, {vals})
-            company_ids = product.company_ids
+            company_ids = product.company_ids.ids
             if not company_ids:
-                company_ids = [vals['company_id']]
+                company_ids = [vals.get('company_id')] if vals.get('company_id') else []
             for company_id in company_ids:
                 lines_by_company[company_id].append(line)
 
