@@ -353,7 +353,6 @@ class ImportSaleOrderMasiveWizard(models.TransientModel):
                 if line_error:
                     errors.append(line_error)
                     continue
-                
 
                 if not grouped[group_key]['header']:
                     grouped[group_key]['header'] = self._prepare_order_vals(
@@ -386,6 +385,10 @@ class ImportSaleOrderMasiveWizard(models.TransientModel):
             vals['global_discount'] = global_discount if global_discount > 0 else 0.0
             vals['order_line'] = [(0, 0, line_vals) for line_vals in data['lines']]
             _logger.warning('Creando pedido para cliente "%s" con %s líneas y descuento global %s%%', vals['partner_id'], len(data['lines']), vals['global_discount'])
+            
+            #ACA QUIERO DIVIDIR EL PEDIDO SI LOS PRODUCTOS TIENEN UNA COMPANY_IDS DISTINTA A LA COMPANY DEL PEDIDO, SI ES DISTINTA, CREO UN PEDIDO NUEVO PARA ESA COMPANY Y LE ASIGNO SOLO LOS PRODUCTOS DE ESA COMPANY, Y ASI SUCESIVAMENTE HASTA QUE TODOS LOS PRODUCTOS ESTEN ASIGNADOS A UN PEDIDO CON LA COMPANY CORRESPONDIENTE
+            vals = self.action_divide_order_by_company(vals)
+            
             try:
                 with self.env.cr.savepoint():
                     order = sale_order.create(vals)
@@ -469,3 +472,25 @@ class ImportSaleOrderMasiveWizard(models.TransientModel):
                 'sticky': True,
             }
         }
+        
+    def action_divide_order_by_company(self, vals):
+        lines_by_company = defaultdict(list)
+        for line in vals['order_line']:
+            product = self.env['product.product'].browse(line[2]['product_id']) #line[2] porque viene en formato (0, 0, {vals})
+            company_ids = product.company_id.ids
+            if not company_ids:
+                company_ids = [vals['company_id']]
+            for company_id in company_ids:
+                lines_by_company[company_id].append(line)
+
+        if len(lines_by_company) == 1:
+            return vals
+        new_orders = []
+        for company_id, lines in lines_by_company.items():
+            new_vals = dict(vals)
+            if company_id == 1:
+                new_vals['condicion_m2m'] = 'TIPO 3'
+            new_vals['company_id'] = company_id
+            new_vals['order_line'] = lines
+            new_orders.append(new_vals)
+        return new_orders
