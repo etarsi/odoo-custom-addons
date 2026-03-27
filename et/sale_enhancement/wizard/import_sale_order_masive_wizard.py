@@ -389,7 +389,7 @@ class ImportSaleOrderMasiveWizard(models.TransientModel):
             #ACA QUIERO DIVIDIR EL PEDIDO SI LOS PRODUCTOS TIENEN UNA COMPANY_IDS DISTINTA A LA COMPANY DEL PEDIDO, SI ES DISTINTA, CREO UN PEDIDO NUEVO PARA ESA COMPANY Y LE ASIGNO SOLO LOS PRODUCTOS DE ESA COMPANY, Y ASI SUCESIVAMENTE HASTA QUE TODOS LOS PRODUCTOS ESTEN ASIGNADOS A UN PEDIDO CON LA COMPANY CORRESPONDIENTE
             _logger.warning('Dividiendo pedido por compañía si es necesario para cliente "%s"...', vals['partner_id'])
             vals = self.action_divide_order_by_company(vals)
-            _logger.warning('Pedido dividido en %s pedidos para cliente "%s".', len(vals) if isinstance(vals, list) else 1, vals['partner_id'])
+            _logger.warning('Pedido dividido en %s pedidos para cliente "%s".', len(vals) if isinstance(vals, list) else 1, vals['partner_id'] if isinstance(vals, dict) else vals[0]['partner_id'])
             
             try:
                 with self.env.cr.savepoint():
