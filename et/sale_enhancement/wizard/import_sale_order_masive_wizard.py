@@ -387,7 +387,9 @@ class ImportSaleOrderMasiveWizard(models.TransientModel):
             _logger.warning('Creando pedido para cliente "%s" con %s líneas y descuento global %s%%', vals['partner_id'], len(data['lines']), vals['global_discount'])
             
             #ACA QUIERO DIVIDIR EL PEDIDO SI LOS PRODUCTOS TIENEN UNA COMPANY_IDS DISTINTA A LA COMPANY DEL PEDIDO, SI ES DISTINTA, CREO UN PEDIDO NUEVO PARA ESA COMPANY Y LE ASIGNO SOLO LOS PRODUCTOS DE ESA COMPANY, Y ASI SUCESIVAMENTE HASTA QUE TODOS LOS PRODUCTOS ESTEN ASIGNADOS A UN PEDIDO CON LA COMPANY CORRESPONDIENTE
+            _logger.warning('Dividiendo pedido por compañía si es necesario para cliente "%s"...', vals['partner_id'])
             vals = self.action_divide_order_by_company(vals)
+            _logger.warning('Pedido dividido en %s pedidos para cliente "%s".', len(vals) if isinstance(vals, list) else 1, vals['partner_id'])
             
             try:
                 with self.env.cr.savepoint():
@@ -477,7 +479,7 @@ class ImportSaleOrderMasiveWizard(models.TransientModel):
         lines_by_company = defaultdict(list)
         for line in vals['order_line']:
             product = self.env['product.product'].browse(line[2]['product_id']) #line[2] porque viene en formato (0, 0, {vals})
-            company_ids = product.company_id.ids
+            company_ids = product.company_ids
             if not company_ids:
                 company_ids = [vals['company_id']]
             for company_id in company_ids:
