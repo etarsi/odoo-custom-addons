@@ -83,7 +83,7 @@
                     <button name="action_set_approved"
                             type="object"
                             string="Autorizar"
-                            class="btn-primary"
+                            class="btn-success"
                             attrs="{'invisible': [('order_control_state', '=', 'approved')]}"/>
 
                     <button name="action_set_blocked"
@@ -104,12 +104,17 @@
 
                 <sheet>
                     <div class="oe_title">
-                        <h1>
+                        <h1 class="d-flex align-items-center gap-2">
                             <field name="name" readonly="1"/>
+
+                            <field name="credit_alert_summary"
+                                widget="badge"
+                                readonly="1"
+                                decoration-danger="order_control_state == 'blocked'"
+                                decoration-warning="order_control_state == 'unreviewed'"
+                                decoration-success="order_control_state == 'approved'"/>
+                                
                         </h1>
-                        <div class="text-muted">
-                            Perfil individual del cliente para análisis comercial y financiero
-                        </div>
                     </div>
 
                     <group>
@@ -155,10 +160,6 @@
                                     <field name="sudden_purchase_alert" string="Compra Inusual" readonly="1"/>
                                     <field name="new_customer_high_risk_alert" string="Cliente Nuevo - Compra Alta" readonly="1"/>
                                 </group>
-                            </group>
-
-                            <group string="Resumen de Alertas">
-                                <field name="credit_alert_summary" string="Alertas" nolabel="1" readonly="1"/>
                             </group>
                         </page>
 

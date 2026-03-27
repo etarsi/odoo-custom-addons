@@ -149,9 +149,6 @@ class ResPartnerInherit(models.Model):
     # =========================
 
 
-
-
-
     def action_set_approved(self):
         for rec in self:
             rec.write({
@@ -159,6 +156,14 @@ class ResPartnerInherit(models.Model):
                 'last_review_date': fields.Datetime.now(),
                 'last_review_user_id': self.env.user.id,
             })
+
+            orders_to_unblock = self.env['sale.order'].search([
+                ('partner_id', '=', rec.id),
+                ('state', '=', 'blocked')
+            ])
+
+            if orders_to_unblock:
+                orders_to_unblock.action_set_draft_from_blocked()
 
     def action_set_blocked(self):
         SaleOrder = self.env['sale.order']
@@ -186,3 +191,11 @@ class ResPartnerInherit(models.Model):
                 'last_review_date': fields.Datetime.now(),
                 'last_review_user_id': self.env.user.id,
             })
+
+            orders_to_unblock = self.env['sale.order'].search([
+                ('partner_id', '=', rec.id),
+                ('state', '=', 'blocked')
+            ])
+
+            if orders_to_unblock:
+                orders_to_unblock.action_set_draft_from_blocked()
