@@ -151,7 +151,7 @@ class AccountExportArba(models.Model):
     # LAYOUTS ARBA
     # ---------------------------------------------------------
 
-    def _build_arba_data(self, line):
+    def _build_arba_data(self, line, retencion=False):
         """
         A-122R - Layout común ARBA para percepciones y retenciones (excepto actividades 29, 7 quincenal y 17 bancos)
         1-20  Nro Transaccion Agente
@@ -174,7 +174,9 @@ class AccountExportArba(models.Model):
         cuit = self._format_cuit_arba(partner.vat)
         fecha = self._format_date_arba(line.date)
         sucursal, nro_transaccion_agente = self._split_arba_document_number(move)
-        base_amount = float_round(line.tax_base_amount or 0.0, precision_digits=2)
+        base_amount = float_round(line.tax_base_amount, precision_digits=2)
+        if retencion:
+            base_amount = float_round(abs(line.balance), precision_digits=2)
         alicuota = self._get_alicuota_arba(tax, partner, line.date)
 
         # Importe practicado
@@ -240,7 +242,7 @@ class AccountExportArba(models.Model):
         for line in move_lines_ret.sorted(lambda l: (l.date, l.id)):
             if not line.partner_id:
                 continue
-            ret_lines_txt += self._build_arba_data(line)
+            ret_lines_txt += self._build_arba_data(line, retencion=True)
             exported_ids.append(line.id)
 
         self.write({
