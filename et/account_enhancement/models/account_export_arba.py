@@ -265,9 +265,9 @@ class AccountExportArba(models.Model):
         company_vat = self.company_id.vat
         fecha_año=self.date_from.strftime('%Y')
         fecha_mes=self.date_from.strftime('%m')
-        if self.date_from.day <= 15:
+        if self.date_to.day <= 15:
             quincena='1'
-        elif self.date_from.day > 15 and self.date_from.day <= 31:
+        elif self.date_from.day > 15 and self.date_to.day <= 31:
             quincena='2'
         else:
             quincena='0'
