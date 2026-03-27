@@ -10,6 +10,8 @@ import base64
 import csv
 import logging
 import re
+import zipfile
+import io
 from odoo.tools.float_utils import float_round
 
 _logger = logging.getLogger(__name__)
@@ -52,6 +54,10 @@ class AccountExportArba(models.Model):
     export_nc_percep_arba_file = fields.Binary('NC Percepciones ARBA',readonly=True)    
     export_retenc_arba_filename = fields.Char('Retenciones ARBA',compute='_compute_files')
     export_retenc_arba_file = fields.Binary('Retenciones ARBA',readonly=True)  
+    #GENERAR ZIP
+    export_archive_arba_zip = fields.Binary('Archivo Perc/Ret Arba ZIP', readonly=True)
+    export_archive_arba_zip_filename = fields.Char('Archivo Perc/Ret Arba ZIP', default='ARBA_Percepciones_Retenciones.zip')
+    numero_correlativo = fields.Integer('Número correlativo', default=1)
     
 
     @api.depends('export_percep_arba_data','export_nc_percep_arba_data','export_retenc_arba_data')
@@ -70,20 +76,265 @@ class AccountExportArba(models.Model):
         self.export_retenc_arba_filename = 'Retenc ARBA Aplicada.txt'
         if self.export_retenc_arba_data:
            self.export_retenc_arba_file = base64.encodestring(self.export_retenc_arba_data.encode('ISO-8859-1'))
-           
-    def line_move_lines(self):
-        return self.env['account.move.line'].search([('id','in',eval(self.move_lines_ids_txt))])
 
     # ---------------------------------------------------------
     # HELPERS
     # ---------------------------------------------------------
-
     def _format_date_arba(self, date_value):
         if not date_value:
             raise ValidationError(_("Falta una fecha requerida para ARBA."))
         return fields.Date.to_date(date_value).strftime('%d/%m/%Y')
 
     def _format_cuit_arba(self, vat):
+        """ARBA layout común: 99999999999"""
+        if not vat:
+            raise ValidationError(_("Falta CUIT/CUIL."))
+        digits = re.sub(r'[^0-9]', '', vat or '')
+        if len(digits) != 11:
+            raise ValidationError(_("El CUIT '%s' no tiene 11 dígitos.") % (vat,))
+        return digits
+
+    def _split_arba_document_number(self, move):
+        """ARBA layout común: separamos los últimos 2 grupos de números como sucursal y emisión, el resto se ignora."""
+        raw = move.l10n_latam_document_number or ''
+        nums = re.findall(r'\d+', raw)
+
+        if len(nums) >= 2:
+            sucursal = str(int(nums[-2])).zfill(5) # 5 dígitos para sucursal
+            emision = str(int(nums[-1])).zfill(20) # 20 dígitos para número de emisión
+            return sucursal, emision
+
+        raise ValidationError(_(
+            'No se pudo separar sucursal y emisión del comprobante "%s" (%s).'
+        ) % (move.display_name, raw))
+
+    def _format_amount_arba(self, amount, total_len, decimals=2, signed=False):
+        """
+        Devuelve importe con separador decimal y largo fijo.
+        Ej:
+          total_len=14 -> 99999999999.99
+          total_len=13 -> 9999999999.99
+        Si signed=True y es negativo, el signo ocupa la 1ra posición.
+        """
+        if amount is None:
+            amount = 0.0
+
+        amount = float_round(amount, precision_digits=decimals)
+        negative = amount < 0
+        abs_amt = abs(amount)
+
+        fmt = f"{{:0{total_len}.{decimals}f}}"
+        txt = fmt.format(abs_amt)
+
+        if len(txt) > total_len:
+            raise ValidationError(_("El importe %s excede el largo permitido (%s).") % (amount, total_len))
+
+        if negative:
+            if not signed:
+                raise ValidationError(_("El importe %s no puede ser negativo para este diseño ARBA.") % amount)
+            txt = '-' + txt[1:]
+        return txt
+
+    def _get_alicuota_arba(self, tax, partner, date):
+        alicuot_line = tax.get_partner_alicuot(partner, date)
+        if not alicuot_line:
+            raise ValidationError(_(
+                'No hay alícuota configurada para el partner "%s" con el impuesto "%s".'
+            ) % (partner.display_name, tax.display_name))
+
+        # percepción vs retención
+        if tax.type_tax_use in ['sale', 'purchase']:
+            return alicuot_line.alicuota_percepcion
+        return alicuot_line.alicuota_retencion
+
+    # ---------------------------------------------------------
+    # LAYOUTS ARBA
+    # ---------------------------------------------------------
+
+    def _build_arba_data(self, line):
+        """
+        A-122R - Layout común ARBA para percepciones y retenciones (excepto actividades 29, 7 quincenal y 17 bancos)
+        1-20  Nro Transaccion Agente
+        21-31 Cuit Contribuyente Retenido
+        32-36 Sucursal
+        37-46 Fecha de Operacion
+        47-51 Alicuota
+        52-67 Base Imponible
+        """
+        move = line.move_id
+        partner = line.partner_id
+        tax = line.tax_line_id
+
+        if not partner:
+            raise ValidationError(_("La línea %s no tiene partner.") % line.display_name)
+        if not tax:
+            raise ValidationError(_("La línea %s no tiene tax_line_id.") % line.display_name)
+        if not move.l10n_latam_document_number:
+            raise ValidationError(_("El comprobante %s no tiene número.") % move.display_name)
+        cuit = self._format_cuit_arba(partner.vat)
+        fecha = self._format_date_arba(line.date)
+        sucursal, nro_transaccion_agente = self._split_arba_document_number(move)
+        base_amount = float_round(line.tax_base_amount or 0.0, precision_digits=2)
+        alicuota = self._get_alicuota_arba(tax, partner, line.date)
+
+        # Importe practicado
+        if line.currency_id and line.currency_id != line.company_id.currency_id:
+            importe = float_round(base_amount * alicuota / 100.0, precision_digits=2)
+        else:
+            importe = float_round(-line.balance, precision_digits=2)
+
+        # Nota de crédito: base e importe negativos
+        if move.l10n_latam_document_type_id.internal_type == 'credit_note':
+            base_amount = -abs(base_amount)
+            importe = -abs(importe)
+        else:
+            base_amount = abs(base_amount)
+            importe = abs(importe)
+
+        content = ''
+        content += nro_transaccion_agente
+        content += cuit
+        content += sucursal
+        content += fecha
+        content += self._format_amount_arba(alicuota, 5, 2, signed=False)      # 5
+        content += self._format_amount_arba(base_amount, 16, 2, signed=True)   # 16        
+
+        if len(content) != 71:
+            raise ValidationError(_("La línea ARBA Percepción 1.1 quedó con largo %s y debe ser 71.") % len(content))
+        return content + '\r\n'
+
+
+    # ---------------------------------------------------------
+    # PROCESO
+    # ---------------------------------------------------------
+
+    def compute_arba_data(self):
+        self.ensure_one()
+
+        ret_lines_txt = ''
+        per_lines_txt = ''
+        nc_per_lines_txt = ''
+        exported_ids = []
+
+        # Ajustá estas cuentas a tus cuentas reales
+        move_lines_per = self.env['account.move.line'].search([
+            ('parent_state', '=', 'posted'),
+            ('account_id.code', '=', '2.1.3.02.060'),
+            ('company_id', '=', self.company_id.id),
+            ('date', '>=', self.date_from),
+            ('date', '<=', self.date_to),
+        ])
+
+        move_lines_ret = self.env['account.move.line'].search([
+            ('parent_state', '=', 'posted'),
+            ('account_id.code', '=', '2.1.3.02.050'),
+            ('company_id', '=', self.company_id.id),
+            ('date', '>=', self.date_from),
+            ('date', '<=', self.date_to),
+        ])
+
+        for line in move_lines_per.sorted(lambda l: (l.date, l.id)):
+            if not line.partner_id:
+                continue
+            per_lines_txt += self._build_arba_data(line) if line.move_id.l10n_latam_document_type_id.internal_type != 'credit_note' else ''
+            nc_per_lines_txt += self._build_arba_data(line) if line.move_id.l10n_latam_document_type_id.internal_type == 'credit_note' else ''
+            exported_ids.append(line.id)
+
+        for line in move_lines_ret.sorted(lambda l: (l.date, l.id)):
+            if not line.partner_id:
+                continue
+            ret_lines_txt += self._build_arba_data(line)
+            exported_ids.append(line.id)
+
+        self.write({
+            'export_percep_arba_data': per_lines_txt,
+            'export_nc_percep_arba_data': nc_per_lines_txt,
+            'export_retenc_arba_data': ret_lines_txt,
+            'move_lines_ids_txt': [(6, 0, exported_ids)],
+        })  
+        
+        # los 3 archivos txt generar un zip y guardarlo en export_archive_arba_zip
+        zip_buffer = io.BytesIO()
+        with zipfile.ZipFile(zip_buffer, 'w') as zip_file:
+            if per_lines_txt:
+                zip_file.writestr('ARBA_Percepcione.txt', per_lines_txt.encode('ISO-8859-1'))
+            if nc_per_lines_txt:
+                zip_file.writestr('ARBA_NC_Percepciones.txt', nc_per_lines_txt.encode('ISO-8859-1'))
+            if ret_lines_txt:
+                zip_file.writestr('ARBA_Retenciones.txt', ret_lines_txt.encode('ISO-8859-1'))
+
+        company_vat = self.company_id.vat
+        fecha_año=self.date_from.strftime('%Y')
+        fecha_mes=self.date_from.strftime('%m')
+        if self.date_from.day <= 15:
+            quincena='1'
+        elif self.date_from.day > 15 and self.date_from.day <= 31:
+            quincena='2'
+        else:
+            quincena='0'
+        
+        if self.company_id.id == 2: #SEBIGUS
+            sigla_company='S'
+        elif self.company_id.id == 3: #BECHAR
+            sigla_company='B'
+        elif self.company_id.id == 4: #FUNTOYS
+            sigla_company='F'
+            
+        numero_correlativo= self.numero_correlativo
+        #colocar el numero correlarivo con 4 caracteres, ej: 0001, 0002, etc.
+        numero_correlativo = str(numero_correlativo).zfill(4)
+        export_archive_arba_zip_filename = f'ER-{company_vat}-{fecha_año}{fecha_mes}{quincena}-LOTE{sigla_company}{numero_correlativo}.zip'
+        self.write({
+            'export_archive_arba_zip': base64.b64encode(zip_buffer.getvalue()),
+            'export_archive_arba_zip_filename': export_archive_arba_zip_filename,
+            'numero_correlativo': self.numero_correlativo + 1,
+        })
+        self.export_archive_arba_zip = base64.b64encode(zip_buffer.getvalue())
+        
+        
+
+    def set_done(self):
+        self.create_table_ret()
+        self.state = 'done'
+
+    def set_draft(self):
+        self.env['account.export.tax'].sudo().search([('export_id','=',self.id)]).unlink()
+        self.state = 'draft'
+
+
+
+    # ---------------------------------------------------------
+    # METODOS ANTIGUOS, SE DEJAN PARA NO ROMPER HISTORICO PERO NO SE USAN EN EL PROCESO ACTUAL
+    # ---------------------------------------------------------    
+    @api.depends('export_percep_arba_data','export_nc_percep_arba_data','export_retenc_arba_data')
+    def _compute_files_ancient(self):
+        self.ensure_one()
+        # segun vimos aca la afip espera "ISO-8859-1" en vez de utf-8
+        # http://www.planillasutiles.com.ar/2015/08/
+        # como-descargar-los-archivos-de.html
+        #if self.export_arba_data:
+        self.export_percep_arba_filename = 'Perc IIBB ARBA Aplicada.txt'
+        if self.export_percep_arba_data:
+           self.export_percep_arba_file = base64.encodestring(self.export_percep_arba_data.encode('ISO-8859-1'))
+        self.export_nc_percep_arba_filename = 'NC Perc IIBB ARBA Aplicada.txt'
+        if self.export_nc_percep_arba_data:
+           self.export_nc_percep_arba_file = base64.encodestring(self.export_nc_percep_arba_data.encode('ISO-8859-1'))
+        self.export_retenc_arba_filename = 'Retenc ARBA Aplicada.txt'
+        if self.export_retenc_arba_data:
+           self.export_retenc_arba_file = base64.encodestring(self.export_retenc_arba_data.encode('ISO-8859-1'))
+           
+    def line_move_lines_ancient(self):
+        return self.env['account.move.line'].search([('id','in',eval(self.move_lines_ids_txt))])
+
+    # ---------------------------------------------------------
+    # HELPERS
+    # ---------------------------------------------------------
+    def _format_date_arba_ancient(self, date_value):
+        if not date_value:
+            raise ValidationError(_("Falta una fecha requerida para ARBA."))
+        return fields.Date.to_date(date_value).strftime('%d/%m/%Y')
+
+    def _format_cuit_arba_ancient(self, vat):
         """ARBA layout común: 99-99999999-9"""
         if not vat:
             raise ValidationError(_("Falta CUIT/CUIL."))
@@ -92,7 +343,7 @@ class AccountExportArba(models.Model):
             raise ValidationError(_("El CUIT '%s' no tiene 11 dígitos.") % (vat,))
         return '%s-%s-%s' % (digits[:2], digits[2:10], digits[10:11])
 
-    def _split_arba_document_number(self, move):
+    def _split_arba_document_number_ancient(self, move):
         raw = move.l10n_latam_document_number or ''
         nums = re.findall(r'\d+', raw)
 
@@ -105,7 +356,7 @@ class AccountExportArba(models.Model):
             'No se pudo separar sucursal y emisión del comprobante "%s" (%s).'
         ) % (move.display_name, raw))
 
-    def _get_arba_tipo_comp_y_letra(self, move):
+    def _get_arba_tipo_comp_y_letra_ancient(self, move):
         """
         Devuelve:
         tipo_comp ARBA: F/E/C/H/D/I/R
@@ -157,8 +408,7 @@ class AccountExportArba(models.Model):
             'No se pudo mapear el tipo de documento "%s" al tipo de comprobante ARBA.'
         ) % doc.display_name)        
             
-
-    def _format_amount_arba(self, amount, total_len, decimals=2, signed=False):
+    def _format_amount_arba_ancient(self, amount, total_len, decimals=2, signed=False):
         """
         Devuelve importe con separador decimal y largo fijo.
         Ej:
@@ -185,7 +435,7 @@ class AccountExportArba(models.Model):
             txt = '-' + txt[1:]
         return txt
 
-    def _get_arba_operation_type(self, line):
+    def _get_arba_operation_type_ancient(self, line):
         """
         ARBA pide:
         A = Alta
@@ -196,7 +446,7 @@ class AccountExportArba(models.Model):
         """
         return 'A'
 
-    def _get_arba_perception_doc_type(self, move):
+    def _get_arba_perception_doc_type_ancient(self, move):
         """
         Mapea tipos de comprobante ARBA:
         F=Factura, R=Recibo, C=Nota Crédito, D=Nota Débito,
@@ -218,11 +468,11 @@ class AccountExportArba(models.Model):
         # fallback conservador
         return 'F'
 
-    def _get_arba_letter(self, move):
+    def _get_arba_letter_ancient(self, move):
         letter = move.l10n_latam_document_type_id.l10n_ar_letter or ' '
         return letter if letter in ['A', 'B', 'C'] else ' '
 
-    def _get_alicuota_arba(self, tax, partner, date):
+    def _get_alicuota_arba_ancient(self, tax, partner, date):
         alicuot_line = tax.get_partner_alicuot(partner, date)
         if not alicuot_line:
             raise ValidationError(_(
@@ -237,8 +487,7 @@ class AccountExportArba(models.Model):
     # ---------------------------------------------------------
     # LAYOUTS ARBA
     # ---------------------------------------------------------
-
-    def _build_arba_percepcion_11(self, line):
+    def _build_arba_percepcion_11_ancient(self, line):
         """
         1.1 Percepciones (excepto act. 29, 7 quincenal y 17 bancos)
         Posiciones:
@@ -264,12 +513,12 @@ class AccountExportArba(models.Model):
         if not move.l10n_latam_document_number:
             raise ValidationError(_("El comprobante %s no tiene número.") % move.display_name)
 
-        cuit = self._format_cuit_arba(partner.vat)
-        fecha = self._format_date_arba(line.date)
-        tipo_comp, letra = self._get_arba_tipo_comp_y_letra(move)
-        sucursal, emision = self._split_arba_document_number(move)
+        cuit = self._format_cuit_arba_ancient(partner.vat)
+        fecha = self._format_date_arba_ancient(line.date)
+        tipo_comp, letra = self._get_arba_tipo_comp_y_letra_ancient(move)
+        sucursal, emision = self._split_arba_document_number_ancient(move)
         base_amount = float_round(line.tax_base_amount or 0.0, precision_digits=2)
-        alicuota = self._get_alicuota_arba(tax, partner, line.date)
+        alicuota = self._get_alicuota_arba_ancient(tax, partner, line.date)
 
         # Importe practicado
         if line.currency_id and line.currency_id != line.company_id.currency_id:
@@ -285,7 +534,7 @@ class AccountExportArba(models.Model):
             base_amount = abs(base_amount)
             importe = abs(importe)
 
-        tipo_operacion = self._get_arba_operation_type(line)
+        tipo_operacion = self._get_arba_operation_type_ancient(line)
 
         content = ''
         content += cuit
@@ -294,9 +543,9 @@ class AccountExportArba(models.Model):
         content += letra
         content += sucursal
         content += emision
-        content += self._format_amount_arba(base_amount, 14, 2, signed=True)   # 14
-        content += self._format_amount_arba(alicuota, 5, 2, signed=False)      # 5
-        content += self._format_amount_arba(importe, 13, 2, signed=True)       # 13
+        content += self._format_amount_arba_ancient(base_amount, 14, 2, signed=True)   # 14
+        content += self._format_amount_arba_ancient(alicuota, 5, 2, signed=False)      # 5
+        content += self._format_amount_arba_ancient(importe, 13, 2, signed=True)       # 13
         content += tipo_operacion
 
         if len(content) != 71:
@@ -304,7 +553,7 @@ class AccountExportArba(models.Model):
 
         return content + '\r\n'
 
-    def _build_arba_retencion_17(self, line):
+    def _build_arba_retencion_17_ancient(self, line):
         """
         1.7 Retenciones (excepto act. 26, 6 bancos y 17 bancos/no bancos)
         Posiciones:
@@ -332,39 +581,35 @@ class AccountExportArba(models.Model):
         if not doc_number:
             raise ValidationError(_("La línea %s no tiene número de comprobante/retención.") % line.display_name)
 
-        cuit = self._format_cuit_arba(partner.vat)
-        fecha = self._format_date_arba(line.date)
-        sucursal, emision = self._split_arba_document_number(move)
+        cuit = self._format_cuit_arba_ancient(partner.vat)
+        fecha = self._format_date_arba_ancient(line.date)
+        sucursal, emision = self._split_arba_document_number_ancient(move)
         base_amount = float_round(abs(line.tax_base_amount or 0.0), precision_digits=2)
-        alicuota = self._get_alicuota_arba(tax, partner, line.date)
+        alicuota = self._get_alicuota_arba_ancient(tax, partner, line.date)
 
         if line.currency_id and line.currency_id != line.company_id.currency_id:
             importe = float_round(base_amount * alicuota / 100.0, precision_digits=2)
         else:
             importe = float_round(abs(line.balance), precision_digits=2)
 
-        tipo_operacion = self._get_arba_operation_type(line)
+        tipo_operacion = self._get_arba_operation_type_ancient(line)
 
         content = ''
         content += cuit                                      # 13
         content += fecha                                     # 10
         content += sucursal                                  # 5
         content += emision                                   # 8
-        content += self._format_amount_arba(base_amount, 14, 2, signed=False)  # 14
-        content += self._format_amount_arba(alicuota, 5, 2, signed=False)      # 5
-        content += self._format_amount_arba(importe, 13, 2, signed=False)      # 13
+        content += self._format_amount_arba_ancient(base_amount, 14, 2, signed=False)  # 14
+        content += self._format_amount_arba_ancient(alicuota, 5, 2, signed=False)      # 5
+        content += self._format_amount_arba_ancient(importe, 13, 2, signed=False)      # 13
         content += tipo_operacion                            # 1
 
         if len(content) != 69:
             raise ValidationError(_("La línea ARBA Retención 1.7 quedó con largo %s y debe ser 69.") % len(content))
 
         return content + '\r\n'
-
-    # ---------------------------------------------------------
-    # PROCESO
-    # ---------------------------------------------------------
-
-    def compute_arba_data(self):
+    
+    def compute_arba_data_ancient(self):
         self.ensure_one()
 
         ret_lines_txt = ''
@@ -425,14 +670,3 @@ class AccountExportArba(models.Model):
                 'txt_content': ret_lines_txt,
             },
         ]
-
-
-
-    def set_done(self):
-        self.create_table_ret()
-        self.state = 'done'
-
-    def set_draft(self):
-        self.env['account.export.tax'].sudo().search([('export_id','=',self.id)]).unlink()
-        self.state = 'draft'
-
