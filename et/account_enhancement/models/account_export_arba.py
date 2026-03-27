@@ -198,9 +198,6 @@ class AccountExportArba(models.Model):
         content += fecha
         content += self._format_amount_arba(alicuota, 5, 2, signed=False)      # 5
         content += self._format_amount_arba(base_amount, 16, 2, signed=True)   # 16        
-
-        if len(content) != 71:
-            raise ValidationError(_("La línea ARBA Percepción 1.1 quedó con largo %s y debe ser 71.") % len(content))
         return content + '\r\n'
 
 
