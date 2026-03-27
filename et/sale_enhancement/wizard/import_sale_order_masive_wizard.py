@@ -384,12 +384,9 @@ class ImportSaleOrderMasiveWizard(models.TransientModel):
             vals= dict(data['header'])
             vals['global_discount'] = global_discount if global_discount > 0 else 0.0
             vals['order_line'] = [(0, 0, line_vals) for line_vals in data['lines']]
-            _logger.warning('Creando pedido para cliente "%s" con %s líneas y descuento global %s%%', vals['partner_id'], len(data['lines']), vals['global_discount'])
             
             #ACA QUIERO DIVIDIR EL PEDIDO SI LOS PRODUCTOS TIENEN UNA COMPANY_IDS DISTINTA A LA COMPANY DEL PEDIDO, SI ES DISTINTA, CREO UN PEDIDO NUEVO PARA ESA COMPANY Y LE ASIGNO SOLO LOS PRODUCTOS DE ESA COMPANY, Y ASI SUCESIVAMENTE HASTA QUE TODOS LOS PRODUCTOS ESTEN ASIGNADOS A UN PEDIDO CON LA COMPANY CORRESPONDIENTE
-            _logger.warning('Dividiendo pedido por compañía si es necesario para cliente "%s"...', vals['partner_id'])
             vals = self.action_divide_order_by_company(vals)
-            _logger.warning('Pedido dividido en %s pedidos para cliente "%s".', len(vals) if isinstance(vals, list) else 1, vals['partner_id'] if isinstance(vals, dict) else vals[0]['partner_id'])
             
             try:
                 with self.env.cr.savepoint():
@@ -400,14 +397,11 @@ class ImportSaleOrderMasiveWizard(models.TransientModel):
                 errors.append(_('Error al crear pedido para cliente "%s": %s') % (
                     partner.name, str(e)
                 ))
-                _logger.warning('Error al crear pedido para cliente "%s": %s', partner.name, str(e))
                 continue
         msg_ok = _('Importación finalizada. Pedidos creados: %s.') % len(created_orders)
         msg_error = _('Importación finalizada con errores. Pedidos creados: %s. Errores:\n\n%s') % (
             len(created_orders), '\n'.join(errors[:80])
         )
-        full_message = '%s\n\n%s' % (msg_ok, msg_error)
-        _logger.warning('RESULTADO IMPORTACION MASIVA: %s', full_message)
         
         if created_orders and msg_error:
             return {
