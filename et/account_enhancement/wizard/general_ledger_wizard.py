@@ -4,6 +4,8 @@ from ast import literal_eval
 from odoo import _, api, fields, models
 from odoo.exceptions import ValidationError
 from odoo.tools import date_utils
+import logging
+_logger = logging.getLogger(__name__)
 
 
 class GeneralLedgerReportWizard(models.TransientModel):
@@ -24,7 +26,9 @@ class GeneralLedgerReportWizard(models.TransientModel):
     def _compute_fy_start_date(self):
         for wiz in self:
             if wiz.date_from:
+                _logger.warning('Calculando fecha de inicio del ejercicio fiscal para la fecha %s', wiz.date_from)
                 date_from = wiz.date_from
+                _logger.warning('Fecha de inicio del ejercicio fiscal calculada: %s', date_from)
                 wiz.fy_start_date = date_from
             else:
                 wiz.fy_start_date = False
