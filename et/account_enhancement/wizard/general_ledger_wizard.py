@@ -18,3 +18,13 @@ class GeneralLedgerReportWizard(models.TransientModel):
         return self.env.ref(
             "account_enhancement.action_print_report_general_ledger_html"
         ).report_action(self, data=data)
+        
+        
+    @api.depends("date_from")
+    def _compute_fy_start_date(self):
+        for wiz in self:
+            if wiz.date_from:
+                date_from = wiz.date_from
+                wiz.fy_start_date = date_from
+            else:
+                wiz.fy_start_date = False
