@@ -9,6 +9,7 @@
             <xpath expr="//sheet/div[@name='button_box']" position="inside">
 
                 <field name="transfer_id" invisible="1"/>
+                <field name="is_fraction" invisible="1"/>
 
                 <button type="object"
                         name="action_open_wms_transfer"
