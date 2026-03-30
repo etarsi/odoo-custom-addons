@@ -271,6 +271,10 @@ class ImportSaleOrderMasiveWizard(models.TransientModel):
         if row.get('notas_internas'):
             note_parts.append('Notas internas: %s' % row['notas_internas'])
 
+        #SI ES PRODUCCION B
+        if company.id == 1:
+            condicion_m2m = self.env['condicion.venta'].search([('condicion', '=', 'C')], limit=1)
+
         return {
             'partner_id': partner.id,
             'partner_shipping_id': shipping.id if shipping else partner.id,
