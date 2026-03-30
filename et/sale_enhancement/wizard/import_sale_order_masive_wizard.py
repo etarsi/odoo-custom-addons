@@ -327,14 +327,14 @@ class ImportSaleOrderMasiveWizard(models.TransientModel):
                         row['excel_row'], row['condicion_venta']
                     ))
                     continue
-                                  
+
                 payment_term = master_data['payment_term_map'].get((row['plazos_pago'] or '').strip())
                 if row['plazos_pago'] and not payment_term:
                     errors.append(_('Fila %s: plazo de pago no encontrado "%s".') % (
                         row['excel_row'], row['plazos_pago']
                     ))
                     continue
-                    
+
                 product = master_data['product_map'].get((row['producto_codigo'] or '').strip())
                 if not product:
                     errors.append(_('Fila %s: producto no encontrado "%s".') % (
@@ -343,29 +343,63 @@ class ImportSaleOrderMasiveWizard(models.TransientModel):
                     continue
 
                 shipping = self._resolve_shipping_partner(row, partner)
-                company = self._resolve_company(row, master_data)
-                group_key = self._build_group_key(row, partner, shipping, company, product)
                 rubro_real = self._get_rubro_from_product(product)
                 tipo = (row.get('condicion_venta') or '').strip().upper()
                 descuento = self._get_discount_for_row(row, rubro_real)
-                
-                line_vals, line_error = self._prepare_order_line_vals(row, product)
-                if line_error:
-                    errors.append(line_error)
+
+                # compañías destino de la línea
+                product_companies = product.company_ids
+                if product_companies:
+                    target_companies = product_companies
+                else:
+                    target_companies = self._resolve_company(row, master_data)
+
+                if not target_companies:
+                    errors.append(_('Fila %s: no se pudo determinar compañía para el producto "%s".') % (
+                        row['excel_row'], product.display_name
+                    ))
                     continue
 
-                if not grouped[group_key]['header']:
-                    grouped[group_key]['header'] = self._prepare_order_vals(
-                        row, partner, shipping, company, descuento, condicion_m2m, payment_term
-                    )
-                grouped[group_key]['tipo'] = tipo
-                grouped[group_key]['lines'].append(line_vals)
-                grouped[group_key]['discounts'].add(descuento)
+                if len(target_companies) == 1:
+                    qty_parts = [row.get('cantidad') or 0.0]
+                else:
+                    try:
+                        qty_parts = self._split_integer_qty(row.get('cantidad') or 0.0, len(target_companies))
+                    except Exception as e:
+                        errors.append(_('Fila %s: error al dividir cantidad del producto "%s": %s') % (
+                            row['excel_row'], product.display_name, str(e)
+                        ))
+                        continue
+
+                for idx, company in enumerate(target_companies):
+                    qty_part = qty_parts[idx]
+                    if qty_part <= 0:
+                        continue
+
+                    row_part = dict(row)
+                    row_part['cantidad'] = qty_part
+
+                    line_vals, line_error = self._prepare_order_line_vals(row_part, product)
+                    if line_error:
+                        errors.append(line_error)
+                        continue
+
+                    group_key = self._build_group_key(row_part, partner, shipping, company, product)
+
+                    if not grouped[group_key]['header']:
+                        grouped[group_key]['header'] = self._prepare_order_vals(
+                            row_part, partner, shipping, company, descuento, condicion_m2m, payment_term
+                        )
+
+                    grouped[group_key]['tipo'] = tipo
+                    grouped[group_key]['lines'].append(line_vals)
+                    grouped[group_key]['discounts'].add(descuento)
+
             except Exception as e:
                 errors.append(str(e))
 
         if errors:
-            raise UserError(_('Errores antes de importar:\n\n%s') % '\n'.join(errors[:80]))
+            errors.append(_('Errores antes de importar:\n\n%s') % '\n'.join(errors[:80]))
 
         created_orders = self.env['sale.order']
 
@@ -384,10 +418,7 @@ class ImportSaleOrderMasiveWizard(models.TransientModel):
             vals= dict(data['header'])
             vals['global_discount'] = global_discount if global_discount > 0 else 0.0
             vals['order_line'] = [(0, 0, line_vals) for line_vals in data['lines']]
-            
-            #ACA QUIERO DIVIDIR EL PEDIDO SI LOS PRODUCTOS TIENEN UNA COMPANY_IDS DISTINTA A LA COMPANY DEL PEDIDO, SI ES DISTINTA, CREO UN PEDIDO NUEVO PARA ESA COMPANY Y LE ASIGNO SOLO LOS PRODUCTOS DE ESA COMPANY, Y ASI SUCESIVAMENTE HASTA QUE TODOS LOS PRODUCTOS ESTEN ASIGNADOS A UN PEDIDO CON LA COMPANY CORRESPONDIENTE
-            vals = self.action_divide_order_by_company(vals)
-            
+            _logger.waring('Preparando pedido para cliente %s con %s líneas y descuento global %s', vals['partner_id'], len(vals['order_line']), vals['global_discount'])
             try:
                 with self.env.cr.savepoint():
                     order = sale_order.create(vals)
@@ -403,7 +434,7 @@ class ImportSaleOrderMasiveWizard(models.TransientModel):
             len(created_orders), '\n'.join(errors[:80])
         )
         
-        if created_orders and msg_error:
+        if created_orders and errors:
             return {
                 'type': 'ir.actions.client',
                 'tag': 'display_notification',
@@ -468,25 +499,20 @@ class ImportSaleOrderMasiveWizard(models.TransientModel):
                 'sticky': True,
             }
         }
-        
-    def action_divide_order_by_company(self, vals):
-        lines_by_company = defaultdict(list)
-        for line in vals['order_line']:
-            product = self.env['product.product'].browse(line[2]['product_id']) #line[2] porque viene en formato (0, 0, {vals})
-            company_ids = product.company_ids.ids
-            if not company_ids:
-                company_ids = [vals.get('company_id')] if vals.get('company_id') else []
-            for company_id in company_ids:
-                lines_by_company[company_id].append(line)
+    
+    def _split_integer_qty(self, qty, parts):
+        qty = float(qty or 0.0)
+        if parts <= 0:
+            return []
 
-        if len(lines_by_company) == 1:
-            return vals
-        new_orders = []
-        for company_id, lines in lines_by_company.items():
-            new_vals = dict(vals)
-            if company_id == 1:
-                new_vals['condicion_m2m'] = 'TIPO 3'
-            new_vals['company_id'] = company_id
-            new_vals['order_line'] = lines
-            new_orders.append(new_vals)
-        return new_orders
+        if not qty.is_integer():
+            raise UserError(_('La cantidad %s no es entera y no se puede dividir sin decimales.') % qty)
+
+        qty_int = int(qty)
+        base = qty_int // parts
+        resto = qty_int % parts
+
+        result = []
+        for i in range(parts):
+            result.append(base + (1 if i < resto else 0))
+        return result
