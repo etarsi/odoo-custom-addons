@@ -202,7 +202,7 @@ class WMSTask(models.Model):
                 "clienteUbicacionCodigo": "u"+str(record.partner_address_id.id),
                 "fecha": str(fields.Date.context_today(self)),
                 "estado": "Pendiente",
-                "observacion": record.name,
+                "observacion": record.transfer_id.sale_id.note if record.transfer_id.sale_id.note else record.name,
                 "servicioDeEnvioTipo": "Propio",
                 "codigoDeEnvio": record.transfer_id.sale_id.name or "",
             }
