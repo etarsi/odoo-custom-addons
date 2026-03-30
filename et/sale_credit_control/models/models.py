@@ -28,12 +28,11 @@ class ResPartnerInherit(models.Model):
     risk_note = fields.Text(string="Observación del Gerente")
 
 
+    last_purchase_date = fields.Date(string="Última Compra", compute="_compute_invoice_sales_data")
+    last_purchase_amount = fields.Monetary(string="Monto Última Compra", compute="_compute_invoice_sales_data")
+    season_purchase_count = fields.Integer(string="Compras Temporada", compute="_compute_invoice_sales_data")
+    days_without_purchase = fields.Integer(string="Días sin Comprar", compute="_compute_days_without_purchase")
 
-    last_purchase_date = fields.Date(string="Última Compra", compute="_compute_sales_data", store=True)
-    last_purchase_amount = fields.Monetary(string="Monto Última Compra", compute="_compute_sales_data", store=True)
-    days_without_purchase = fields.Integer(string="Días sin Comprar", compute="_compute_days_without_purchase", store=True)
-
-    season_purchase_count = fields.Integer(string="Compras Temporada", compute="_compute_sales_data", store=True)
     draft_sale_order_count = fields.Integer(string="Pedidos Borrador", compute="_compute_draft_orders")
 
 
@@ -41,7 +40,6 @@ class ResPartnerInherit(models.Model):
     total_debt = fields.Monetary(string="Deuda Total", compute="_compute_debt", store=True)
     overdue_debt = fields.Monetary(string="Deuda Vencida", compute="_compute_debt", store=True)
     max_overdue_days = fields.Integer(string="Días de Mora", compute="_compute_debt", store=True)
-
 
 
     is_new_customer = fields.Boolean(string="Cliente Nuevo", compute="_compute_alerts", store=True)
@@ -55,21 +53,24 @@ class ResPartnerInherit(models.Model):
     # COMPUTES
     # =========================
 
-    def _compute_sales_data(self):
-        for partner in self:
-            orders = self.env['sale.order'].search([
-                ('partner_id', '=', partner.id),
-                ('state', 'in', ['sale', 'done'])
-            ], order='date_order desc')
+    def _compute_invoice_sales_data(self):
+        AccountMove = self.env['account.move']
 
-            if orders:
-                last_order = orders[0]
-                partner.last_purchase_date = last_order.date_order.date()
-                partner.last_purchase_amount = last_order.amount_total
-                partner.season_purchase_count = len(orders)
+        for partner in self:
+            invoices = AccountMove.search([
+                ('partner_id', '=', partner.id),
+                ('move_type', '=', 'out_invoice'),
+                ('state', '=', 'posted'),
+            ], order='invoice_date desc, id desc')
+
+            if invoices:
+                last_invoice = invoices[0]
+                partner.last_purchase_date = last_invoice.invoice_date
+                partner.last_purchase_amount = last_invoice.amount_total
+                partner.season_purchase_count = len(invoices)
             else:
                 partner.last_purchase_date = False
-                partner.last_purchase_amount = 0
+                partner.last_purchase_amount = 0.0
                 partner.season_purchase_count = 0
 
     def _compute_days_without_purchase(self):
@@ -78,7 +79,7 @@ class ResPartnerInherit(models.Model):
             if partner.last_purchase_date:
                 partner.days_without_purchase = (today - partner.last_purchase_date).days
             else:
-                partner.days_without_purchase = 9999
+                partner.days_without_purchase = 0
 
     def _compute_draft_orders(self):
         for partner in self:

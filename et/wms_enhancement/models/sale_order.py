@@ -7,6 +7,7 @@ class SaleOrderInherit(models.Model):
 
     transfer_id = fields.Many2one(string="Transferencia", comodel_name="wms.transfer")
     preselection_id = fields.Many2one(string="Preselección", comodel_name="wms.preselection")
+    is_fraction = fields.Boolean(string="Es Fraccionado?", default=False, compute="_compute_is_fraction")
 
     def action_open_wms_transfer(self):
        self.ensure_one()
@@ -65,6 +66,16 @@ class SaleOrderInherit(models.Model):
 
             record.transfer_id = transfer_id.id
             
+
+    @api.depends('partner_id')
+    def _compute_is_fraction(self):
+        for record in self:
+            client_tags = record.partner_id.category_id
+
+            if 'Fraccionado' in client_tags:
+                record.is_fraction = True
+            else:
+                record.is_fraction = False
 
 
 class SaleOrderLineInherit(models.Model):

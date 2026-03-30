@@ -22,7 +22,7 @@
 
             </xpath>
             <xpath expr="//field[@name='validity_date']" position="before">
-                <field name="preselection_id" attrs="{'invisible': [('preselection_id', '=', False)], 'readonly': [('state', '!=', 'draft')]}"/>
+                <field name="preselection_id" attrs="{'invisible': [('is_fraction', '=', False)]}"/>
             </xpath>
         </field>
     </record>

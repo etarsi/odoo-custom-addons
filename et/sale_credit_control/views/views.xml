@@ -124,12 +124,6 @@
                             <field name="executive_id" string="Ejecutivo" readonly="1"/>
                             <field name="city" string="Ciudad" readonly="1"/>
                         </group>
-
-                        <group string="Control">
-                            <field name="last_review_date" string="Última Revisión" readonly="1"/>
-                            <field name="last_review_user_id" string="Revisado por" readonly="1"/>
-                            <field name="draft_sale_order_count" string="Pedidos Borrador" readonly="1"/>
-                        </group>
                     </group>
 
                     <notebook>
@@ -151,20 +145,17 @@
                                 </group>
                             </group>
 
-                            <group string="Alertas">
-                                <group>
-                                    <field name="is_new_customer" string="Cliente Nuevo" readonly="1"/>
-                                    <field name="reactivated_customer_alert" string="Cliente Reactivado" readonly="1"/>
-                                </group>
-                                <group>
-                                    <field name="sudden_purchase_alert" string="Compra Inusual" readonly="1"/>
-                                    <field name="new_customer_high_risk_alert" string="Cliente Nuevo - Compra Alta" readonly="1"/>
-                                </group>
-                            </group>
+                            
                         </page>
 
                         <page string="Análisis">
-                            <group>
+                            <group>                              
+
+                                <group string="Control">
+                                    <field name="last_review_date" string="Última Revisión" readonly="1"/>
+                                    <field name="last_review_user_id" string="Revisado por" readonly="1"/>
+                                    <field name="draft_sale_order_count" string="Pedidos Borrador" readonly="1"/>
+                                </group>
                                 <group string="Observaciones">
                                     <field name="risk_note" string="Observación del Gerente"/>
                                 </group>
