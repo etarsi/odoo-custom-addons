@@ -418,7 +418,7 @@ class ImportSaleOrderMasiveWizard(models.TransientModel):
             vals= dict(data['header'])
             vals['global_discount'] = global_discount if global_discount > 0 else 0.0
             vals['order_line'] = [(0, 0, line_vals) for line_vals in data['lines']]
-            _logger.waring('Preparando pedido para cliente %s con %s líneas y descuento global %s', vals['partner_id'], len(vals['order_line']), vals['global_discount'])
+            _logger.warning('Preparando pedido para cliente %s con %s líneas y descuento global %s', vals['partner_id'], len(vals['order_line']), vals['global_discount'])
             try:
                 with self.env.cr.savepoint():
                     order = sale_order.create(vals)
