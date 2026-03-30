@@ -27,7 +27,8 @@ class GeneralLedgerReportWizard(models.TransientModel):
         for wiz in self:
             if wiz.date_from:
                 _logger.warning('Calculando fecha de inicio del ejercicio fiscal para la fecha %s', wiz.date_from)
-                date_from = wiz.date_from
+                #COLOCAR DESDE EL 2020-01-01
+                date_from = date_utils.get_month(wiz.date_from)[0].replace(year=2020)
                 _logger.warning('Fecha de inicio del ejercicio fiscal calculada: %s', date_from)
                 wiz.fy_start_date = date_from
             else:
