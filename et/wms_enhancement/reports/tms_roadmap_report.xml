@@ -28,154 +28,154 @@
 
     <template id="report_tms_roadmap_document">
         <t t-call="web.basic_layout">
-            <t t-set="doc" t-value="doc_ids and docs[0] or docs"/>
-
-            <style>
-                .hdr-title { font-size: 18px; font-weight: 700; margin: 6px 0 6px 0; }
-                .hdr-meta  { font-size: 10px; margin: 0 0 12px 0; }
-                .hdr-meta .line { display:flex; gap:18px; flex-wrap:wrap; }
-                .hdr-meta .line.meta-big { font-size: 12px; }
-                .hdr-meta .line.meta-big b { font-size: 12px; }
-                .fill-table{
-                    width:100%;
-                    border-collapse:collapse;
-                    font-size:10px;
-                    margin: 6px 0 12px 0;
-                }
-                .fill-table td{
-                    padding: 2px 14px 2px 0;
-                    white-space:nowrap;
-                    vertical-align:bottom;
-                }
-                .fill-label{ font-weight:700; }
-                .fill-line{
-                    display:inline-block;
-                    border-bottom:1px solid #000;
-                    min-width:180px;
-                    height:12px;
-                    padding:0 4px;
-                    vertical-align:bottom;
-                }
-                .fill-line.small{ min-width:120px; }
-                .table{
-                    width:100%;
-                    border-collapse:collapse;
-                    font-size:9px;
-                    margin-top:6px;
-                }
-                .table th{
-                    background:#1f77b4;
-                    color:#fff;
-                    padding:4px 4px;
-                    border:1px solid #bbb;
-                }
-                .table td{
-                    padding:3px 4px;
-                    border:1px solid #bbb;
-                    vertical-align:top;
-                }
-                .muted{ color:#777; }
-                .sign-table{
-                    width:100%;
-                    border-collapse:collapse;
-                    margin-top:160px;
-                    font-size:10px;
-                }
-                .sign-table td{
-                    width:33.33%;
-                    vertical-align:bottom;
-                    padding:0 10px;
-                }
-                .hdr-meta-table {
-                    width: 100%;
-                    border-collapse: collapse;
-                }
-                .hdr-meta-table td {
-                    width: 25%;
-                    padding-right: 10px;
-                    vertical-align: top;
-                }
-                .sign-line{
-                    border-top:1px solid #000;
-                    padding-top:3px;
-                    text-align:left;
-                }
-                .sign-center{ text-align:center; }
-                .sign-right{ text-align:right; }
-                .hdr-header-block{
-                    page-break-inside: avoid;
-                }
-            </style>
-            <table class="fill-table" style="margin-top:6px;">
-                <tr>
-                    <td>
-                        <span class="fill-label">Nombre Chofer:</span>
-                        <span class="fill-line"></span>
-                    </td>
-                    <td>
-                        <span class="fill-label">Hora Salida:</span>
-                        <span class="fill-line"></span>
-                    </td>
-                    <td>
-                        <span class="fill-label">Hora Llegada:</span>
-                        <span class="fill-line"></span>
-                    </td>
-                    <td>
-                        <span class="fill-label">Nombre Ayudante:</span>
-                        <span class="fill-line"></span>
-                    </td>
-                </tr>
-            </table>
-            <!-- CABECERA -->
-            <div class="hdr-title">
-                <span t-esc="doc.name"/>
-            </div>
-            <table class="fill-table hdr-meta-table" style="margin-top:6px;">
-                <tr>
-                    <td><b>Vehículo:</b> <span t-field="doc.transport_id"/></td>
-                    <td><b>Patente:</b> <span t-esc="doc.patente or ''"/></td>
-                    <td><b>Ayudantes:</b> <span t-esc="doc.assistants or 0"/></td>
-                    <td><b>Fecha:</b> <span t-field="doc.date"/></td>
-                </tr>
-            </table>
-
-            <!-- DETALLE -->
-            <table class="table">
-                <thead>
+            <t t-foreach="docs" t-as="doc">
+                <style>
+                    .hdr-title { font-size: 18px; font-weight: 700; margin: 6px 0 6px 0; }
+                    .hdr-meta  { font-size: 10px; margin: 0 0 12px 0; }
+                    .hdr-meta .line { display:flex; gap:18px; flex-wrap:wrap; }
+                    .hdr-meta .line.meta-big { font-size: 12px; }
+                    .hdr-meta .line.meta-big b { font-size: 12px; }
+                    .fill-table{
+                        width:100%;
+                        border-collapse:collapse;
+                        font-size:10px;
+                        margin: 6px 0 12px 0;
+                    }
+                    .fill-table td{
+                        padding: 2px 14px 2px 0;
+                        white-space:nowrap;
+                        vertical-align:bottom;
+                    }
+                    .fill-label{ font-weight:700; }
+                    .fill-line{
+                        display:inline-block;
+                        border-bottom:1px solid #000;
+                        min-width:180px;
+                        height:12px;
+                        padding:0 4px;
+                        vertical-align:bottom;
+                    }
+                    .fill-line.small{ min-width:120px; }
+                    .table{
+                        width:100%;
+                        border-collapse:collapse;
+                        font-size:9px;
+                        margin-top:6px;
+                    }
+                    .table th{
+                        background:#1f77b4;
+                        color:#fff;
+                        padding:4px 4px;
+                        border:1px solid #bbb;
+                    }
+                    .table td{
+                        padding:3px 4px;
+                        border:1px solid #bbb;
+                        vertical-align:top;
+                    }
+                    .muted{ color:#777; }
+                    .sign-table{
+                        width:100%;
+                        border-collapse:collapse;
+                        margin-top:160px;
+                        font-size:10px;
+                    }
+                    .sign-table td{
+                        width:33.33%;
+                        vertical-align:bottom;
+                        padding:0 10px;
+                    }
+                    .hdr-meta-table {
+                        width: 100%;
+                        border-collapse: collapse;
+                    }
+                    .hdr-meta-table td {
+                        width: 25%;
+                        padding-right: 10px;
+                        vertical-align: top;
+                    }
+                    .sign-line{
+                        border-top:1px solid #000;
+                        padding-top:3px;
+                        text-align:left;
+                    }
+                    .sign-center{ text-align:center; }
+                    .sign-right{ text-align:right; }
+                    .hdr-header-block{
+                        page-break-inside: avoid;
+                    }
+                </style>
+                <table class="fill-table" style="margin-top:6px;">
                     <tr>
-                        <th>Ín. de Ruta</th>
-                        <th>Tipo</th>
-                        <th>Parada</th>
-                        <th>Cliente</th>
-                        <th>Dirección</th>
-                        <th>N° Tarea</th>
-                        <th>Bultos</th>
+                        <td>
+                            <span class="fill-label">Nombre Chofer:</span>
+                            <span class="fill-line"></span>
+                        </td>
+                        <td>
+                            <span class="fill-label">Hora Salida:</span>
+                            <span class="fill-line"></span>
+                        </td>
+                        <td>
+                            <span class="fill-label">Hora Llegada:</span>
+                            <span class="fill-line"></span>
+                        </td>
+                        <td>
+                            <span class="fill-label">Nombre Ayudante:</span>
+                            <span class="fill-line"></span>
+                        </td>
                     </tr>
-                </thead>
-                <tbody>
-                    <t t-set="lines" t-value="doc.road_maps_line_ids.filtered(lambda l: l.in_ruta == ind_ruta)"/>
-                    <t t-foreach="lines" t-as="l">
+                </table>
+                <!-- CABECERA -->
+                <div class="hdr-title">
+                    <span t-esc="doc.name"/>
+                </div>
+                <table class="fill-table hdr-meta-table" style="margin-top:6px;">
+                    <tr>
+                        <td><b>Vehículo:</b> <span t-field="doc.transport_id"/></td>
+                        <td><b>Patente:</b> <span t-esc="doc.patente or ''"/></td>
+                        <td><b>Ayudantes:</b> <span t-esc="doc.assistants or 0"/></td>
+                        <td><b>Fecha:</b> <span t-field="doc.date"/></td>
+                    </tr>
+                </table>
+
+                <!-- DETALLE -->
+                <table class="table">
+                    <thead>
                         <tr>
-                            <td><span t-esc="l.in_ruta or 1"/></td>
-                            <td><span t-field="l.type_roadmap" t-options="{'widget': 'selection'}"/></td>
-                            <td></td>
-                            <td><span t-field="l.partner_id"/></td>
-                            <td><span t-esc="l.direction or ''"/></td>
-                            <td><span t-esc="l.wms_task_id.name if l.wms_task_id else ''"/></td>
-                            <td style="text-align:right;">
-                                <span t-field="l.bulk_picking" t-options="{'widget': 'float', 'precision_digits': 2}"/>
-                            </td>
+                            <th>Ín. de Ruta</th>
+                            <th>Tipo</th>
+                            <th>Parada</th>
+                            <th>Cliente</th>
+                            <th>Dirección</th>
+                            <th>N° Tarea</th>
+                            <th>Bultos</th>
                         </tr>
-                    </t>
-                </tbody>
-            </table>
-            <table class="sign-table">
-                <tr>
-                    <td><div class="sign-line">FIRMA CHOFER</div></td>
-                    <td><div class="sign-line sign-center">ACLARACIÓN CHOFER</div></td>
-                    <td><div class="sign-line sign-right">D.N.I. CHOFER</div></td>
-                </tr>
-            </table>
+                    </thead>
+                    <tbody>
+                            <t t-set="lines" t-value="doc.road_maps_line_ids.filtered(lambda l: l.in_ruta == ind_ruta)"/>
+                            <t t-foreach="lines" t-as="l">
+                            <tr>
+                                <td><span t-esc="l.in_ruta or 1"/></td>
+                                <td><span t-field="l.type_roadmap" t-options="{'widget': 'selection'}"/></td>
+                                <td></td>
+                                <td><span t-field="l.partner_id"/></td>
+                                <td><span t-esc="l.direction or ''"/></td>
+                                <td><span t-esc="l.wms_task_id.name if l.wms_task_id else ''"/></td>
+                                <td style="text-align:right;">
+                                    <span t-field="l.bulk_picking" t-options="{'widget': 'float', 'precision_digits': 2}"/>
+                                </td>
+                            </tr>
+                        </t>
+                    </tbody>
+                </table>
+                <table class="sign-table">
+                    <tr>
+                        <td><div class="sign-line">FIRMA CHOFER</div></td>
+                        <td><div class="sign-line sign-center">ACLARACIÓN CHOFER</div></td>
+                        <td><div class="sign-line sign-right">D.N.I. CHOFER</div></td>
+                    </tr>
+                </table>
+            </t>
         </t>
     </template>
 </odoo>
