@@ -153,7 +153,7 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <t t-set="lines" t-value="doc.road_maps_line_ids"/>
+                    <t t-set="lines" t-value="doc.road_maps_line_ids.filtered(lambda l: l.in_ruta == ind_ruta)"/>
                     <t t-foreach="lines" t-as="l">
                         <tr>
                             <td><span t-esc="l.in_ruta or 1"/></td>

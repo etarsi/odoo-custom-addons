@@ -34,6 +34,14 @@
             <xpath expr="//field[@name='road_maps_line_ids']/tree/field[@name='tms_stock_picking_id']" position="after">
                 <field name="wms_task_id" options="{'no_create': True}" optional="hide"/>
             </xpath>
+            <!-- AGREGAR BOTON EN EL HEADER -->
+            <xpath expr="//header" position="inside">
+                <button name="action_print_roadmap"
+                        type="object"
+                        string="Imprimir Hoja de Ruta"
+                        class="oe_highlight"
+                        icon="fa-print"/>
+            </xpath>
         </field>
     </record>
 </odoo>

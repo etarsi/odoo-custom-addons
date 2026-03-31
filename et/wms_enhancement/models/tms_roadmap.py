@@ -56,6 +56,20 @@ class TmsRoadmap(models.Model):
             'target': 'current',
         }
 
+    def action_print_roadmap(self):
+        self.ensure_one()
+        #abrir wizard tms_roadmap_report_wizard
+        return {
+            'type': 'ir.actions.act_window',
+            'name': 'Imprimir Hoja de Ruta',
+            'res_model': 'tms.roadmap.report.wizard',
+            'view_mode': 'form',
+            'target': 'new',
+            'context': {
+                'default_roadmap_id': self.id,
+            }
+        }
+
 class TmsRoadmapLine(models.Model):
     _inherit = 'tms.roadmap.line'
     _description = 'Linea de la Hoja de Ruta'
