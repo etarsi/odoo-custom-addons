@@ -15,6 +15,7 @@
                         <field name="period"/>
                     </group>
                 </sheet>
+            </form>
         </field>
     </record>
 
