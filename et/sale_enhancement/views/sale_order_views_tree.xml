@@ -34,7 +34,7 @@
                 </xpath>
                 -->
                 <xpath expr="//field[@name='payment_term_id']" position="after">
-                    <field name="condicion_m2m" options="{'no_create': True, 'no_create_edit': True}" attrs="{'readonly':[('state','=','sale')], 'required': True}"/>			    
+                    <field name="condicion_m2m" options="{'no_create': True, 'no_create_edit': True, 'no_open': True}" attrs="{'readonly':[('state','=','sale')], 'required': True}"/>			    
                     <field name="global_discount" string="Descuento"/>
                     <field name="special_price" attrs="{'readonly': [('state', '=', 'sale')]}"/>
                 </xpath>
