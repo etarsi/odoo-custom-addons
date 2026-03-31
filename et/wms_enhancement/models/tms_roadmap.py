@@ -65,8 +65,7 @@ class TmsRoadmap(models.Model):
             'res_model': 'tms.roadmap.report.wizard',
             'view_mode': 'form',
             'view_id': self.env.ref('wms_enhancement.view_tms_roadmap_report_wizard_form').id,
-            'target': 'new',
-            'context': {'default_roadmap_id': self.id},
+            'context': {'default_tms_roadmap_id': self.id},
         }
 
 class TmsRoadmapLine(models.Model):
