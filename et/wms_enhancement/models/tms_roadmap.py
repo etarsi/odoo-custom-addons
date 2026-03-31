@@ -66,7 +66,7 @@ class TmsRoadmap(models.Model):
             'view_mode': 'form',
             'target': 'new',
             'context': {
-                'default_roadmap_id': self.id,
+                'default_tms_roadmap_id': self.id,
             }
         }
 

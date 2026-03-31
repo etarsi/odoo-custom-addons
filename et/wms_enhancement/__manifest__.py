@@ -30,6 +30,7 @@
         'data/action.xml',
         'views/wizard/tms_stock_picking_roadmap_wizard_views.xml',
         'views/wizard/import_container_excel_task_wizard_views.xml',
+        'views/wizard/tms_roadmap_report_wizard_views.xml',
         'views/transfer_views.xml',
         'views/task_views.xml',
         'views/sale_order_views.xml',

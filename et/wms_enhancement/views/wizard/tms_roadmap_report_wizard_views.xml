@@ -1,0 +1,34 @@
+<odoo>
+    <!-- FORM DEL WIZARD -->
+    <record id="view_tms_roadmap_report_wizard_form" model="ir.ui.view">
+        <field name="name">tms.roadmap.report.wizard.form</field>
+        <field name="model">tms.roadmap.report.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Reporte de Hoja de Ruta">
+                <group>
+                    <field name="roadmap_id" options="{'no_create': True}" readonly="1"/>
+                    <field name="in_ruta"/>
+                </group>
+                <footer>
+                    <button name="action_print_report"
+                            type="object"
+                            string="Imprimir"
+                            class="btn-primary oe_highlight"/>
+
+                    <button string="Cancelar"
+                            special="cancel"
+                            class="btn-secondary"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_view_tms_roadmap_report_wizard_form" model="ir.actions.act_window">
+        <field name="name">Reporte de Hoja de Ruta</field>
+        <field name="res_model">tms.roadmap.report.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="view_id" ref="view_tms_roadmap_report_wizard_form"/>
+        <field name="target">new</field>
+    </record>
+
+</odoo>
