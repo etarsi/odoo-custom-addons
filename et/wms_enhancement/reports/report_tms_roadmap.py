@@ -10,8 +10,8 @@ class ReportTmsRoadmap(models.AbstractModel):
 
     @api.model
     def _get_report_values(self, docids, data=None):
-        docs = self.env["tms.roadmap"].browse(docids)
-        data = data or {}
+        tms_roadmap_id = data.get('context', {}).get('active_ids')
+        docs = self.env["tms.roadmap"].browse(tms_roadmap_id[0])
         _logger.warning(f"Data recibida en el reporte: {data}")
         _logger.warning(f"Documentos recibidos en el reporte: {docs.ids}")
         _logger.warning(f"active_ids : {data.get('context', {}).get('active_ids')}")
