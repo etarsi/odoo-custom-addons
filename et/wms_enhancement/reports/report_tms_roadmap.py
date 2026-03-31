@@ -9,11 +9,11 @@ class ReportTmsRoadmap(models.AbstractModel):
     @api.model
     def _get_report_values(self, docids, data=None):
         docs = self.env["tms.roadmap"].browse(docids)
-        in_ruta = (data or {}).get("in_ruta")
+        data = data or {}
 
         return {
             "doc_ids": docs.ids,
             "doc_model": "tms.roadmap",
             "docs": docs,
-            "in_ruta": in_ruta,
+            "in_ruta": data.get("in_ruta"),
         }
