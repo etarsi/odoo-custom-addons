@@ -523,7 +523,7 @@ class ImportSaleOrderMasiveWizard(models.TransientModel):
                         'name': _('Pedidos de Venta Importados'),
                         'res_model': 'sale.order',
                         'view_mode': 'tree,form',
-                        'views': [(False, 'tree'), (False, 'form')],
+                        'views': [(False, 'list'), (False, 'form')],
                         'domain': [('id', 'in', created_orders.ids)],
                         'target': 'current',
                     }
@@ -544,7 +544,7 @@ class ImportSaleOrderMasiveWizard(models.TransientModel):
                         'name': _('Pedidos de Venta Importados'),
                         'res_model': 'sale.order',
                         'view_mode': 'tree,form',
-                        'views': [(False, 'tree'), (False, 'form')],
+                        'views': [(False, 'list'), (False, 'form')],
                         'domain': [('id', 'in', created_orders.ids)],
                         'target': 'current',
                     }
