@@ -1,10 +1,8 @@
 # -*- coding: utf-8 -*-
 from odoo import api, fields, models, _
 from odoo.exceptions import UserError
-import base64
-import io
+import base64, io, time, logging
 from collections import defaultdict
-import logging
 from openpyxl import load_workbook
 
 _logger = logging.getLogger(__name__)
@@ -39,7 +37,7 @@ class ImportSaleOrderMasiveWizard(models.TransientModel):
 
         try:
             content = base64.b64decode(self.file)
-            wb = load_workbook(io.BytesIO(content), data_only=False)
+            wb = load_workbook(io.BytesIO(content), data_only=True, read_only=True) #data_only para leer valores calculados en vez de fórmulas, read_only para optimizar lectura de archivos grandes
         except Exception as e:
             raise UserError(_('No se pudo leer el archivo Excel:\n%s') % e)
 
@@ -179,11 +177,12 @@ class ImportSaleOrderMasiveWizard(models.TransientModel):
         condicion_m2ms = self.env['condicion.venta'].search([('name', 'in', list(condicion_m2ms))]) if condicion_m2ms else self.env['condicion.venta']
         companies = self.env['res.company'].search([('name', 'in', list(company_names))]) if company_names else self.env['res.company']
         payment_terms = self.env['account.payment.term'].search([('name', 'in', list(payment_terms))]) if payment_terms else self.env['account.payment.term']
-        partner_map = {p.name.strip(): p for p in partners if p.name}
-        product_map = {p.default_code.strip(): p for p in products if p.default_code}
-        company_map = {c.name.strip(): c for c in companies if c.name}
-        condicion_m2m_map = {c.name.strip(): c for c in condicion_m2ms if c.name}
-        payment_term_map = {p.name.strip(): p for p in payment_terms if p.name}
+        
+        partner_map = {p.name.strip().upper(): p for p in partners if p.name}
+        product_map = {p.default_code.strip().upper(): p for p in products if p.default_code}
+        company_map = {c.name.strip().upper(): c for c in companies if c.name}
+        condicion_m2m_map = {c.name.strip().upper(): c for c in condicion_m2ms if c.name}
+        payment_term_map = {p.name.strip().upper(): p for p in payment_terms if p.name}
 
         return {
             'partner_map': partner_map,
@@ -199,40 +198,6 @@ class ImportSaleOrderMasiveWizard(models.TransientModel):
             return master_data['company_map'][company_name]
 
         return self.env.company
-
-    def _resolve_shipping_partner(self, row, partner):
-        shipping_name = (row.get('direccion_entrega') or '').strip()
-        if not shipping_name:
-            return partner
-
-        shipping_name_clean = shipping_name
-        if ',' in shipping_name:
-            parts = [part.strip() for part in shipping_name.split(',')]
-            if len(parts) >= 2:
-                shipping_name_clean = parts[-1]
-
-        shipping = self.env['res.partner'].search([
-            ('name', '=', shipping_name_clean),
-            ('parent_id', '=', partner.id),
-        ], limit=1)
-        if shipping:
-            return shipping
-
-        shipping = self.env['res.partner'].search([
-            ('name', '=', shipping_name_clean),
-        ], limit=1)
-        if shipping:
-            return shipping
-
-        # fallback por si viene alguna diferencia mínima
-        shipping = self.env['res.partner'].search([
-            ('name', 'ilike', shipping_name_clean),
-            ('parent_id', '=', partner.id),
-        ], limit=1)
-        if shipping:
-            return shipping
-        shipping = self.env['res.partner'].search([('name', 'ilike', shipping_name_clean)], limit=1)
-        return shipping or partner
 
     def _get_rubro_from_product(self, product):
         categ = product.categ_id
@@ -261,6 +226,84 @@ class ImportSaleOrderMasiveWizard(models.TransientModel):
             tipo,
             rubro_real,
         )
+        
+    def _get_discount_for_row(self, row, rubro_real):
+        rubro_key = rubro_real.strip().upper() if rubro_real else ''
+        discount_map = row.get('discount_map') or {}
+        # 1) si el rubro tiene descuento específico, manda ese
+        if rubro_key in discount_map:
+            return self._float_or_zero(discount_map[rubro_key])
+        # 2) si no tiene específico, usar descuento general del bloque
+        return self._float_or_zero(row.get('default_discount', 0.0))
+    
+    def notifi_action_warning(self, message):
+        return {
+            'type': 'ir.actions.client',
+            'tag': 'display_notification',
+            'params': {
+                'title': _('Advertencia'),
+                'type': 'warning',
+                'message': message,
+                'sticky': True,
+            }
+        }
+    
+    def _split_integer_qty(self, qty, parts):
+        qty = float(qty or 0.0)
+        if parts <= 0:
+            return []
+
+        if not qty.is_integer():
+            raise UserError(_('La cantidad %s no es entera y no se puede dividir sin decimales.') % qty)
+
+        qty_int = int(qty)
+        base = qty_int // parts
+        resto = qty_int % parts
+
+        result = []
+        for i in range(parts):
+            result.append(base + (1 if i < resto else 0))
+        return result
+    
+    def _resolve_shipping_partner(self, row, partner, shipping_cache=None):
+        shipping_name = (row.get('direccion_entrega') or '').strip()
+        if not shipping_name:
+            return partner
+
+        shipping_name_clean = shipping_name
+        if ',' in shipping_name:
+            parts = [part.strip() for part in shipping_name.split(',')]
+            if len(parts) >= 2:
+                shipping_name_clean = parts[-1]
+
+        cache_key = (partner.id, shipping_name_clean)
+        if shipping_cache is not None and cache_key in shipping_cache:
+            return shipping_cache[cache_key]
+
+        shipping = self.env['res.partner'].search([
+            ('name', '=', shipping_name_clean),
+            ('parent_id', '=', partner.id),
+        ], limit=1)
+        if not shipping:
+            shipping = self.env['res.partner'].search([
+                ('name', '=', shipping_name_clean),
+            ], limit=1)
+        if not shipping:
+            shipping = self.env['res.partner'].search([
+                ('name', 'ilike', shipping_name_clean),
+                ('parent_id', '=', partner.id),
+            ], limit=1)
+        if not shipping:
+            shipping = self.env['res.partner'].search([
+                ('name', 'ilike', shipping_name_clean),
+            ], limit=1)
+
+        result = shipping or partner
+        if shipping_cache is not None:
+            shipping_cache[cache_key] = result
+        return result
+            
+        
 
     def _prepare_order_vals(self, row, partner, shipping, company, global_discount, condicion_m2m, payment_term):
         note_parts = []
@@ -306,7 +349,12 @@ class ImportSaleOrderMasiveWizard(models.TransientModel):
         if not rows:
             return self.notifi_action_warning(_('No se encontraron líneas importables en la hoja %s.') % self.sheet_name)
         master_data = self._build_master_data(rows)
-        sale_order = self.env['sale.order'].with_context(mail_notrack=True)
+        sale_order = self.env['sale.order'].with_context(
+            tracking_disable=True,
+            mail_notrack=True,
+            mail_create_nolog=True,
+            mail_create_nosubscribe=True,
+        )
         grouped = defaultdict(lambda: {
             'header': False,
             'lines': [],
@@ -318,28 +366,28 @@ class ImportSaleOrderMasiveWizard(models.TransientModel):
 
         for row in rows:
             try:
-                partner = master_data['partner_map'].get((row['cliente'] or '').strip())
+                partner = master_data['partner_map'].get((row['cliente'] or '').strip().upper())
                 if not partner:
                     errors.append(_('Fila %s: cliente no encontrado "%s".') % (
                         row['excel_row'], row['cliente']
                     ))
                     continue
 
-                condicion_m2m = master_data['condicion_m2m_map'].get((row['condicion_venta'] or '').strip())
+                condicion_m2m = master_data['condicion_m2m_map'].get((row['condicion_venta'] or '').strip().upper())
                 if row['condicion_venta'] and not condicion_m2m:
                     errors.append(_('Fila %s: condición de venta no encontrada "%s".') % (
                         row['excel_row'], row['condicion_venta']
                     ))
                     continue
 
-                payment_term = master_data['payment_term_map'].get((row['plazos_pago'] or '').strip())
+                payment_term = master_data['payment_term_map'].get((row['plazos_pago'] or '').strip().upper())
                 if row['plazos_pago'] and not payment_term:
                     errors.append(_('Fila %s: plazo de pago no encontrado "%s".') % (
                         row['excel_row'], row['plazos_pago']
                     ))
                     continue
 
-                product = master_data['product_map'].get((row['producto_codigo'] or '').strip())
+                product = master_data['product_map'].get((row['producto_codigo'] or '').strip().upper())
                 if not product:
                     errors.append(_('Fila %s: producto no encontrado "%s".') % (
                         row['excel_row'], row['producto_codigo']
@@ -350,13 +398,15 @@ class ImportSaleOrderMasiveWizard(models.TransientModel):
                 rubro_real = self._get_rubro_from_product(product)
                 tipo = (row.get('condicion_venta') or '').strip().upper()
                 descuento = self._get_discount_for_row(row, rubro_real)
-
-                # compañías destino de la línea
-                product_companies = product.company_ids
-                if product_companies:
-                    target_companies = product_companies
+                if tipo == 'TIPO 3':
+                    target_companies =self._resolve_company(row, master_data)
                 else:
-                    target_companies = self._resolve_company(row, master_data)
+                    # compañías destino de la línea
+                    product_companies = product.company_ids
+                    if product_companies:
+                        target_companies = product_companies
+                    else:
+                        target_companies = self._resolve_company(row, master_data)
 
                 if not target_companies:
                     errors.append(_('Fila %s: no se pudo determinar compañía para el producto "%s".') % (
@@ -402,41 +452,55 @@ class ImportSaleOrderMasiveWizard(models.TransientModel):
             except Exception as e:
                 errors.append(str(e))
 
-        if errors:
-            errors.append(_('Errores antes de importar:\n\n%s') % '\n'.join(errors[:80]))
-
         created_orders = self.env['sale.order']
-
-        for group_key, data in grouped.items():
+        for group_key, data in sorted(grouped.items(), key=lambda x: (
+            x[1]['header'].get('partner_id') or 0,
+            x[1]['header'].get('company_id') or 0,
+        )):
             tipo = data['tipo']
             discounts = {d for d in data['discounts'] if d}
 
-            # Si mezcla rubros y usa global_discount, no se puede representar más de un descuento
             if tipo == 'TIPO 3' and len(discounts) > 1:
                 partner = self.env['res.partner'].browse(data['header']['partner_id'])
-                errors.append(_('No se puede importar el pedido para cliente "%s" porque tiene múltiples descuentos (%s) y condición de venta "Tipo 3".') % (
-                    partner.name, ', '.join(str(d) for d in discounts)
-                ))
+                errors.append(
+                    _('No se puede importar el pedido para cliente "%s" porque tiene múltiples descuentos (%s) y condición de venta "Tipo 3".') % (
+                        partner.name, ', '.join(str(d) for d in sorted(discounts))
+                    )
+                )
                 continue
+
             global_discount = list(discounts)[0] if discounts else 0.0
-            vals= dict(data['header'])
+            vals = dict(data['header'])
             vals['global_discount'] = global_discount if global_discount > 0 else 0.0
             vals['order_line'] = [(0, 0, line_vals) for line_vals in data['lines']]
-            _logger.warning('Preparando pedido para cliente %s con %s líneas y descuento global %s', vals['partner_id'], len(vals['order_line']), vals['global_discount'])
-            try:
-                with self.env.cr.savepoint():
-                    order = sale_order.create(vals)
-                    created_orders |= order
-            except Exception as e:
-                partner = self.env['res.partner'].browse(data['header']['partner_id'])  
-                errors.append(_('Error al crear pedido para cliente "%s": %s') % (
-                    partner.name, str(e)
-                ))
-                continue
+            partner = self.env['res.partner'].browse(vals['partner_id'])
+            attempts = 3
+            
+            while attempts > 0:
+                try:
+                    with self.env.cr.savepoint():
+                        order = sale_order.create(vals)
+                        created_orders |= order
+                    self.env.cr.commit()
+                    break
+                
+                except Exception as e:
+                    msg = str(e).lower()
+                    attempts -= 1
+                    transient_error = ('could not serialize access due to concurrent update' in msg or 'deadlock detected' in msg)
+
+                    if transient_error and attempts > 0:
+                        _logger.warning('Reintentando pedido para cliente "%s" por error transitorio: %s', partner.name, str(e))
+                        self.env.cr.rollback()
+                        time.sleep(0.4)
+                        continue
+
+                    errors.append(_('Error al crear pedido para cliente "%s": %s') % (partner.name, str(e)))
+                    self.env.cr.rollback()
+                    break
+
         msg_ok = _('Importación finalizada. Pedidos creados: %s.') % len(created_orders)
-        msg_error = _('Importación finalizada con errores. Pedidos creados: %s. Errores:\n\n%s') % (
-            len(created_orders), '\n'.join(errors[:80])
-        )
+        msg_error = '\n'.join(errors[:80]) if errors else ''
         
         if created_orders and errors:
             return {
@@ -444,7 +508,7 @@ class ImportSaleOrderMasiveWizard(models.TransientModel):
                 'tag': 'display_notification',
                 'params': {
                     'title': _('Aviso'),
-                    'message': _('Se han creado %s pedidos de venta.') % len(created_orders) + msg_error,
+                    'message': _('Se han creado %s pedidos de venta.') % len(created_orders) + ('\n' + msg_error if msg_error else ''),
                     'type': 'warning',
                     'sticky': True,
                     'next': {
@@ -452,7 +516,7 @@ class ImportSaleOrderMasiveWizard(models.TransientModel):
                         'name': _('Pedidos de Venta Importados'),
                         'res_model': 'sale.order',
                         'view_mode': 'tree,form',
-                        'views': [(False, 'list'), (False, 'form')],
+                        'views': [(False, 'tree'), (False, 'form')],
                         'domain': [('id', 'in', created_orders.ids)],
                         'target': 'current',
                     }
@@ -473,7 +537,7 @@ class ImportSaleOrderMasiveWizard(models.TransientModel):
                         'name': _('Pedidos de Venta Importados'),
                         'res_model': 'sale.order',
                         'view_mode': 'tree,form',
-                        'views': [(False, 'list'), (False, 'form')],
+                        'views': [(False, 'tree'), (False, 'form')],
                         'domain': [('id', 'in', created_orders.ids)],
                         'target': 'current',
                     }
@@ -482,41 +546,30 @@ class ImportSaleOrderMasiveWizard(models.TransientModel):
         
         elif not created_orders and errors:
             return self.notifi_action_warning(msg_error)
-    
-    def _get_discount_for_row(self, row, rubro_real):
-        rubro_key = rubro_real.strip().upper() if rubro_real else ''
-        discount_map = row.get('discount_map') or {}
-        # 1) si el rubro tiene descuento específico, manda ese
-        if rubro_key in discount_map:
-            return self._float_or_zero(discount_map[rubro_key])
-        # 2) si no tiene específico, usar descuento general del bloque
-        return self._float_or_zero(row.get('default_discount', 0.0))
-    
-    def notifi_action_warning(self, message):
-        return {
-            'type': 'ir.actions.client',
-            'tag': 'display_notification',
-            'params': {
-                'title': _('Advertencia'),
-                'type': 'warning',
-                'message': message,
-                'sticky': True,
-            }
-        }
-    
-    def _split_integer_qty(self, qty, parts):
-        qty = float(qty or 0.0)
-        if parts <= 0:
-            return []
 
-        if not qty.is_integer():
-            raise UserError(_('La cantidad %s no es entera y no se puede dividir sin decimales.') % qty)
+    
+    # for group_key, data in grouped.items():
+    #     tipo = data['tipo']
+    #     discounts = {d for d in data['discounts'] if d}
 
-        qty_int = int(qty)
-        base = qty_int // parts
-        resto = qty_int % parts
-
-        result = []
-        for i in range(parts):
-            result.append(base + (1 if i < resto else 0))
-        return result
+    #     # Si mezcla rubros y usa global_discount, no se puede representar más de un descuento
+    #     if tipo == 'TIPO 3' and len(discounts) > 1:
+    #         partner = self.env['res.partner'].browse(data['header']['partner_id'])
+    #         errors.append(_('No se puede importar el pedido para cliente "%s" porque tiene múltiples descuentos (%s) y condición de venta "Tipo 3".') % (
+    #             partner.name, ', '.join(str(d) for d in discounts)
+    #         ))
+    #         continue
+    #     global_discount = list(discounts)[0] if discounts else 0.0
+    #     vals= dict(data['header'])
+    #     vals['global_discount'] = global_discount if global_discount > 0 else 0.0
+    #     vals['order_line'] = [(0, 0, line_vals) for line_vals in data['lines']]
+    #     try:
+    #         with self.env.cr.savepoint():
+    #             order = sale_order.create(vals)
+    #             created_orders |= order
+    #     except Exception as e:
+    #         partner = self.env['res.partner'].browse(data['header']['partner_id'])  
+    #         errors.append(_('Error al crear pedido para cliente "%s": %s') % (
+    #             partner.name, str(e)
+    #         ))
+    #         continue
