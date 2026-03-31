@@ -6,7 +6,7 @@
         <field name="arch" type="xml">
             <form string="Reporte de Hoja de Ruta">
                 <group>
-                    <field name="roadmap_id" options="{'no_create': True}" readonly="1"/>
+                    <field name="tms_roadmap_id" options="{'no_create': True}" readonly="1"/>
                     <field name="in_ruta"/>
                 </group>
                 <footer>
