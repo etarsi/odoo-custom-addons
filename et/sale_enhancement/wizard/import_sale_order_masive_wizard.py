@@ -38,7 +38,7 @@ class ImportSaleOrderMasiveWizard(models.TransientModel):
         try:
             content = base64.b64decode(self.file)
             _logger.warning('Archivo Excel decodificado, tamaño en bytes: %s', len(content))
-            wb = load_workbook(io.BytesIO(content), data_only=True, read_only=True) #data_only para leer valores calculados en vez de fórmulas, read_only para optimizar lectura de archivos grandes
+            wb = load_workbook(io.BytesIO(content), data_only=True) #data_only para leer valores calculados en vez de fórmulas, read_only para optimizar lectura de archivos grandes
             _logger.warning('Archivo Excel cargado en memoria, hojas disponibles: %s', ', '.join(wb.sheetnames))
         except Exception as e:
             raise UserError(_('No se pudo leer el archivo Excel:\n%s') % e)
