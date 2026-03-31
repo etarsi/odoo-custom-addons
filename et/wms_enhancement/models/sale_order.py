@@ -70,12 +70,8 @@ class SaleOrderInherit(models.Model):
     @api.depends('partner_id')
     def _compute_is_fraction(self):
         for record in self:
-            client_tags = record.partner_id.category_id
-
-            if 'Fraccionado' in client_tags:
-                record.is_fraction = True
-            else:
-                record.is_fraction = False
+            tags = record.partner_id.category_id.mapped('name')
+            record.is_fraction = 'Fraccionado' in tags
 
 
 class SaleOrderLineInherit(models.Model):
