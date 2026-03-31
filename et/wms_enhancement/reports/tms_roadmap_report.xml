@@ -153,7 +153,7 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <t t-if="not doc.road_maps_line_ids">
+                    <t t-if="not doc.road_maps_line_ids.filtered(lambda l: not l.is_canceled)">
                         <tr>
                             <td colspan="7" style="text-align:center; font-style:italic; color:#777;">
                                 No hay líneas para mostrar.
@@ -161,10 +161,10 @@
                         </tr>
                     </t>
                     <t t-if="not in_ruta">
-                        <t t-set="lines" t-value="doc.road_maps_line_ids"/>
+                        <t t-set="lines" t-value="doc.road_maps_line_ids.filtered(lambda l: not l.is_canceled)"/>
                     </t>
                     <t t-else=""> 
-                        <t t-set="lines" t-value="doc.road_maps_line_ids.filtered(lambda l: str(l.in_ruta or '') == str(in_ruta or ''))"/>
+                        <t t-set="lines" t-value="doc.road_maps_line_ids.filtered(lambda l: str(l.in_ruta or '') == str(in_ruta or '') and not l.is_canceled)"/>
                     </t>
                     <t t-foreach="lines" t-as="l">
                         <tr>
