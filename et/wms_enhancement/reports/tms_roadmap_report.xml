@@ -153,7 +153,19 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <t t-set="lines" t-value="doc.road_maps_line_ids.filtered(lambda l: str(l.in_ruta or '') == str(in_ruta or ''))"/>
+                    <t t-if="not doc.road_maps_line_ids">
+                        <tr>
+                            <td colspan="7" style="text-align:center; font-style:italic; color:#777;">
+                                No hay líneas para mostrar.
+                            </td>
+                        </tr>
+                    </t>
+                    <t t-if="not in_ruta">
+                        <t t-set="lines" t-value="doc.road_maps_line_ids"/>
+                    </t>
+                    <t t-else=""> 
+                        <t t-set="lines" t-value="doc.road_maps_line_ids.filtered(lambda l: str(l.in_ruta or '') == str(in_ruta or ''))"/>
+                    </t>
                     <t t-foreach="lines" t-as="l">
                         <tr>
                             <td><span t-esc="l.in_ruta or 1"/></td>

@@ -13,7 +13,7 @@ class ReportTmsRoadmap(models.AbstractModel):
         if not docids:
             docids = data.get('context', {}).get('active_ids', [])
 
-        tms_roadmap_id = data.get('context', {}).get('active_ids')
+        tms_roadmap_id = data.get('context', {}).get('active_ids') if data else None
         if not tms_roadmap_id:
             tms_roadmap_id = docids
         docs = self.env["tms.roadmap"].browse(tms_roadmap_id)
@@ -21,5 +21,5 @@ class ReportTmsRoadmap(models.AbstractModel):
             "doc_ids": docs.ids,
             "doc_model": "tms.roadmap",
             "docs": docs,
-            "in_ruta": data.get("in_ruta"),
+            "in_ruta": data.get("in_ruta") if data else None,
         }
