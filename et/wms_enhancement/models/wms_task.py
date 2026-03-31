@@ -196,13 +196,19 @@ class WMSTask(models.Model):
             
             if record.digip_state != 'no':
                 continue
-
+            if record.transfer_id.sale_id.note:
+                note = record.transfer_id.sale_id.note
+            else:
+                note = record.name
+            #convertir a texto normal porque trae html
+            note = note.replace('<p>', '').replace('</p>', '').replace('<br>', '\n')
+            
             task = {
                 "codigo": record.name,
                 "clienteUbicacionCodigo": "u"+str(record.partner_address_id.id),
                 "fecha": str(fields.Date.context_today(self)),
                 "estado": "Pendiente",
-                "observacion": record.transfer_id.sale_id.note if record.transfer_id.sale_id.note else record.name,
+                "observacion": note,
                 "servicioDeEnvioTipo": "Propio",
                 "codigoDeEnvio": record.transfer_id.sale_id.name or "",
             }

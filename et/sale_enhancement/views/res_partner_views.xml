@@ -8,6 +8,9 @@
             <xpath expr="//field[@name='category_id']" position="after">
                 <field name="fantasy_name"/>
             </xpath>
+            <xpath expr="//field[@name='condicion_m2m']" position="attribute">
+                <attribute name="options">{"no_create": True, "no_create_edit": True}</attribute>
+            </xpath>
         </field>
     </record>
 

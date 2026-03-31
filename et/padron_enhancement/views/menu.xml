@@ -1,0 +1,13 @@
+<odoo>
+    <!-- COLOCARLO EN EL MENU DE FACTURACION -->
+    <menuitem id="menu_ar_padron_iibb"
+        name="Padron IIBB"
+        parent="account.menu_finance_configuration"
+        sequence="70"/>
+
+    <menuitem id="menu_ac_ar_padron_iibb"
+        name="Padron IIBB"
+        parent="menu_ar_padron_iibb"
+        action="action_ar_padron_iibb"
+        sequence="1"/>
+</odoo>

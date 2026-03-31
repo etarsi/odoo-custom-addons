@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_ar_padron_iibb_form" model="ir.ui.view">
+        <field name="name">ar.padron.iibb.form</field>
+        <field name="model">ar.padron.iibb</field>
+        <field name="arch" type="xml">
+            <form string="Padrón IIBB">
+                <sheet>
+                    <group>
+                        <field name="name"/>
+                        <field name="cuit"/>
+                        <field name="iibb_type"/>
+                        <field name="perception"/>
+                        <field name="retention"/>
+                        <field name="period"/>
+                    </group>
+                </sheet>
+        </field>
+    </record>
+
+    <!-- Vista Tree para mostrar el nuevo campo gdrive_folder_id -->
+    <record id="view_ar_padron_iibb_tree" model="ir.ui.view">
+        <field name="name">ar.padron.iibb.tree</field>
+        <field name="model">ar.padron.iibb</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="name" optional="show"/>
+                <field name="cuit" optional="show"/>
+                <field name="iibb_type" optional="show"/>
+                <field name="perception" optional="show"/>
+                <field name="retention" optional="show"/>
+                <field name="period" optional="show"/>
+            </tree>
+        </field>
+    </record>
+
+    <!-- Acción para abrir la vista del padrón de IIBB -->
+    <record id="action_ar_padron_iibb" model="ir.actions.act_window">
+        <field name="name">Padrón IIBB</field>
+        <field name="res_model">ar.padron.iibb</field>
+        <field name="view_mode">tree,form</field>
+        <field name="view_id" ref="view_ar_padron_iibb_tree"/>
+    </record>
+</odoo>

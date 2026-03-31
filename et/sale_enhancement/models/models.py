@@ -75,7 +75,6 @@ class SaleOrderInherit(models.Model):
     def unreserve_stock_sale_order(self):
         for record in self:
             stock_moves_erp = self.env['stock.moves.erp'].search([('sale_id', '=', record.id)])
-
             if stock_moves_erp:
                 for stock in stock_moves_erp:
                     stock.unreserve_stock()
@@ -85,8 +84,7 @@ class SaleOrderInherit(models.Model):
             if record.picking_ids:
                 raise UserError('No se puede cancelar pedido viejo')
                 
-            if record.transfer_id:     
-                
+            if record.transfer_id:
                 # record.cancel_transfers()                
                 record.unreserve_stock_sale_order()
                 record.action_cancel()
