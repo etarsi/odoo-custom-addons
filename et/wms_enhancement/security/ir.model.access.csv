@@ -2,3 +2,4 @@ id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
 access_tms_stock_picking_roadmap_wizard,tms.stock.picking.roadmap.wizard,model_tms_stock_picking_roadmap_wizard,base.group_user,1,1,1,1
 access_tms_stock_picking_roadmap_wizard_line,tms.stock.picking.roadmap.wizard.line,model_tms_stock_picking_roadmap_wizard_line,base.group_user,1,1,1,1
 access_import_container_excel_task_wizard,import.container.excel.task.wizard,model_import_container_excel_task_wizard,base.group_user,1,1,1,1
+access_tms_roadmap_report_wizard,tms.roadmap.report.wizard,model_tms_roadmap_report_wizard,base.group_user,1,1,1,1
