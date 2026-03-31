@@ -86,6 +86,12 @@
                     vertical-align:bottom;
                     padding:0 10px;
                 }
+                .one-line-meta {
+                    display: flex;
+                    flex-wrap: wrap;
+                    gap: 18px;
+                    align-items: center;
+                }
                 .sign-line{
                     border-top:1px solid #000;
                     padding-top:3px;
@@ -122,11 +128,11 @@
                 <span t-esc="doc.name"/>
             </div>
             <div class="hdr-meta">
-                <div class="line meta-big">
-                    <div><b>Vehículo:</b> <span t-field="doc.transport_id"/></div>
-                    <div><b>Patente:</b> <span t-esc="doc.patente or ''"/></div>
-                    <div><b>Ayudantes:</b> <span t-esc="doc.assistants or 0"/></div>
-                    <div><b>Fecha:</b> <span t-field="doc.date"/></div>
+                <div class="line meta-big one-line-meta">
+                    <span><b>Vehículo:</b> <span t-field="doc.transport_id"/></span>
+                    <span><b>Patente:</b> <span t-esc="doc.patente or ''"/></span>
+                    <span><b>Ayudantes:</b> <span t-esc="doc.assistants or 0"/></span>
+                    <span><b>Fecha:</b> <span t-field="doc.date"/></span>
                 </div>
             </div>
 
@@ -139,9 +145,8 @@
                         <th>Parada</th>
                         <th>Cliente</th>
                         <th>Dirección</th>
-                        <th>Bultos Demandados</th>
                         <th>N° Tarea</th>
-                        <th>Bultos Pickeados</th>
+                        <th>Bultos</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -153,9 +158,6 @@
                             <td></td>
                             <td><span t-field="l.partner_id"/></td>
                             <td><span t-esc="l.direction or ''"/></td>
-                            <td style="text-align:right;">
-                                <span t-field="l.bulk_defendant" t-options="{'widget': 'float', 'precision_digits': 2}"/>
-                            </td>
                             <td><span t-esc="l.wms_task_id.name if l.wms_task_id else ''"/></td>
                             <td style="text-align:right;">
                                 <span t-field="l.bulk_picking" t-options="{'widget': 'float', 'precision_digits': 2}"/>
