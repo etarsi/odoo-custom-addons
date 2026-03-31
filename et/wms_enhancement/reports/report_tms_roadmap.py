@@ -10,10 +10,14 @@ class ReportTmsRoadmap(models.AbstractModel):
 
     @api.model
     def _get_report_values(self, docids, data=None):
+        _logger.warning("Generando reporte de Hoja de Ruta con docids: %s y data: %s", docids, data)
         if not docids:
             docids = data.get('context', {}).get('active_ids', [])
+        _logger.warning("Docids después de verificar: %s", docids)
         tms_roadmap_id = data.get('context', {}).get('active_ids')
         docs = self.env["tms.roadmap"].browse(tms_roadmap_id)
+        _logger.warning("Documentos obtenidos: %s", docs)
+        _logger.warning("Contexto completo: %s", self.env.context)  # Loguear el contexto completo para depuración
         return {
             "doc_ids": docs.ids,
             "doc_model": "tms.roadmap",
