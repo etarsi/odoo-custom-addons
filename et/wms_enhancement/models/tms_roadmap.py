@@ -58,14 +58,16 @@ class TmsRoadmap(models.Model):
 
     def action_print_roadmap(self):
         self.ensure_one()
-        #abrir wizard para seleccionar el formato de impresión
         return {
             'type': 'ir.actions.act_window',
             'name': 'Reporte de Hoja de Ruta',
             'res_model': 'tms.roadmap.report.wizard',
             'view_mode': 'form',
             'view_id': self.env.ref('wms_enhancement.view_tms_roadmap_report_wizard_form').id,
-            'context': {'default_tms_roadmap_id': self.id},
+            'target': 'new',
+            'context': {
+                'default_tms_roadmap_id': self.id,
+            },
         }
 
 class TmsRoadmapLine(models.Model):

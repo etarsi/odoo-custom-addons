@@ -22,13 +22,4 @@
             </form>
         </field>
     </record>
-
-    <record id="action_view_tms_roadmap_report_wizard_form" model="ir.actions.act_window">
-        <field name="name">Reporte de Hoja de Ruta</field>
-        <field name="res_model">tms.roadmap.report.wizard</field>
-        <field name="view_mode">form</field>
-        <field name="view_id" ref="view_tms_roadmap_report_wizard_form"/>
-        <field name="target">new</field>
-    </record>
-
 </odoo>
