@@ -14,7 +14,8 @@ class ReportTmsRoadmap(models.AbstractModel):
         data = data or {}
         _logger.warning(f"Data recibida en el reporte: {data}")
         _logger.warning(f"Documentos recibidos en el reporte: {docs.ids}")
-        _logger.warning(f"Contexto del reporte: {self.env.context}")
+        _logger.warning(f"active_ids : {data.get('context', {}).get('active_ids')}")
+        _logger.warning(f"active_model : {data.get('in_ruta')}")
         return {
             "doc_ids": docs.ids,
             "doc_model": "tms.roadmap",
