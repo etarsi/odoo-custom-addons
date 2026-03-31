@@ -37,9 +37,7 @@ class ImportSaleOrderMasiveWizard(models.TransientModel):
 
         try:
             content = base64.b64decode(self.file)
-            _logger.warning('Archivo Excel decodificado, tamaño en bytes: %s', len(content))
             wb = load_workbook(io.BytesIO(content), data_only=True) #data_only para leer valores calculados en vez de fórmulas, read_only para optimizar lectura de archivos grandes
-            _logger.warning('Archivo Excel cargado en memoria, hojas disponibles: %s', ', '.join(wb.sheetnames))
         except Exception as e:
             raise UserError(_('No se pudo leer el archivo Excel:\n%s') % e)
 
@@ -450,9 +448,6 @@ class ImportSaleOrderMasiveWizard(models.TransientModel):
                     grouped[group_key]['tipo'] = tipo
                     grouped[group_key]['lines'].append(line_vals)
                     grouped[group_key]['discounts'].add(descuento)
-                    _logger.warning('Procesada fila %s para cliente "%s", producto "%s", compañía "%s", cantidad %s, descuento %s, grupo clave: %s',
-                        row['excel_row'], partner.name, product.display_name, company.name, qty_part, descuento, group_key
-                    )
             except Exception as e:
                 errors.append(str(e))
 
@@ -461,9 +456,6 @@ class ImportSaleOrderMasiveWizard(models.TransientModel):
             x[1]['header'].get('partner_id') or 0,
             x[1]['header'].get('company_id') or 0,
         )):
-            _logger.warning('Procesando grupo de importación para partner_id=%s, company_id=%s, tipo=%s con %s líneas y descuentos: %s',
-                data['header'].get('partner_id'), data['header'].get('company_id'), data['tipo'], len(data['lines']), ', '.join(str(d) for d in sorted(data['discounts']))
-            )
             tipo = data['tipo']
             discounts = {d for d in data['discounts'] if d}
 
@@ -497,7 +489,6 @@ class ImportSaleOrderMasiveWizard(models.TransientModel):
                     transient_error = ('could not serialize access due to concurrent update' in msg or 'deadlock detected' in msg)
 
                     if transient_error and attempts > 0:
-                        _logger.warning('Reintentando pedido para cliente "%s" por error transitorio: %s', partner.name, str(e))
                         self.env.cr.rollback()
                         time.sleep(0.4)
                         continue
