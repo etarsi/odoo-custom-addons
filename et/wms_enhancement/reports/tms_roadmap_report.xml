@@ -86,11 +86,14 @@
                     vertical-align:bottom;
                     padding:0 10px;
                 }
-                .one-line-meta {
-                    display: flex;
-                    flex-wrap: wrap;
-                    gap: 18px;
-                    align-items: center;
+                .hdr-meta-table {
+                    width: 100%;
+                    border-collapse: collapse;
+                }
+                .hdr-meta-table td {
+                    width: 25%;
+                    padding-right: 10px;
+                    vertical-align: top;
                 }
                 .sign-line{
                     border-top:1px solid #000;
@@ -127,14 +130,14 @@
             <div class="hdr-title">
                 <span t-esc="doc.name"/>
             </div>
-            <div class="hdr-meta">
-                <div class="line meta-big one-line-meta">
-                    <span><b>Vehículo:</b> <span t-field="doc.transport_id"/></span>
-                    <span><b>Patente:</b> <span t-esc="doc.patente or ''"/></span>
-                    <span><b>Ayudantes:</b> <span t-esc="doc.assistants or 0"/></span>
-                    <span><b>Fecha:</b> <span t-field="doc.date"/></span>
-                </div>
-            </div>
+            <table class="fill-table hdr-meta-table" style="margin-top:6px;">
+                <tr>
+                    <td><b>Vehículo:</b> <span t-field="doc.transport_id"/></td>
+                    <td><b>Patente:</b> <span t-esc="doc.patente or ''"/></td>
+                    <td><b>Ayudantes:</b> <span t-esc="doc.assistants or 0"/></td>
+                    <td><b>Fecha:</b> <span t-field="doc.date"/></td>
+                </tr>
+            </table>
 
             <!-- DETALLE -->
             <table class="table">
