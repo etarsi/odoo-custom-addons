@@ -448,7 +448,9 @@ class ImportSaleOrderMasiveWizard(models.TransientModel):
                     grouped[group_key]['tipo'] = tipo
                     grouped[group_key]['lines'].append(line_vals)
                     grouped[group_key]['discounts'].add(descuento)
-
+                    _logger.warning('Procesada fila %s para cliente "%s", producto "%s", compañía "%s", cantidad %s, descuento %s, grupo clave: %s',
+                        row['excel_row'], partner.name, product.display_name, company.name, qty_part, descuento, group_key
+                    )
             except Exception as e:
                 errors.append(str(e))
 
@@ -457,6 +459,9 @@ class ImportSaleOrderMasiveWizard(models.TransientModel):
             x[1]['header'].get('partner_id') or 0,
             x[1]['header'].get('company_id') or 0,
         )):
+            _logger.warning('Procesando grupo de importación para partner_id=%s, company_id=%s, tipo=%s con %s líneas y descuentos: %s',
+                data['header'].get('partner_id'), data['header'].get('company_id'), data['tipo'], len(data['lines']), ', '.join(str(d) for d in sorted(data['discounts']))
+            )
             tipo = data['tipo']
             discounts = {d for d in data['discounts'] if d}
 
