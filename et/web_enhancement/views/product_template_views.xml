@@ -12,7 +12,7 @@
             <!-- Nueva pestaña para la galería de imágenes -->
             <xpath expr="//notebook" position="inside">
                 <page string="Galería">
-                    <button name="action_sync_images_from_disk"
+                    <button name="action_sync_all_images_from_disk"
                             type="object"
                             string="Sincronizar desde disco"
                             class="btn-primary"/>
