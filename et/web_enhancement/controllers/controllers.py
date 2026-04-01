@@ -1,21 +1,30 @@
-# -*- coding: utf-8 -*-
-# from odoo import http
+from odoo import http
+from odoo.http import request
+import os
+import io
+import zipfile
 
+BASE_DIR = '/opt/odoo15/image'
 
-# class WebEnhancement(http.Controller):
-#     @http.route('/web_enhancement/web_enhancement', auth='public')
-#     def index(self, **kw):
-#         return "Hello, world"
+class ProductImageController(http.Controller):
 
-#     @http.route('/web_enhancement/web_enhancement/objects', auth='public')
-#     def list(self, **kw):
-#         return http.request.render('web_enhancement.listing', {
-#             'root': '/web_enhancement/web_enhancement',
-#             'objects': http.request.env['web_enhancement.web_enhancement'].search([]),
-#         })
+    @http.route('/product/<int:product_id>/images.zip', type='http', auth='public', website=True)
+    def download_product_images_zip(self, product_id, **kwargs):
+        product = request.env['product.template'].sudo().browse(product_id)
+        if not product.exists():
+            return request.not_found()
 
-#     @http.route('/web_enhancement/web_enhancement/objects/<model("web_enhancement.web_enhancement"):obj>', auth='public')
-#     def object(self, obj, **kw):
-#         return http.request.render('web_enhancement.object', {
-#             'object': obj
-#         })
+        images = product.gallery_image_ids.filtered(lambda i: i.website_published)
+
+        buffer = io.BytesIO()
+        with zipfile.ZipFile(buffer, 'w', zipfile.ZIP_DEFLATED) as zf:
+            for img in images:
+                file_path = os.path.normpath(os.path.join(BASE_DIR, img.relative_path))
+                if os.path.isfile(file_path) and file_path.startswith(os.path.abspath(BASE_DIR)):
+                    zf.write(file_path, arcname=img.filename)
+
+        headers = [
+            ('Content-Type', 'application/zip'),
+            ('Content-Disposition', 'attachment; filename="%s_images.zip"' % (product.default_code or product.id)),
+        ]
+        return request.make_response(buffer.getvalue(), headers=headers)

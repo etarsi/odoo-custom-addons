@@ -5,17 +5,29 @@
         <field name="model">product.template</field>
         <field name="inherit_id" ref="product.product_template_only_form_view"/>
         <field name="arch" type="xml">
-            <!--
-                <xpath expr="//header" position="inside">
-                    <button name="update_image_product_web"
-                            type="object"
-                            string="Actualizar Imágenes desde Google Drive"
-                            class="oe_highlight"/>
-                </xpath>
-            -->
             <!-- Campo para pegar el Folder ID principal -->
             <xpath expr="//group/group" position="inside">
                 <field name="gdrive_folder_id" readonly="1"/>
+            </xpath>
+            <!-- Nueva pestaña para la galería de imágenes -->
+            <xpath expr="//notebook" position="inside">
+                <page string="Galería">
+                    <button name="action_sync_images_from_disk"
+                            type="object"
+                            string="Sincronizar desde disco"
+                            class="btn-primary"/>
+                    <field name="gallery_image_ids">
+                        <tree editable="bottom">
+                            <field name="sequence"/>
+                            <field name="name"/>
+                            <field name="filename"/>
+                            <field name="relative_path"/>
+                            <field name="is_main"/>
+                            <field name="website_published"/>
+                            <field name="image_url" widget="url"/>
+                        </tree>
+                    </field>
+                </page>
             </xpath>
         </field>
     </record>
