@@ -51,7 +51,7 @@
 
         <xpath expr="//div[@id='o-carousel-product']" position="replace">
             <div id="o-carousel-product"
-                 class="carousel slide position-sticky mb-3 overflow-hidden"
+                 class="carousel slide mb-3 overflow-hidden"
                  data-ride="carousel"
                  data-interval="0">
 
@@ -99,6 +99,5 @@
                 </div>
             </div>
         </xpath>
-
     </template>
 </odoo>
