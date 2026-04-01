@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
   <template id="website_product_zip_button_inherit" inherit_id="website_sale.product">
-    <xpath expr="//div[@class='col-md-6 mt-md-4'][1]" position="inside">
+      <xpath expr="//t[@t-call='website_sale.shop_product_carousel']" position="after">
         <t t-if="product.gallery_image_ids">
             <div class="mt-3">
                 <div class="row">
