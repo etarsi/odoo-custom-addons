@@ -1,10 +1,6 @@
 <odoo>
     <menuitem id="menu_marketing" name="Marketing" 
                 parent="stock.menu_stock_root"  sequence="30"/>
-    <menuitem id="menu_stock_download_image" 
-                name="Productos que faltan Imagenes" parent="menu_marketing" 
-                action="action_product_download_mark"
-                sequence="10"/>
     <menuitem id="menu_product_web_gdrive" 
                 name="Productos sin Google Drive Folder ID" parent="menu_marketing" 
                 action="action_web_product_template_tree"
