@@ -19,11 +19,20 @@ class ProductTemplate(models.Model):
     _inherit = "product.template"
 
     gdrive_folder_id = fields.Char('Google Drive Folder ID')
-    gallery_image_ids = fields.One2many(
-        'product.image.gallery',
-        'product_tmpl_id',
-        string='Galería',
-    )
+    gallery_image_ids = fields.One2many('product.image.gallery', 'product_tmpl_id', string='Galería')
+    website_main_image_url = fields.Char(string='Imagen principal website', compute='_compute_website_main_image_url')
+
+    @api.depends('gallery_image_ids.is_main', 'gallery_image_ids.relative_path', 'gallery_image_ids.sequence')
+    def _compute_website_main_image_url(self):
+        for product in self:
+            product_sudo = product.sudo()
+
+            main_img = product_sudo.gallery_image_ids.filtered(lambda x: x.is_main)[:1]
+            if not main_img:
+                main_img = product_sudo.gallery_image_ids.sorted(
+                    key=lambda x: (x.sequence, x.id)
+                )[:1]
+            product.website_main_image_url = main_img.image_url if main_img else False    
 
     def _extract_default_code_from_name(self, name):
         """

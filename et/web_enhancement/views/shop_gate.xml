@@ -24,4 +24,19 @@
             </div>
         </t>
     </template>
+
+    <template id="website_sale_products_item_main_image" inherit_id="website_sale.products_item" name="Website Sale - Imagen principal de galería">
+        <!-- Ajustá este xpath al <img> real de tu template products_item -->
+        <xpath expr="//img[1]" position="replace">
+            <img t-if="product.website_main_image_url"
+                 t-att-src="product.website_main_image_url"
+                 t-att-alt="product.display_name"
+                 class="img img-fluid"/>
+
+            <img t-else=""
+                 t-att-src="'/web/image/product.template/%s/image_512' % product.id"
+                 t-att-alt="product.display_name"
+                 class="img img-fluid"/>
+        </xpath>
+    </template>
 </odoo>
