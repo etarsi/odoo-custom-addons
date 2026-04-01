@@ -18,6 +18,7 @@ ALLOWED_IMAGE_EXTS = (".jpg", ".jpeg", ".png")
 class ProductTemplate(models.Model):
     _inherit = "product.template"
 
+    gdrive_folder_id = fields.Char('Google Drive Folder ID')
     gallery_image_ids = fields.One2many(
         'product.image.gallery',
         'product_tmpl_id',
