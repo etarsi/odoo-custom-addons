@@ -26,6 +26,12 @@ class ProductTemplate(models.Model):
     )
 
     def _extract_default_code_from_name(self, name):
+        """
+        Ejemplos:
+        66779_112 -> 66779
+        66779 foto -> 66779
+        66779 -> 66779
+        """
         if not name:
             return False
 
@@ -37,14 +43,39 @@ class ProductTemplate(models.Model):
         code = (parts[0] or '').strip()
         return code or False
 
+    def _find_default_code_in_path(self, current_root, base_dir, product_by_code):
+        """
+        Busca un código válido en la ruta de carpetas, desde la más interna
+        hacia arriba.
+
+        Ejemplo:
+        /opt/odoo15/image/MUÑECAS/66779_112/FOTOS
+        prueba:
+        FOTOS -> no
+        66779_112 -> 66779 -> sí
+        MUÑECAS -> no
+        """
+        rel_root = os.path.relpath(current_root, base_dir).replace('\\', '/')
+        if rel_root in ('.', '', '/'):
+            return False
+
+        parts = [p for p in rel_root.split('/') if p]
+
+        for part in reversed(parts):
+            code = self._extract_default_code_from_name(part)
+            if code and code in product_by_code:
+                return code
+
+        return False
+
     def action_sync_all_images_from_disk(self):
         base_dir = '/opt/odoo15/image'
         allowed_ext = ('.jpg', '.jpeg', '.png', '.webp')
+        ignored_folders = {'web', 'thumb', 'original'}
 
         if not os.path.isdir(base_dir):
             raise UserError(_('La carpeta %s no existe.') % base_dir)
 
-        # Mapa rápido de productos por default_code
         products = self.env['product.template'].search([('default_code', '!=', False)])
         product_by_code = {
             (p.default_code or '').strip(): p
@@ -57,7 +88,7 @@ class ProductTemplate(models.Model):
         updated = 0
         ignored = 0
 
-        # Para evitar duplicados por ruta
+        # Evita duplicados por ruta
         existing = {
             g.relative_path: g
             for g in Gallery.search([])
@@ -67,16 +98,19 @@ class ProductTemplate(models.Model):
         seq_by_product = {}
 
         for root, dirs, files in os.walk(base_dir):
-            parent_folder_name = os.path.basename(root.rstrip('/'))
-            folder_code = self._extract_default_code_from_name(parent_folder_name)
+            # Ignorar carpetas no deseadas
+            dirs[:] = [d for d in dirs if d.lower() not in ignored_folders]
+
+            # 1) Buscar código en cualquier carpeta de la ruta
+            folder_code = self._find_default_code_in_path(root, base_dir, product_by_code)
 
             for fname in files:
                 if not fname.lower().endswith(allowed_ext):
                     continue
 
+                # 2) Si no encontró en carpeta, intentar por archivo
                 file_code = self._extract_default_code_from_name(fname)
 
-                # prioridad: carpeta padre, luego archivo
                 code = folder_code or file_code
                 if not code:
                     ignored += 1
@@ -91,6 +125,7 @@ class ProductTemplate(models.Model):
                 rel_path = os.path.relpath(abs_path, base_dir).replace('\\', '/')
 
                 seq = seq_by_product.get(product.id, 10)
+
                 vals = {
                     'product_tmpl_id': product.id,
                     'name': fname,
