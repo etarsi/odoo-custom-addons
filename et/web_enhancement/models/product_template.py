@@ -165,3 +165,158 @@ class ProductTemplate(models.Model):
                 'sticky': False,
             }
         }
+        
+        
+    # --------- Acción: ZIP por default_code ---------
+    def _get_local_image_base_dir(self):
+        param = self.env['ir.config_parameter'].sudo().get_param(
+            'web_enhancement.local_image_base_path'
+        )
+        return (param or '/opt/odoo15/image').strip()
+
+    def action_zip_images_from_local_folder(self):
+        self.ensure_one()
+        self = self.sudo()
+
+        base_dir = self._get_local_image_base_dir()
+        if not os.path.isdir(base_dir):
+            _logger.info("La carpeta base de imágenes no existe: %s", base_dir)
+            if hasattr(self, '_create_product_download_mark'):
+                self._create_product_download_mark(
+                    description="La carpeta base de imágenes no existe: %s" % base_dir
+                )
+            raise UserError(_("Se produjo un error al obtener las imágenes, por favor contáctese a soporte."))
+
+        attachments = []
+
+        for tmpl in self:
+            images = tmpl.gallery_image_ids.sorted(
+                key=lambda r: ((0 if r.is_main else 1), r.sequence, r.id)
+            )
+
+            if not images:
+                _logger.info("El producto '%s' no tiene imágenes en la galería.", tmpl.display_name)
+                if hasattr(self, '_create_product_download_mark'):
+                    tmpl._create_product_download_mark(
+                        description="El producto '%s' no tiene imágenes en la galería." % tmpl.display_name
+                    )
+                raise UserError(_("El producto '%s' no tiene imágenes para descargar.") % tmpl.display_name)
+
+            root_prefix = (
+                (tmpl.default_code or tmpl.name or ("product_%s" % tmpl.id))
+                .strip()
+                .replace("/", "_")
+            )
+
+            mem = io.BytesIO()
+            added = 0
+            used_names = set()
+
+            with zipfile.ZipFile(mem, mode="w", compression=zipfile.ZIP_DEFLATED) as zipf:
+                for img in images:
+                    rel_path = (img.relative_path or '').strip().replace('\\', '/')
+                    if not rel_path:
+                        _logger.warning("Imagen sin relative_path. ID galería: %s", img.id)
+                        continue
+
+                    abs_path = os.path.normpath(os.path.join(base_dir, rel_path))
+                    base_abs = os.path.abspath(base_dir)
+
+                    # seguridad: evitar salir de la carpeta base
+                    if not abs_path.startswith(base_abs):
+                        _logger.warning(
+                            "Ruta inválida fuera de base_dir. Producto: %s | rel_path: %s | abs_path: %s",
+                            tmpl.display_name, rel_path, abs_path
+                        )
+                        continue
+
+                    if not os.path.isfile(abs_path):
+                        _logger.warning(
+                            "Archivo no encontrado. Producto: %s | rel_path: %s | abs_path: %s",
+                            tmpl.display_name, rel_path, abs_path
+                        )
+                        continue
+
+                    filename = (img.filename or os.path.basename(abs_path) or ('image_%s' % img.id)).strip()
+                    if not filename:
+                        filename = 'image_%s' % img.id
+
+                    # evitar nombres repetidos dentro del zip
+                    zip_filename = filename
+                    if zip_filename in used_names:
+                        name, ext = os.path.splitext(filename)
+                        i = 1
+                        while True:
+                            candidate = "%s_%s%s" % (name, i, ext)
+                            if candidate not in used_names:
+                                zip_filename = candidate
+                                break
+                            i += 1
+                    used_names.add(zip_filename)
+
+                    arcname = "%s/%s" % (root_prefix, zip_filename)
+
+                    with open(abs_path, 'rb') as f:
+                        zipf.writestr(arcname, f.read())
+
+                    added += 1
+
+            if not added:
+                _logger.info("No se encontraron imágenes válidas para '%s'.", tmpl.display_name)
+                if hasattr(self, '_create_product_download_mark'):
+                    tmpl._create_product_download_mark(
+                        description="No se encontraron imágenes válidas para '%s'." % tmpl.display_name
+                    )
+                raise UserError(_("No se encontraron imágenes válidas para '%s'.") % tmpl.display_name)
+
+            mem.seek(0)
+            data_b64 = base64.b64encode(mem.getvalue()).decode()
+
+            zip_name = "%s_imagenes.zip" % (
+                (tmpl.name or tmpl.default_code or ('product_%s' % tmpl.id))
+                .strip()
+                .replace('/', '_')
+            )
+
+            # opcional: borrar zips viejos del mismo producto
+            old_attachments = self.env['ir.attachment'].sudo().search([
+                ('res_model', '=', tmpl._name),
+                ('res_id', '=', tmpl.id),
+                ('name', '=', zip_name),
+                ('mimetype', '=', 'application/zip'),
+            ])
+            if old_attachments:
+                old_attachments.unlink()
+
+            attach = self.env['ir.attachment'].sudo().create({
+                'name': zip_name,
+                'datas': data_b64,
+                'res_model': tmpl._name,
+                'res_id': tmpl.id,
+                'mimetype': 'application/zip',
+                'public': True,
+            })
+
+            if not attach.access_token:
+                attach._generate_access_token()
+
+            attachments.append(attach.id)
+
+            _logger.info(
+                "ZIP local creado para '%s' con %s imágenes -> attachment id %s",
+                tmpl.display_name, added, attach.id
+            )
+
+        if len(self) == 1 and attachments:
+            att = self.env['ir.attachment'].sudo().browse(attachments[-1])
+            if not att.access_token:
+                att._generate_access_token()
+
+            url = "/web/content/%s?download=true" % att.id
+            return {
+                'type': 'ir.actions.act_url',
+                'url': url,
+                'target': 'self',
+            }
+
+        return True

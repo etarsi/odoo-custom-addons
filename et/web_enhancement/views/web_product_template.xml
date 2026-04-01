@@ -21,13 +21,6 @@
                         </div>
                     </t>
                 </div>
-
-                <div class="mt-2 text-center" t-if="product.website_published">
-                    <a t-att-href="'/shop/product/%s/download-images-zip' % product.id"
-                        class="btn btn-secondary">
-                        Descargar imágenes (ZIP)
-                    </a>
-                </div>
             </div>
         </t>
     </xpath>
