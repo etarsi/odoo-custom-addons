@@ -25,18 +25,23 @@
         </t>
     </template>
 
-    <template id="website_sale_products_item_main_image" inherit_id="website_sale.products_item" name="Website Sale - Imagen principal de galería">
-        <!-- Ajustá este xpath al <img> real de tu template products_item -->
-        <xpath expr="//img[1]" position="replace">
-            <img t-if="product.website_main_image_url"
-                 t-att-src="product.website_main_image_url"
-                 t-att-alt="product.display_name"
-                 class="img img-fluid"/>
+    <template id="website_sale_products_item_main_gallery_image"
+              inherit_id="website_sale.products_item"
+              name="Website Sale Products Item Main Gallery Image">
 
-            <img t-else=""
-                 t-att-src="'/web/image/product.template/%s/image_512' % product.id"
-                 t-att-alt="product.display_name"
-                 class="img img-fluid"/>
+        <xpath expr="//span[@t-field='image_holder.image_1920']" position="replace">
+            <t t-if="product.website_main_image_url">
+                <img t-att-src="product.website_main_image_url"
+                     t-att-alt="product.display_name"
+                     itemprop="image"
+                     class="d-flex h-100 justify-content-center align-items-center img img-fluid"/>
+            </t>
+
+            <t t-else="">
+                <span t-field="image_holder.image_1920"
+                      t-options="{'widget': 'image', 'preview_image': 'image_1024' if product_image_big else 'image_256', 'itemprop': 'image'}"
+                      class="d-flex h-100 justify-content-center align-items-center"/>
+            </t>
         </xpath>
     </template>
 </odoo>
