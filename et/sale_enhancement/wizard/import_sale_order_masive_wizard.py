@@ -209,8 +209,6 @@ class ImportSaleOrderMasiveWizard(models.TransientModel):
 
     def _build_group_key(self, row, partner, shipping, company, product):
         tipo = (row.get('condicion_venta') or '').strip().upper()
-        rubro_real = self._get_rubro_from_product(product)
-
         if tipo == 'TIPO 3':
             return (
                 partner.id,
@@ -224,7 +222,6 @@ class ImportSaleOrderMasiveWizard(models.TransientModel):
             shipping.id if shipping else False,
             company.id,
             tipo,
-            rubro_real,
         )
         
     def _get_discount_for_row(self, row, rubro_real):

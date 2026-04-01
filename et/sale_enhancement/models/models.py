@@ -10,19 +10,6 @@ _logger = logging.getLogger(__name__)
 class SaleOrderInherit(models.Model):
     _inherit = 'sale.order'
 
-    RUBRO_COMPANY_MAPPING = {
-        'JUGUETES': 3,                  #BECHAR SRL
-        'CARPAS': 3,                    #BECHAR SRL
-        'RODADOS INFANTILES': 3,        #BECHAR SRL
-        'PISTOLAS DE AGUA': 4,          #FUN TOYS SRL
-        'INFLABLES': 4,                 #FUN TOYS SRL
-        'PELOTAS': 4,                   #FUN TOYS SRL
-        'VEHICULOS A BATERIA': 4,       #FUN TOYS SRL
-        'RODADOS': 2,                   #SEBIGUS SRL
-        'MAQUILLAJE': 2,                #SEBIGUS SRL
-        'CABALLITOS SALTARINES': 2,     #SEBIGUS SRL
-    }
-
     # inherited
     note = fields.Html('Terms and conditions')
     pricelist_id = fields.Many2one(
