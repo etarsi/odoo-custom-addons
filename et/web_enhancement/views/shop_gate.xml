@@ -50,19 +50,17 @@
               name="Website Sale Shop Product Carousel Gallery">
 
         <xpath expr="//div[@id='o-carousel-product']" position="replace">
+            <div id="o-carousel-product"
+                 class="carousel slide position-sticky mb-3 overflow-hidden"
+                 data-ride="carousel"
+                 data-interval="0">
 
-            <t t-set="gallery_images"
-               t-value="product.gallery_image_ids.sorted(key=lambda r: ((0 if r.is_main else 1), r.sequence, r.id))"/>
+                <div class="o_carousel_product_outer carousel-outer position-relative flex-grow-1">
+                    <div class="carousel-inner h-100">
 
-            <t t-if="gallery_images">
-                <div id="o-carousel-product"
-                     class="carousel slide position-sticky mb-3 overflow-hidden"
-                     data-ride="carousel"
-                     data-interval="0">
-
-                    <div class="o_carousel_product_outer carousel-outer position-relative flex-grow-1">
-                        <div class="carousel-inner h-100">
-                            <t t-foreach="gallery_images" t-as="img">
+                        <t t-if="product.gallery_image_ids">
+                            <t t-foreach="product.gallery_image_ids.sorted(key=lambda r: ((0 if r.is_main else 1), r.sequence, r.id))"
+                               t-as="img">
                                 <div t-attf-class="carousel-item h-100#{' active' if img_first else ''}">
                                     <div class="d-flex align-items-center justify-content-center h-100">
                                         <img t-att-src="'/product-images/%s' % img.relative_path"
@@ -71,52 +69,9 @@
                                     </div>
                                 </div>
                             </t>
-                        </div>
-
-                        <t t-if="len(gallery_images) &gt; 1">
-                            <a class="carousel-control-prev" href="#o-carousel-product" role="button" data-slide="prev">
-                                <span class="fa fa-chevron-left fa-2x" role="img" aria-label="Previous" title="Previous"/>
-                            </a>
-                            <a class="carousel-control-next" href="#o-carousel-product" role="button" data-slide="next">
-                                <span class="fa fa-chevron-right fa-2x" role="img" aria-label="Next" title="Next"/>
-                            </a>
                         </t>
-                    </div>
-                </div>
 
-                <!-- Miniaturas abajo -->
-                <t t-if="len(gallery_images) &gt; 1">
-                    <div class="row mt-2">
-                        <t t-foreach="gallery_images" t-as="img">
-                            <div class="col-3 mb-2">
-                                <a t-att-href="'/product-images/%s' % img.relative_path"
-                                   target="_blank">
-                                    <img t-att-src="'/product-images/%s' % img.relative_path"
-                                         t-att-alt="img.name or product.name"
-                                         class="img img-fluid border rounded"/>
-                                </a>
-                            </div>
-                        </t>
-                    </div>
-                </t>
-
-                <!-- Botón ZIP -->
-                <div class="mt-2 text-center" t-if="product and product.website_published">
-                    <a t-att-href="'/shop/product/%s/download-images-zip' % product.id"
-                       class="btn btn-secondary">
-                        Descargar imágenes (ZIP)
-                    </a>
-                </div>
-            </t>
-
-            <t t-else="">
-                <div id="o-carousel-product"
-                     class="carousel slide position-sticky mb-3 overflow-hidden"
-                     data-ride="carousel"
-                     data-interval="0">
-
-                    <div class="o_carousel_product_outer carousel-outer position-relative flex-grow-1">
-                        <div class="carousel-inner h-100">
+                        <t t-else="">
                             <t t-foreach="product_images" t-as="product_image">
                                 <div t-attf-class="carousel-item h-100#{' active' if product_image_first else ''}">
                                     <div t-if="product_image._name == 'product.image' and product_image.embed_code"
@@ -129,20 +84,20 @@
                                          t-options="{'widget': 'image', 'preview_image': 'image_1024', 'class': 'product_detail_img mh-100', 'alt-field': 'name', 'zoom': product_image.can_image_1024_be_zoomed and 'image_1920'}"/>
                                 </div>
                             </t>
-                        </div>
-
-                        <t t-if="len(product_images) &gt; 1">
-                            <a class="carousel-control-prev" href="#o-carousel-product" role="button" data-slide="prev">
-                                <span class="fa fa-chevron-left fa-2x" role="img" aria-label="Previous" title="Previous"/>
-                            </a>
-                            <a class="carousel-control-next" href="#o-carousel-product" role="button" data-slide="next">
-                                <span class="fa fa-chevron-right fa-2x" role="img" aria-label="Next" title="Next"/>
-                            </a>
                         </t>
-                    </div>
-                </div>
-            </t>
 
+                    </div>
+
+                    <t t-if="(product.gallery_image_ids and len(product.gallery_image_ids) &gt; 1) or (not product.gallery_image_ids and len(product_images) &gt; 1)">
+                        <a class="carousel-control-prev" href="#o-carousel-product" role="button" data-slide="prev">
+                            <span class="fa fa-chevron-left fa-2x" role="img" aria-label="Previous" title="Previous"/>
+                        </a>
+                        <a class="carousel-control-next" href="#o-carousel-product" role="button" data-slide="next">
+                            <span class="fa fa-chevron-right fa-2x" role="img" aria-label="Next" title="Next"/>
+                        </a>
+                    </t>
+                </div>
+            </div>
         </xpath>
 
     </template>
