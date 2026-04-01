@@ -28,7 +28,7 @@ class GDriveZipXMLRPC(http.Controller):
             try:
                 # Ejecutar en sudo (o con un usuario técnico si querés contexto)
                 tmpl = request.env['product.template'].sudo().browse(pid).exists()
-                res = tmpl.action_zip_by_default_code_from_main_folder()
+                res = tmpl.action_zip_images_from_local_folder()
                 url = (isinstance(res, dict) and res.get('url')) or None
                 if url:
                     return {"ok": True, "url": url}
@@ -50,7 +50,7 @@ class GDriveZipXMLRPC(http.Controller):
             res = models.execute_kw(
                 DB, uid, KEY,
                 'product.template',
-                'action_zip_by_default_code_from_main_folder',
+                'action_zip_images_from_local_folder',
                 [[pid]],  # args
                 {}        # kwargs
             )
