@@ -172,7 +172,7 @@ class ReportWmsTaskFacturaWizard(models.TransientModel):
                     continue
                 unidades = move.quantity_picked
                 # UxB numérico: suele estar en el packaging.qty
-                uxb = move.product_id.product_packaging_ids[0].qty if move.product_id.product_packaging_ids else 1
+                uxb = move.product_id.packaging_ids[0].qty if move.product_id.packaging_ids else 1
                 #separar rubros por JUGUETES/ROPA/OTROS
                 if move.product_id.categ_id.parent_id:
                     rubros.add(move.product_id.categ_id.parent_id.name)
