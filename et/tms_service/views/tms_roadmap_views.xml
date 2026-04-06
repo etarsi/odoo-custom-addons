@@ -155,6 +155,9 @@
             <search string="Buscar Hoja de Ruta">
                 <field name="name"/>
                 <field name="transport_id"/>
+                <field name="road_maps_line_ids.partner_id"
+                    string="Cliente"
+                    filter_domain="[('road_maps_line_ids.partner_id', 'ilike', self)]"/>
                 <separator/>
                 <filter string="Borrador" name="draft" domain="[('state','=','draft')]"/>
                 <filter string="Pendiente" name="pending" domain="[('state','=','pending')]"/>

@@ -56,21 +56,16 @@
                  data-interval="0">
 
                 <div class="o_carousel_product_outer carousel-outer position-relative flex-grow-1">
-                    <div class="carousel-inner h-100">
-
-                        <t t-if="product.gallery_image_ids">
-                            <t t-foreach="product.gallery_image_ids.sorted(key=lambda r: ((0 if r.is_main else 1), r.sequence, r.id))"
-                               t-as="img">
-                                <div t-attf-class="carousel-item h-100#{' active' if img_first else ''}">
-                                    <div class="d-flex align-items-center justify-content-center h-100">
-                                        <img t-att-src="'/product-images/%s' % img.relative_path"
-                                             t-att-alt="img.name or product.name"
-                                             class="product_detail_img mh-100 img img-fluid"/>
-                                    </div>
+                    <div class="carousel-inner">
+                        <t t-foreach="gallery_images" t-as="img">
+                            <div t-attf-class="carousel-item#{' active' if img_first else ''}">
+                                <div class="o_ext_main_image_wrap">
+                                    <img t-att-src="'/product-images/%s' % img.relative_path"
+                                        t-att-alt="img.name or product.name"
+                                        class="product_detail_img img img-fluid o_ext_main_image"/>
                                 </div>
-                            </t>
+                            </div>
                         </t>
-
                         <t t-else="">
                             <t t-foreach="product_images" t-as="product_image">
                                 <div t-attf-class="carousel-item h-100#{' active' if product_image_first else ''}">
