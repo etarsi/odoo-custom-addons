@@ -42,7 +42,20 @@
               parent="wms_logo"
               sequence="40"
     />
-              <!-- action="action_wms_reports"/> -->
+    <!-- ================================= -->
+    <!-- Reportes Tareas -->
+    <!-- ================================= -->
+    <menuitem id="wms_menu_reportes_tasks"
+        name="Tareas"
+        parent="wms_menu_reportes"
+        sequence="10"
+    />
+    <menuitem id="wms_menu_reportes_tasks_facturas"
+        name="Reporte de Tareas y Facturas"
+        parent="wms_menu_reportes_tasks"
+        sequence="10"
+        action="action_report_wms_task_factura_wizard"
+    />
 
     <!-- Auditoría -->
     <menuitem id="wms_menu_auditoría"
