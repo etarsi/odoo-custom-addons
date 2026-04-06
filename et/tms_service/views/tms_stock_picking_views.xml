@@ -196,6 +196,10 @@
                         context="{'group_by': 'items_ids'}" />
                 <filter name="filter_by_invoice_status" string="Estado Factura"
                         context="{'group_by': 'invoice_status'}" />
+                <separator/>
+                <filter name="filter_by_fecha_envio_wms"
+                        string="Fecha Envío WMS"
+                        context="{'group_by': 'fecha_envio_wms:month'}"/>
             </search>
         </field>
     </record>
