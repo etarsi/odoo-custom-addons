@@ -46,7 +46,7 @@
                 <field name="name" string="Nombre" optional="show"/>
                 <field name="origin" optional="show"/>
                 <field name="partner_id" optional="hide"/>
-                <field name="partner_tag_ids" widget="many2many_tags" optional="show"/>
+                <field name="partner_tag_ids" widget="many2many_tags" options="{'color_field':'color'}" optional="show"/>
                 <field name="partner_address_id" optional="show"/>
                 <!-- <field name="partner_tag"/>
                 <field name="partner_tag"/> -->
