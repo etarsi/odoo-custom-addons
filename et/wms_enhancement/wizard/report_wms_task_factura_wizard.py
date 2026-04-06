@@ -170,23 +170,13 @@ class ReportWmsTaskFacturaWizard(models.TransientModel):
             for move in wms_task.task_line_ids:
                 if not move.product_id:
                     continue
-                t_cant_bultos += move.product_packaging_qty
-                unidades = move.product_uom_qty or 0.0
+                unidades = move.quantity_picked
                 # UxB numérico: suele estar en el packaging.qty
-                uxb = 0.0
-                if move.product_packaging_id and hasattr(move.product_packaging_id, 'qty'):
-                    t_cant_bultos += move.product_packaging_qty
+                uxb = move.product_id.product_packaging_ids[0].qty if move.product_id.product_packaging_ids else 1
                 #separar rubros por JUGUETES/ROPA/OTROS
                 if move.product_id.categ_id.parent_id:
                     rubros.add(move.product_id.categ_id.parent_id.name)
                     rubros_str = '/'.join(rubros)   
-                # BULTOS = unidades / UxB (como tu imagen)
-                bultos = (unidades / uxb) if uxb else 0.0
-                unidades = move.product_uom_qty or 0.0
-                # UxB numérico: suele estar en el packaging.qty
-                uxb = 0.0
-                if move.product_packaging_id and hasattr(move.product_packaging_id, 'qty'):
-                    uxb = move.product_packaging_id.qty or 0.0
                 # BULTOS = unidades / UxB (como tu imagen)
                 bultos = (unidades / uxb) if uxb else 0.0
                 worksheet2.write(row2, 0, move.product_id.default_code or '', fmt_text2)
@@ -197,6 +187,7 @@ class ReportWmsTaskFacturaWizard(models.TransientModel):
                 worksheet2.write(row2, 5, rubros_str or '', fmt_text2)
                 worksheet2.write(row2, 6, wms_task.name, fmt_text)
                 row2 += 1
+                t_cant_bultos += bultos
             
             t_cant_bultos = float_round(t_cant_bultos, 2)
             #Sacar el nombre del cliente si tiene 
