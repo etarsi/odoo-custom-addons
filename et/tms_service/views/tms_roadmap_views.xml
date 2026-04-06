@@ -155,7 +155,7 @@
             <search string="Buscar Hoja de Ruta">
                 <field name="name"/>
                 <field name="transport_id"/>
-                <field name="road_maps_line_ids.partner_id"
+                <field name="road_maps_line_ids"
                     string="Cliente"
                     filter_domain="[('road_maps_line_ids.partner_id', 'ilike', self)]"/>
                 <separator/>
