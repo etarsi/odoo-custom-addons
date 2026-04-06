@@ -42,18 +42,19 @@
                 <header>
                     <button name="action_split_into_tasks" type="object" string="Crear Tareas" class="oe_highlight"/>
                 </header>
-                <field name="create_date" widget="remaining_days" string="Fecha"/>
-                <field name="name" string="Nombre"/>
-                <field name="origin"/>
+                <field name="create_date" widget="remaining_days" string="Fecha" optional="show"/>
+                <field name="name" string="Nombre" optional="show"/>
+                <field name="origin" optional="show"/>
                 <field name="partner_id" optional="hide"/>
-                <field name="partner_address_id"/>
+                <field name="partner_tag_ids" widget="many2many_tags" optional="show"/>
+                <field name="partner_address_id" optional="show"/>
                 <!-- <field name="partner_tag"/>
                 <field name="partner_tag"/> -->
                 <field name="total_bultos" sum="total" optional="show"/>
                 <field name="total_bultos_prepared" sum="total" optional="show"/>
                 <field name="total_available_percentage" string="Disponible" optional="show" widget="progressbar"/>
-                <field name="operation_type" string="Tipo" widget="badge" decoration-info="operation_type=='incoming'" decoration-danger="operation_type=='return'" decoration-primary="operation_type=='outgoing'"/>
-                <field name="state" widget="badge" decoration-danger="state=='no'" decoration-warning="state=='pending'" decoration-info="state=='process'" decoration-success="state=='finished'"/>
+                <field name="operation_type" string="Tipo" widget="badge" decoration-info="operation_type=='incoming'" decoration-danger="operation_type=='return'" decoration-primary="operation_type=='outgoing'" optional="show"/>
+                <field name="state" widget="badge" decoration-danger="state=='no'" decoration-warning="state=='pending'" decoration-info="state=='process'" decoration-success="state=='finished'" optional="show"/>
             </tree>
         </field>
     </record>
@@ -72,7 +73,6 @@
                 <field name="sale_id"/>
                 <field name="purchase_id"/>
 
-
                 <filter string="Ingreso" name="incoming" domain="[('operation_type','=','incoming')]"/>
                 <filter string="Entrega" name="outgoing" domain="[('operation_type','=','outgoing')]"/>
 
@@ -81,6 +81,8 @@
                     <filter string="Estado" name="group_state" context="{'group_by':'state'}"/>
                     <filter string="Cliente" name="group_partner" context="{'group_by':'partner_id'}"/>
                     <filter string="Pedido" name="group_origin" context="{'group_by':'origin'}"/>
+                    <filter string="Fecha" name="group_date" context="{'group_by':'create_date:month'}"/>
+                    <filter string="Etiqueta" name="group_partner_tag" context="{'group_by':'partner_tag_ids'}"/>
                 </group>
             </search>
         </field>

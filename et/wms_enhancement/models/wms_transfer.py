@@ -42,6 +42,9 @@ class WMSTransfer(models.Model):
     total_bultos = fields.Float(string="Bultos", compute="_compute_total_bultos", store=True, tracking=True)
     total_bultos_prepared = fields.Float(string="Bultos Preparados", compute="_compute_total_bultos_prepared", store=True, tracking=True)
     total_available_percentage = fields.Float(string="Porcentaje Disponible", compute="_compute_total_available_percentage", store=True, tracking=True)
+    
+    # ETIQUETA
+    partner_tag_ids = fields.Many2many(string="Etiquetas", comodel_name="res.partner.category", tracking=True, related="partner_id.category_id")
 
 
     @api.model
