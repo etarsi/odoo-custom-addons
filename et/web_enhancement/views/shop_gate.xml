@@ -57,14 +57,16 @@
 
                 <div class="o_carousel_product_outer carousel-outer position-relative flex-grow-1">
                     <div class="carousel-inner">
-                        <t t-foreach="gallery_images" t-as="img">
-                            <div t-attf-class="carousel-item#{' active' if img_first else ''}">
-                                <div class="o_ext_main_image_wrap">
-                                    <img t-att-src="'/product-images/%s' % img.relative_path"
-                                        t-att-alt="img.name or product.name"
-                                        class="product_detail_img img img-fluid o_ext_main_image"/>
+                        <t t-if="gallery_images">
+                            <t t-foreach="gallery_images" t-as="img">
+                                <div t-attf-class="carousel-item#{' active' if img_first else ''}">
+                                    <div class="o_ext_main_image_wrap">
+                                        <img t-att-src="'/product-images/%s' % img.relative_path"
+                                            t-att-alt="img.name or product.name"
+                                            class="product_detail_img img img-fluid o_ext_main_image"/>
+                                    </div>
                                 </div>
-                            </div>
+                            </t>
                         </t>
                         <t t-else="">
                             <t t-foreach="product_images" t-as="product_image">
@@ -80,7 +82,6 @@
                                 </div>
                             </t>
                         </t>
-
                     </div>
 
                     <t t-if="(product.gallery_image_ids and len(product.gallery_image_ids) &gt; 1) or (not product.gallery_image_ids and len(product_images) &gt; 1)">
