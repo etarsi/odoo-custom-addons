@@ -44,7 +44,16 @@ class WMSTransfer(models.Model):
     total_available_percentage = fields.Float(string="Porcentaje Disponible", compute="_compute_total_available_percentage", store=True, tracking=True)
     
     # ETIQUETA
-    partner_tag_ids = fields.Many2many(string="Etiquetas", comodel_name="res.partner.category", tracking=True, related="partner_id.category_id", store=True, readonly=True)
+    partner_tag_ids = fields.Many2many(
+        comodel_name="res.partner.category",
+        string="Etiquetas",
+        related="partner_id.category_id",
+        relation="wms_transfer_partner_category_rel",
+        column1="transfer_id",
+        column2="category_id",
+        store=True,
+        readonly=True,
+    )
 
 
     @api.model
