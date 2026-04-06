@@ -70,14 +70,14 @@ class ReportWmsTaskFacturaWizard(models.TransientModel):
         # COLUMNAS DE LA HOJA REPORTE DE ENTREGA
         # =========================
         worksheet.set_column(0, 0, 15)      # Fecha
-        worksheet.set_column(1, 1, 30)      # Doc. Origen
+        worksheet.set_column(1, 1, 20)      # Doc. Origen
         worksheet.set_column(2, 2, 60)      # Cliente
         worksheet.set_column(3, 3, 15)      # Cantidad de Bultos
         worksheet.set_column(4, 4, 20)      # Total Facturado
         worksheet.set_column(5, 5, 20)      # Total N. Credito en Negativo
         worksheet.set_column(6, 6, 30)      # RUBROS (/)
-        worksheet.set_column(7, 7, 55)      # Transferencia
-        worksheet.set_column(8, 8, 30)      # Facturas (/)
+        worksheet.set_column(7, 7, 15)      # Transferencia
+        worksheet.set_column(8, 8, 40)      # Facturas (/)
         worksheet.set_column(9, 9, 15)      # Cant. LINEA DE PEDIDOS
         # Alto de filas de título/encabezado
         worksheet.set_row(0, 20)
@@ -102,15 +102,22 @@ class ReportWmsTaskFacturaWizard(models.TransientModel):
         worksheet2.set_column(2, 2, 12)  # UNIDADES
         worksheet2.set_column(3, 3, 10)  # UxB
         worksheet2.set_column(4, 4, 12)  # BULTOS
-        worksheet2.set_column(5, 5, 28)  # RUBRO
-        worksheet2.set_column(6, 6, 60)  # Transferencia
+        worksheet2.set_column(5, 5, 15)  # Transferencia
+        worksheet2.set_column(6, 6, 25)  # RUBRO
+        worksheet2.set_column(7, 7, 25)  # CATEGORIA
+        worksheet2.set_column(8, 8, 25)  # MARCA
+        worksheet2.set_column(9, 9, 25)  # CONTRATO DISNEY
+        worksheet2.set_column(10, 10, 25)  # SUBCONTRATO DISNEY
+        worksheet2.set_column(11, 11, 25)  # PERSONAJE DISNEY
+        worksheet2.set_column(12, 12, 25)  # PROPIEDAD DISNEY
+        
         # Alto de filas de título/encabezado
         worksheet2.set_row(0, 20)
         worksheet2.set_row(1, 18)
         # =========================
         # ENCABEZADOS
         # =========================
-        headers2 = ['CODIGO', 'DESCRIPCION', 'UNIDADES', 'UxB', 'BULTOS', 'RUBRO', 'TRANSFERENCIA']
+        headers2 = ['CODIGO', 'DESCRIPCION', 'UNIDADES', 'UxB', 'BULTOS', 'TRANSFERENCIA', 'RUBRO', 'CATEGORIA', 'MARCA', 'CONTRATO DISNEY', 'SUBCONTRATO DISNEY', 'PERSONAJE DISNEY', 'PROPIEDAD DISNEY']
         for col, h in enumerate(headers2):
             worksheet2.write(1, col, h, fmt_header)
             
@@ -170,6 +177,7 @@ class ReportWmsTaskFacturaWizard(models.TransientModel):
             for move in wms_task.task_line_ids:
                 if not move.product_id:
                     continue
+                property_id, x_contract_id, x_subcontract_id, x_character_id = self.product_category_info(move.product_id)
                 unidades = move.quantity_picked
                 # UxB numérico: suele estar en el packaging.qty
                 uxb = move.product_id.packaging_ids[0].qty if move.product_id.packaging_ids else 1
@@ -184,8 +192,14 @@ class ReportWmsTaskFacturaWizard(models.TransientModel):
                 worksheet2.write_number(row2, 2, unidades, fmt_int)
                 worksheet2.write_number(row2, 3, uxb, fmt_int)
                 worksheet2.write_number(row2, 4, bultos, fmt_dec2)
-                worksheet2.write(row2, 5, rubros_str or '', fmt_text2)
-                worksheet2.write(row2, 6, wms_task.name, fmt_text)
+                worksheet2.write(row2, 5, wms_task.name, fmt_text)
+                worksheet2.write(row2, 6, rubros_str or '', fmt_text2)
+                worksheet2.write(row2, 7, (move.product_id.categ_id.name or '') if move.product_id.categ_id else '', fmt_text2)
+                worksheet2.write(row2, 8, (move.product_id.product_brand_id.name or '') if move.product_id.product_brand_id else '', fmt_text2)
+                worksheet2.write(row2, 9, x_contract_id.x_name if x_contract_id else '', fmt_text2)
+                worksheet2.write(row2, 10, x_subcontract_id.x_name if x_subcontract_id else '', fmt_text2)
+                worksheet2.write(row2, 11, x_character_id.x_name if x_character_id else '', fmt_text2)
+                worksheet2.write(row2, 12, property_id.x_name if property_id else '', fmt_text2)
                 row2 += 1
                 t_cant_bultos += bultos
             
@@ -241,3 +255,30 @@ class ReportWmsTaskFacturaWizard(models.TransientModel):
                 }
             }
         }
+        
+    def product_category_info(self, product):
+        property_id = False
+        x_contract_id = False
+        x_subcontract_id = False
+        x_character_id = False
+        #buscamos si es producto con default code comienze con 9
+        if product.default_code and product.default_code.startswith('9'):
+            #buscamos en productos el mismo default code sin el 9 al inicio
+            prod_con_propiedad = self.env['product.product'].search([('default_code', '=', product.default_code[1:])], limit=1)
+            if prod_con_propiedad and prod_con_propiedad.x_property_id:
+                property_id = prod_con_propiedad.x_property_id
+                x_contract_id = prod_con_propiedad.x_contract_id
+                x_subcontract_id = prod_con_propiedad.x_subcontract_id
+                x_character_id = prod_con_propiedad.x_character_id
+            else:
+                property_id = False
+                x_contract_id = False
+                x_subcontract_id = False
+                x_character_id = False
+        else:
+            property_id = product.x_property_id if product.x_property_id else False
+            x_contract_id = product.x_contract_id if product.x_contract_id else False
+            x_subcontract_id = product.x_subcontract_id if product.x_subcontract_id else False
+            x_character_id = product.x_character_id if product.x_character_id else False
+        
+        return property_id, x_contract_id, x_subcontract_id, x_character_id
