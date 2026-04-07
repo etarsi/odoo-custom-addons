@@ -203,15 +203,16 @@ class AccountFiscalPeriodConfig(models.Model):
                                                         ('date', '=', self.date_end),
                                                         ('journal_id', '=', self.journal_id.id),
                                                         ('move_type', '=', 'entry'),
-                                                        ('line_ids.account_id', 'in', account_client_existing.ids if account_client_existing else []),
+                                                        ('line_ids.account_id', 'in', account_client_existing.ids),
                                                         ('state', '=', 'posted')], limit=1)
         existing_moves = self.env['account.move'].search([('company_id', '=', self.company_id.id),
                                                         ('fiscal_period_config_id', '=', self.id),
                                                         ('date', '=', self.date_end),
                                                         ('journal_id', '=', self.journal_id.id),
                                                         ('move_type', '=', 'entry'),
-                                                        ('line_ids.account_id', 'in', account_client_existing.ids if account_client_existing else []),
+                                                        ('line_ids.account_id', 'in', account_client_existing.ids),
                                                         ('state', 'in', ['posted', 'draft'])])
+        _logger.warning("Existing moves for opening entry 1-2-3: %s", existing_moves.id)
         if not account_move:
             raise ValidationError(_("No existe asiento de cierre para cuentas 1-2-3. No se puede generar el asiento de apertura."))
         if existing_moves:
