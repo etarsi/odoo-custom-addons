@@ -67,66 +67,6 @@
         </field>
     </record>
 
-    <!-- ACTION -->
-    <record id="action_order_control" model="ir.actions.act_window">
-        <field name="name">Clientes</field>
-        <field name="res_model">res.partner</field>
-        <field name="view_mode">tree,form</field>
-        <field name="domain">[('customer_rank', '&gt;', 0), ('category_id', '!=', 'Propio')]</field>
-    </record>
-
-    <record id="action_sale_order_order_control" model="ir.actions.act_window">
-        <field name="name">Pedidos</field>
-        <field name="res_model">sale.order</field>
-        <field name="view_mode">tree,form</field>
-        <field name="domain">[('approval_state', 'in', ['pending', 'rejected', 'blocked']), ('state', 'in', ('draft', 'draft'))]</field>
-    </record>
-
-    <!-- ACTION VIEWS -->
-    <record id="action_order_control_tree_view" model="ir.actions.act_window.view">
-        <field name="sequence" eval="1"/>
-        <field name="view_mode">tree</field>
-        <field name="view_id" ref="view_partner_tree_order_control"/>
-        <field name="act_window_id" ref="action_order_control"/>
-    </record>
-
-    <record id="action_order_control_form_view" model="ir.actions.act_window.view">
-        <field name="sequence" eval="2"/>
-        <field name="view_mode">form</field>
-        <field name="view_id" ref="view_partner_form_order_control"/>
-        <field name="act_window_id" ref="action_order_control"/>
-    </record>
-
-    <record id="action_sale_order_control_tree_view" model="ir.actions.act_window.view">
-        <field name="sequence" eval="1"/>
-        <field name="view_mode">tree</field>
-        <field name="view_id" ref="view_sale_order_tree_order_control"/>
-        <field name="act_window_id" ref="action_sale_order_order_control"/>
-    </record>
-
-    <record id="action_sale_order_control_form_view" model="ir.actions.act_window.view">
-        <field name="sequence" eval="2"/>
-        <field name="view_mode">form</field>
-        <field name="view_id" ref="sale.view_order_form"/>
-        <field name="act_window_id" ref="action_sale_order_order_control"/>
-    </record>
-
-    <!-- MENÚ ROOT -->
-    <menuitem 
-        id="menu_order_control_root"
-        name="Control de Pedidos"
-        sequence="1"
-    />
-
-    <!-- SUBMENÚ CLIENTES -->
-    <menuitem 
-        id="menu_order_control_clients"
-        name="Clientes"
-        parent="menu_order_control_root"
-        action="action_order_control"
-        sequence="10"
-    />
-
     <!-- FORM VIEW -->
 
     <record id="view_partner_form_order_control" model="ir.ui.view">
@@ -291,6 +231,68 @@
 
         </field>
     </record>
+
+    <!-- ACTION -->
+    <record id="action_order_control" model="ir.actions.act_window">
+        <field name="name">Clientes</field>
+        <field name="res_model">res.partner</field>
+        <field name="view_mode">tree,form</field>
+        <field name="domain">[('customer_rank', '&gt;', 0), ('category_id', '!=', 'Propio')]</field>
+    </record>
+
+    <record id="action_sale_order_control" model="ir.actions.act_window">
+        <field name="name">Pedidos</field>
+        <field name="res_model">sale.order</field>
+        <field name="view_mode">tree,form</field>
+        <field name="domain">[('approval_state', 'in', ['pending', 'rejected', 'blocked']), ('state', 'in', ('draft', 'rejected', 'blocked'))]</field>
+    </record>
+
+    <!-- ACTION VIEWS -->
+    <record id="action_order_control_tree_view" model="ir.actions.act_window.view">
+        <field name="sequence" eval="1"/>
+        <field name="view_mode">tree</field>
+        <field name="view_id" ref="view_partner_tree_order_control"/>
+        <field name="act_window_id" ref="action_order_control"/>
+    </record>
+
+    <record id="action_order_control_form_view" model="ir.actions.act_window.view">
+        <field name="sequence" eval="2"/>
+        <field name="view_mode">form</field>
+        <field name="view_id" ref="view_partner_form_order_control"/>
+        <field name="act_window_id" ref="action_order_control"/>
+    </record>
+
+    <record id="action_sale_order_control_tree_view" model="ir.actions.act_window.view">
+        <field name="sequence" eval="1"/>
+        <field name="view_mode">tree</field>
+        <field name="view_id" ref="view_sale_order_tree_order_control"/>
+        <field name="act_window_id" ref="action_sale_order_control"/>
+    </record>
+
+    <record id="action_sale_order_control_form_view" model="ir.actions.act_window.view">
+        <field name="sequence" eval="2"/>
+        <field name="view_mode">form</field>
+        <field name="view_id" ref="sale.view_order_form"/>
+        <field name="act_window_id" ref="action_sale_order_control"/>
+    </record>
+
+    <!-- MENÚ ROOT -->
+    <menuitem 
+        id="menu_order_control_root"
+        name="Control de Pedidos"
+        sequence="1"
+    />
+
+    <!-- SUBMENÚ CLIENTES -->
+    <menuitem 
+        id="menu_order_control_clients"
+        name="Clientes"
+        parent="menu_order_control_root"
+        action="action_order_control"
+        sequence="10"
+    />
+
+    
 
 
 </odoo>
