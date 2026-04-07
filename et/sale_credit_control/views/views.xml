@@ -56,7 +56,7 @@
                 <field name="user_id" string="Comercial"/>
                 <field name="executive_id" string="Ejecutivo"/>
                 <field name="company_id" string="Compañía"/>
-                <field name="packaging_qty" string="Cantidad de Bultos"/>
+                <!-- <field name="packaging_qty" string="Cantidad de Bultos"/> -->
                 <field name="x_discount" string="Descuento"/>
                 <field name="amount_total" string="Monto Total"/>
                 <field name="payment_term_id" string="Plazos de Pago"/>
