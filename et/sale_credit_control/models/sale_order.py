@@ -15,7 +15,7 @@ class SaleOrderInherit(models.Model):
     _inherit = 'sale.order'
 
     state = fields.Selection(
-        selection_add=[('blocked', 'Bloqueado'), ('rejected', 'Rechazado')],
+        selection_add=[('blocked', 'Bloqueado')],
         ondelete={'blocked': 'set default'}
     )
 
