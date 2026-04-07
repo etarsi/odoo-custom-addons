@@ -43,6 +43,8 @@
                 decoration-warning="approval_state == 'rejected'"
                 decoration-danger="approval_state == 'blocked'">
 
+                <field name="state" invisible="1"/>
+                
                 <header>
                     <button name="action_set_approved" type="object" string="Aprobar" class="btn-success"/>
                     <button name="action_set_rejected" type="object" string="Rechazar" class="btn-warning"/>
