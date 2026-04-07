@@ -80,6 +80,103 @@ class AccountExportArba(models.Model):
     # ---------------------------------------------------------
     # HELPERS
     # ---------------------------------------------------------
+    def _format_cuit_arba_percepciones(self, vat):
+        """ARBA layout común: 99-99999999-9"""
+        if not vat:
+            raise ValidationError(_("Falta CUIT/CUIL."))
+        digits = re.sub(r'[^0-9]', '', vat or '')
+        if len(digits) != 11:
+            raise ValidationError(_("El CUIT '%s' no tiene 11 dígitos.") % (vat,))
+        return '%s-%s-%s' % (digits[:2], digits[2:10], digits[10:11])
+
+    def _get_arba_operation_type_percepciones(self, line):
+        """
+        ARBA pide:
+        A = Alta
+        B = Baja
+        M = Modificación
+
+        Base simple: todo exportado normal -> A
+        """
+        return 'A'
+
+    def _get_alicuota_arba_percepciones(self, tax, partner, date):
+        alicuot_line = tax.get_partner_alicuot(partner, date)
+        if not alicuot_line:
+            raise ValidationError(_(
+                'No hay alícuota configurada para el partner "%s" con el impuesto "%s".'
+            ) % (partner.display_name, tax.display_name))
+
+        # percepción vs retención
+        if tax.type_tax_use in ['sale', 'purchase']:
+            return alicuot_line.alicuota_percepcion
+        return alicuot_line.alicuota_retencion
+
+    def _get_arba_tipo_comp_y_letra_percepciones(self, move):
+        """
+        Devuelve:
+        tipo_comp ARBA: F/E/C/H/D/I/R
+        letra: A/B/C o ' '
+        """
+        doc = move.l10n_latam_document_type_id
+        if not doc:
+            raise ValidationError(_("El asiento %s no tiene tipo de documento.") % move.display_name)
+
+        name = (doc.name or '').upper().strip()
+        prefix = (doc.doc_code_prefix or '').upper().strip()
+        internal_type = doc.internal_type
+        letter = (doc.l10n_ar_letter or ' ').strip() or ' '
+
+        # En la versión base de ARBA común, trabajamos sólo con A/B/C o blanco
+        if letter not in ['A', 'B', 'C']:
+            # para M, E, I, etc. mejor bloquear hasta definir regla
+            raise ValidationError(_(
+                'El comprobante "%s" tiene letra "%s" y no está contemplado en la exportación ARBA común.'
+            ) % (doc.display_name, letter))
+
+        # FACTURAS
+        if internal_type == 'invoice':
+            # Factura de crédito electrónica MiPyME
+            if 'FCE' in prefix or 'ELECTRONICA' in name:
+                return 'E', letter
+
+            # Factura común
+            if 'FACTURA' in name:
+                return 'F', letter
+
+            # Recibo
+            if 'RECIBO' in name:
+                return 'R', letter
+
+        # NOTAS DE CREDITO
+        elif internal_type == 'credit_note':
+            if 'NCE' in prefix or 'ELECTRONICA' in name:
+                return 'H', letter
+            return 'C', letter
+
+        # NOTAS DE DEBITO
+        elif internal_type == 'debit_note':
+            if 'NDE' in prefix or 'ELECTRONICA' in name:
+                return 'I', letter
+            return 'D', letter
+
+        raise ValidationError(_(
+            'No se pudo mapear el tipo de documento "%s" al tipo de comprobante ARBA.'
+        ) % doc.display_name)        
+
+    def _split_arba_document_number_percepciones(self, move):
+        raw = move.l10n_latam_document_number or ''
+        nums = re.findall(r'\d+', raw)
+
+        if len(nums) >= 2:
+            sucursal = str(int(nums[-2])).zfill(5)
+            emision = str(int(nums[-1])).zfill(8)
+            return sucursal, emision
+
+        raise ValidationError(_(
+            'No se pudo separar sucursal y emisión del comprobante "%s" (%s).'
+        ) % (move.display_name, raw))
+
     def _format_date_arba(self, date_value):
         if not date_value:
             raise ValidationError(_("Falta una fecha requerida para ARBA."))
@@ -235,8 +332,7 @@ class AccountExportArba(models.Model):
         for line in move_lines_per.sorted(lambda l: (l.date, l.id)):
             if not line.partner_id:
                 continue
-            per_lines_txt += self._build_arba_data(line) if line.move_id.l10n_latam_document_type_id.internal_type != 'credit_note' else ''
-            nc_per_lines_txt += self._build_arba_data(line) if line.move_id.l10n_latam_document_type_id.internal_type == 'credit_note' else ''
+            per_lines_txt += self._build_arba_data_percepciones(line) 
             exported_ids.append(line.id)
 
         for line in move_lines_ret.sorted(lambda l: (l.date, l.id)):
@@ -256,9 +352,9 @@ class AccountExportArba(models.Model):
         zip_buffer = io.BytesIO()
         with zipfile.ZipFile(zip_buffer, 'w') as zip_file:
             if per_lines_txt:
-                zip_file.writestr('ARBA_Percepcione.txt', per_lines_txt.encode('ISO-8859-1'))
+                zip_file.writestr('Percepciones Arba.txt', per_lines_txt.encode('ISO-8859-1'))
             if nc_per_lines_txt:
-                zip_file.writestr('ARBA_NC_Percepciones.txt', nc_per_lines_txt.encode('ISO-8859-1'))
+                zip_file.writestr('NC Percepciones Arba.txt', nc_per_lines_txt.encode('ISO-8859-1') if nc_per_lines_txt else ''.encode('ISO-8859-1'))
             if ret_lines_txt:
                 zip_file.writestr('ARBA_Retenciones.txt', ret_lines_txt.encode('ISO-8859-1'))
 
@@ -301,6 +397,71 @@ class AccountExportArba(models.Model):
         self.state = 'draft'
 
 
+    def _build_arba_data_percepciones(self, line):
+        """
+        1.1 Percepciones (excepto act. 29, 7 quincenal y 17 bancos)
+        Posiciones:
+        1-13  CUIT
+        14-23 Fecha percepción
+        24    Tipo comp.
+        25    Letra
+        26-30 Sucursal
+        31-38 Emisión
+        39-52 Monto imponible
+        53-57 Alícuota
+        58-70 Importe percepción
+        71    Tipo operación
+        """
+        move = line.move_id
+        partner = line.partner_id
+        tax = line.tax_line_id
+
+        if not partner:
+            raise ValidationError(_("La línea %s no tiene partner.") % line.display_name)
+        if not tax:
+            raise ValidationError(_("La línea %s no tiene tax_line_id.") % line.display_name)
+        if not move.l10n_latam_document_number:
+            raise ValidationError(_("El comprobante %s no tiene número.") % move.display_name)
+
+        cuit = self._format_cuit_arba_percepciones(partner.vat)
+        fecha = self._format_date_arba(line.date)
+        tipo_comp, letra = self._get_arba_tipo_comp_y_letra_percepciones(move)
+        sucursal, emision = self._split_arba_document_number_percepciones(move)
+        base_amount = float_round(line.tax_base_amount or 0.0, precision_digits=2)
+        alicuota = self._get_alicuota_arba_percepciones(tax, partner, line.date)
+
+        # Importe practicado
+        if line.currency_id and line.currency_id != line.company_id.currency_id:
+            importe = float_round(base_amount * alicuota / 100.0, precision_digits=2)
+        else:
+            importe = float_round(-line.balance, precision_digits=2)
+
+        # Nota de crédito: base e importe negativos
+        if move.l10n_latam_document_type_id.internal_type == 'credit_note':
+            base_amount = -abs(base_amount)
+            importe = -abs(importe)
+        else:
+            base_amount = abs(base_amount)
+            importe = abs(importe)
+
+        tipo_operacion = self._get_arba_operation_type_percepciones(line)
+
+        content = ''
+        content += cuit
+        content += fecha
+        content += tipo_comp
+        content += letra
+        content += sucursal
+        content += emision
+        content += self._format_amount_arba(base_amount, 14, 2, signed=True)   # 14
+        content += self._format_amount_arba(alicuota, 5, 2, signed=False)      # 5
+        content += self._format_amount_arba(importe, 13, 2, signed=True)       # 13
+        content += tipo_operacion
+
+        if len(content) != 71:
+            raise ValidationError(_("La línea ARBA Percepción 1.1 quedó con largo %s y debe ser 71.") % len(content))
+
+        return content + '\r\n'
 
     # ---------------------------------------------------------
     # METODOS ANTIGUOS, SE DEJAN PARA NO ROMPER HISTORICO PERO NO SE USAN EN EL PROCESO ACTUAL
