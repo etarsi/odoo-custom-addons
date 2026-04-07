@@ -17,6 +17,7 @@ class WMSTransfer(models.Model):
         ('outgoing', 'Entrega'),
     ], tracking=True)
     state = fields.Selection(string="Estado", selection=[
+        ('cancel', 'Cancelado'),
         ('no', 'No aplica'),
         ('pending', 'Pendiente'),
         ('process', 'En Proceso'),
@@ -422,7 +423,9 @@ class WMSTransfer(models.Model):
                 raise UserError('No se puede cancelar una transferencia finalizada.')
             if record.task_ids and record.task_ids.filtered(lambda t: t.digip_state != 'no'):
                 raise UserError('No se puede cancelar la transferencia, tiene tareas asociadas que fueron enviadas a DIGIP.')
-            record.state = 'no'
+            #cancelamos las tareas asociadas que no fueron enviadas a DIGIP
+            record.task_ids.filtered(lambda t: t.digip_state == 'no').write({'state': 'cancel'})
+            record.state = 'cancel'
 
 
 class WMSTransferLine(models.Model):
