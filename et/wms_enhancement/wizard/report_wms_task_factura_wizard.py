@@ -93,23 +93,25 @@ class ReportWmsTaskFacturaWizard(models.TransientModel):
         # =========================
         # TITULO
         # =========================
-        worksheet2.merge_range(0, 0, 0, 12, ('BASE DE DATOS').upper(), fmt_title)
+        worksheet2.merge_range(0, 0, 0, 14, ('BASE DE DATOS').upper(), fmt_title)
         # =========================
         # COLUMNAS DE LA BASE DE DATOS
         # =========================
         worksheet2.set_column(0, 0, 12)  # CODIGO
         worksheet2.set_column(1, 1, 60)  # DESCRIPCION
         worksheet2.set_column(2, 2, 12)  # UNIDADES
-        worksheet2.set_column(3, 3, 10)  # UxB
-        worksheet2.set_column(4, 4, 12)  # BULTOS
-        worksheet2.set_column(5, 5, 15)  # Transferencia
-        worksheet2.set_column(6, 6, 25)  # RUBRO
-        worksheet2.set_column(7, 7, 25)  # CATEGORIA
-        worksheet2.set_column(8, 8, 25)  # MARCA
-        worksheet2.set_column(9, 9, 25)  # CONTRATO DISNEY
-        worksheet2.set_column(10, 10, 25)  # SUBCONTRATO DISNEY
-        worksheet2.set_column(11, 11, 25)  # PERSONAJE DISNEY
-        worksheet2.set_column(12, 12, 25)  # PROPIEDAD DISNEY
+        worksheet2.set_column(3, 3, 12)  # VALOR UNITARIO
+        worksheet2.set_column(4, 4, 16)  # VALOR TOTAL
+        worksheet2.set_column(5, 5, 12)  # UxB
+        worksheet2.set_column(6, 6, 12)  # BULTOS
+        worksheet2.set_column(7, 7, 12)  # Transferencia
+        worksheet2.set_column(8, 8, 25)  # RUBRO
+        worksheet2.set_column(9, 9, 25)  # CATEGORIA
+        worksheet2.set_column(10, 10, 25)  # MARCA
+        worksheet2.set_column(11, 11, 25)  # CONTRATO DISNEY
+        worksheet2.set_column(12, 12, 25)  # SUBCONTRATO DISNEY
+        worksheet2.set_column(13, 13, 25)  # PERSONAJE DISNEY
+        worksheet2.set_column(14, 14, 25)  # PROPIEDAD DISNEY
         
         # Alto de filas de título/encabezado
         worksheet2.set_row(0, 20)
@@ -117,7 +119,7 @@ class ReportWmsTaskFacturaWizard(models.TransientModel):
         # =========================
         # ENCABEZADOS
         # =========================
-        headers2 = ['CODIGO', 'DESCRIPCION', 'UNIDADES', 'UxB', 'BULTOS', 'TRANSFERENCIA', 'RUBRO', 'CATEGORIA', 'MARCA', 'CONTRATO DISNEY', 'SUBCONTRATO DISNEY', 'PERSONAJE DISNEY', 'PROPIEDAD DISNEY']
+        headers2 = ['CODIGO', 'DESCRIPCION', 'UNIDADES', 'VALOR UNITARIO', 'VALOR TOTAL', 'UxB', 'BULTOS', 'TRANSFERENCIA', 'RUBRO', 'CATEGORIA', 'MARCA', 'CONTRATO DISNEY', 'SUBCONTRATO DISNEY', 'PERSONAJE DISNEY', 'PROPIEDAD DISNEY']
         for col, h in enumerate(headers2):
             worksheet2.write(1, col, h, fmt_header)
             
@@ -187,19 +189,24 @@ class ReportWmsTaskFacturaWizard(models.TransientModel):
                     rubros_str = '/'.join(rubros)   
                 # BULTOS = unidades / UxB (como tu imagen)
                 bultos = (unidades / uxb) if uxb else 0.0
+                valor_unitario = move.transfer_id.sale_id.order_line.filtered(lambda l: l.product_id == move.product_id).price_unit if move.transfer_id and move.transfer_id.sale_id else 0.0
+                descuento = move.transfer_id.sale_id.order_line.filtered(lambda l: l.product_id == move.product_id).discount if move.transfer_id and move.transfer_id.sale_id else 0.0
+                valor_total = (unidades * valor_unitario) * (1 - descuento / 100) if valor_unitario else 0.0
                 worksheet2.write(row2, 0, move.product_id.default_code or '', fmt_text2)
                 worksheet2.write(row2, 1, move.product_id.name or '', fmt_text)
                 worksheet2.write_number(row2, 2, unidades, fmt_int)
-                worksheet2.write_number(row2, 3, uxb, fmt_int)
-                worksheet2.write_number(row2, 4, bultos, fmt_dec2)
-                worksheet2.write(row2, 5, wms_task.name, fmt_text)
-                worksheet2.write(row2, 6, rubros_str or '', fmt_text2)
-                worksheet2.write(row2, 7, (move.product_id.categ_id.name or '') if move.product_id.categ_id else '', fmt_text2)
-                worksheet2.write(row2, 8, (move.product_id.product_brand_id.name or '') if move.product_id.product_brand_id else '', fmt_text2)
-                worksheet2.write(row2, 9, x_contract_id.x_name if x_contract_id else '', fmt_text2)
-                worksheet2.write(row2, 10, x_subcontract_id.x_name if x_subcontract_id else '', fmt_text2)
-                worksheet2.write(row2, 11, x_character_id.x_name if x_character_id else '', fmt_text2)
-                worksheet2.write(row2, 12, property_id.x_name if property_id else '', fmt_text2)
+                worksheet2.write_number(row2, 3, valor_unitario, fmt_dec2)
+                worksheet2.write_number(row2, 4, valor_total, fmt_dec2)
+                worksheet2.write_number(row2, 5, uxb, fmt_int)
+                worksheet2.write_number(row2, 6, bultos, fmt_dec2)
+                worksheet2.write(row2, 7, wms_task.name, fmt_text)
+                worksheet2.write(row2, 8, rubros_str or '', fmt_text2)
+                worksheet2.write(row2, 9, (move.product_id.categ_id.name or '') if move.product_id.categ_id else '', fmt_text2)
+                worksheet2.write(row2, 10, (move.product_id.product_brand_id.name or '') if move.product_id.product_brand_id else '', fmt_text2)
+                worksheet2.write(row2, 11, x_contract_id.x_name if x_contract_id else '', fmt_text2)
+                worksheet2.write(row2, 12, x_subcontract_id.x_name if x_subcontract_id else '', fmt_text2)
+                worksheet2.write(row2, 13, x_character_id.x_name if x_character_id else '', fmt_text2)
+                worksheet2.write(row2, 14, property_id.x_name if property_id else '', fmt_text2)
                 row2 += 1
                 t_cant_bultos += bultos
             

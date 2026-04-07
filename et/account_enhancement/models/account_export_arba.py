@@ -271,7 +271,9 @@ class AccountExportArba(models.Model):
         cuit = self._format_cuit_arba(partner.vat)
         fecha = self._format_date_arba(line.date)
         sucursal, nro_transaccion_agente = self._split_arba_document_number(move)
-        base_amount = float_round(line.tax_base_amount, precision_digits=2)
+        #BASE DE PAGO
+        base_amount = move.payment_id.withholdable_base_amount if move.payment_id and move.payment_id.withholdable_base_amount else line.tax_base_amount
+        base_amount = float_round(base_amount, precision_digits=2)
         if retencion:
             base_amount = float_round(abs(line.balance), precision_digits=2)
         alicuota = self._get_alicuota_arba(tax, partner, line.date)
