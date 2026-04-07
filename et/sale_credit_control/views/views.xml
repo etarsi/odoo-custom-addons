@@ -216,7 +216,13 @@
         <field name="name">sale.order.form.inherit.order.control.partner.button</field>
         <field name="model">sale.order</field>
         <field name="inherit_id" ref="sale.view_order_form"/>
-        <field name="arch" type="xml">
+        <field name="arch" type="xml">        
+
+            <xpath expr="//form/header" position="inside">
+                    <button name="action_set_approved" type="object" string="Aprobar" class="btn-success" groups="sale_credit_control.group_order_control_client"/>
+                    <button name="action_set_rejected" type="object" string="Rechazar" class="btn-warning" groups="sale_credit_control.group_order_control_client"/>
+                    <button name="action_set_pending" type="object" string="Marcar como 'Sin Revisar'" groups="sale_credit_control.group_order_control_client"/>
+            </xpath>
 
             <xpath expr="//div[@name='button_box']" position="inside">
                 <button name="action_open_order_control_partner"
