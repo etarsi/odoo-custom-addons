@@ -292,6 +292,13 @@
         sequence="10"
     />
 
+    <menuitem 
+        id="menu_order_control_sale_orders"
+        name="Pedidos"
+        parent="menu_order_control_root"
+        action="action_sale_order_control"
+        sequence="5"
+    />
     
 
 
