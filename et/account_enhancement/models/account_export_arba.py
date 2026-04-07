@@ -55,8 +55,10 @@ class AccountExportArba(models.Model):
     export_retenc_arba_filename = fields.Char('Retenciones ARBA',compute='_compute_files')
     export_retenc_arba_file = fields.Binary('Retenciones ARBA',readonly=True)  
     #GENERAR ZIP
-    export_archive_arba_zip = fields.Binary('Archivo Perc/Ret Arba ZIP', readonly=True)
-    export_archive_arba_zip_filename = fields.Char('Archivo Perc/Ret Arba ZIP', default='ARBA_Percepciones_Retenciones.zip')
+    export_archive_arba_zip = fields.Binary('Archivo Percepciones ARBA ZIP', readonly=True)
+    export_archive_arba_zip_filename = fields.Char('Archivo Percepciones ARBA ZIP', default='ARBA_Percepciones.zip')
+    export_archive_arba_ret_zip = fields.Binary('Archivo Retenciones ARBA ZIP', readonly=True)
+    export_archive_arba_ret_zip_filename = fields.Char('Archivo Retenciones ARBA ZIP', default='ARBA_Retenciones.zip')
     numero_correlativo = fields.Integer('Número correlativo', default=1)
     
 
@@ -332,16 +334,6 @@ class AccountExportArba(models.Model):
             'export_retenc_arba_data': ret_lines_txt,
             'move_lines_ids_txt': [(6, 0, exported_ids)],
         })  
-        
-        # los 3 archivos txt generar un zip y guardarlo en export_archive_arba_zip
-        zip_buffer = io.BytesIO()
-        with zipfile.ZipFile(zip_buffer, 'w') as zip_file:
-            if per_lines_txt:
-                zip_file.writestr('Percepciones Arba.txt', per_lines_txt.encode('ISO-8859-1'))
-            if nc_per_lines_txt:
-                zip_file.writestr('NC Percepciones Arba.txt', nc_per_lines_txt.encode('ISO-8859-1') if nc_per_lines_txt else ''.encode('ISO-8859-1'))
-            if ret_lines_txt:
-                zip_file.writestr('ARBA_Retenciones.txt', ret_lines_txt.encode('ISO-8859-1'))
 
         company_vat = self.company_id.vat
         fecha_año=self.date_from.strftime('%Y')
@@ -363,14 +355,31 @@ class AccountExportArba(models.Model):
         numero_correlativo= self.numero_correlativo
         #colocar el numero correlarivo con 4 caracteres, ej: 0001, 0002, etc.
         numero_correlativo = str(numero_correlativo).zfill(4)
-        export_archive_arba_zip_filename = f'ER-{company_vat}-{fecha_año}{fecha_mes}{quincena}-LOTE{sigla_company}{numero_correlativo}.zip'
+        export_archive_arba_zip_filename = f'ER-{company_vat}-{fecha_año}{fecha_mes}{quincena}-LOTP{sigla_company}{numero_correlativo}.zip'
+        export_archive_arba_ret_zip_filename = f'ER-{company_vat}-{fecha_año}{fecha_mes}{quincena}-LOTR{sigla_company}{numero_correlativo}_Retenciones.zip'
+        
+        
+        #ZIP DE PERCEPCIONES
+        zip_buffer_percepciones = io.BytesIO()
+        with zipfile.ZipFile(zip_buffer_percepciones, 'w') as zip_file:
+            if per_lines_txt:
+                zip_file.writestr(export_archive_arba_zip_filename, per_lines_txt.encode('ISO-8859-1'))
+        #ZIP DE RETENCIONES
+        zip_buffer_retenciones = io.BytesIO()
+        with zipfile.ZipFile(zip_buffer_retenciones, 'w') as zip_file:
+            if ret_lines_txt:
+                zip_file.writestr(export_archive_arba_ret_zip_filename, ret_lines_txt.encode('ISO-8859-1'))
+                
+
         self.write({
-            'export_archive_arba_zip': base64.b64encode(zip_buffer.getvalue()),
+            'export_archive_arba_zip': base64.b64encode(zip_buffer_percepciones.getvalue()),
             'export_archive_arba_zip_filename': export_archive_arba_zip_filename,
+            'export_archive_arba_ret_zip': base64.b64encode(zip_buffer_retenciones.getvalue()),
+            'export_archive_arba_ret_zip_filename': export_archive_arba_ret_zip_filename,
             'numero_correlativo': self.numero_correlativo + 1,
         })
-        self.export_archive_arba_zip = base64.b64encode(zip_buffer.getvalue())
-        
+        self.export_archive_arba_zip = base64.b64encode(zip_buffer_percepciones.getvalue())
+        self.export_archive_arba_ret_zip = base64.b64encode(zip_buffer_retenciones.getvalue())
         
 
     def set_done(self):
