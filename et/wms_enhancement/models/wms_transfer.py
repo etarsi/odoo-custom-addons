@@ -415,6 +415,14 @@ class WMSTransfer(models.Model):
                 'default_wms_transfer_id': self.id,
             }
         }
+        
+    def action_cancel(self):
+        for record in self:
+            if record.state == 'finished':
+                raise UserError('No se puede cancelar una transferencia finalizada.')
+            if record.task_ids and record.task_ids.filtered(lambda t: t.digip_state != 'no'):
+                raise UserError('No se puede cancelar la transferencia, tiene tareas asociadas que fueron enviadas a DIGIP.')
+            record.state = 'no'
 
 
 class WMSTransferLine(models.Model):

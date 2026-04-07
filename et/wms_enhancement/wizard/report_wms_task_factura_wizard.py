@@ -93,7 +93,7 @@ class ReportWmsTaskFacturaWizard(models.TransientModel):
         # =========================
         # TITULO
         # =========================
-        worksheet2.merge_range(0, 0, 0, 6, ('BASE DE DATOS').upper(), fmt_title)
+        worksheet2.merge_range(0, 0, 0, 12, ('BASE DE DATOS').upper(), fmt_title)
         # =========================
         # COLUMNAS DE LA BASE DE DATOS
         # =========================

@@ -73,6 +73,18 @@ class SaleOrderInherit(models.Model):
             tags = record.partner_id.category_id.mapped('name')
             record.is_fraction = 'Fraccionado' in tags
 
+    def cancel_order(self):
+        """
+            Override del método de cancelación de pedido para cancelar la transferencia asociada.
+                - Si el pedido tiene entregas asociadas, no se podrá cancelar.
+        """
+        for record in self:
+            if record.transfer_id and record.transfer_id.state != 'no':
+                record.transfer_id.action_cancel()
+        res = super().cancel_order()                
+        return res
+                
+                
 
 class SaleOrderLineInherit(models.Model):
     _inherit = 'sale.order.line'

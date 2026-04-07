@@ -69,13 +69,9 @@ class SaleOrderInherit(models.Model):
     def cancel_order(self):
         for record in self:
             if record.picking_ids:
-                raise UserError('No se puede cancelar pedido viejo')
-                
-            if record.transfer_id:
-                # record.cancel_transfers()                
-                record.unreserve_stock_sale_order()
-                record.action_cancel()
+                raise UserError('No se puede cancelar pedido viejo, que tiene transferencias antiguas.')
             record.unreserve_stock_sale_order()
+            record.action_cancel()
     
     def cancel_pickings(self):
         for record in self:

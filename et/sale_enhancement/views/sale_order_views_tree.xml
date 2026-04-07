@@ -14,6 +14,13 @@
                             type="action"
                             class="btn-secondary"
                             groups="sale_enhancement.group_sale_order_special_permissions"/>
+                    <button name="cancel_order"
+                            string="Cancelar Pedido"
+                            type="object"
+                            class="btn-secondary"
+                            confirm="¿Estás seguro de que deseas cancelar este pedido?"
+                            groups="sale_enhancement.group_sale_order_special_permissions"
+                            attrs="{'invisible': [('state', '=', 'cancel')]}"/>
                     
                 </xpath>
                 <xpath expr="//page[@name='other_information']//field[@name='company_id']" position="after">
