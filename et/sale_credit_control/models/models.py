@@ -222,16 +222,20 @@ class ResPartnerInherit(models.Model):
     # =========================
     # ACCIONES
     # =========================
-
+    
     def action_view_sale_orders(self):
         self.ensure_one()
         return {
             'type': 'ir.actions.act_window',
             'name': 'Pedidos de Venta',
             'res_model': 'sale.order',
-            'view_mode': 'tree,form',
+            'views': [
+                (self.env.ref('sale_credit_control.view_sale_order_tree_order_control').id, 'tree'),
+                (self.env.ref('sale.view_order_form').id, 'form'),
+            ],
             'domain': [('partner_id', '=', self.id)],
         }
+
 
     def action_view_invoices(self):
         self.ensure_one()
