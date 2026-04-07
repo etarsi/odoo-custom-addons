@@ -355,27 +355,27 @@ class AccountExportArba(models.Model):
         numero_correlativo= self.numero_correlativo
         #colocar el numero correlarivo con 4 caracteres, ej: 0001, 0002, etc.
         numero_correlativo = str(numero_correlativo).zfill(4)
-        export_archive_arba_zip_filename = f'ER-{company_vat}-{fecha_año}{fecha_mes}{quincena}-LOTP{sigla_company}{numero_correlativo}.zip'
-        export_archive_arba_ret_zip_filename = f'ER-{company_vat}-{fecha_año}{fecha_mes}{quincena}-LOTR{sigla_company}{numero_correlativo}.zip'
+        export_archive_arba_zip_filename = f'ER-{company_vat}-{fecha_año}{fecha_mes}{quincena}-LOTP{sigla_company}{numero_correlativo}'
+        export_archive_arba_ret_zip_filename = f'ER-{company_vat}-{fecha_año}{fecha_mes}{quincena}-LOTR{sigla_company}{numero_correlativo}'
         
         
         #ZIP DE PERCEPCIONES
         zip_buffer_percepciones = io.BytesIO()
         with zipfile.ZipFile(zip_buffer_percepciones, 'w') as zip_file:
             if per_lines_txt:
-                zip_file.writestr(export_archive_arba_zip_filename, per_lines_txt.encode('ISO-8859-1'))
+                zip_file.writestr(f'{export_archive_arba_zip_filename}.txt', per_lines_txt.encode('ISO-8859-1'))
         #ZIP DE RETENCIONES
         zip_buffer_retenciones = io.BytesIO()
         with zipfile.ZipFile(zip_buffer_retenciones, 'w') as zip_file:
             if ret_lines_txt:
-                zip_file.writestr(export_archive_arba_ret_zip_filename, ret_lines_txt.encode('ISO-8859-1'))
+                zip_file.writestr(f'{export_archive_arba_ret_zip_filename}.txt', ret_lines_txt.encode('ISO-8859-1'))
                 
 
         self.write({
             'export_archive_arba_zip': base64.b64encode(zip_buffer_percepciones.getvalue()),
-            'export_archive_arba_zip_filename': export_archive_arba_zip_filename,
+            'export_archive_arba_zip_filename': f'{export_archive_arba_zip_filename}.zip',
             'export_archive_arba_ret_zip': base64.b64encode(zip_buffer_retenciones.getvalue()),
-            'export_archive_arba_ret_zip_filename': export_archive_arba_ret_zip_filename,
+            'export_archive_arba_ret_zip_filename': f'{export_archive_arba_ret_zip_filename}.zip',
             'numero_correlativo': self.numero_correlativo + 1,
         })
         self.export_archive_arba_zip = base64.b64encode(zip_buffer_percepciones.getvalue())
