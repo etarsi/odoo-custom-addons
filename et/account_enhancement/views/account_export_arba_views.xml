@@ -29,6 +29,10 @@
                         <notebook>
                             <page string="Archivo">
                                 <group string="Archivo">
+                                    <field name="export_percep_arba_filename" invisible="1"/>
+                                    <field name="export_percep_arba_file" filename="export_percep_arba_filename" invisible="1"/>
+                                    <field name="export_retenc_arba_filename" invisible="1"/>
+                                    <field name="export_retenc_arba_file" filename="export_retenc_arba_filename" invisible="1"/>
                                     <field name="export_archive_arba_zip_filename" invisible="1"/>
                                     <field name="export_archive_arba_zip" filename="export_archive_arba_zip_filename"/>
                                     <field name="export_archive_arba_ret_zip_filename" invisible="1"/>
