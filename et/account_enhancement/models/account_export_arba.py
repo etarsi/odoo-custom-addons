@@ -274,8 +274,6 @@ class AccountExportArba(models.Model):
         #BASE DE PAGO
         base_amount = move.payment_id.withholdable_base_amount if move.payment_id else 0.00
         base_amount = float_round(base_amount, precision_digits=2)
-        if retencion:
-            base_amount = float_round(abs(line.balance), precision_digits=2)
         alicuota = self._get_alicuota_arba(tax, partner, line.date)
         content = ''
         content += nro_transaccion_agente
