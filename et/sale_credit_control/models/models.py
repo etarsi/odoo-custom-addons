@@ -75,7 +75,7 @@ class ResPartnerInherit(models.Model):
     def _compute_debt_line_count(self):
         for partner in self:
             partner.debt_line_count = self.env['report.debt.composition.client'].search_count([
-                ('partner_id', '=', partner.id)
+                ('partner', '=', partner.id)
             ])
 
 
