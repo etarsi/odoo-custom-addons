@@ -5,7 +5,7 @@
         <t t-if="product.gallery_image_ids">
             <div class="mt-3">
                 <div class="row">
-                    <t t-set="thumb_images" t-value="product.gallery_image_ids"/>
+                    <t t-set="thumb_images" t-value="product.sudo().gallery_image_ids.filtered('website_published')"/>
                     <t t-if="thumb_images">
                         <div class="row">
                             <t t-foreach="thumb_images" t-as="img">
