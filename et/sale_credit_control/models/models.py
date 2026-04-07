@@ -233,7 +233,7 @@ class ResPartnerInherit(models.Model):
                 (self.env.ref('sale_credit_control.view_sale_order_tree_order_control').id, 'tree'),
                 (self.env.ref('sale.view_order_form').id, 'form'),
             ],
-            'domain': [('partner_id', '=', self.id)],
+            'domain': [('partner_id', '=', self.id), ('state', 'in', ('draft', 'rejected', 'blocked'))],
         }
 
 
