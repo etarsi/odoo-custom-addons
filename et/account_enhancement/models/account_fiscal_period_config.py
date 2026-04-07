@@ -189,6 +189,7 @@ class AccountFiscalPeriodConfig(models.Model):
         # validar que la fecha actual este 1 dia después de date_end para evitar generar asientos con fecha en el pasado
         #if fields.Date.to_date(self.date_end) >= fields.Date.today():
         #    raise UserError(_("La fecha de fin del período debe ser menor a la fecha actual para generar el asiento de apertura."))
+        date_apertura = self.date_end + timedelta(days=1)
         account_client_ids = self.env['account.account'].search(['&',
                                                                     ('company_id', '=', self.company_id.id),
                                                                     '|', '|', 
@@ -205,7 +206,7 @@ class AccountFiscalPeriodConfig(models.Model):
                                                         ('move_type', '=', 'entry'),
                                                         ('line_ids.account_id', 'in', account_client_existing.ids),
                                                         ('state', '=', 'posted')], limit=1)
-        date_apertura = self.date_end + timedelta(days=1)
+
         existing_moves = self.env['account.move'].search([('company_id', '=', self.company_id.id),
                                                         ('fiscal_period_config_id', '=', self.id),
                                                         ('date', '=', date_apertura), #1 dia después de date_end para evitar generar asientos con fecha en el pasado
@@ -235,7 +236,7 @@ class AccountFiscalPeriodConfig(models.Model):
         move_vals = {
             "move_type": "entry",
             "company_id": self.company_id.id,
-            "date": self.date_end,
+            "date": date_apertura,
             "journal_id": self.journal_id.id,
             "ref": _("Apertura de periodo de %s") % self.company_id.display_name,
             "fiscal_period_config_id": self.id,
@@ -245,7 +246,7 @@ class AccountFiscalPeriodConfig(models.Model):
         created_moves = self.env["account.move"].create(move_vals)
         return {
             "type": "ir.actions.act_window",
-            "name": _("Asiento Contable de Cierre de Periodo (4-5) - %s") % self.company_id.display_name,
+            "name": _("Asiento Contable de Apertura de Periodo (1-2-3) - %s") % self.company.display_name,
             "res_model": "account.move",
             "view_mode": "form",
             "res_id": created_moves.id,
