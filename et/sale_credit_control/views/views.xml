@@ -222,7 +222,8 @@
                 <button name="action_open_order_control_partner"
                         type="object"
                         class="oe_stat_button"
-                        icon="fa-user">
+                        icon="fa-user"
+                        groups="sale_credit_control.group_order_control_client">
 
                     <div class="o_stat_info">
                         <span class="o_stat_text">Cliente</span>

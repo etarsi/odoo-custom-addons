@@ -24,6 +24,7 @@
 
     # always loaded
     'data': [
+        'security/security.xml',
         'views/views.xml',
         'views/sale_order.xml',
     ],

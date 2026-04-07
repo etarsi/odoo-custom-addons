@@ -1,0 +1,8 @@
+<odoo>
+    <data>        
+        <record id="group_order_control_client" model="res.groups">
+            <field name="name">Control de Pedidos: Cliente</field>
+            <field name="category_id" ref="base.module_category_hidden"/>
+        </record>
+    </data>
+</odoo>
