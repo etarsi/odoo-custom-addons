@@ -244,7 +244,7 @@
         <field name="name">Pedidos</field>
         <field name="res_model">sale.order</field>
         <field name="view_mode">tree,form</field>
-        <field name="domain">[('approval_state', 'in', ['pending', 'rejected', 'blocked']), ('state', 'in', ('draft', 'rejected', 'blocked'))]</field>
+        <field name="domain">[('approval_state', 'in', ('pending', 'rejected', 'blocked')), ('state', 'in', ('draft', 'rejected', 'blocked'))]</field>
     </record>
 
     <!-- ACTION VIEWS -->
