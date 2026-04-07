@@ -40,8 +40,8 @@
         <field name="arch" type="xml">
             <tree string="Control de Pedidos"
                 default_order="date_order desc"
-                decoration-warning="state == 'rejected'"
-                decoration-danger="state == 'blocked'">
+                decoration-warning="approval_state == 'rejected'"
+                decoration-danger="approval_state == 'blocked'">
 
                 <header>
                     <button name="action_set_approved" type="object" string="Aprobar" class="btn-success"/>
