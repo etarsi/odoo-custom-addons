@@ -50,7 +50,7 @@
                 </header>
 
                 <field name="name" string="Número de pedido"/>
-                <field name="condicion_m2m" string="Condición de Venta"/>
+                <!-- <field name="condicion_m2m" string="Condición de Venta"/> -->
                 <field name="date_order" string="Fecha"/>
                 <field name="partner_id" string="Cliente"/>
                 <field name="user_id" string="Comercial"/>
