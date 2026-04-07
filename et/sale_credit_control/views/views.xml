@@ -51,14 +51,14 @@
                     <button name="action_set_pending" type="object" string="Marcar como 'Sin Revisar'"/>
                 </header>
 
-                <field name="name" string="Número de pedido"/>
-                <!-- <field name="condicion_m2m" string="Condición de Venta"/> -->
+                <field name="name" string="Pedido"/>
+                <field name="condicion_m2m" string="Tipo"/>
                 <field name="date_order" string="Fecha"/>
                 <field name="partner_id" string="Cliente"/>
-                <field name="user_id" string="Comercial"/>
-                <field name="executive_id" string="Ejecutivo"/>
+                <field name="user_id" string="Comercial" widget="many2one_avatar_user"/>
+                <field name="executive_id" string="Ejecutivo" widget="many2one_avatar_user"/>
                 <field name="company_id" string="Compañía"/>
-                <!-- <field name="packaging_qty" string="Cantidad de Bultos"/> -->
+                <field name="packaging_qty" string="Cantidad de Bultos"/>
                 <field name="x_discount" string="Descuento"/>
                 <field name="amount_total" string="Monto Total"/>
                 <field name="payment_term_id" string="Plazos de Pago"/>

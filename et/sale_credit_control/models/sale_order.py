@@ -15,12 +15,12 @@ class SaleOrderInherit(models.Model):
     _inherit = 'sale.order'
 
     state = fields.Selection(
-        selection_add=[('blocked', 'Bloqueado'), ('rejected', 'Rechazado')],
+        selection_add=[('blocked', 'Bloqueado'), ('rejected', 'Rechazado'), ('pending', 'Pendiente de Aprobación')],
         ondelete={'blocked': 'set default'}
     )
 
     approval_state = fields.Selection(string="Estado de Aprobación", selection=[
-        ('pending', 'Sin Revisar'),
+        ('pending', 'Pendiente'),
         ('blocked','Bloqueado'),
         ('rejected', 'Rechazado'),
         ('approved', 'OK')], default='pending')
@@ -52,7 +52,10 @@ class SaleOrderInherit(models.Model):
 
     def action_set_pending(self):
         for rec in self:
+            if rec.state == 'blocked':
+                raise UserError('Los pedidos bloqueados solo se pueden desbloquear desde el panel de Cliente.')
             rec.approval_state = 'pending'
+            rec.state = 'draft'
 
     def action_set_approved(self):
         for rec in self:
@@ -60,6 +63,8 @@ class SaleOrderInherit(models.Model):
 
     def action_set_rejected(self):
         for rec in self:
+            if rec.state == 'blocked':
+                raise UserError('Los pedidos bloqueados solo se pueden desbloquear desde el panel de Cliente.')
             rec.approval_state = 'rejected'
             rec.state = 'rejected'
 
@@ -71,6 +76,11 @@ class SaleOrderInherit(models.Model):
 
             if order.partner_id.order_control_state == 'blocked':
                 raise UserError(_('No se puede confirmar un pedido porque el cliente está bloqueado.'))
+            
+            if order.state == 'rejected':
+                order.state = 'pending'
+                order.approval_state = 'pending'
+                return True
 
         return super().action_confirm()
     
@@ -81,6 +91,7 @@ class SaleOrderInherit(models.Model):
                 raise UserError(_('No se puede pasar a borrador un pedido bloqueado desde esta acción.'))
         return super().action_draft()
     
+
     @api.model
     def create(self, vals):
         order = super().create(vals)
