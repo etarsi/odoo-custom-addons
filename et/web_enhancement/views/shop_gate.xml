@@ -45,6 +45,7 @@
         </xpath>
     </template>
 
+    <!--
     <template id="website_sale_shop_product_carousel_gallery"
               inherit_id="website_sale.shop_product_carousel"
               name="Website Sale Shop Product Carousel Gallery">
@@ -96,4 +97,5 @@
             </div>
         </xpath>
     </template>
+    -->
 </odoo>
