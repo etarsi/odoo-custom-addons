@@ -39,6 +39,7 @@
         ],
         'web.assets_frontend': [
             'web_enhancement/static/src/js/zip_download.js',
+            'web_enhancement/static/src/css/style_image_product.css',
         ],
     },
     'application': False,

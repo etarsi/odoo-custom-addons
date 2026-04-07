@@ -1,0 +1,23 @@
+#o-carousel-product .carousel-inner,
+#o-carousel-product .carousel-item {
+    min-height: 520px;
+}
+
+#o-carousel-product .o_ext_main_image_wrap {
+    min-height: 520px;
+    overflow: hidden;
+}
+
+#o-carousel-product .o_ext_main_image {
+    max-height: 520px;
+    max-width: 100%;
+    width: auto;
+    object-fit: contain;
+    display: block;
+    margin: 0 auto;
+}
+
+#product_detail_main,
+.oe_website_sale {
+    margin-bottom: 50px;
+}

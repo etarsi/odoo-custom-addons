@@ -114,11 +114,11 @@
                     <div class="carousel-inner">
                         <t t-if="gallery_images">
                             <t t-foreach="gallery_images" t-as="img">
-                                <div t-attf-class="carousel-item#{' active' if img_first else ''}">
-                                    <div class="o_ext_main_image_wrap">
+                                <div t-attf-class="carousel-item h-100#{' active' if img_first else ''}">
+                                    <div class="d-flex align-items-center justify-content-center h-100 o_ext_main_image_wrap">
                                         <img t-att-src="'/product-images/%s' % img.relative_path"
                                             t-att-alt="img.name or product.name"
-                                            class="product_detail_img img img-fluid o_ext_main_image"/>
+                                            class="product_detail_img img img-fluid mh-100 o_ext_main_image"/>
                                     </div>
                                 </div>
                             </t>
