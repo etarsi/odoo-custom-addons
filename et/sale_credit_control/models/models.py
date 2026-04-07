@@ -83,7 +83,7 @@ class ResPartnerInherit(models.Model):
             for order in orders:
                 total += order.amount_total
 
-            partner.invoice_total_net = total
+            partner.sale_total = total
 
 
     def _compute_invoice_total_net(self):
