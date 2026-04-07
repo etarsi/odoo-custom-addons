@@ -356,7 +356,7 @@ class AccountExportArba(models.Model):
         #colocar el numero correlarivo con 4 caracteres, ej: 0001, 0002, etc.
         numero_correlativo = str(numero_correlativo).zfill(4)
         export_archive_arba_zip_filename = f'ER-{company_vat}-{fecha_año}{fecha_mes}{quincena}-LOTP{sigla_company}{numero_correlativo}.zip'
-        export_archive_arba_ret_zip_filename = f'ER-{company_vat}-{fecha_año}{fecha_mes}{quincena}-LOTR{sigla_company}{numero_correlativo}_Retenciones.zip'
+        export_archive_arba_ret_zip_filename = f'ER-{company_vat}-{fecha_año}{fecha_mes}{quincena}-LOTR{sigla_company}{numero_correlativo}.zip'
         
         
         #ZIP DE PERCEPCIONES
