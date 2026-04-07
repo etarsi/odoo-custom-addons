@@ -15,14 +15,14 @@ class SaleOrderInherit(models.Model):
     _inherit = 'sale.order'
 
     state = fields.Selection(
-        selection_add=[('blocked', 'Bloqueado')],
+        selection_add=[('blocked', 'Bloqueado'), ('rejected', 'Rechazado')],
         ondelete={'blocked': 'set default'}
     )
 
     approval_state = fields.Selection(string="Estado de Aprobación", selection=[
         ('pending', 'Sin Revisar'),
         ('blocked','Bloqueado'),
-        ('rejected', 'Rechazado')
+        ('rejected', 'Rechazado'),
         ('approved', 'OK')], default='pending')
 
     blocked_by_order_control = fields.Boolean(
