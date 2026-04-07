@@ -15,9 +15,15 @@ class SaleOrderInherit(models.Model):
     _inherit = 'sale.order'
 
     state = fields.Selection(
-        selection_add=[('blocked', 'Bloqueado')],
+        selection_add=[('blocked', 'Bloqueado'), ('rejected', 'Rechazado')],
         ondelete={'blocked': 'set default'}
     )
+
+    approval_state = fields.Selection(string="Estado de Aprobación", selection=[
+        ('pending', 'Sin Revisar'),
+        ('blocked','Bloqueado'),
+        ('rejected', 'Rechazado')
+        ('approved', 'OK')], default='pending')
 
     blocked_by_order_control = fields.Boolean(
         string='Bloqueado por Control de Pedidos',
@@ -29,27 +35,34 @@ class SaleOrderInherit(models.Model):
         copy=False
     )
 
-    def action_set_blocked(self, reason=False):
-        for order in self:
-            if order.state in ('done', 'cancel'):
-                continue
+    executive_id = fields.Many2one(
+        related='partner_id.executive_id',
+        string='Ejecutivo',
+        store=False,
+        readonly=True
+    )
 
-            order.write({
-                'state': 'blocked',
-                'blocked_by_order_control': True,
-                'blocked_reason': reason or _('Cliente bloqueado desde Control de Pedidos.'),
-            })
+    partner_overdue_debt = fields.Monetary(
+        related='partner_id.overdue_debt',
+        string='Deuda Total Vencida',
+        currency_field='currency_id',
+        store=False,
+        readonly=True
+    )
 
-    def action_set_draft_from_blocked(self):
-        for order in self:
-            if order.state != 'blocked':
-                continue
+    def action_set_pending(self):
+        for rec in self:
+            rec.approval_state = 'pending'
 
-            order.write({
-                'state': 'draft',
-                'blocked_by_order_control': False,
-                'blocked_reason': False,
-            })
+    def action_set_approved(self):
+        for rec in self:
+            rec.approval_state = 'approved'
+
+    def action_set_rejected(self):
+        for rec in self:
+            rec.approval_state = 'rejected'
+            rec.state = 'rejected'
+
 
     def action_confirm(self):
         for order in self:
@@ -111,3 +124,18 @@ class SaleOrderInherit(models.Model):
                 'message': _('Este cliente está bloqueado desde Control de Pedidos. Si guardás, el pedido quedará bloqueado.'),
             }
             return {'warning': warning}
+
+
+    def action_open_order_control_partner(self):
+        self.ensure_one()
+        return {
+            'type': 'ir.actions.act_window',
+            'name': 'Cliente',
+            'res_model': 'res.partner',
+            'view_mode': 'form',
+            'views': [(self.env.ref('sale_credit_control.view_partner_form_order_control').id, 'form')],
+            'res_id': self.partner_id.id,
+            'target': 'current',
+        }
+    
+    

@@ -49,9 +49,35 @@ class ResPartnerInherit(models.Model):
 
     credit_alert_summary = fields.Text(string="Resumen de Alertas", compute="_compute_alerts", store=True)
 
+    sale_order_count = fields.Integer(compute='_compute_sale_order_count')
+    invoice_count = fields.Integer(compute='_compute_invoice_count')
+    debt_line_count = fields.Integer(compute='_compute_debt_line_count')
+
+    
     # =========================
     # COMPUTES
     # =========================
+
+    def _compute_sale_order_count(self):
+        for partner in self:
+            partner.sale_order_count = self.env['sale.order'].search_count([
+                ('partner_id', '=', partner.id)
+            ])
+
+    def _compute_invoice_count(self):
+        for partner in self:
+            partner.invoice_count = self.env['account.move'].search_count([
+                ('partner_id', '=', partner.id),
+                ('move_type', '=', 'out_invoice'),
+                ('state', '=', 'posted')
+            ])
+
+    def _compute_debt_line_count(self):
+        for partner in self:
+            partner.debt_line_count = self.env['report.debt.composition.client'].search_count([
+                ('partner_id', '=', partner.id)
+            ])
+
 
     def _compute_invoice_sales_data(self):
         AccountMove = self.env['account.move']
@@ -149,6 +175,39 @@ class ResPartnerInherit(models.Model):
     # ACCIONES
     # =========================
 
+    def action_view_sale_orders(self):
+        self.ensure_one()
+        return {
+            'type': 'ir.actions.act_window',
+            'name': 'Pedidos de Venta',
+            'res_model': 'sale.order',
+            'view_mode': 'tree,form',
+            'domain': [('partner_id', '=', self.id)],
+        }
+
+    def action_view_invoices(self):
+        self.ensure_one()
+        return {
+            'type': 'ir.actions.act_window',
+            'name': 'Facturación',
+            'res_model': 'account.move',
+            'view_mode': 'tree,form',
+            'domain': [
+                ('partner_id', '=', self.id),
+                ('move_type', 'in', ('out_invoice', 'out_refund')),
+                ('state', '=', 'posted')
+            ],
+        }
+
+    def action_view_debt_composition(self):
+        self.ensure_one()
+        return {
+            'type': 'ir.actions.act_window',
+            'name': 'Composición de Deuda',
+            'res_model': 'report.debt.composition.client',
+            'view_mode': 'tree',
+            'domain': [('partner_id', '=', self.id)],
+        }
 
     def action_set_approved(self):
         for rec in self:

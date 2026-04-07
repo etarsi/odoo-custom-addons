@@ -33,12 +33,53 @@
         </field>
     </record>
 
+
+    <record id="view_sale_order_tree_order_control" model="ir.ui.view">
+        <field name="name">sale.order.tree.order.control</field>
+        <field name="model">sale.order</field>
+        <field name="arch" type="xml">
+            <tree string="Control de Pedidos"
+                default_order="date_order desc"
+                decoration-warning="state == 'rejected'"
+                decoration-danger="state == 'blocked">
+
+                <header>
+                    <button name="action_set_approved" type="object" string="Aprobar" class="btn-success"/>
+                    <button name="action_set_rejected" type="object" string="Rechazar" class="btn-warning"/>
+                    <button name="action_set_pending" type="object" string="Marcar como 'Sin Revisar'"/>
+                </header>
+
+                <field name="name" string="Número de pedido"/>
+                <field name="condition_m2m" string="Condición de Venta"/>
+                <field name="date_order" string="Fecha"/>
+                <field name="partner_id" string="Cliente"/>
+                <field name="user_id" string="Comercial"/>
+                <field name="executive_id" string="Ejecutivo"/>
+                <field name="company_id" string="Compañía"/>
+                <field name="packaging_qty" string="Cantidad de Bultos"/>
+                <field name="x_discount" string="Descuento"/>
+                <field name="amount_total" string="Monto Total"/>
+                <field name="payment_term_id" string="Plazos de Pago"/>
+                <field name="partner_overdue_debt" string="Deuda Total Vencida"/>
+                <field name="approval_state" string="Estado Aprobación" widget="badge" decoration-danger="approval_state == 'blocked'" decoration-warning="approval_state == 'rejected'"/>
+
+            </tree>
+        </field>
+    </record>
+
     <!-- ACTION -->
     <record id="action_order_control" model="ir.actions.act_window">
         <field name="name">Clientes</field>
         <field name="res_model">res.partner</field>
         <field name="view_mode">tree,form</field>
         <field name="domain">[('customer_rank', '&gt;', 0), ('category_id', '!=', 'Propio')]</field>
+    </record>
+
+    <record id="action_sale_order_order_control" model="ir.actions.act_window">
+        <field name="name">Pedidos</field>
+        <field name="res_model">sale.order</field>
+        <field name="view_mode">tree,form</field>
+        <field name="domain">[('approval_state', 'in', ['pending', 'rejected', 'blocked']), ('state', 'in', ('draft', 'draft'))]</field>
     </record>
 
     <!-- ACTION VIEWS -->
@@ -54,6 +95,20 @@
         <field name="view_mode">form</field>
         <field name="view_id" ref="view_partner_form_order_control"/>
         <field name="act_window_id" ref="action_order_control"/>
+    </record>
+
+    <record id="action_order_control_tree_view" model="ir.actions.act_window.view">
+        <field name="sequence" eval="1"/>
+        <field name="view_mode">tree</field>
+        <field name="view_id" ref="view_sale_order_tree_order_control"/>
+        <field name="act_window_id" ref="action_sale_order_order_control"/>
+    </record>
+
+    <record id="action_order_control_form_view" model="ir.actions.act_window.view">
+        <field name="sequence" eval="2"/>
+        <field name="view_mode">form</field>
+        <field name="view_id" ref="sale.view_order_form"/>
+        <field name="act_window_id" ref="action_sale_order_order_control"/>
     </record>
 
     <!-- MENÚ ROOT -->
@@ -103,6 +158,49 @@
                 </header>
 
                 <sheet>
+                    <div class="oe_button_box" name="button_box">                    
+
+                        <!-- DEUDA -->
+                        <button name="action_view_debt_composition"
+                                type="object"
+                                class="oe_stat_button"
+                                icon="fa-line-chart">
+
+                            <div class="o_stat_info">
+                                <field name="debt_line_count" class="o_stat_value"/>
+                                <span class="o_stat_text">Composición de Deuda</span>
+                            </div>
+
+                        </button>
+
+
+                        <!-- FACTURADO -->
+                        <button name="action_view_invoices"
+                                type="object"
+                                class="oe_stat_button"
+                                icon="fa-file-text-o">
+
+                            <div class="o_stat_info">
+                                <field name="invoice_count" class="o_stat_value"/>
+                                <span class="o_stat_text">Facturado</span>
+                            </div>
+
+                        </button>
+
+                        <!-- PEDIDOS -->
+                        <button name="action_view_sale_orders"
+                                type="object"
+                                class="oe_stat_button"
+                                icon="fa-shopping-cart">
+
+                            <div class="o_stat_info">
+                                <field name="sale_order_count" class="o_stat_value"/>
+                                <span class="o_stat_text">Pedidos</span>
+                            </div>
+
+                        </button>
+
+                    </div>
                     <div class="oe_title">
                         <h1 class="d-flex align-items-center gap-2">
                             <field name="name" readonly="1"/>
@@ -168,6 +266,29 @@
                     </notebook>
                 </sheet>
             </form>
+        </field>
+    </record>
+
+
+    <record id="sale_order_form_inherit_order_control_partner_button" model="ir.ui.view">
+        <field name="name">sale.order.form.inherit.order.control.partner.button</field>
+        <field name="model">sale.order</field>
+        <field name="inherit_id" ref="sale.view_order_form"/>
+        <field name="arch" type="xml">
+
+            <xpath expr="//div[@name='button_box']" position="inside">
+                <button name="action_open_order_control_partner"
+                        type="object"
+                        class="oe_stat_button"
+                        icon="fa-user">
+
+                    <div class="o_stat_info">
+                        <span class="o_stat_text">Cliente</span>
+                    </div>
+
+                </button>
+            </xpath>
+
         </field>
     </record>
 
