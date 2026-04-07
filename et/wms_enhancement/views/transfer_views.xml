@@ -38,7 +38,7 @@
         <field name="name">wms.transfer.tree</field>
         <field name="model">wms.transfer</field>
         <field name="arch" type="xml">
-            <tree string="Transferencias WMS" default_order="create_date desc">
+            <tree string="Transferencias WMS" default_order="create_date desc" decoration-muted="state=='cancel'">
                 <header>
                     <button name="action_split_into_tasks" type="object" string="Crear Tareas" class="oe_highlight"/>
                 </header>

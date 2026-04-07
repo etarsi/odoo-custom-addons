@@ -39,7 +39,7 @@
         <field name="name">wms.task.tree</field>
         <field name="model">wms.task</field>
         <field name="arch" type="xml">
-            <tree string="Tareas WMS" default_order="create_date desc">
+            <tree string="Tareas WMS" default_order="create_date desc" decoration-muted="state_preparation=='cancel'">
                 <header>
                     <button name="send_and_receive_digip" type="object" string="Enviar y Recibir Digip"/>   
                     <button name="action_enviar_compartido" type="object" string="Enviar a Compartido"/>
@@ -69,7 +69,9 @@
                 <field name="type" widget="badge" decoration-danger="type=='return'" decoration-info="type=='reception'" decoration-primary="type=='fraction'" decoration-success="type=='preparation'" decoration-warning="type=='replenish'" decoration-bf="type=='relocate'"/>
                 <field name="digip_state" widget="badge" decoration-warning="digip_state == 'sent'" decoration-success="digip_state == 'received'" decoration-info="digip_state == 'remitido'" decoration-danger="digip_state == 'pending'" decoration-primary="digip_state == 'preparation'"/>
                 <field name="invoice_state" widget="badge" decoration-success="invoice_state== 'invoiced'"/>
-                <!-- <field name="state_preparation" widget="badge" attrs="{'column_invisible': [('type', '!=', 'preparation')]}"/> -->
+                <field name="state_preparation" widget="badge" decoration-danger="state_preparation=='cancel'" 
+                        decoration-success="state_preparation=='delivery'" decoration-warning="state_preparation=='pending'" 
+                        decoration-info="state_preparation=='preparation'" optional="hide"/>
             </tree>
         </field>
     </record>
