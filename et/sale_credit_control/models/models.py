@@ -206,7 +206,7 @@ class ResPartnerInherit(models.Model):
             'name': 'Composición de Deuda',
             'res_model': 'report.debt.composition.client',
             'view_mode': 'tree',
-            'domain': [('partner_id', '=', self.id)],
+            'domain': [('partner', '=', self.id)],
         }
 
     def action_set_approved(self):
