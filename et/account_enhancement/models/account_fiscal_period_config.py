@@ -246,7 +246,7 @@ class AccountFiscalPeriodConfig(models.Model):
         created_moves = self.env["account.move"].create(move_vals)
         return {
             "type": "ir.actions.act_window",
-            "name": _("Asiento Contable de Apertura de Periodo (1-2-3) - %s") % self.company.display_name,
+            "name": _("Asiento Contable de Apertura de Periodo (1-2-3) - %s") % self.company_id.display_name,
             "res_model": "account.move",
             "view_mode": "form",
             "res_id": created_moves.id,
