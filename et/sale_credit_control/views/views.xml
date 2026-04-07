@@ -136,7 +136,7 @@
                                 icon="fa-shopping-cart">
 
                             <div class="o_stat_info">
-                                <field name="sale_order_count" class="o_stat_value"/>
+                                <field name="sale_total" class="o_stat_value"/>
                                 <span class="o_stat_text">Pedidos</span>
                             </div>
 
