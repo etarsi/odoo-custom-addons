@@ -177,8 +177,6 @@ class WMSTransfer(models.Model):
 
 
     # ACTIONS
-
-    
     def action_split_into_tasks(self, max_lines=30, max_bultos=30):
         """
         Crea tareas consumiendo qty_pending de las líneas disponibles (available_percent == 100).
@@ -187,7 +185,8 @@ class WMSTransfer(models.Model):
         total_created_tasks = self.env['wms.task']
 
         for record in self:
-
+            if record.state in ['finished', 'cancel']:
+                raise UserError('No se pueden crear tareas para una transferencia finalizada o cancelada.')
             lines = record.line_ids.filtered(lambda l:
                 float_compare(l.available_percent or 0.0, 100.0, precision_digits=6) == 0
                 and (l.qty_pending or 0) > 0
