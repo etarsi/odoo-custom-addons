@@ -53,10 +53,58 @@ class ResPartnerInherit(models.Model):
     invoice_count = fields.Integer(compute='_compute_invoice_count')
     debt_line_count = fields.Integer(compute='_compute_debt_line_count')
 
+    invoice_total_net = fields.Monetary(
+        string='Facturado Neto',
+        compute='_compute_invoice_total_net',
+        currency_field='currency_id'
+    )
+
+    sale_total = fields.Monetary(
+        string='Pedidos',
+        compute='_compute_sale_total',
+        currency_field='currency_id'
+    )
     
     # =========================
     # COMPUTES
     # =========================
+
+
+    def _compute_sale_total(self):
+        SaleOrder = self.env['sale.order']
+
+        for partner in self:
+            orders = SaleOrder.search([
+                ('partner_id', '=', partner.id),
+                ('state', '=', 'draft'),
+            ])
+
+            total = 0.0
+            for order in orders:
+                total += order.amount_total
+
+            partner.invoice_total_net = total
+
+
+    def _compute_invoice_total_net(self):
+        AccountMove = self.env['account.move']
+
+        for partner in self:
+            moves = AccountMove.search([
+                ('partner_id', '=', partner.id),
+                ('move_type', 'in', ['out_invoice', 'out_refund']),
+                ('state', '=', 'posted'),
+            ])
+
+            total = 0.0
+            for move in moves:
+                if move.move_type == 'out_invoice':
+                    total += move.amount_total_signed
+                elif move.move_type == 'out_refund':
+                    total -= move.amount_total_signed
+
+            partner.invoice_total_net = total
+
 
     def _compute_sale_order_count(self):
         for partner in self:

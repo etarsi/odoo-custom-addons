@@ -44,7 +44,7 @@
                 decoration-danger="approval_state == 'blocked'">
 
                 <field name="state" invisible="1"/>
-                
+
                 <header>
                     <button name="action_set_approved" type="object" string="Aprobar" class="btn-success"/>
                     <button name="action_set_rejected" type="object" string="Rechazar" class="btn-warning"/>
@@ -123,7 +123,7 @@
                                 icon="fa-file-text-o">
 
                             <div class="o_stat_info">
-                                <field name="invoice_count" class="o_stat_value"/>
+                                <field name="invoice_total_net" class="o_stat_value"/>
                                 <span class="o_stat_text">Facturado</span>
                             </div>
 
