@@ -98,4 +98,57 @@
         </xpath>
     </template>
     -->
+    <template id="website_sale_shop_product_carousel_gallery"
+            inherit_id="website_sale.shop_product_carousel"
+            name="Website Sale Shop Product Carousel Gallery">
+
+        <xpath expr="//div[@id='o-carousel-product']" position="replace">
+            <t t-set="gallery_images" t-value="product.sudo().gallery_image_ids.filtered('website_published')"/>
+
+            <div id="o-carousel-product"
+                class="carousel slide mb-3 overflow-hidden"
+                data-ride="carousel"
+                data-interval="0">
+
+                <div class="o_carousel_product_outer carousel-outer position-relative flex-grow-1">
+                    <div class="carousel-inner">
+                        <t t-if="gallery_images">
+                            <t t-foreach="gallery_images" t-as="img">
+                                <div t-attf-class="carousel-item#{' active' if img_first else ''}">
+                                    <div class="o_ext_main_image_wrap">
+                                        <img t-att-src="'/product-images/%s' % img.relative_path"
+                                            t-att-alt="img.name or product.name"
+                                            class="product_detail_img img img-fluid o_ext_main_image"/>
+                                    </div>
+                                </div>
+                            </t>
+                        </t>
+                        <t t-else="">
+                            <t t-foreach="product_images" t-as="product_image">
+                                <div t-attf-class="carousel-item h-100#{' active' if product_image_first else ''}">
+                                    <div t-if="product_image._name == 'product.image' and product_image.embed_code"
+                                        class="d-flex align-items-center justify-content-center h-100 embed-responsive embed-responsive-16by9">
+                                        <t t-out="product_image.embed_code"/>
+                                    </div>
+                                    <div t-else=""
+                                        t-field="product_image.image_1920"
+                                        class="d-flex align-items-center justify-content-center h-100"
+                                        t-options="{'widget': 'image', 'preview_image': 'image_1024', 'class': 'product_detail_img mh-100', 'alt-field': 'name', 'zoom': product_image.can_image_1024_be_zoomed and 'image_1920'}"/>
+                                </div>
+                            </t>
+                        </t>
+                    </div>
+
+                    <t t-if="(gallery_images and len(gallery_images) > 1) or (not gallery_images and len(product_images) > 1)">
+                        <a class="carousel-control-prev" href="#o-carousel-product" role="button" data-slide="prev">
+                            <span class="fa fa-chevron-left fa-2x" role="img" aria-label="Previous" title="Previous"/>
+                        </a>
+                        <a class="carousel-control-next" href="#o-carousel-product" role="button" data-slide="next">
+                            <span class="fa fa-chevron-right fa-2x" role="img" aria-label="Next" title="Next"/>
+                        </a>
+                    </t>
+                </div>
+            </div>
+        </xpath>
+    </template>
 </odoo>
