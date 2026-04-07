@@ -205,9 +205,10 @@ class AccountFiscalPeriodConfig(models.Model):
                                                         ('move_type', '=', 'entry'),
                                                         ('line_ids.account_id', 'in', account_client_existing.ids),
                                                         ('state', '=', 'posted')], limit=1)
+        date_apertura = self.date_end + timedelta(days=1)
         existing_moves = self.env['account.move'].search([('company_id', '=', self.company_id.id),
                                                         ('fiscal_period_config_id', '=', self.id),
-                                                        ('date', '=', self.date_end),
+                                                        ('date', '=', date_apertura), #1 dia después de date_end para evitar generar asientos con fecha en el pasado
                                                         ('journal_id', '=', self.journal_id.id),
                                                         ('move_type', '=', 'entry'),
                                                         ('line_ids.account_id', 'in', account_client_existing.ids),
