@@ -14,11 +14,9 @@ import socket
 import ipaddress
 import subprocess
 import shutil
-
 from datetime import date
 from calendar import monthrange
 from psycopg2.extras import execute_values
-
 _logger = logging.getLogger(__name__)
 
 try:
@@ -83,6 +81,26 @@ class ImportAfipIibbWizard(models.TransientModel):
         except Exception:
             return False
 
+    def _flush_padron_iibb_batch(self, rows):
+        if not rows:
+            return 0
+
+        sql = """
+            INSERT INTO ar_padron_iibb
+            (partner_id, cuit, iibb_type, perception, retention, period,
+            create_uid, create_date, write_uid, write_date)
+            VALUES %s
+            ON CONFLICT (cuit, iibb_type, period)
+            DO UPDATE SET
+                partner_id = EXCLUDED.partner_id,
+                perception = EXCLUDED.perception,
+                retention = EXCLUDED.retention,
+                write_uid = EXCLUDED.write_uid,
+                write_date = EXCLUDED.write_date
+        """
+        execute_values(self.env.cr, sql, rows, page_size=10000)
+        return len(rows)
+    
     # ----------------- DOWNLOAD (URL -> DISCO) -----------------
     def _pick_extracted_text_file(self, extract_dir):
         candidates = []
@@ -320,7 +338,7 @@ class ImportAfipIibbWizard(models.TransientModel):
         from_date = date(y, m, 1)
         to_date = date(y, m, monthrange(y, m)[1])
         t0 = time.monotonic()
-        # 0) Input stream (upload o URL->disco)
+        # 0) Input stream (URL->disco)
         fb, close_fb, real_data_path, saved_path, target_dir = self._get_input_binary_stream()
 
         # 1) CUIT -> partner_id (O(1))
@@ -348,7 +366,12 @@ class ImportAfipIibbWizard(models.TransientModel):
         processed = 0
         matched = 0
         log_each = 200000
-
+        period_value = f"{y:04d}{m:02d}"
+        padron_batch = []
+        padron_saved = 0
+        padron_batch_size = 10000
+        now = fields.Datetime.now()
+        uid = self.env.uid
         try:
             f = io.TextIOWrapper(fb, encoding='latin-1', errors='replace', newline='')
             for i, line in enumerate(f, start=1):
@@ -364,9 +387,23 @@ class ImportAfipIibbWizard(models.TransientModel):
                     continue
 
                 pid = partner_by_cuit.get(cuit)
+                # NUEVO: guardar masivo en ar.padron.iibb
+                padron_batch.append((
+                    pid or None,     # partner_id
+                    cuit,            # cuit
+                    'agip',          # iibb_type
+                    self._to_float(parts[perc_i]),  # perception
+                    self._to_float(parts[ret_i]),   # retention
+                    period_value,    # period
+                    uid, now, uid, now,
+                ))
+                if len(padron_batch) >= padron_batch_size:
+                    padron_saved += self._flush_padron_iibb_batch(padron_batch)
+                    padron_batch = []
+
                 if not pid:
                     continue
-
+                
                 rates_by_partner[pid] = (self._to_float(parts[perc_i]), self._to_float(parts[ret_i]))
                 matched += 1
 
@@ -422,9 +459,9 @@ class ImportAfipIibbWizard(models.TransientModel):
         cr = self.env.cr
 
         # 4) Temp table
-        cr.execute("DROP TABLE IF EXISTS tmp_agip_alicuot")
+        cr.execute("DROP TABLE IF EXISTS tmp_agip_iibb_alicuot")
         cr.execute("""
-            CREATE TEMP TABLE tmp_agip_alicuot (
+            CREATE TEMP TABLE tmp_agip_iibb_alicuot (
                 partner_id integer,
                 tag_id integer,
                 company_id integer,
@@ -441,7 +478,7 @@ class ImportAfipIibbWizard(models.TransientModel):
 
         # Bulk insert temp
         execute_values(cr, """
-            INSERT INTO tmp_agip_alicuot
+            INSERT INTO tmp_agip_iibb_alicuot
             (partner_id, tag_id, company_id, from_date, to_date,
              alicuota_percepcion, alicuota_retencion,
              create_uid, create_date, write_uid, write_date)
@@ -450,10 +487,10 @@ class ImportAfipIibbWizard(models.TransientModel):
 
         # Índice y estadísticas sobre la temp
         cr.execute("""
-            CREATE INDEX tmp_agip_alicuot_match_idx
-            ON tmp_agip_alicuot (partner_id, tag_id, company_id, from_date, to_date)
+            CREATE INDEX tmp_agip_iibb_alicuot_match_idx
+            ON tmp_agip_iibb_alicuot (partner_id, tag_id, company_id, from_date, to_date)
         """)
-        cr.execute("ANALYZE tmp_agip_alicuot")
+        cr.execute("ANALYZE tmp_agip_iibb_alicuot")
 
         _logger.info("AFIP IIBB: temp cargada rows=%s (%.2fs)", len(sql_rows), time.monotonic() - t0)
 
@@ -465,7 +502,7 @@ class ImportAfipIibbWizard(models.TransientModel):
                 alicuota_retencion  = s.alicuota_retencion,
                 write_uid = s.write_uid,
                 write_date = s.write_date
-            FROM tmp_agip_alicuot s
+            FROM tmp_agip_iibb_alicuot s
             WHERE t.partner_id = s.partner_id
               AND t.tag_id = s.tag_id
               AND t.company_id = s.company_id
@@ -504,7 +541,8 @@ class ImportAfipIibbWizard(models.TransientModel):
                 'title': 'Importación completada',
                 'message': (
                     "Se actualizaron y crearon las alícuotas de impuestos brutos según el padrón de AFIP.\n"
-                    f"Actualizados: {updated} | Insertados: {inserted}"
+                    f"Actualizados: {updated} | Insertados: {inserted} | "
+                    f"Padrón IIBB guardado: {padron_saved}"
                 ),
                 'type': 'success',
                 'sticky': True,

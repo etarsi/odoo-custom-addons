@@ -49,7 +49,8 @@
                     'product', 
                     'sale_enhancement', 
                     'l10n_ar_ux', 
-                    'account_financial_report'
+                    'account_financial_report',
+                    'padron_enhancement',
         ],
 
     # always loaded
