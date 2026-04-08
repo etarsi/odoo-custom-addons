@@ -6,7 +6,7 @@
         <field name="arch" type="xml">
             <form string="Reporte de Imagenes de Productos">
                 <group>
-                    <button name="generate_report" type="object" string="Generar Reporte" class="btn-primary"/>
+                    <button name="action_generar_excel" type="object" string="Generar Reporte" class="btn-primary"/>
                 </group>
             </form>
         </field>
