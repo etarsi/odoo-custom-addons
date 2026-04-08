@@ -189,8 +189,8 @@ class ReportWmsTaskFacturaWizard(models.TransientModel):
                     rubros_str = '/'.join(rubros)   
                 # BULTOS = unidades / UxB (como tu imagen)
                 bultos = (unidades / uxb) if uxb else 0.0
-                valor_unitario = move.transfer_id.sale_id.order_line.filtered(lambda l: l.product_id == move.product_id).price_unit if move.transfer_id and move.transfer_id.sale_id else 0.0
-                descuento = move.transfer_id.sale_id.order_line.filtered(lambda l: l.product_id == move.product_id).discount if move.transfer_id and move.transfer_id.sale_id else 0.0
+                valor_unitario = wms_task.transfer_id.sale_id.order_line.filtered(lambda l: l.product_id == move.product_id).price_unit if wms_task.transfer_id and wms_task.transfer_id.sale_id else 0.0
+                descuento = wms_task.transfer_id.sale_id.order_line.filtered(lambda l: l.product_id == move.product_id).discount if wms_task.transfer_id and wms_task.transfer_id.sale_id else 0.0
                 valor_total = (unidades * valor_unitario) * (1 - descuento / 100) if valor_unitario else 0.0
                 worksheet2.write(row2, 0, move.product_id.default_code or '', fmt_text2)
                 worksheet2.write(row2, 1, move.product_id.name or '', fmt_text)
