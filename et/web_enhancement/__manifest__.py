@@ -22,6 +22,8 @@
         'views/web_product_template.xml',
         'data/action_product_image_update.xml',
         'views/product_template_views.xml',
+        #WIZARD
+        'views/wizard/report_image_product_wizard_views.xml',
         #'views/website_menu.xml',
         'views/shop_gate.xml',
         'views/views.xml',

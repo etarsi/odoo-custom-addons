@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="report_image_product_wizard_view" model="ir.ui.view">
+        <field name="name">report.image.product.wizard.form</field>
+        <field name="model">report.image.product.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Reporte de Imagenes de Productos">
+                <group>
+                    <button name="generate_report" type="object" string="Generar Reporte" class="btn-primary"/>
+                </group>
+            </form>
+        </field>
+    </record>    
+
+    <record id="action_report_image_product_wizard" model="ir.actions.act_window">
+        <field name="name">Reporte de Imagenes de Productos</field>
+        <field name="res_model">report.image.product.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+</odoo>
