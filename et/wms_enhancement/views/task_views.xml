@@ -133,7 +133,7 @@
                     <button name="action_send_task_to_digip" type="object" string="Enviar a Digip" 
                                 attrs="{'invisible': ['|', ('digip_state', '!=', 'no'), ('state_preparation', '=', 'cancel')]}"/>
                     <button name="action_receive_task_digip" type="object" string="Recibir en Digip" 
-                                attrs="{'invisible': ['|', ('digip_state', ' not in', ['sent', 'pending', 'preparation']), ('state_preparation', '=', 'cancel')]}"/>
+                                attrs="{'invisible': ['|', ('digip_state', 'not in', ['sent', 'pending', 'preparation']), ('state_preparation', '=', 'cancel')]}"/>
                     <button name="action_print_remito" class="oe_highlight" type="object" string="IMPRIMIR REMITO" 
                                 attrs="{'invisible': ['|', ('digip_state', 'not in', ['received', 'remitido']), ('state_preparation', '=', 'cancel')]}"/>
                     <button name="action_create_invoice_from_picking" class="oe_highlight" type="object" string="CREAR FACTURA" 
