@@ -97,4 +97,10 @@
         parent="account_enhancement.menu_account_configuration_fiscal_period"
         action="action_account_bloqued_period_wizard"
         sequence="20"/>
+    <menuitem
+        id="account_enhancement.menu_account_unlock_period"
+        name="Desbloquear Periodo Contable"
+        parent="account_enhancement.menu_account_configuration_fiscal_period"
+        action="action_account_unlock_period_wizard"
+        sequence="30"/>
 </odoo>

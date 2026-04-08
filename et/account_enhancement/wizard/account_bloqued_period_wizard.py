@@ -15,7 +15,7 @@ class AccountBloquedPeriodWizard(models.TransientModel):
     company_id = fields.Many2one('res.company', string='Compañía', required=True, default=lambda self: self.env.company)
 
 
-    def action_confirm(self):
+    def bloqued_contable(self):
         """Se ejecuta al pulsar Aceptar en el popup."""
         self.ensure_one()
         self.action_lock_period_cut()
@@ -64,3 +64,46 @@ class AccountBloquedPeriodWizard(models.TransientModel):
             WHERE company_id = %s AND date >= %s AND date <= %s
         """
         self.env.cr.execute(sql, (self.company_id.id, self.date_start, self.date_end))
+
+   
+    def unlock_contable(self):
+        """Método para desbloquear el periodo contable, se puede ejecutar desde un botón en la vista de configuración."""
+        self.ensure_one()
+        # Desbloquear en sale.order
+        sql = """
+            UPDATE sale_order SET period_cut_locked = FALSE
+            WHERE company_id = %s AND date_order >= %s AND date_order <= %s
+        """
+        self.env.cr.execute(sql, (self.company_id.id, self.date_start, self.date_end))
+        # Desbloquear en purchase.order
+        sql = """
+            UPDATE purchase_order SET period_cut_locked = FALSE
+            WHERE company_id = %s AND date_order >= %s AND date_order <= %s
+        """
+        self.env.cr.execute(sql, (self.company_id.id, self.date_start, self.date_end))
+        # Desbloquear en account.payment.group
+        sql = """
+            UPDATE account_payment_group SET period_cut_locked = FALSE
+            WHERE company_id = %s AND payment_date >= %s AND payment_date <= %s
+        """
+        self.env.cr.execute(sql, (self.company_id.id, self.date_start, self.date_end))
+        # Desbloquear en account.move
+        sql = """
+            UPDATE account_move SET period_cut_locked = FALSE
+            WHERE company_id = %s AND date >= %s AND date <= %s
+        """
+        self.env.cr.execute(sql, (self.company_id.id, self.date_start, self.date_end))
+        
+        return {
+            "type": "ir.actions.client",
+            "tag": "display_notification",
+            "params": {
+                "title": _("Periodo contable desbloqueado"),
+                'message': f'Se desbloquearon correctamente los periodos contables para la compañía {self.company_id.name}. Por favor, refresque la vista.',
+                "type": "success",
+                "sticky": True,
+            },
+            "next": {
+                "type": "ir.actions.act_window_close",
+            }
+        }
