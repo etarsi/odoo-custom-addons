@@ -12,6 +12,7 @@ class AccountBloquedPeriodWizard(models.TransientModel):
     
     date_start = fields.Date(string="Fecha Inicio", required=True, default=lambda self: fields.Date.to_string(fields.Date.today().replace(month=1, day=1)), index=True)
     date_end = fields.Date(string="Fecha Fin", required=True, default=lambda self: fields.Date.to_string(fields.Date.today().replace(month=12, day=31)), index=True)
+    company_id = fields.Many2one('res.company', string='Compañía', required=True, default=lambda self: self.env.company)
 
 
     def action_confirm(self):
