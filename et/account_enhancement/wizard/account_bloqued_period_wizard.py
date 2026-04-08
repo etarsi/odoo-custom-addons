@@ -102,8 +102,8 @@ class AccountBloquedPeriodWizard(models.TransientModel):
                 'message': f'Se desbloquearon correctamente los periodos contables para la compañía {self.company_id.name}. Por favor, refresque la vista.',
                 "type": "success",
                 "sticky": True,
-            },
-            "next": {
-                "type": "ir.actions.act_window_close",
+                "next": {
+                    "type": "ir.actions.act_window_close",
+                }
             }
         }
