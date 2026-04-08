@@ -7,7 +7,7 @@
             <form string="Padrón IIBB">
                 <sheet>
                     <group>
-                        <field name="name"/>
+                        <field name="partner_id"/>
                         <field name="cuit"/>
                         <field name="iibb_type"/>
                         <field name="perception"/>
@@ -25,7 +25,7 @@
         <field name="model">ar.padron.iibb</field>
         <field name="arch" type="xml">
             <tree>
-                <field name="name" optional="show"/>
+                <field name="partner_id" optional="show"/>
                 <field name="cuit" optional="show"/>
                 <field name="iibb_type" optional="show"/>
                 <field name="perception" optional="show"/>
