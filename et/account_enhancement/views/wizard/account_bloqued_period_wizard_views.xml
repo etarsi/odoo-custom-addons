@@ -11,7 +11,7 @@
                 </group>
 
                 <footer>
-                    <button string="Bloquear" type="object" name="action_confirm" class="btn-primary"/>
+                    <button string="Bloquear" type="object" name="bloqued_contable" class="btn-primary"/>
                     <button string="Cancelar" class="btn-secondary" special="cancel"/>
                 </footer>
             </form>
