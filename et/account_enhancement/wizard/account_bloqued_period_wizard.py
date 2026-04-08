@@ -21,11 +21,16 @@ class AccountBloquedPeriodWizard(models.TransientModel):
         self.action_lock_period_cut()
         #cierra el modal y da un mensaje que se elimino correctamente y hay que refrescar la vista en el return
         return {
-            'type': 'ir.actions.act_window_close',
-            'target': 'new',
-            'params': {
+            "type": "ir.actions.client",
+            "tag": "display_notification",
+            "params": {
+                "title": _("Periodo contable bloqueado"),
                 'message': f'Se bloquearon correctamente los periodos contables para la compañía {self.company_id.name}. Por favor, refresque la vista.',
-                'type': 'success',
+                "type": "success",
+                "sticky": True,
+                "next": {
+                    "type": "ir.actions.act_window_close",
+                }
             }
         }
         
