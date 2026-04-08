@@ -91,4 +91,10 @@
         parent="account_enhancement.menu_account_configuration_fiscal_period"
         action="action_fiscal_period_config"
         sequence="10"/>
+    <menuitem
+        id="account_enhancement.menu_account_bloqued_period"
+        name="Bloquear Periodo Contable"
+        parent="account_enhancement.menu_account_configuration_fiscal_period"
+        action="action_account_bloqued_period_wizard"
+        sequence="20"/>
 </odoo>

@@ -1,0 +1,26 @@
+<odoo>
+    <record id="view_account_bloqued_period_wizard_form" model="ir.ui.view">
+        <field name="name">account.bloqued.period.wizard.form</field>
+        <field name="model">account.bloqued.period.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Bloquear Periodo Contable">
+                <group>
+                    <field name="date_start" />
+                    <field name="date_end" />
+                </group>
+
+                <footer>
+                    <button string="Bloquear" type="object" name="action_confirm" class="btn-primary"/>
+                    <button string="Cancelar" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_account_bloqued_period_wizard" model="ir.actions.act_window">
+        <field name="name">Bloquear Periodo Contable</field>
+        <field name="res_model">account.bloqued.period.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+</odoo>

@@ -76,6 +76,7 @@
         </field>
     </record>
 
+
     <!-- =========================================================
         WMS TASK - SEARCH
     ========================================================== -->
@@ -90,17 +91,13 @@
                 <field name="transfer_id"/>
                 <field name="container"/>
                 <field name="dispatch"/>
-
-
                 <!-- Estados -->
                 <!-- <filter string="Borrador" name="st_draft" domain="[('state','=','draft')]"/>
                 <filter string="Pendiente" name="st_pending" domain="[('state','=','pending')]"/>
                 <filter string="Confirmado" name="st_confirmed" domain="[('state','=','confirmed')]"/>
                 <filter string="En Proceso" name="st_process" domain="[('state','=','process')]"/>
                 <filter string="Hecho" name="st_done" domain="[('state','=','done')]"/> -->
-
                 <separator/>
-
                 <!-- Tipos -->
                 <filter string="Recepción" name="tp_reception" domain="[('type','=','reception')]"/>
                 <filter string="Preparación" name="tp_preparation" domain="[('type','=','preparation')]"/>
@@ -115,6 +112,8 @@
                     <filter string="Asignado a" name="group_user" context="{'group_by':'assigned_user_id'}"/>
                     <filter string="Transferencia" name="group_transfer" context="{'group_by':'transfer_id'}"/>
                     <filter string="Pedido" name="group_order" context="{'group_by':'origin'}"/>
+                    <filter string="Digip" name="group_digip" context="{'group_by':'digip_state'}"/>
+                    <filter string="Fecha" name="group_date" context="{'group_by':'create_date:month'}"/>
                 </group>
             </search>
         </field>
@@ -265,8 +264,6 @@
     </record>
 
 
-
-
     <!-- =========================================================
         WMS TASK LINE - TREE
     ========================================================== -->
@@ -283,6 +280,7 @@
             </tree>
         </field>
     </record>
+
 
     <!-- =========================================================
         WMS TASK LINE - SEARCH
@@ -301,6 +299,7 @@
             </search>
         </field>
     </record>
+
 
     <!-- =========================================================
         WMS TASK LINE - FORM
@@ -336,6 +335,7 @@
         </field>
     </record>
 
+
     <!-- =========================================================
         WMS TASK LINE - ACTION
     ========================================================== -->
@@ -346,6 +346,4 @@
         <field name="search_view_id" ref="view_wms_task_line_search"/>
         <field name="context">{}</field>
     </record>
-
-
 </odoo>
