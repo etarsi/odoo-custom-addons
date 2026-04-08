@@ -43,6 +43,11 @@
         'views/preselection_views.xml',
         'views/menus.xml',
     ],
+    'assets': {
+        'web.assets_backend': [
+            'wms_enhancement/static/src/js/selection_sum_list_transfer.js',
+        ],
+    },
     # only loaded in demonstration mode
     'demo': [
         'demo/demo.xml',
