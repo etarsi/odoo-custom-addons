@@ -42,7 +42,7 @@ class AccountPaymentInherit(models.Model):
         locked_payments = res.filtered('period_cut_locked')
         if locked_payments:
             raise ValidationError(_("No se puede crear un pago con 'Período de Corte Bloqueado' activo."))
-        res._onchange_hide_issue_date()
+        res._sync_hide_issue_date()
         return res
 
     def write(self, vals):
@@ -54,7 +54,7 @@ class AccountPaymentInherit(models.Model):
         res = super().write(vals)
         for payment in self:
             payment._constrains_check_number_length()
-            payment._onchange_hide_issue_date()
+            payment._sync_hide_issue_date()
         return res
 
     def unlink(self):
@@ -177,6 +177,12 @@ class AccountPaymentInherit(models.Model):
                 record.hide_issue_date = False
             else:
                 record.hide_issue_date = True
+                
+    def _sync_hide_issue_date(self):
+        for rec in self:
+            new_value = False  # tu lógica real
+            if rec.hide_issue_date != new_value:
+                super(AccountPaymentInherit, rec).write({'hide_issue_date': new_value})
                 
     #VALIDAR check_number SEA MINIMO Y MAXIMO DE 8 DIGITOS
     @api.onchange('check_number', 'journal_id')
