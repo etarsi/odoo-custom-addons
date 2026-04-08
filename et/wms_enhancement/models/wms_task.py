@@ -475,7 +475,7 @@ class WMSTask(models.Model):
             self.send_remitido()
         return {
             'type': 'ir.actions.act_url',
-            'url': f'/newremito/auto/{self.id}',
+            'url': f'/nremito/auto/{self.id}',
             'target': 'new',
         }
 
