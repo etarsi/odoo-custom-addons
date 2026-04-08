@@ -522,7 +522,7 @@ class ImportAfipIibbWizard(models.TransientModel):
                 s.partner_id, s.tag_id, s.company_id, s.from_date, s.to_date,
                 s.alicuota_percepcion, s.alicuota_retencion,
                 s.create_uid, s.create_date, s.write_uid, s.write_date
-            FROM tmp_agip_alicuot s
+            FROM tmp_agip_iibb_alicuot s
             WHERE NOT EXISTS (
                 SELECT 1
                 FROM res_partner_arba_alicuot t
