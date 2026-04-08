@@ -38,10 +38,12 @@ class AccountPaymentInherit(models.Model):
 
     @api.model_create_multi
     def create(self, vals_list):
-        for vals in vals_list:
-            if vals.get("period_cut_locked"):
-                raise ValidationError(_("No se puede crear un pago con 'Período de Corte Bloqueado' activo."))
-        return super().create(vals_list)
+        res = super().create(vals_list)
+        locked_payments = res.filtered('period_cut_locked')
+        if locked_payments:
+            raise ValidationError(_("No se puede crear un pago con 'Período de Corte Bloqueado' activo."))
+        res._onchange_hide_issue_date()
+        return res
 
     def write(self, vals):
         if vals.get("period_cut_locked"):
@@ -52,6 +54,7 @@ class AccountPaymentInherit(models.Model):
         res = super().write(vals)
         for payment in self:
             payment._constrains_check_number_length()
+            payment._onchange_hide_issue_date()
         return res
 
     def unlink(self):
