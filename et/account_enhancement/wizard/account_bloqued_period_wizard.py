@@ -24,7 +24,7 @@ class AccountBloquedPeriodWizard(models.TransientModel):
             'type': 'ir.actions.act_window_close',
             'target': 'new',
             'params': {
-                'message': 'Se bloquearon correctamente los periodos contables. Por favor, refresque la vista.',
+                'message': f'Se bloquearon correctamente los periodos contables para la compañía {self.company_id.name}. Por favor, refresque la vista.',
                 'type': 'success',
             }
         }
