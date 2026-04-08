@@ -39,7 +39,7 @@
         <field name="name">wms.task.tree</field>
         <field name="model">wms.task</field>
         <field name="arch" type="xml">
-            <tree string="Tareas WMS" default_order="create_date desc" decoration-muted="state_preparation=='cancel'">
+            <tree string="Tareas WMS" default_order="create_date desc" decoration-muted="state_preparation=='cancel'" js_class="selection_sum_list_task">
                 <header>
                     <button name="send_and_receive_digip" type="object" string="Enviar y Recibir Digip"/>   
                     <button name="action_enviar_compartido" type="object" string="Enviar a Compartido"/>

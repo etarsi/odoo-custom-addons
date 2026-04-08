@@ -46,6 +46,7 @@
     'assets': {
         'web.assets_backend': [
             'wms_enhancement/static/src/js/selection_sum_list_transfer.js',
+            'wms_enhancement/static/src/js/selection_sum_list_task.js',
         ],
     },
     # only loaded in demonstration mode
