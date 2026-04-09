@@ -96,6 +96,8 @@ class ImportAfipIibbWizard(models.TransientModel):
                 partner_id = EXCLUDED.partner_id,
                 perception = EXCLUDED.perception,
                 retention = EXCLUDED.retention,
+                create_uid = EXCLUDED.create_uid,
+                create_date = EXCLUDED.create_date,
                 write_uid = EXCLUDED.write_uid,
                 write_date = EXCLUDED.write_date
         """
@@ -329,7 +331,9 @@ class ImportAfipIibbWizard(models.TransientModel):
         self.ensure_one()
         target_dir = None
         saved_path = None
-        real_data_path = None
+        # 3) Preparar filas para temp table (partner x company)
+        now = fields.Datetime.now()
+        uid = self.env.uid
         # Validación año
         if self.year < 2000 or self.year > 2100:
             raise UserError(_("El año ingresado no es válido."))
@@ -372,8 +376,6 @@ class ImportAfipIibbWizard(models.TransientModel):
         padron_batch = []
         padron_saved = 0
         padron_batch_size = 10000
-        now = fields.Datetime.now()
-        uid = self.env.uid
         try:
             f = io.TextIOWrapper(fb, encoding='latin-1', errors='replace', newline='')
             for i, line in enumerate(f, start=1):
@@ -451,9 +453,6 @@ class ImportAfipIibbWizard(models.TransientModel):
                 }
             }
 
-        # 3) Preparar filas para temp table (partner x company)
-        now = fields.Datetime.now()
-        uid = self.env.uid
         sql_rows = []
         for pid, (perc, ret) in rates_by_partner.items():
             for company_id in COMPANY_IDS:
