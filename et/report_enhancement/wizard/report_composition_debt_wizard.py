@@ -35,7 +35,7 @@ class ReportCompositionDebtWizard(models.TransientModel):
         if not lines: 
             raise UserError(_("No hay datos para el rango seleccionado."))
         #ordenar por fecha ascendente
-        lines = sorted(lines, key=lambda x: x['date'])
+        lines = sorted(lines, key=lambda x: (x['date'], x['invoice_number']))
         xlsx_data = self._build_xlsx(lines)
         filename = f"Reporte-composicion-deuda-{self.partner_id.display_name}.xlsx"
         attachment = self.env["ir.attachment"].create({

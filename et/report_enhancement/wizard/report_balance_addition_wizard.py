@@ -147,5 +147,4 @@ class ReportBalanceAdditionWizard(models.TransientModel):
             totals["credit"] += credit
             totals["period_balance"] += period_balance
             totals["ending_balance"] += ending_balance
-
         return lines, totals
