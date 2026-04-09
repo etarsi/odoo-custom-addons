@@ -243,3 +243,24 @@ class StockMovesERP(models.Model):
                 record.bultos = record.quantity / record.uxb
             else:
                 record.bultos = 0
+                
+    def eliminar_duplicados(self):
+        for record in self:
+            duplicates = self.env['stock.moves.erp'].search([
+                ('sale_line_id', '=', record.sale_line_id.id),
+                ('product_id', '=', record.product_id.id),
+                ('id', '!=', record.id)
+            ])
+            duplicates.unlink()
+        return {
+            'type': 'ir.actions.client',
+            'tag': 'display_notification',
+            'params': {
+                'title': 'Duplicados eliminados',
+                'message': (
+                    "Se eliminaron los registros duplicados correctamente.\n"
+                ),
+                'type': 'success',
+                'sticky': True,
+            }
+        }
