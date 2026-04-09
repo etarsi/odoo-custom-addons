@@ -125,7 +125,7 @@ class ReportCompositionDebtWizard(models.TransientModel):
             })
 
         # ORDEN + SALDO ACUMULADO
-        lines.sort(key=lambda x: (x["key"], x["sort_date"]))
+        lines.sort(key=lambda x: (x["key"], x["sort_date"], x["invoice_number"]))
 
         running = defaultdict(float)
         data = []
