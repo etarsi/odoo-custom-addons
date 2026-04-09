@@ -742,7 +742,7 @@ class SaleOrderLineInherit(models.Model):
                     stock_erp = self.env['stock.erp'].search([
                         ('product_id.default_code', '=', search_code)
                     ], limit=1)
-                    if stock_erp:
+                    if not stock_erp:
                         raise UserError(f'No se encontró el producto en stock ERP para comprometer. Código: {record.product_id.default_code}')
 
                 #VERIFCAR SI YA EXISTE UNA LINEA YA CREADA Y RESERVADA PARA ESTA LÍNEA DE PEDIDO, SI EXISTE NO CREAR OTRA, SOLO RESEVAR DE ESA
