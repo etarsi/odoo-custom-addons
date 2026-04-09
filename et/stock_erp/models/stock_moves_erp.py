@@ -248,7 +248,7 @@ class StockMovesERP(models.Model):
         records = self.exists().sorted('id')
         to_delete = self.env['stock.moves.erp']
         seen_keys = set()
-
+        delete = 0
         for record in records:
             key = (record.sale_line_id.id, record.product_id.id)
 
@@ -259,13 +259,15 @@ class StockMovesERP(models.Model):
 
         if to_delete:
             to_delete.unlink()
+            delete += len(to_delete)
+            
 
         return {
             'type': 'ir.actions.client',
             'tag': 'display_notification',
             'params': {
                 'title': 'Duplicados eliminados',
-                'message': "Se eliminaron los registros duplicados correctamente.",
+                'message': f"Se eliminaron {delete} registros duplicados correctamente.",
                 'type': 'success',
                 'sticky': True,
             }
