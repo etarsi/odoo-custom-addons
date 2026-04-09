@@ -88,7 +88,7 @@ class ImportAfipIibbWizard(models.TransientModel):
 
         sql = """
             INSERT INTO ar_padron_iibb
-            (partner_id, cuit, iibb_type, perception, retention, period,
+            (partner_id, partner_name, cuit, iibb_type, perception, retention, period,
             create_uid, create_date, write_uid, write_date)
             VALUES %s
         """
