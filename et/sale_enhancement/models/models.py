@@ -732,9 +732,7 @@ class SaleOrderLineInherit(models.Model):
         for record in self:
             if record.is_available:
                 vals = {}
-
                 default_code = record.product_id.default_code
-
                 if default_code:
                     if default_code.startswith('9'):
                         search_code = default_code[1:]
@@ -744,20 +742,28 @@ class SaleOrderLineInherit(models.Model):
                     stock_erp = self.env['stock.erp'].search([
                         ('product_id.default_code', '=', search_code)
                     ], limit=1)
+                    if stock_erp:
+                        raise UserError(f'No se encontró el producto en stock ERP para comprometer. Código: {record.product_id.default_code}')
 
-                
-                vals['stock_erp'] = stock_erp.id
-                vals['sale_id'] = record.order_id.id
-                vals['sale_line_id'] = record.id
-                vals['partner_id'] = record.order_id.partner_id.id
-                vals['product_id'] = stock_erp.product_id.id
-                vals['quantity'] = record.product_uom_qty
-                vals['uxb'] = record.product_packaging_id.qty or ''
-                vals['bultos'] = record.product_packaging_qty
-                vals['type'] = 'reserve'
-
-                stock_moves_erp = self.env['stock.moves.erp'].create(vals)
-
+                #VERIFCAR SI YA EXISTE UNA LINEA YA CREADA Y RESERVADA PARA ESTA LÍNEA DE PEDIDO, SI EXISTE NO CREAR OTRA, SOLO RESEVAR DE ESA
+                stock_move_erp = self.env['stock.moves.erp'].search([('sale_line_id', '=', record.id), ('type', '=', 'reserve')], limit=1)
+                if stock_move_erp:
+                    stock_move_erp.write({
+                        'quatnity': record.product_uom_qty,
+                        'uxb': record.product_packaging_id.qty or '',
+                        'bultos': record.product_packaging_qty
+                    })
+                else:
+                    vals['stock_erp'] = stock_erp.id
+                    vals['sale_id'] = record.order_id.id
+                    vals['sale_line_id'] = record.id
+                    vals['partner_id'] = record.order_id.partner_id.id
+                    vals['product_id'] = stock_erp.product_id.id
+                    vals['quantity'] = record.product_uom_qty
+                    vals['uxb'] = record.product_packaging_id.qty or ''
+                    vals['bultos'] = record.product_packaging_qty
+                    vals['type'] = 'reserve'
+                    self.env['stock.moves.erp'].create(vals)
                 record.is_compromised = True
 
     def comprometer_stock2(self):
@@ -766,18 +772,14 @@ class SaleOrderLineInherit(models.Model):
                 vals = {}
 
                 default_code = record.product_id.default_code
-
                 if default_code:
                     if default_code.startswith('9'):
                         search_code = default_code[1:]
                     else:
                         search_code = default_code
-
-
                     stock_erp = self.env['stock.erp'].search([
                         ('product_id.default_code', '=', search_code)
                     ], limit=1)
-
                 
                 vals['stock_erp'] = stock_erp.id
                 vals['sale_id'] = record.order_id._origin.id
@@ -788,31 +790,8 @@ class SaleOrderLineInherit(models.Model):
                 vals['uxb'] = record.product_packaging_id.qty or ''
                 vals['bultos'] = record.product_packaging_qty
                 vals['type'] = 'reserve'
-
                 self.env['stock.moves.erp'].create(vals)
-
                 record.is_compromised = True
-
-    # COMPUTED
-    # @api.depends('disponible_unidades', 'product_uom_qty')
-    # def _compute_is_available(self):
-    #     for record in self:
-    #             if not record.is_available:
-    #                 stock_moves_erp = self.env['stock.moves.erp'].search([('sale_line_id', '=', record.id), ('type', '=', 'reserve')], limit=1)
-
-    #                 if stock_moves_erp: # esta comprometido
-    #                     disponible_real = stock_moves_erp.quantity + record.disponible_unidades
-    #                     if record.product_uom_qty <= disponible_real:
-    #                         record.is_available = True
-    #                     else:
-    #                         record.is_available = False
-
-
-    #                 else: # no esta comprometido
-    #                     if record.product_uom_qty <= record.disponible_unidades:
-    #                         record.is_available = True
-    #                     else:
-    #                         record.is_available = False
 
     @api.depends('disponible_unidades', 'product_uom_qty')
     def _compute_is_available(self):
@@ -821,12 +800,10 @@ class SaleOrderLineInherit(models.Model):
             if getattr(record, 'display_type', False):
                 record.is_available = True
                 continue
-
             reserve = stock_moves_erp.search([
                 ('sale_line_id', '=', record.id),
                 ('type', '=', 'reserve')
             ], limit=1)
-
             disponible_real = record.disponible_unidades + (reserve.quantity if reserve else 0.0)
             record.is_available = bool(record.product_uom_qty <= disponible_real)
     
