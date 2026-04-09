@@ -749,7 +749,7 @@ class SaleOrderLineInherit(models.Model):
                 stock_move_erp = self.env['stock.moves.erp'].search([('sale_line_id', '=', record.id), ('type', '=', 'reserve')], limit=1)
                 if stock_move_erp:
                     stock_move_erp.write({
-                        'quatnity': record.product_uom_qty,
+                        'quantity': record.product_uom_qty,
                         'uxb': record.product_packaging_id.qty or '',
                         'bultos': record.product_packaging_qty
                     })
