@@ -251,7 +251,10 @@ class StockMovesERP(models.Model):
                 ('product_id', '=', record.product_id.id),
                 ('id', '!=', record.id)
             ])
-            duplicates.unlink()
+            if duplicates:
+                duplicates.unlink()
+            else:
+                continue
         return {
             'type': 'ir.actions.client',
             'tag': 'display_notification',
