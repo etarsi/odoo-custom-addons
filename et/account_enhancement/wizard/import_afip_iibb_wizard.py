@@ -91,15 +91,6 @@ class ImportAfipIibbWizard(models.TransientModel):
             (partner_id, cuit, iibb_type, perception, retention, period,
             create_uid, create_date, write_uid, write_date)
             VALUES %s
-            ON CONFLICT (cuit, iibb_type, period)
-            DO UPDATE SET
-                partner_id = EXCLUDED.partner_id,
-                perception = EXCLUDED.perception,
-                retention = EXCLUDED.retention,
-                create_uid = EXCLUDED.create_uid,
-                create_date = EXCLUDED.create_date,
-                write_uid = EXCLUDED.write_uid,
-                write_date = EXCLUDED.write_date
         """
         execute_values(self.env.cr, sql, rows, page_size=10000)
         return len(rows)

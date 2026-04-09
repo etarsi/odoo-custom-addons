@@ -770,27 +770,38 @@ class SaleOrderLineInherit(models.Model):
         for record in self:
             if record.is_available:
                 vals = {}
-
                 default_code = record.product_id.default_code
                 if default_code:
                     if default_code.startswith('9'):
                         search_code = default_code[1:]
                     else:
                         search_code = default_code
+
                     stock_erp = self.env['stock.erp'].search([
                         ('product_id.default_code', '=', search_code)
                     ], limit=1)
-                
-                vals['stock_erp'] = stock_erp.id
-                vals['sale_id'] = record.order_id._origin.id
-                vals['sale_line_id'] = record._origin.id
-                vals['partner_id'] = record.order_id.partner_id.id
-                vals['product_id'] = stock_erp.product_id.id
-                vals['quantity'] = record.product_uom_qty
-                vals['uxb'] = record.product_packaging_id.qty or ''
-                vals['bultos'] = record.product_packaging_qty
-                vals['type'] = 'reserve'
-                self.env['stock.moves.erp'].create(vals)
+                    if not stock_erp:
+                        raise UserError(f'No se encontró el producto en stock ERP para comprometer. Código: {record.product_id.default_code}')
+
+                #VERIFCAR SI YA EXISTE UNA LINEA YA CREADA Y RESERVADA PARA ESTA LÍNEA DE PEDIDO, SI EXISTE NO CREAR OTRA, SOLO RESEVAR DE ESA
+                stock_move_erp = self.env['stock.moves.erp'].search([('sale_line_id', '=', record.id), ('type', '=', 'reserve')], limit=1)
+                if stock_move_erp:
+                    stock_move_erp.write({
+                        'quantity': record.product_uom_qty,
+                        'uxb': record.product_packaging_id.qty or '',
+                        'bultos': record.product_packaging_qty
+                    })
+                else:
+                    vals['stock_erp'] = stock_erp.id
+                    vals['sale_id'] = record.order_id.id
+                    vals['sale_line_id'] = record.id
+                    vals['partner_id'] = record.order_id.partner_id.id
+                    vals['product_id'] = stock_erp.product_id.id
+                    vals['quantity'] = record.product_uom_qty
+                    vals['uxb'] = record.product_packaging_id.qty or ''
+                    vals['bultos'] = record.product_packaging_qty
+                    vals['type'] = 'reserve'
+                    self.env['stock.moves.erp'].create(vals)
                 record.is_compromised = True
 
     @api.depends('disponible_unidades', 'product_uom_qty')
@@ -918,7 +929,7 @@ class SaleOrderLineInherit(models.Model):
                     else:
                         line.update_stock_erp()
                         if line.product_uom_qty <= line.disponible_unidades:
-                            line.comprometer_stock2()
+                            line.comprometer_stock()
                             line.update_stock_erp()
                             line._compute_is_available()
                         else:
