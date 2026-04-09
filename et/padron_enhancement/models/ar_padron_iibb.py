@@ -6,8 +6,9 @@ from odoo.exceptions import UserError, ValidationError
 class ArPadronIibb(models.Model):
     _name = 'ar.padron.iibb'
 
-    partner_id = fields.Many2one('res.partner', string='Cliente', required=True)
-    cuit = fields.Char(string='CUIT', related='partner_id.vat', store=True)
+    partner_id = fields.Many2one('res.partner', string='Cliente')
+    partner_name = fields.Char(string='Nombre del Cliente', store=True)
+    cuit = fields.Char(string='CUIT', store=True)
     iibb_type = fields.Selection([('arba', 'ARBA'), ('agip', 'AGIP')], string='IIBB', required=True)
     perception = fields.Float(string='Percepción', required=True)
     retention = fields.Float(string='Retención', required=True)

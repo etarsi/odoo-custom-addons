@@ -51,6 +51,7 @@ class ImportAfipIibbWizard(models.TransientModel):
     retencion_index = fields.Integer(string='Indice Retencion', default=8)
     tag_id = fields.Integer(string='ID de Tag', default=19)
     max_download_mb = fields.Integer(string='Máx MB descarga', default=350)
+    cliente_name_index = fields.Integer(string='Indice Nombre Cliente (opcional)', default=11)
     _re_digits = re.compile(r"\D+")
 
     # ----------------- HELPERS NUMERICOS -----------------
@@ -361,6 +362,7 @@ class ImportAfipIibbWizard(models.TransientModel):
         perc_i = int(self.percepcion_index)
         ret_i = int(self.retencion_index)
         max_idx = max(cuit_i, perc_i, ret_i)
+        partner_name_i = int(self.cliente_name_index)
 
         rates_by_partner = {}  # partner_id -> (perc, ret)
         processed = 0
@@ -378,7 +380,7 @@ class ImportAfipIibbWizard(models.TransientModel):
                 processed = i
                 if not line:
                     continue
-                parts = line.strip().split(delim)
+                parts = line.strip().split(delim) #.strip() para evitar espacios que arruinen índices
                 if len(parts) <= max_idx:
                     continue
 
@@ -390,6 +392,7 @@ class ImportAfipIibbWizard(models.TransientModel):
                 # NUEVO: guardar masivo en ar.padron.iibb
                 padron_batch.append((
                     pid or None,     # partner_id
+                    str(parts[partner_name_i]) if parts[partner_name_i] else '',  # partner_name
                     cuit,            # cuit
                     'agip',          # iibb_type
                     self._to_float(parts[perc_i]),  # perception
