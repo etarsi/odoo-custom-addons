@@ -7,7 +7,7 @@ from pyafipws.iibb import IIBB
 _logger = logging.getLogger(__name__)
 
 
-ARBA_PROD_URL = "https://dfe.arba.gov.ar/DomicilioElectronicoFramework/SeguridadCliente/dfeServicioConsulta.do"
+ARBA_PROD_URL = "https://dfe.arba.gov.ar/DomicilioElectronico/SeguridadCliente/dfeServicioConsulta.do"
 ARBA_LOCK_KEY = 987654321  # sirve para evitar que el cron se ejecute concurrentemente en varios workers, lo que podría causar problemas de integridad y performance al procesar los mismos CUITs simultáneamente.
 
 
