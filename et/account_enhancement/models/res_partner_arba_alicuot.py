@@ -3,7 +3,7 @@ from odoo import api, fields, models
 import logging
 from calendar import monthrange
 from psycopg2.extras import execute_values
-from .iibb import IIBB  # ajustá el import según tu módulo
+from pyafipws.iibb import IIBB
 _logger = logging.getLogger(__name__)
 
 
