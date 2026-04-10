@@ -144,6 +144,7 @@ class ResPartnerArbaAlicuot(models.Model):
             error_count = 0
             for batch_number in range(params["batches_per_run"]):
                 cuits = self._fetch_next_padron_cuits(period_key, params["batch_size"])
+                rows_verificados = []
                 if not cuits:
                     _logger.warning(
                         "ARBA IIBB cron finalizó barrido completo del período %s. Reiniciando last_cuit.",
@@ -155,7 +156,6 @@ class ResPartnerArbaAlicuot(models.Model):
                 rows = []
                 batch_api_ok = 0
                 batch_errors = []
-                rows_verificados = []
                 for cuit in cuits:
                     rows_verificados.append(cuit)
                     try:
@@ -215,12 +215,13 @@ class ResPartnerArbaAlicuot(models.Model):
 
                 cr.commit()
             #ACTUALIZAR A TODOS LOS CUITS REVISADOS CON VERIFICADO EN ARBA, INCLUSO LOS QUE NO TIENEN ALICUOTAS, PARA EVITAR REPROCESARLOS EN EL FUTURO
-            cr.execute("""
-                UPDATE ar_padron_iibb p
-                SET arba_verified = TRUE
-                WHERE p.cuit IN %s
-                  AND p.period = %s
-            """, (tuple(rows_verificados), period_key))
+            if rows_verificados:
+                cr.execute("""
+                    UPDATE ar_padron_iibb p
+                    SET arba_verified = TRUE
+                    WHERE p.cuit IN %s
+                    AND p.period = %s
+                """, (tuple(rows_verificados), period_key))
 
             _logger.warning(
                 "ARBA IIBB cron terminado | período=%s | cuits_leidos=%s | consultas_ok=%s | partners_afectados=%s | filas_upsert=%s | errores=%s",
