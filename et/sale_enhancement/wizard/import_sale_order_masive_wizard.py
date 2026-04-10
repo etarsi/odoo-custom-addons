@@ -369,7 +369,7 @@ class ImportSaleOrderMasiveWizard(models.TransientModel):
                         row['excel_row'], row['cliente']
                     ))
                     continue
-
+                    
                 condicion_m2m = master_data['condicion_m2m_map'].get((row['condicion_venta'] or '').strip().upper())
                 if row['condicion_venta'] and not condicion_m2m:
                     errors.append(_('Fila %s: condición de venta no encontrada "%s".') % (
@@ -395,7 +395,11 @@ class ImportSaleOrderMasiveWizard(models.TransientModel):
                 rubro_real = self._get_rubro_from_product(product)
                 tipo = (row.get('condicion_venta') or '').strip().upper()
                 descuento = self._get_discount_for_row(row, rubro_real)
-                if tipo == 'TIPO 3':
+                #agarrar la primera linea del bloque para determinar compañía default, pero si la línea tiene compañía forzada, usar esa en su lugar. Esto es para que el usuario pueda forzar compañía solo en algunas líneas si lo
+                company_default = (row.get('company_default') or '').strip()
+                if company_default:
+                    target_companies = self._resolve_company(row, master_data)
+                elif tipo == 'TIPO 3':
                     target_companies =self._resolve_company(row, master_data)
                 else:
                     # compañías destino de la línea
@@ -541,30 +545,3 @@ class ImportSaleOrderMasiveWizard(models.TransientModel):
         
         elif not created_orders and errors:
             return self.notifi_action_warning(msg_error)
-
-    
-    # for group_key, data in grouped.items():
-    #     tipo = data['tipo']
-    #     discounts = {d for d in data['discounts'] if d}
-
-    #     # Si mezcla rubros y usa global_discount, no se puede representar más de un descuento
-    #     if tipo == 'TIPO 3' and len(discounts) > 1:
-    #         partner = self.env['res.partner'].browse(data['header']['partner_id'])
-    #         errors.append(_('No se puede importar el pedido para cliente "%s" porque tiene múltiples descuentos (%s) y condición de venta "Tipo 3".') % (
-    #             partner.name, ', '.join(str(d) for d in discounts)
-    #         ))
-    #         continue
-    #     global_discount = list(discounts)[0] if discounts else 0.0
-    #     vals= dict(data['header'])
-    #     vals['global_discount'] = global_discount if global_discount > 0 else 0.0
-    #     vals['order_line'] = [(0, 0, line_vals) for line_vals in data['lines']]
-    #     try:
-    #         with self.env.cr.savepoint():
-    #             order = sale_order.create(vals)
-    #             created_orders |= order
-    #     except Exception as e:
-    #         partner = self.env['res.partner'].browse(data['header']['partner_id'])  
-    #         errors.append(_('Error al crear pedido para cliente "%s": %s') % (
-    #             partner.name, str(e)
-    #         ))
-    #         continue

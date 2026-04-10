@@ -824,3 +824,21 @@ class AccountExportArba(models.Model):
                 'txt_content': ret_lines_txt,
             },
         ]
+        
+        
+
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        

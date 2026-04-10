@@ -5,20 +5,21 @@ from odoo.exceptions import UserError, ValidationError
 
 class ArPadronIibb(models.Model):
     _name = 'ar.padron.iibb'
+    _description = 'Padrón de IIBB-AGIP-ARBA'
 
-    partner_id = fields.Many2one('res.partner', string='Cliente')
     partner_name = fields.Char(string='Nombre del Cliente', store=True)
     cuit = fields.Char(string='CUIT', store=True)
-    iibb_type = fields.Selection([('arba', 'ARBA'), ('agip', 'AGIP')], string='IIBB', required=True)
-    perception = fields.Float(string='Percepción', required=True)
-    retention = fields.Float(string='Retención', required=True)
+    perception_agip = fields.Float(string='Percepción AGIP')
+    perception_arba = fields.Float(string='Percepción ARBA')
+    retention_agip = fields.Float(string='Retención AGIP')
+    retention_arba = fields.Float(string='Retención ARBA')
     period = fields.Char(string='Período', required=True)
 
     _sql_constraints = [
         (
-            'ar_padron_iibb_unique_cuit_type_period',
-            'unique(cuit, iibb_type, period)',
-            'Ya existe un registro para ese CUIT, tipo de IIBB y período.'
+            'ar_padron_iibb_unique_cuit_period',
+            'unique(cuit, period)',
+            'Ya existe un registro para ese CUIT y período.'
         ),
     ]
 

@@ -88,7 +88,7 @@ class ImportAfipIibbWizard(models.TransientModel):
 
         sql = """
             INSERT INTO ar_padron_iibb
-            (partner_id, partner_name, cuit, iibb_type, perception, retention, period,
+            (partner_name, cuit, perception, retention, period,
             create_uid, create_date, write_uid, write_date)
             VALUES %s
         """
@@ -363,7 +363,7 @@ class ImportAfipIibbWizard(models.TransientModel):
         processed = 0
         matched = 0
         log_each = 200000
-        period_value = f"{y:04d}{m:02d}"
+        period_value = f"{m:02d}-{y:04d}"
         padron_batch = []
         padron_saved = 0
         padron_batch_size = 10000
@@ -384,10 +384,8 @@ class ImportAfipIibbWizard(models.TransientModel):
                 pid = partner_by_cuit.get(cuit)
                 # NUEVO: guardar masivo en ar.padron.iibb
                 padron_batch.append((
-                    pid or None,     # partner_id
                     str(parts[partner_name_i]) if parts[partner_name_i] else '',  # partner_name
                     cuit,            # cuit
-                    'agip',          # iibb_type
                     self._to_float(parts[perc_i]),  # perception
                     self._to_float(parts[ret_i]),   # retention
                     period_value,    # period
@@ -487,24 +485,6 @@ class ImportAfipIibbWizard(models.TransientModel):
 
         _logger.info("AFIP IIBB: temp cargada rows=%s (%.2fs)", len(sql_rows), time.monotonic() - t0)
 
-        # 5) UPDATE masivo
-        cr.execute("""
-            UPDATE res_partner_arba_alicuot t
-            SET
-                alicuota_percepcion = s.alicuota_percepcion,
-                alicuota_retencion  = s.alicuota_retencion,
-                write_uid = s.write_uid,
-                write_date = s.write_date
-            FROM tmp_agip_iibb_alicuot s
-            WHERE t.partner_id = s.partner_id
-              AND t.tag_id = s.tag_id
-              AND t.company_id = s.company_id
-              AND t.from_date = s.from_date
-              AND t.to_date = s.to_date
-        """)
-        updated = cr.rowcount
-        _logger.info("AFIP IIBB: UPDATE ok updated=%s (%.2fs)", updated, time.monotonic() - t0)
-
         # 6) INSERT masivo (solo faltantes)
         cr.execute("""
             INSERT INTO res_partner_arba_alicuot
@@ -533,8 +513,8 @@ class ImportAfipIibbWizard(models.TransientModel):
             'params': {
                 'title': 'Importación completada',
                 'message': (
-                    "Se actualizaron y crearon las alícuotas de impuestos brutos según el padrón de AFIP.\n"
-                    f"Actualizados: {updated} | Insertados: {inserted} | "
+                    "Se crearon las alícuotas de impuestos brutos según el padrón de AFIP.\n"
+                    f"Insertados: {inserted} | "
                     f"Padrón IIBB guardado: {padron_saved}"
                 ),
                 'type': 'success',

@@ -159,12 +159,8 @@ class ImportAfipArbaWizard(models.TransientModel):
 
         # Crear en lote
         if create_vals:
-            #crear por las COMPANY_IDS para evitar problemas de multiempresa con reglas de acceso
-            for company_id in COMPANY_IDS:
-                for vals in create_vals:
-                    vals['company_id'] = company_id
-                    arba_model.create([vals])
-                    create_count = len(create_vals)
+            arba_model.with_context(allowed_company_ids=COMPANY_IDS).sudo().create(create_vals)
+            create_count = len(create_vals)
 
         # Actualizar existentes
         for rec, vals in to_update:
