@@ -507,6 +507,16 @@ class ImportAfipIibbWizard(models.TransientModel):
             )
         """)
         inserted = cr.rowcount
+        
+        # 2) opcional: reiniciar puntero si querés empezar ARBA desde el inicio del mes
+        icp = self.env['ir.config_parameter'].sudo()
+        icp.set_param('account_enhancement.arba_iibb_period', '')
+        icp.set_param('account_enhancement.arba_iibb_last_cuit', '')
+
+        # 3) disparar cron en segundo plano
+        cron = self.env.ref('account_enhancement.ir_cron_arba_iibb_desde_padron')
+        cron._trigger()
+
         return {
             'type': 'ir.actions.client',
             'tag': 'display_notification',
@@ -514,8 +524,9 @@ class ImportAfipIibbWizard(models.TransientModel):
                 'title': 'Importación completada',
                 'message': (
                     "Se crearon las alícuotas de impuestos brutos según el padrón de AFIP.\n"
-                    f"Insertados: {inserted} | "
-                    f"Padrón IIBB guardado: {padron_saved}"
+                    f"Insertados: {inserted} \n"
+                    f"Padrón IIBB guardado: {padron_saved}\n"
+                    f"Se programó la actualización de ARBA desde el padrón (puede tardar varias horas en procesar todo el padrón, dependiendo de la cantidad de CUITs nuevos)."
                 ),
                 'type': 'success',
                 'sticky': True,

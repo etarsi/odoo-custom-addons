@@ -13,18 +13,17 @@
             <field name="code">model.cron_notify_date_paid()</field>
         </record>
     </data>
-    <!--  
+
     <record id="ir_cron_arba_iibb_desde_padron" model="ir.cron">
         <field name="name">ARBA IIBB desde padrón</field>
         <field name="model_id" ref="model_res_partner_arba_alicuot"/>
         <field name="state">code</field>
         <field name="code">model.cron_consultar_arba_iibb_desde_padron()</field>
         <field name="user_id" ref="base.user_root"/>
-        <field name="interval_number">10</field>
-        <field name="interval_type">minutes</field>
+        <field name="interval_number">1</field>
+        <field name="interval_type">months</field>
         <field name="numbercall">-1</field>
         <field name="doall" eval="False"/>
         <field name="active" eval="True"/>
     </record>
-    -->
 </odoo>

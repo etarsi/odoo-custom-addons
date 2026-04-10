@@ -1,23 +1,14 @@
 # -*- coding: utf-8 -*-
+from odoo import api, fields, models
 import logging
 from calendar import monthrange
-from collections import defaultdict
-
 from psycopg2.extras import execute_values
-
-from odoo import api, fields, models, _
-from odoo.exceptions import UserError
-
 from .iibb import IIBB  # ajustá el import según tu módulo
-
 _logger = logging.getLogger(__name__)
 
-COMPANY_IDS = [2, 3, 4]
 
-ARBA_TEST_URL = "https://dfe.test.arba.gov.ar/DomicilioElectronicoFramework/SeguridadCliente/dfeServicioConsulta.do"
 ARBA_PROD_URL = "https://dfe.arba.gov.ar/DomicilioElectronicoFramework/SeguridadCliente/dfeServicioConsulta.do"
-
-ARBA_LOCK_KEY = 987654321  # cualquier entero fijo
+ARBA_LOCK_KEY = 987654321  # sirve para evitar que el cron se ejecute concurrentemente en varios workers, lo que podría causar problemas de integridad y performance al procesar los mismos CUITs simultáneamente.
 
 
 class ResPartnerArbaAlicuot(models.Model):
@@ -51,14 +42,13 @@ class ResPartnerArbaAlicuot(models.Model):
         today = fields.Date.to_date(fields.Date.context_today(self))
         desde = today.replace(day=1)
         hasta = today.replace(day=monthrange(today.year, today.month)[1])
-        period_key = "%04d-%02d" % (today.year, today.month)
+        period_key = "%02d-%04d" % (today.month, today.year)
         return desde, hasta, period_key
 
     @api.model
     def _get_or_reset_period_state(self):
         ICP = self.env["ir.config_parameter"].sudo()
         _, _, current_period = self._get_current_period_dates()
-
         saved_period = ICP.get_param("account_enhancement.arba_iibb_period") or ""
         last_cuit = ICP.get_param("account_enhancement.arba_iibb_last_cuit") or ""
 
@@ -66,7 +56,6 @@ class ResPartnerArbaAlicuot(models.Model):
             ICP.set_param("account_enhancement.arba_iibb_period", current_period)
             ICP.set_param("account_enhancement.arba_iibb_last_cuit", "")
             last_cuit = ""
-
         return last_cuit
 
     @api.model
@@ -97,56 +86,32 @@ class ResPartnerArbaAlicuot(models.Model):
         return [row[0] for row in self.env.cr.fetchall()]
 
     @api.model
-    def _map_active_partners_by_cuit(self, cuits):
+    def _sql_update_padron_arba_results(self, rows):
         """
-        Devuelve {cuit: [partner_ids]}.
-        Mantiene un comportamiento parecido al actual:
-        si hay varios partners activos con el mismo VAT limpio, los procesa a todos.
-        """
-        if not cuits:
-            return {}
-
-        self.env.cr.execute("""
-            SELECT regexp_replace(COALESCE(rp.vat, ''), '[^0-9]', '', 'g') AS cuit,
-                   rp.id
-              FROM res_partner rp
-             WHERE rp.active = TRUE
-               AND rp.vat IS NOT NULL
-               AND regexp_replace(COALESCE(rp.vat, ''), '[^0-9]', '', 'g') = ANY(%s)
-        """, (cuits,))
-
-        result = defaultdict(list)
-        for cuit, partner_id in self.env.cr.fetchall():
-            result[cuit].append(partner_id)
-        return result
-
-    @api.model
-    def _sql_upsert_arba_results(self, rows, tag_id, desde, hasta):
-        """
-        rows = [(partner_id, alicuota_percepcion, alicuota_retencion), ...]
-        Hace INSERT/UPDATE masivo en res_partner_arba_alicuot para todas las compañías.
+        rows = [(cuit, percepcion_arba, retention_arba), ...]
+        Actualiza ar_padron_iibb por cuit en lote.
         """
         if not rows:
             return 0
 
         cr = self.env.cr
 
-        cr.execute("DROP TABLE IF EXISTS tmp_arba_ws_result")
+        cr.execute("DROP TABLE IF EXISTS tmp_arba_padron_result")
         cr.execute("""
-            CREATE TEMP TABLE tmp_arba_ws_result (
-                partner_id INTEGER NOT NULL,
-                alicuota_percepcion NUMERIC,
-                alicuota_retencion NUMERIC
+            CREATE TEMP TABLE tmp_arba_padron_result (
+                cuit VARCHAR(11) NOT NULL,
+                percepcion_arba NUMERIC,
+                retention_arba NUMERIC
             ) ON COMMIT DROP
         """)
 
         execute_values(
             cr,
             """
-            INSERT INTO tmp_arba_ws_result (
-                partner_id,
-                alicuota_percepcion,
-                alicuota_retencion
+            INSERT INTO tmp_arba_padron_result (
+                cuit,
+                percepcion_arba,
+                retention_arba
             ) VALUES %s
             """,
             rows,
@@ -154,49 +119,16 @@ class ResPartnerArbaAlicuot(models.Model):
         )
 
         cr.execute("""
-            INSERT INTO res_partner_arba_alicuot (
-                partner_id,
-                company_id,
-                tag_id,
-                from_date,
-                to_date,
-                alicuota_percepcion,
-                alicuota_retencion,
-                create_uid,
-                create_date,
-                write_uid,
-                write_date
+            UPDATE ar_padron_iibb p
+            SET percepcion_arba = t.percepcion_arba,
+                retention_arba = t.retention_arba
+            FROM tmp_arba_padron_result t
+            WHERE p.cuit = t.cuit
+            AND (
+                    p.percepcion_arba IS DISTINCT FROM t.percepcion_arba
+                    OR p.retention_arba IS DISTINCT FROM t.retention_arba
             )
-            SELECT
-                t.partner_id,
-                c.company_id,
-                %s,
-                %s,
-                %s,
-                t.alicuota_percepcion,
-                t.alicuota_retencion,
-                %s,
-                NOW(),
-                %s,
-                NOW()
-            FROM tmp_arba_ws_result t
-            CROSS JOIN unnest(%s::int[]) AS c(company_id)
-            ON CONFLICT (partner_id, company_id, tag_id, from_date, to_date)
-            DO UPDATE
-               SET alicuota_percepcion = EXCLUDED.alicuota_percepcion,
-                   alicuota_retencion = EXCLUDED.alicuota_retencion,
-                   write_uid = EXCLUDED.write_uid,
-                   write_date = EXCLUDED.write_date
-             WHERE res_partner_arba_alicuot.alicuota_percepcion IS DISTINCT FROM EXCLUDED.alicuota_percepcion
-                OR res_partner_arba_alicuot.alicuota_retencion IS DISTINCT FROM EXCLUDED.alicuota_retencion
-        """, (
-            tag_id,
-            desde,
-            hasta,
-            self.env.uid,
-            self.env.uid,
-            COMPANY_IDS,
-        ))
+        """)
 
         return cr.rowcount
 
@@ -219,16 +151,7 @@ class ResPartnerArbaAlicuot(models.Model):
             params = self._get_arba_params()
             desde, hasta, period_key = self._get_current_period_dates()
             last_cuit = self._get_or_reset_period_state()
-
-            tag = self.env["account.account.tag"].search(
-                [("name", "=", "Ret/Perc IIBB ARBA")],
-                limit=1
-            )
-            if not tag:
-                raise UserError(_("No se encontró el tag 'Ret/Perc IIBB ARBA'."))
-
             url = ARBA_PROD_URL
-
             iibb = IIBB()
             iibb.Usuario = params["user"]
             iibb.Password = params["password"]
@@ -251,17 +174,11 @@ class ResPartnerArbaAlicuot(models.Model):
                     cr.commit()
                     break
 
-                partner_map = self._map_active_partners_by_cuit(cuits)
-
                 rows = []
                 batch_api_ok = 0
                 batch_errors = []
 
                 for cuit in cuits:
-                    partner_ids = partner_map.get(cuit) or []
-                    if not partner_ids:
-                        continue
-
                     try:
                         ok = iibb.ConsultarContribuyentes(
                             desde.strftime("%Y%m%d"),
@@ -285,27 +202,18 @@ class ResPartnerArbaAlicuot(models.Model):
                     if alicuota_percepcion == 0 and alicuota_retencion == 0:
                         continue
 
-                    for partner_id in partner_ids:
-                        rows.append((
-                            partner_id,
-                            alicuota_percepcion,
-                            alicuota_retencion,
-                        ))
-
+                    rows.append((
+                        cuit,
+                        alicuota_percepcion,
+                        alicuota_retencion,
+                    ))
                     batch_api_ok += 1
 
-                affected = self._sql_upsert_arba_results(
-                    rows=rows,
-                    tag_id=tag.id,
-                    desde=desde,
-                    hasta=hasta,
-                )
-
+                padron_affected = self._sql_update_padron_arba_results(rows=rows)
                 last_cuit = cuits[-1]
                 self._set_last_cuit_state(last_cuit)
-
                 total_api_ok += batch_api_ok
-                total_rows_upsert += affected
+                total_rows_upsert += padron_affected
                 total_cuits_leidos += len(cuits)
                 total_partners_afectados += len(rows)
                 error_count += len(batch_errors)
@@ -319,13 +227,13 @@ class ResPartnerArbaAlicuot(models.Model):
                     )
 
                 _logger.warning(
-                    "ARBA IIBB lote %s | período=%s | cuits=%s | consultas_ok=%s | partners_con_datos=%s | upsert=%s | last_cuit=%s",
+                    "ARBA IIBB lote %s | período=%s | cuits=%s | consultas_ok=%s | filas_con_datos=%s | update_padron=%s | last_cuit=%s",
                     batch_number + 1,
                     period_key,
                     len(cuits),
                     batch_api_ok,
                     len(rows),
-                    affected,
+                    padron_affected,
                     last_cuit,
                 )
 
@@ -343,4 +251,5 @@ class ResPartnerArbaAlicuot(models.Model):
             )
 
         finally:
-            cr.execute("SELECT pg_advisory_unlock(%s)", (ARBA_LOCK_KEY,))
+            cr.execute("SELECT pg_advisory_unlock(%s)", (ARBA_LOCK_KEY,))       
+            

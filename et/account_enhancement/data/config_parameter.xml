@@ -1,0 +1,12 @@
+<?xml version='1.0' encoding='utf-8'?>
+<odoo>
+    <record id="param_arba_iibb_period" model="ir.config_parameter">
+        <field name="key">account_enhancement.arba_iibb_period</field>
+        <field name="value"></field>
+    </record>
+
+    <record id="param_arba_iibb_last_cuit" model="ir.config_parameter">
+        <field name="key">account_enhancement.arba_iibb_last_cuit</field>
+        <field name="value"></field>
+    </record>
+</odoo>
