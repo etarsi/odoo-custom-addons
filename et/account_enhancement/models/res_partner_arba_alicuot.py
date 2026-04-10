@@ -58,7 +58,7 @@ class ResPartnerArbaAlicuot(models.Model):
                         FROM ar_padron_iibb p
                      WHERE p.cuit IS NOT NULL
                         AND p.cuit ~ '^[0-9]{11}$'
-                        AND p.arba_verified = FALSE
+                        AND p.arba_verified IS NOT TRUE
                         AND p.period = %s
                      ORDER BY p.cuit
                      LIMIT %s
