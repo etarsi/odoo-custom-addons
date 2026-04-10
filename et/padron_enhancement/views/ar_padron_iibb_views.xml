@@ -7,11 +7,12 @@
             <form string="Padrón IIBB">
                 <sheet>
                     <group>
-                        <field name="partner_id"/>
+                        <field name="partner_name"/>
                         <field name="cuit"/>
-                        <field name="iibb_type"/>
-                        <field name="perception"/>
-                        <field name="retention"/>
+                        <field name="perception_agip"/>
+                        <field name="retention_agip"/>
+                        <field name="perception_arba"/>
+                        <field name="retention_arba"/>
                         <field name="period"/>
                     </group>
                 </sheet>
@@ -25,11 +26,12 @@
         <field name="model">ar.padron.iibb</field>
         <field name="arch" type="xml">
             <tree>
-                <field name="partner_id" optional="show"/>
+                <field name="partner_name" optional="show"/>
                 <field name="cuit" optional="show"/>
-                <field name="iibb_type" optional="show"/>
-                <field name="perception" optional="show"/>
-                <field name="retention" optional="show"/>
+                <field name="perception_agip" optional="show"/>
+                <field name="retention_agip" optional="show"/>
+                <field name="perception_arba" optional="show"/>
+                <field name="retention_arba" optional="show"/>
                 <field name="period" optional="show"/>
             </tree>
         </field>

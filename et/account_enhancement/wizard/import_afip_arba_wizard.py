@@ -92,7 +92,7 @@ class ImportAfipArbaWizard(models.TransientModel):
         create_count = 0
         update_count = 0
 
-        for idx, partner in enumerate(partners, start=1):
+        for partner in partners:
             cuit = self._get_partner_cuit_clean(partner)
             if not cuit or not cuit.isdigit() or len(cuit) != 11:
                 errors.append("Partner %s tiene CUIT inválido: %s" % (partner.name, partner.vat))

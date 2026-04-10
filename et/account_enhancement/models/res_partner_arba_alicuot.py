@@ -125,8 +125,8 @@ class ResPartnerArbaAlicuot(models.Model):
             FROM tmp_arba_padron_result t
             WHERE p.cuit = t.cuit
             AND (
-                    p.perception_arba IS DISTINCT FROM t.perception_arba
-                    OR p.retention_arba IS DISTINCT FROM t.retention_arba
+                p.perception_arba IS DISTINCT FROM t.perception_arba
+                OR p.retention_arba IS DISTINCT FROM t.retention_arba
             )
         """)
 
