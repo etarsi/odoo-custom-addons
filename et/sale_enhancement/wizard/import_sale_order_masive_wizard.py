@@ -324,6 +324,7 @@ class ImportSaleOrderMasiveWizard(models.TransientModel):
             'client_order_ref': False,
             'origin': 'IMPORT MASIVO',
             'payment_term_id': payment_term.id if payment_term else False,
+            'company_default': False,
         }
         if company_default:
             vals['company_default'] = company_default.id
