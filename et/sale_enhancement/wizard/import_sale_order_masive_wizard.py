@@ -302,7 +302,7 @@ class ImportSaleOrderMasiveWizard(models.TransientModel):
             
         
 
-    def _prepare_order_vals(self, row, partner, shipping, company, global_discount, condicion_m2m, payment_term):
+    def _prepare_order_vals(self, row, partner, shipping, company, global_discount, condicion_m2m, payment_term, company_default=None):
         note_parts = []
         if row.get('plazos_pago'):
             note_parts.append('Plazos de pago: %s' % row['plazos_pago'])
@@ -314,8 +314,7 @@ class ImportSaleOrderMasiveWizard(models.TransientModel):
         #SI ES PRODUCCION B
         if company.id == 1:
             condicion_m2m = self.env['condicion.venta'].search([('condicion', '=', 'C')], limit=1)
-
-        return {
+        vals = {
             'partner_id': partner.id,
             'partner_shipping_id': shipping.id if shipping else partner.id,
             'company_id': company.id,
@@ -326,6 +325,9 @@ class ImportSaleOrderMasiveWizard(models.TransientModel):
             'origin': 'IMPORT MASIVO',
             'payment_term_id': payment_term.id if payment_term else False,
         }
+        if company_default:
+            vals['company_default'] = company_default.id
+        return vals
 
     def _prepare_order_line_vals(self, row, product):
         qty = row.get('cantidad') or 0.0
@@ -398,6 +400,7 @@ class ImportSaleOrderMasiveWizard(models.TransientModel):
                 #agarrar la primera linea del bloque para determinar compañía default, pero si la línea tiene compañía forzada, usar esa en su lugar. Esto es para que el usuario pueda forzar compañía solo en algunas líneas si lo
                 company_default = (row.get('company_default') or '').strip()
                 if company_default:
+                    company_default = self.env['res.company'].search([('name', '=', company_default)], limit=1)
                     target_companies = self._resolve_company(row, master_data)
                 elif tipo == 'TIPO 3':
                     target_companies =self._resolve_company(row, master_data)
@@ -443,7 +446,7 @@ class ImportSaleOrderMasiveWizard(models.TransientModel):
 
                     if not grouped[group_key]['header']:
                         grouped[group_key]['header'] = self._prepare_order_vals(
-                            row_part, partner, shipping, company, descuento, condicion_m2m, payment_term
+                            row_part, partner, shipping, company, descuento, condicion_m2m, payment_term, company_default
                         )
 
                     grouped[group_key]['tipo'] = tipo
@@ -460,7 +463,16 @@ class ImportSaleOrderMasiveWizard(models.TransientModel):
             tipo = data['tipo']
             discounts = {d for d in data['discounts'] if d}
 
-            if tipo == 'TIPO 3' and len(discounts) > 1:
+            if data['header']['company_default'] and len(discounts) > 1:
+                partner = self.env['res.partner'].browse(data['header']['partner_id'])
+                errors.append(
+                    _('No se puede importar el pedido para cliente "%s" porque tiene múltiples descuentos (%s) y compañía default "%s".') % (
+                        partner.name, ', '.join(str(d) for d in sorted(discounts)), data['header']['company_default']
+                    )
+                )
+                continue
+
+            elif tipo == 'TIPO 3' and len(discounts) > 1:
                 partner = self.env['res.partner'].browse(data['header']['partner_id'])
                 errors.append(
                     _('No se puede importar el pedido para cliente "%s" porque tiene múltiples descuentos (%s) y condición de venta "Tipo 3".') % (
