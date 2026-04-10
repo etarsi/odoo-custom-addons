@@ -87,28 +87,28 @@ class SaleOrderInherit(models.Model):
     def write(self, vals):
         res = super().write(vals)
         company_id = False
-        condicion_m2m_id = False
+        condicion_m2m = False
         partner_shipping_id = False
         if 'company_id' in vals:
             company_id = True
-        if 'condicion_m2m_id' in vals:
-            condicion_m2m_id = True
+        if 'condicion_m2m' in vals:
+            condicion_m2m = True
         if 'partner_shipping_id' in vals:
             partner_shipping_id = True
-        if company_id or condicion_m2m_id or partner_shipping_id:
-            self._actualizar_wms_transfer_task(company_id=company_id, condicion_m2m_id=condicion_m2m_id, partner_shipping_id=partner_shipping_id)
+        if company_id or condicion_m2m or partner_shipping_id:
+            self._actualizar_wms_transfer_task(company_id=company_id, condicion_m2m=condicion_m2m, partner_shipping_id=partner_shipping_id)
         return res
     
-    def _actualizar_wms_transfer_task(self, company_id=False, condicion_m2m_id=False, partner_shipping_id=False):
+    def _actualizar_wms_transfer_task(self, company_id=False, condicion_m2m=False, partner_shipping_id=False):
         for record in self:
             vals_to_write_transfer = {}
             vals_to_write_task = {}
             if company_id:
                 vals_to_write_transfer['company_id'] = record.company_id.id
                 vals_to_write_task['company_id'] = record.company_id.id
-            if condicion_m2m_id:
-                vals_to_write_transfer['sale_type'] = record.condicion_m2m_id.name
-                vals_to_write_task['invoicing_type'] = record.condicion_m2m_id.name
+            if condicion_m2m:
+                vals_to_write_transfer['sale_type'] = record.condicion_m2m.name
+                vals_to_write_task['invoicing_type'] = record.condicion_m2m.name
             if partner_shipping_id:
                 vals_to_write_transfer['partner_address_id'] = record.partner_shipping_id.id
                 vals_to_write_task['partner_address_id'] = record.partner_shipping_id.id
