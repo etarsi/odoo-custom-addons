@@ -188,7 +188,6 @@ class ResPartnerArbaAlicuot(models.Model):
                     batch_api_ok += 1
 
                 padron_affected = self._sql_update_padron_arba_results(rows=rows)
-                last_cuit = cuits[-1]
                 total_api_ok += batch_api_ok
                 total_rows_upsert += padron_affected
                 total_cuits_leidos += len(cuits)
@@ -204,27 +203,25 @@ class ResPartnerArbaAlicuot(models.Model):
                     )
 
                 _logger.warning(
-                    "ARBA IIBB lote %s | período=%s | cuits=%s | consultas_ok=%s | filas_con_datos=%s | update_padron=%s | last_cuit=%s",
+                    "ARBA IIBB lote %s | período=%s | cuits=%s | consultas_ok=%s | filas_con_datos=%s | update_padron=%s",
                     batch_number + 1,
                     period_key,
                     len(cuits),
                     batch_api_ok,
                     len(rows),
-                    padron_affected,
-                    last_cuit,
+                    padron_affected
                 )
 
                 cr.commit()
 
             _logger.warning(
-                "ARBA IIBB cron terminado | período=%s | cuits_leidos=%s | consultas_ok=%s | partners_afectados=%s | filas_upsert=%s | errores=%s | last_cuit=%s",
+                "ARBA IIBB cron terminado | período=%s | cuits_leidos=%s | consultas_ok=%s | partners_afectados=%s | filas_upsert=%s | errores=%s",
                 period_key,
                 total_cuits_leidos,
                 total_api_ok,
                 total_partners_afectados,
                 total_rows_upsert,
-                error_count,
-                last_cuit,
+                error_count
             )
 
         finally:
