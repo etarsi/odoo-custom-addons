@@ -38,6 +38,20 @@ class ResPartnerArbaAlicuot(models.Model):
         }
 
     @api.model
+    def _mark_padron_cuits_verified(self, cuits, period_key):
+        if not cuits:
+            return 0
+
+        self.env.cr.execute("""
+            UPDATE ar_padron_iibb p
+            SET arba_verified = TRUE
+            WHERE p.cuit = ANY(%s)
+            AND p.period = %s
+            AND p.arba_verified IS NOT TRUE
+        """, (cuits, period_key))
+        return self.env.cr.rowcount
+
+    @api.model
     def _get_current_period_dates(self):
         today = fields.Date.to_date(fields.Date.context_today(self))
         desde = today.replace(day=1)
@@ -142,9 +156,9 @@ class ResPartnerArbaAlicuot(models.Model):
             total_cuits_leidos = 0
             total_partners_afectados = 0
             error_count = 0
+            rows_verificados = []
             for batch_number in range(params["batches_per_run"]):
                 cuits = self._fetch_next_padron_cuits(period_key, params["batch_size"])
-                rows_verificados = []
                 if not cuits:
                     _logger.warning(
                         "ARBA IIBB cron finalizó barrido completo del período %s. Reiniciando last_cuit.",
@@ -189,6 +203,7 @@ class ResPartnerArbaAlicuot(models.Model):
                     batch_api_ok += 1
 
                 padron_affected = self._sql_update_padron_arba_results(rows=rows)
+                verified_affected = self._mark_padron_cuits_verified(cuits, period_key)
                 total_api_ok += batch_api_ok
                 total_rows_upsert += padron_affected
                 total_cuits_leidos += len(cuits)
@@ -212,17 +227,7 @@ class ResPartnerArbaAlicuot(models.Model):
                     len(rows),
                     padron_affected
                 )
-
                 cr.commit()
-            #ACTUALIZAR A TODOS LOS CUITS REVISADOS CON VERIFICADO EN ARBA, INCLUSO LOS QUE NO TIENEN ALICUOTAS, PARA EVITAR REPROCESARLOS EN EL FUTURO
-            if rows_verificados:
-                cr.execute("""
-                    UPDATE ar_padron_iibb p
-                    SET arba_verified = TRUE
-                    WHERE p.cuit IN %s
-                    AND p.period = %s
-                """, (tuple(rows_verificados), period_key))
-
             _logger.warning(
                 "ARBA IIBB cron terminado | período=%s | cuits_leidos=%s | consultas_ok=%s | partners_afectados=%s | filas_upsert=%s | errores=%s",
                 period_key,
