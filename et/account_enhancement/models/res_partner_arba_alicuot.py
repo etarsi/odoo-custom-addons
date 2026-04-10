@@ -155,8 +155,9 @@ class ResPartnerArbaAlicuot(models.Model):
                 rows = []
                 batch_api_ok = 0
                 batch_errors = []
-
+                rows_verificados = []
                 for cuit in cuits:
+                    rows_verificados.append(cuit)
                     try:
                         ok = iibb.ConsultarContribuyentes(
                             desde.strftime("%Y%m%d"),
@@ -166,7 +167,7 @@ class ResPartnerArbaAlicuot(models.Model):
                     except Exception as e:
                         batch_errors.append("CUIT %s: %s" % (cuit, str(e)))
                         continue
-
+                    
                     if not ok:
                         continue
 
@@ -213,6 +214,13 @@ class ResPartnerArbaAlicuot(models.Model):
                 )
 
                 cr.commit()
+            #ACTUALIZAR A TODOS LOS CUITS REVISADOS CON VERIFICADO EN ARBA, INCLUSO LOS QUE NO TIENEN ALICUOTAS, PARA EVITAR REPROCESARLOS EN EL FUTURO
+            cr.execute("""
+                UPDATE ar_padron_iibb p
+                SET arba_verified = TRUE
+                WHERE p.cuit IN %s
+                  AND p.period = %s
+            """, (tuple(rows_verificados), period_key))
 
             _logger.warning(
                 "ARBA IIBB cron terminado | período=%s | cuits_leidos=%s | consultas_ok=%s | partners_afectados=%s | filas_upsert=%s | errores=%s",
