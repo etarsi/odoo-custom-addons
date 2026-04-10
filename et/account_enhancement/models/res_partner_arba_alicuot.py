@@ -88,7 +88,7 @@ class ResPartnerArbaAlicuot(models.Model):
     @api.model
     def _sql_update_padron_arba_results(self, rows):
         """
-        rows = [(cuit, percepcion_arba, retention_arba), ...]
+        rows = [(cuit, perception_arba, retention_arba), ...]
         Actualiza ar_padron_iibb por cuit en lote.
         """
         if not rows:
@@ -100,7 +100,7 @@ class ResPartnerArbaAlicuot(models.Model):
         cr.execute("""
             CREATE TEMP TABLE tmp_arba_padron_result (
                 cuit VARCHAR(11) NOT NULL,
-                percepcion_arba NUMERIC,
+                perception_arba NUMERIC,
                 retention_arba NUMERIC
             ) ON COMMIT DROP
         """)
@@ -110,7 +110,7 @@ class ResPartnerArbaAlicuot(models.Model):
             """
             INSERT INTO tmp_arba_padron_result (
                 cuit,
-                percepcion_arba,
+                perception_arba,
                 retention_arba
             ) VALUES %s
             """,
@@ -120,12 +120,12 @@ class ResPartnerArbaAlicuot(models.Model):
 
         cr.execute("""
             UPDATE ar_padron_iibb p
-            SET percepcion_arba = t.percepcion_arba,
+            SET perception_arba = t.perception_arba,
                 retention_arba = t.retention_arba
             FROM tmp_arba_padron_result t
             WHERE p.cuit = t.cuit
             AND (
-                    p.percepcion_arba IS DISTINCT FROM t.percepcion_arba
+                    p.perception_arba IS DISTINCT FROM t.perception_arba
                     OR p.retention_arba IS DISTINCT FROM t.retention_arba
             )
         """)
