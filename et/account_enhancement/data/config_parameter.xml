@@ -1,12 +1,22 @@
 <?xml version='1.0' encoding='utf-8'?>
-<odoo>
+<odoo noupdate="1">
     <record id="param_arba_iibb_period" model="ir.config_parameter">
         <field name="key">account_enhancement.arba_iibb_period</field>
+        <field name="value"></field>
+    </record>
+
+    <record id="param_arba_iibb_first_cuit" model="ir.config_parameter">
+        <field name="key">account_enhancement.arba_iibb_first_cuit</field>
         <field name="value"></field>
     </record>
 
     <record id="param_arba_iibb_last_cuit" model="ir.config_parameter">
         <field name="key">account_enhancement.arba_iibb_last_cuit</field>
         <field name="value"></field>
+    </record>
+
+    <record id="param_arba_iibb_running" model="ir.config_parameter">
+        <field name="key">account_enhancement.arba_iibb_running</field>
+        <field name="value">False</field>
     </record>
 </odoo>

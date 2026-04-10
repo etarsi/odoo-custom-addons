@@ -13,6 +13,7 @@ class ArPadronIibb(models.Model):
     perception_arba = fields.Float(string='Percepción ARBA')
     retention_agip = fields.Float(string='Retención AGIP')
     retention_arba = fields.Float(string='Retención ARBA')
+    arba_verified = fields.Boolean(string='Verificado en ARBA', default=False)
     period = fields.Char(string='Período', required=True)
 
     _sql_constraints = [

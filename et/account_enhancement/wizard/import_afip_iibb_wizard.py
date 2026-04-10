@@ -507,12 +507,7 @@ class ImportAfipIibbWizard(models.TransientModel):
             )
         """)
         inserted = cr.rowcount
-        
-        # 2) opcional: reiniciar puntero si querés empezar ARBA desde el inicio del mes
-        icp = self.env['ir.config_parameter'].sudo()
-        icp.set_param('account_enhancement.arba_iibb_period', '')
-        icp.set_param('account_enhancement.arba_iibb_last_cuit', '')
-
+        _logger.info("AFIP IIBB: alicuotas insertadas=%s (%.2fs)", inserted, time.monotonic() - t0)
         # 3) disparar cron en segundo plano
         cron = self.env.ref('account_enhancement.ir_cron_arba_iibb_desde_padron')
         cron._trigger()

@@ -27,7 +27,7 @@ class ResPartnerArbaAlicuot(models.Model):
     def _get_arba_params(self):
         user = "30708077034"
         password = "Funtoys0205"
-        batch_size = 500
+        batch_size = 1000
         batches_per_run = 5
 
         return {
@@ -46,26 +46,7 @@ class ResPartnerArbaAlicuot(models.Model):
         return desde, hasta, period_key
 
     @api.model
-    def _get_or_reset_period_state(self):
-        ICP = self.env["ir.config_parameter"].sudo()
-        _, _, current_period = self._get_current_period_dates()
-        saved_period = ICP.get_param("account_enhancement.arba_iibb_period") or ""
-        last_cuit = ICP.get_param("account_enhancement.arba_iibb_last_cuit") or ""
-
-        if saved_period != current_period:
-            ICP.set_param("account_enhancement.arba_iibb_period", current_period)
-            ICP.set_param("account_enhancement.arba_iibb_last_cuit", "")
-            last_cuit = ""
-        return last_cuit
-
-    @api.model
-    def _set_last_cuit_state(self, last_cuit):
-        self.env["ir.config_parameter"].sudo().set_param(
-            "account_enhancement.arba_iibb_last_cuit", last_cuit or ""
-        )
-
-    @api.model
-    def _fetch_next_padron_cuits(self, last_cuit, batch_size):
+    def _fetch_next_padron_cuits(self, period_key, batch_size):
         """
         Lee CUITs únicos desde ar_padron_iibb usando last_cuit, sin OFFSET.
         OJO: la tabla real en PostgreSQL es ar_padron_iibb, no ar.padron.iibb
@@ -74,15 +55,16 @@ class ResPartnerArbaAlicuot(models.Model):
             SELECT sub.cuit
               FROM (
                     SELECT DISTINCT p.cuit
-                      FROM ar_padron_iibb p
+                        FROM ar_padron_iibb p
                      WHERE p.cuit IS NOT NULL
-                       AND p.cuit ~ '^[0-9]{11}$'
-                       AND p.cuit > %s
+                        AND p.cuit ~ '^[0-9]{11}$'
+                        AND p.arba_verified = FALSE
+                        AND p.period = %s
                      ORDER BY p.cuit
                      LIMIT %s
                    ) sub
              ORDER BY sub.cuit
-        """, (last_cuit or "", batch_size))
+        """, (period_key, batch_size))
         return [row[0] for row in self.env.cr.fetchall()]
 
     @api.model
@@ -121,7 +103,8 @@ class ResPartnerArbaAlicuot(models.Model):
         cr.execute("""
             UPDATE ar_padron_iibb p
             SET perception_arba = t.perception_arba,
-                retention_arba = t.retention_arba
+                retention_arba = t.retention_arba,
+                arba_verified = TRUE
             FROM tmp_arba_padron_result t
             WHERE p.cuit = t.cuit
             AND (
@@ -140,7 +123,6 @@ class ResPartnerArbaAlicuot(models.Model):
         Guarda last_cuit para reanudar.
         """
         cr = self.env.cr
-
         cr.execute("SELECT pg_try_advisory_lock(%s)", (ARBA_LOCK_KEY,))
         locked = cr.fetchone()[0]
         if not locked:
@@ -150,27 +132,23 @@ class ResPartnerArbaAlicuot(models.Model):
         try:
             params = self._get_arba_params()
             desde, hasta, period_key = self._get_current_period_dates()
-            last_cuit = self._get_or_reset_period_state()
             url = ARBA_PROD_URL
             iibb = IIBB()
             iibb.Usuario = params["user"]
             iibb.Password = params["password"]
             iibb.Conectar(url=url)
-
             total_api_ok = 0
             total_rows_upsert = 0
             total_cuits_leidos = 0
             total_partners_afectados = 0
             error_count = 0
-
             for batch_number in range(params["batches_per_run"]):
-                cuits = self._fetch_next_padron_cuits(last_cuit, params["batch_size"])
+                cuits = self._fetch_next_padron_cuits(period_key, params["batch_size"])
                 if not cuits:
                     _logger.warning(
                         "ARBA IIBB cron finalizó barrido completo del período %s. Reiniciando last_cuit.",
                         period_key
                     )
-                    self._set_last_cuit_state("")
                     cr.commit()
                     break
 
@@ -211,7 +189,6 @@ class ResPartnerArbaAlicuot(models.Model):
 
                 padron_affected = self._sql_update_padron_arba_results(rows=rows)
                 last_cuit = cuits[-1]
-                self._set_last_cuit_state(last_cuit)
                 total_api_ok += batch_api_ok
                 total_rows_upsert += padron_affected
                 total_cuits_leidos += len(cuits)
@@ -251,5 +228,12 @@ class ResPartnerArbaAlicuot(models.Model):
             )
 
         finally:
-            cr.execute("SELECT pg_advisory_unlock(%s)", (ARBA_LOCK_KEY,))       
-            
+            try:
+                cr.rollback()  # por las dudas, para liberar cualquier lock en caso de error
+            except Exception:
+                pass
+            try:
+                cr.execute("SELECT pg_advisory_unlock(%s)", (ARBA_LOCK_KEY,))
+            except Exception:
+                cr.rollback()  # por las dudas, para liberar cualquier lock en caso de error
+                _logger.exception("Error liberando lock de ARBA IIBB")

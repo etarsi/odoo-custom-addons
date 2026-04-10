@@ -14,6 +14,7 @@
                         <field name="perception_arba"/>
                         <field name="retention_arba"/>
                         <field name="period"/>
+                        <field name="arba_verified"/> <!-- Nuevo campo para indicar si fue verificado contra ARBA -->
                     </group>
                 </sheet>
             </form>
@@ -33,6 +34,7 @@
                 <field name="perception_arba" optional="show"/>
                 <field name="retention_arba" optional="show"/>
                 <field name="period" optional="show"/>
+                <field name="arba_verified" optional="hide"/> <!-- Nuevo campo para indicar si fue verificado contra ARBA -->
             </tree>
         </field>
     </record>
