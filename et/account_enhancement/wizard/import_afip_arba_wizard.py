@@ -28,9 +28,6 @@ class ImportAfipArbaWizard(models.TransientModel):
         required=True,
         default=lambda self: fields.Date.today().year,
     )
-    arba_iibb_user = fields.Char(string="ARBA IIBB Usuario")
-    arba_iibb_password = fields.Char(string="ARBA IIBB Password")
-    arba_iibb_testing = fields.Boolean(string="ARBA IIBB Testing", default=False)
 
     def _get_partner_cuit_clean(self, partner):
         self.ensure_one()
@@ -55,19 +52,9 @@ class ImportAfipArbaWizard(models.TransientModel):
     def action_consultar_arba_iibb(self):
         self.ensure_one()
 
-        user = self.arba_iibb_user or '30708077034'
-        password = self.arba_iibb_password or 'Funtoys0205'
-        url = ARBA_TEST_URL if self.arba_iibb_testing else ARBA_PROD_URL
-
-        iibb = IIBB()
-        iibb.Usuario = user
-        iibb.Password = password
-        iibb.Conectar(url=url)
-
         hoy = date(int(self.year), int(self.month), 1)
         desde = hoy.replace(day=1)
         hasta = hoy.replace(day=monthrange(hoy.year, hoy.month)[1])
-
         tag_id = self.env['account.account.tag'].search([('name', '=', 'Ret/Perc IIBB ARBA')], limit=1)
         if not tag_id:
             raise UserError(_("No se encontró el tag 'Ret/Perc IIBB ARBA'. Por favor, cree este tag antes de ejecutar la consulta."))
@@ -110,25 +97,14 @@ class ImportAfipArbaWizard(models.TransientModel):
             if not cuit or not cuit.isdigit() or len(cuit) != 11:
                 errors.append("Partner %s tiene CUIT inválido: %s" % (partner.name, partner.vat))
                 continue
-            try:
-                ok = iibb.ConsultarContribuyentes(
-                    desde.strftime("%Y%m%d"),
-                    hasta.strftime("%Y%m%d"),
-                    cuit
-                )
-            except Exception as e:
-                errors.append("Error al consultar ARBA para partner %s (CUIT %s): %s" % (partner.name, partner.vat, str(e)))
+            
+            ar_padron_iibb = self.env['ar.padron.iibb'].search([('cuit', '=', cuit)], limit=1)
+            if not ar_padron_iibb:
+                errors.append("Partner %s con CUIT %s no encontrado en el padrón de AFIP IIBB" % (partner.name, cuit))
                 continue
 
-            if not ok:
-                continue
-
-            leido = iibb.LeerContribuyente()
-            if not leido:
-                continue
-
-            alicuota_percepcion = self._to_float_ar(iibb.AlicuotaPercepcion)
-            alicuota_retencion = self._to_float_ar(iibb.AlicuotaRetencion)
+            alicuota_percepcion = self._to_float_ar(ar_padron_iibb.perception_arba)
+            alicuota_retencion = self._to_float_ar(ar_padron_iibb.retention_arba)
             
             if alicuota_percepcion == 0 and alicuota_retencion == 0:
                 continue
@@ -136,7 +112,6 @@ class ImportAfipArbaWizard(models.TransientModel):
             for company_id in COMPANY_IDS:
                 key = (partner.id, company_id)
                 existing = existing_map.get(key)
-
                 if existing:
                     if (existing.alicuota_percepcion != alicuota_percepcion or
                         existing.alicuota_retencion != alicuota_retencion):
@@ -154,8 +129,6 @@ class ImportAfipArbaWizard(models.TransientModel):
                         "alicuota_percepcion": alicuota_percepcion,
                         "alicuota_retencion": alicuota_retencion,
                     })
-            if idx % 100 == 0:
-                _logger.warning("ARBA IIBB procesados %s/%s partners", idx, len(partners))
 
         # Crear en lote
         if create_vals:
