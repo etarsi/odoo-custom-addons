@@ -50,8 +50,24 @@ class ResPartnerInherit(models.Model):
         }
         return action
     
-    @api.onchange('vat')
-    def onchange_vat_iibb_agip_arba(self):
+    @api.model_create_multi
+    def create(self, vals_list):
+        records = super().create(vals_list)
+        for rec in records:
+            if rec.vat:
+                rec.update_iibb()
+        return records
+
+    def write(self, vals):
+        res = super().write(vals)
+        if 'vat' in vals:
+            for rec in self:
+                if rec.vat:
+                    rec.update_iibb()
+        return res
+
+
+    def update_iibb(self):
         """Sugerir diario y cuenta para facturas de proveedor AFIP Import según CUIT."""
         _logger.warning("onchange_vat_iibb_agip_arba triggered for partner %s with VAT %s", self.name, self.vat)
         if not self.vat:
@@ -59,41 +75,13 @@ class ResPartnerInherit(models.Model):
         _logger.warning("Procesando CUIT %s para partner %s", self.vat, self.name)
         cuit = ''.join(ch for ch in self.vat if ch.isdigit()) # Extraer solo dígitos del CUIT
         if len(cuit) != 11:
-            return {
-                'type': 'ir.actions.client',
-                'tag': 'display_notification',
-                'params': {
-                    'title': _("Aviso"),
-                    'message': _("Ingrese un CUIT válido."),
-                    'type': 'warning',
-                    'sticky': False,
-                }
-            }
+            raise ValidationError(_("El CUIT debe tener 11 dígitos. Por favor, ingrese un CUIT válido para el partner %s.") % self.name)
         #no agregar cuit duplicados en vat de contactos hijos
         if self.search([('vat', '=', self.vat), ('id', '!=', self.id)]):
-            return {
-                'type': 'ir.actions.client',
-                'tag': 'display_notification',
-                'params': {
-                    'title': _("Error"),
-                    'message': _("El CUIT ingresado ya existe en otro contacto. Por favor, ingrese un CUIT único."),
-                    'type': 'danger',
-                    'sticky': True,
-                }
-            }
+            raise ValidationError(_("El CUIT %s ya existe en otro partner. Por favor, ingrese un CUIT único para el partner %s.") % (self.vat, self.name))
         #ACTUALIZAR AGIP
         self.udpdate_iibb_agip()
         self.update_iibb_arba()
-        return {
-            'type': 'ir.actions.client',
-            'tag': 'display_notification',
-            'params': {
-                'title': _("Actualización de alícuotas"),
-                'message': _("Se han actualizado las alícuotas de percepción y retención para el CUIT ingresado."),
-                'type': 'success',
-                'sticky': False,
-            }
-        }
             
     def udpdate_iibb_agip(self):
         """Actualizar diario y cuenta para facturas de proveedor AFIP Import según CUIT."""
