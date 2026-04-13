@@ -66,7 +66,6 @@ class ResPartnerInherit(models.Model):
                     rec.update_iibb()
         return res
 
-
     def update_iibb(self):
         """Sugerir diario y cuenta para facturas de proveedor AFIP Import según CUIT."""
         _logger.warning("onchange_vat_iibb_agip_arba triggered for partner %s with VAT %s", self.name, self.vat)
@@ -93,7 +92,7 @@ class ResPartnerInherit(models.Model):
         tag_id = self.env['account.account.tag'].search([('name', '=', 'Ret/Perc IIBB AGIP')], limit=1)
         for company in COMPANY_IDS:
             arba_alicuotas = self.env['res.partner.arba_alicuot'].search([('partner_id','=',self.id), ('company_id','=',company), 
-                                                                            ('from_date','=',date_from), ('to_date','=',date_to)], limit=1)
+                                                                            ('from_date','=',date_from), ('to_date','=',date_to), ('tag_id','=',tag_id.id)], limit=1)
             if not arba_alicuotas:
                 padron_iibb = self.env['ar.padron.iibb'].search([('cuit', '=', cuit), ('period', '=', period_key)], limit=1)
                 if padron_iibb:
@@ -101,60 +100,78 @@ class ResPartnerInherit(models.Model):
                         'partner_id': self.id,
                         'company_id': company,
                         'tag_id': tag_id.id, #tag de alícuota general AGIP
-                        'alicuota_percepcion': padron_iibb.perception,
-                        'alicuota_retencion': padron_iibb.retention,
+                        'alicuota_percepcion': padron_iibb.perception_agip,
+                        'alicuota_retencion': padron_iibb.retention_agip,
                         'from_date': date_from,
                         'to_date': date_to,
                     }
                     self.env['res.partner.arba_alicuot'].create(vals)
                 
     def update_iibb_arba(self):
-        """Actualizar diario y cuenta para facturas de proveedor AFIP Import según CUIT de todos los partners."""
+        self.ensure_one()
         date_today = date.today()
         date_from = date(date_today.year, date_today.month, 1)
         date_to = date_from + relativedelta(months=1, days=-1)
-        cuit = ''.join(ch for ch in (self.vat or '') if ch.isdigit())
+        cuit = self._normalize_cuit(self.vat)
         period_key = f"{date_today.month:02d}-{date_today.year}"
+
         tag_id = self.env['account.account.tag'].search([('name', '=', 'Ret/Perc IIBB ARBA')], limit=1)
+        if not tag_id:
+            return
+
+        padron_iibb = self.env['ar.padron.iibb'].search([
+            ('cuit', '=', cuit),
+            ('period', '=', period_key),
+            ('arba_verified', '=', True),
+        ], limit=1)
+
+        data = None
+        if padron_iibb:
+            data = {
+                'perception_arba': padron_iibb.perception_arba,
+                'retention_arba': padron_iibb.retention_arba,
+            }
+        else:
+            data = self.verificar_padron_iibb_arba(cuit, period_key)
+
+        if not data:
+            return
+
         for company in COMPANY_IDS:
-            arba_alicuotas = self.env['res.partner.arba_alicuot'].search([('partner_id','=',self.id), ('company_id','=',company), 
-                                                                            ('from_date','=',date_from), ('to_date','=',date_to)], limit=1)
-            if not arba_alicuotas:
-                padron_iibb = self.env['ar.padron.iibb'].search([('cuit', '=', cuit), ('period', '=', period_key), ('arba_verified', '=', True)], limit=1)
-                if padron_iibb:
-                    vals = {
-                        'partner_id': self.id,
-                        'company_id': company,
-                        'tag_id': tag_id.id,
-                        'alicuota_percepcion': padron_iibb.perception_arba,
-                        'alicuota_retencion': padron_iibb.retention_arba,
-                        'from_date': date_from,
-                        'to_date': date_to,
-                    }
+            existing = self.env['res.partner.arba_alicuot'].search([
+                ('partner_id', '=', self.id),
+                ('company_id', '=', company),
+                ('tag_id', '=', tag_id.id),
+                ('from_date', '=', date_from),
+                ('to_date', '=', date_to),
+            ], limit=1)
+
+            vals = {
+                'partner_id': self.id,
+                'company_id': company,
+                'tag_id': tag_id.id,
+                'alicuota_percepcion': data.get('perception_arba', 0.0),
+                'alicuota_retencion': data.get('retention_arba', 0.0),
+                'from_date': date_from,
+                'to_date': date_to,
+            }
+
+            if existing:
+                existing.write(vals)
             else:
-                padron_iibb = self.verificar_padron_iibb_arba(cuit, period_key)
-                if padron_iibb:
-                    vals = {
-                        'partner_id': self.id,
-                        'company_id': company,
-                        'tag_id': tag_id.id,
-                        'alicuota_percepcion': padron_iibb.get('perception_arba', arba_alicuotas.alicuota_percepcion),
-                        'alicuota_retencion': padron_iibb.get('retention_arba', arba_alicuotas.alicuota_retencion),
-                        'from_date': date_from,
-                        'to_date': date_to,
-                    }
-            self.env['res.partner.arba_alicuot'].create(vals)
-                
+                self.env['res.partner.arba_alicuot'].create(vals)                
+                         
     def verificar_padron_iibb_arba(self, cuit, period_key):
+        self.ensure_one()
+
         hoy = date.today()
         desde = hoy.replace(day=1)
         hasta = hoy.replace(day=monthrange(hoy.year, hoy.month)[1])
-        period_key = "%02d-%04d" % (hoy.month, hoy.year)
         iibb = IIBB()
         iibb.Usuario = USUARIO_ARBA
         iibb.Password = CONTRASENA_ARBA
         iibb.Conectar(url=ARBA_PROD_URL)
-        
+
         try:
             ok = iibb.ConsultarContribuyentes(
                 desde.strftime("%Y%m%d"),
@@ -164,26 +181,41 @@ class ResPartnerInherit(models.Model):
         except Exception as e:
             _logger.error("Error consultando ARBA para CUIT %s: %s", cuit, str(e))
             return None
-        
+
         if not ok:
             return None
+
         leido = iibb.LeerContribuyente()
         if not leido:
-            return None        
+            return None
 
         alicuota_percepcion = self._to_float_ar(iibb.AlicuotaPercepcion)
         alicuota_retencion = self._to_float_ar(iibb.AlicuotaRetencion)
 
-        #CREAR ar.padron.iibb con arba_verified = True para no volver a consultar a ARBA por ese cuit en esa gestión
-        self.env['ar.padron.iibb'].create({
+        padron_model = self.env['ar.padron.iibb']
+        existing = padron_model.search([
+            ('cuit', '=', cuit),
+            ('period', '=', period_key),
+        ], limit=1)
+
+        vals = {
             'cuit': cuit,
             'period': period_key,
-            'alicuota_percepcion': alicuota_percepcion,
-            'alicuota_retencion': alicuota_retencion,
+            'perception_arba': alicuota_percepcion,
+            'retention_arba': alicuota_retencion,
             'arba_verified': True,
-        })
-    
-        if alicuota_percepcion == 0 or alicuota_retencion == 0:
+        }
+
+        if existing:
+            existing.write(vals)
+        else:
+            vals.update({
+                'perception_agip': 0.0,
+                'retention_agip': 0.0,
+            })
+            padron_model.create(vals)
+
+        if alicuota_percepcion == 0 and alicuota_retencion == 0:
             return None
 
         return {
