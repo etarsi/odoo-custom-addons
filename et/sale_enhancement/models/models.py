@@ -626,11 +626,7 @@ class SaleOrderInherit(models.Model):
     def update_sale_line_uxb_for_bults(self):
         for order in self:
             for line in order.order_line:
-                if (line.product_id and line.product_id.packaging_ids) and line.product_id.packaging_ids[0].qty != line.product_packaging_id.qty:
-                    line.write({
-                        'product_packaging_qty': line.product_uom_qty / line.product_id.packaging_ids[0].qty,
-                        'product_uom_qty': line.product_packaging_qty * line.product_id.packaging_ids[0].qty
-                    })
+                    line._onchange_product_packaging_qty()
                     line.comprometer_stock()
                     
                     

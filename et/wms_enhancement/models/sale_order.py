@@ -125,12 +125,11 @@ class SaleOrderInherit(models.Model):
         for order in self:
             for line in order.order_line:
                 wms_transfer_line = self.env['wms.transfer.line'].search([('sale_line_id', '=', line.id)], limit=1)
-                if wms_transfer_line.uxb != line.product_packaging_id.qty:
-                    wms_transfer_line.write({
-                        'uxb': line.product_packaging_id.qty,
-                        'bultos': line.product_packaging_qty,
-                        'qty_demand': line.product_uom_qty,
-                    })
+                wms_transfer_line.write({
+                    'uxb': line.product_packaging_id.qty,
+                    'bultos': line.product_packaging_qty,
+                    'qty_demand': line.product_uom_qty,
+                })
         return res
 
 class SaleOrderLineInherit(models.Model):
