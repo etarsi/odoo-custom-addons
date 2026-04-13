@@ -26,7 +26,7 @@
         <field name="name">ar.padron.iibb.tree</field>
         <field name="model">ar.padron.iibb</field>
         <field name="arch" type="xml">
-            <tree>
+            <tree string="Padrón IIBB" create="false" edit="false" delete="false">
                 <field name="partner_name" optional="show"/>
                 <field name="cuit" optional="show"/>
                 <field name="perception_agip" optional="show"/>
