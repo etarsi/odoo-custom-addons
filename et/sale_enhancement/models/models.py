@@ -646,8 +646,13 @@ class SaleOrderLineInherit(models.Model):
     is_cancelled = fields.Boolean(default=False)
     disponible_unidades = fields.Integer('Disponible')
     is_compromised = fields.Boolean(default=False)
+    salable_physical = fields.Integer('Físico Vendible', compute="_compute_salable_physical", store=True)
     
-
+    @api.depends('product_id')
+    def _compute_salable_physical(self):
+        for record in self:
+            salable_physical = self.env['stock.erp'].search([('product_id', '=', record.product_id.id)], limit=1).salable_physical
+            record.salable_physical = salable_physical if salable_physical is not None else 0
 
     def create(self, vals):
         res = super().create(vals)
