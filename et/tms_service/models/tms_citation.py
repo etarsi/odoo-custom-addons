@@ -47,7 +47,17 @@ class TmsCitation(models.Model):
         index=True,
         tracking=True,
     )
-    
+    # amount_stock_valued = fields.Float(string="Valoración de Stock Facturado", compute="_compute_amount_stock_valued", tracking=True)
+    # def _compute_amount_stock_valued(self):
+    #     for rec in self:
+    #         amount = 0.0
+    #         for roadmap in rec.tms_roadmap_ids:
+    #             for line in roadmap.tms_roadmap_line_ids:
+    #                 if line.stock_move_id and line.stock_move_id.product_id and line.stock_move_id.product_id.type == "product":
+    #                     amount += line.stock_move_id.product_uom_qty * line.stock_move_id.product_id.standard_price
+    #         rec.amount_stock_valued = amount
+
+
     @api.depends("tms_roadmap_ids.total_bulk_defendant", "tms_roadmap_ids.total_bulk_picking")
     def _compute_total_bulk(self):
         for rec in self:

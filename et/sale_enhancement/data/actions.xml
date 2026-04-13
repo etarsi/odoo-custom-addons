@@ -7,4 +7,13 @@
         <field name="binding_model_id" ref="sale_enhancement.model_product_template"/>
         <field name="binding_type">action</field>
     </record>
+
+    <!-- ACTUALIZAR UXB -->
+    <record id="action_update_uxb_value" model="ir.actions.server">
+        <field name="name">Actualizar el campo UXB del pedido de venta</field>
+        <field name="model_id" ref="sale_enhancement.model_sale_order"/>
+        <field name="state">code</field>
+        <field name="code">action = records.update_sale_line_uxb_for_bults()</field>
+        <field name="binding_model_id" ref="sale_enhancement.model_sale_order"/>
+        <field name="binding_type">action</field>
 </odoo>

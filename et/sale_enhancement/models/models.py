@@ -621,7 +621,25 @@ class SaleOrderInherit(models.Model):
                 record.items_ids = [(6, 0, items)]
             else:
                 record.items_ids = [(5, 0, 0)]
-
+                
+    #ACTUALIZAR LAS LINEAS CON EL PRODUCT SU UXB
+    def update_sale_line_uxb_for_bults(self):
+        for order in self:
+            for line in order.order_line:
+                if (line.product_id and line.product_id.packaging_ids) and line.product_id.packaging_ids[0].qty != line.product_packaging_id.qty:
+                    line.write({
+                        'product_packaging_qty': line.product_uom_qty / line.product_id.packaging_ids[0].qty,
+                        'product_uom_qty': line.product_packaging_qty * line.product_id.packaging_ids[0].qty
+                    })
+                    line.comprometer_stock()
+                else:
+                    line.write({
+                        'product_packaging_qty': 0,
+                        'product_packaging_id': False,
+                        'product_uom_qty': 0
+                    })
+                    line.comprometer_stock()
+                
 class SaleOrderLineInherit(models.Model):
     _inherit = 'sale.order.line'
 
