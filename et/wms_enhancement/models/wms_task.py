@@ -951,8 +951,8 @@ class WMSTask(models.Model):
     
     def action_enviar_compartido(self, envio_forzar=False):
         for record in self:
-            if record.digip_state != 'sent' and not envio_forzar:
-                raise ValidationError(_("El remito %s, debe estar en preparación para enviarlo al compartido.") % record.name)
+            if record.digip_state == 'no' and not envio_forzar:
+                raise ValidationError(_("El remito %s, debe estar enviado a DIGIP, para mandar al compartido.") % record.name)
             if record.shared_route == 'si' and not envio_forzar:
                 raise ValidationError(_("El remito con la Tarea %s, ya fue enviado al compartido anteriormente.") % record.name)
             direccion_entrega = ""
