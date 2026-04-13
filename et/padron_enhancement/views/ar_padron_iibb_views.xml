@@ -39,6 +39,20 @@
         </field>
     </record>
 
+    <!-- PARA LA BUSQUEDA -->
+    <record id="view_ar_padron_iibb_search" model="ir.ui.view">
+        <field name="name">ar.padron.iibb.search</field>
+        <field name="model">ar.padron.iibb</field>
+        <field name="arch" type="xml">
+            <search string="Buscar en Padrón IIBB">
+                <field name="partner_name"/>
+                <field name="cuit"/>
+                <separator/>
+                <filter name="filter_current_period" string="Período Actual" domain="[('period', '=', (context_today().strftime('%m-%Y')))]"/>
+            </search>
+        </field>
+    </record>
+
     <!-- Acción para abrir la vista del padrón de IIBB -->
     <record id="action_ar_padron_iibb" model="ir.actions.act_window">
         <field name="name">Padrón IIBB</field>
