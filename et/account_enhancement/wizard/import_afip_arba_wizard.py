@@ -55,24 +55,13 @@ class ImportAfipArbaWizard(models.TransientModel):
         hoy = date(int(self.year), int(self.month), 1)
         desde = hoy.replace(day=1)
         hasta = hoy.replace(day=monthrange(hoy.year, hoy.month)[1])
+        period = "%02d-%04d" % (hoy.month, hoy.year)
         tag_id = self.env['account.account.tag'].search([('name', '=', 'Ret/Perc IIBB ARBA')], limit=1)
         if not tag_id:
             raise UserError(_("No se encontró el tag 'Ret/Perc IIBB ARBA'. Por favor, cree este tag antes de ejecutar la consulta."))
-
         # Filtrá más si podés: customer_rank, company_type, etc.
-        partners = self.env['res.partner'].search([
-            ('active', '=', True),
-            ('vat', '!=', False),
-        ])
-
-        _logger.warning(
-            "Iniciando consulta ARBA IIBB para %s partners activos con período %s/%s",
-            len(partners), self.month, self.year
-        )
-
+        partners = self.env['res.partner'].search([('active', '=', True), ('vat', '!=', False)])
         arba_model = self.env['res.partner.arba_alicuot']
-
-        # Traigo todos los existentes de una sola vez
         existing_records = arba_model.search([
             ('from_date', '=', desde),
             ('to_date', '=', hasta),
@@ -88,9 +77,21 @@ class ImportAfipArbaWizard(models.TransientModel):
         errors = []
         create_vals = []
         to_update = []
-
         create_count = 0
         update_count = 0
+
+        #VERIFICAR QUE TODO EN AR.PADRON.IBB ESTE ARBA_VERIFIED = TRUE DE LA GESTION SELECCIONADA SI HAY UNO SOLO QUE NO ESTE VERIFICADO, USER ERROR QUE DIGA QUE FALTA VER
+        self.env.cr.execute("""
+            SELECT cuit FROM ar_padron_iibb
+            WHERE period = %s
+            AND arba_verified IS NOT TRUE
+        """, (period,))
+        not_verified_cuits = [row[0] for row in self.env.cr.fetchall()]
+        if not_verified_cuits:
+            raise UserError(_(
+                "No se pueden importar alícuotas de ARBA porque hay CUITs en el padrón de IIBB que no han sido verificados. "
+                "Por favor, ejecuta el proceso de verificación para el período %s-%s antes de importar."
+            ) % (self.month, self.year))
 
         for partner in partners:
             cuit = self._get_partner_cuit_clean(partner)
@@ -98,7 +99,7 @@ class ImportAfipArbaWizard(models.TransientModel):
                 errors.append("Partner %s tiene CUIT inválido: %s" % (partner.name, partner.vat))
                 continue
             
-            ar_padron_iibb = self.env['ar.padron.iibb'].search([('cuit', '=', cuit)], limit=1)
+            ar_padron_iibb = self.env['ar.padron.iibb'].search([('cuit', '=', cuit), ('period', '=', period), ('arba_verified', '=', True)], limit=1)
             if not ar_padron_iibb:
                 errors.append("Partner %s con CUIT %s no encontrado en el padrón de AFIP IIBB" % (partner.name, cuit))
                 continue
