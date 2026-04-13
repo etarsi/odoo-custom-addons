@@ -112,7 +112,7 @@ class ResPartnerInherit(models.Model):
         date_today = date.today()
         date_from = date(date_today.year, date_today.month, 1)
         date_to = date_from + relativedelta(months=1, days=-1)
-        cuit = self._normalize_cuit(self.vat)
+        cuit = ''.join(ch for ch in (self.vat or '') if ch.isdigit())
         period_key = f"{date_today.month:02d}-{date_today.year}"
 
         tag_id = self.env['account.account.tag'].search([('name', '=', 'Ret/Perc IIBB ARBA')], limit=1)
