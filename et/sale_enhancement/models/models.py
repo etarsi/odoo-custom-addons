@@ -632,6 +632,10 @@ class SaleOrderInherit(models.Model):
                         'product_uom_qty': line.product_packaging_qty * line.product_id.packaging_ids[0].qty
                     })
                     line.comprometer_stock()
+                    
+                    
+                    
+
 class SaleOrderLineInherit(models.Model):
     _inherit = 'sale.order.line'
 
