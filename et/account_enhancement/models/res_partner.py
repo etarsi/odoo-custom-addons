@@ -90,6 +90,7 @@ class ResPartnerInherit(models.Model):
         date_to = date_from + relativedelta(months=1, days=-1)
         cuit = ''.join(ch for ch in (self.vat or '') if ch.isdigit())
         period_key = f"{date_today.month:02d}-{date_today.year}"
+        tag_id = self.env['account.account.tag'].search([('name', '=', 'Ret/Perc IIBB AGIP')], limit=1)
         for company in COMPANY_IDS:
             arba_alicuotas = self.env['res.partner.arba_alicuot'].search([('partner_id','=',self.id), ('company_id','=',company), 
                                                                             ('from_date','=',date_from), ('to_date','=',date_to)], limit=1)
@@ -99,7 +100,7 @@ class ResPartnerInherit(models.Model):
                     vals = {
                         'partner_id': self.id,
                         'company_id': company,
-                        'tag_id': 19, #tag de alícuota general AGIP
+                        'tag_id': tag_id.id, #tag de alícuota general AGIP
                         'alicuota_percepcion': padron_iibb.perception,
                         'alicuota_retencion': padron_iibb.retention,
                         'from_date': date_from,
@@ -114,6 +115,7 @@ class ResPartnerInherit(models.Model):
         date_to = date_from + relativedelta(months=1, days=-1)
         cuit = ''.join(ch for ch in (self.vat or '') if ch.isdigit())
         period_key = f"{date_today.month:02d}-{date_today.year}"
+        tag_id = self.env['account.account.tag'].search([('name', '=', 'Ret/Perc IIBB ARBA')], limit=1)
         for company in COMPANY_IDS:
             arba_alicuotas = self.env['res.partner.arba_alicuot'].search([('partner_id','=',self.id), ('company_id','=',company), 
                                                                             ('from_date','=',date_from), ('to_date','=',date_to)], limit=1)
@@ -123,7 +125,7 @@ class ResPartnerInherit(models.Model):
                     vals = {
                         'partner_id': self.id,
                         'company_id': company,
-                        'tag_id': 20, #tag de alícuota general ARBA
+                        'tag_id': tag_id.id,
                         'alicuota_percepcion': padron_iibb.perception_arba,
                         'alicuota_retencion': padron_iibb.retention_arba,
                         'from_date': date_from,
@@ -135,6 +137,7 @@ class ResPartnerInherit(models.Model):
                     vals = {
                         'partner_id': self.id,
                         'company_id': company,
+                        'tag_id': tag_id.id,
                         'alicuota_percepcion': padron_iibb.get('perception_arba', arba_alicuotas.alicuota_percepcion),
                         'alicuota_retencion': padron_iibb.get('retention_arba', arba_alicuotas.alicuota_retencion),
                         'from_date': date_from,
