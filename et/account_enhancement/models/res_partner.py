@@ -8,8 +8,16 @@ from datetime import date, datetime
 from odoo.tools.misc import format_date, format_amount
 from odoo.tools.float_utils import float_compare
 _logger = logging.getLogger(__name__)
+from calendar import monthrange
+from pyafipws.iibb import IIBB
+import logging
+_logger = logging.getLogger(__name__)
+
 
 COMPANY_IDS = [2, 3, 4] # Reemplazar con los IDs reales de las compañías a actualizar
+USUARIO_ARBA = "30708077034"
+CONTRASENA_ARBA = "Funtoys0205"
+ARBA_PROD_URL = "https://dfe.arba.gov.ar/DomicilioElectronico/SeguridadCliente/dfeServicioConsulta.do"
 
 class ResPartnerInherit(models.Model):
     _inherit = 'res.partner'
@@ -59,22 +67,44 @@ class ResPartnerInherit(models.Model):
                     'sticky': False,
                 }
             }
+        #no agregar cuit duplicados en vat de contactos hijos
+        if self.search([('vat', '=', self.vat), ('id', '!=', self.id)]):
+            return {
+                'type': 'ir.actions.client',
+                'tag': 'display_notification',
+                'params': {
+                    'title': _("Error"),
+                    'message': _("El CUIT ingresado ya existe en otro contacto. Por favor, ingrese un CUIT único."),
+                    'type': 'danger',
+                    'sticky': True,
+                }
+            }
         #ACTUALIZAR AGIP
         self.udpdate_iibb_agip()
         self.update_iibb_arba()
+        return {
+            'type': 'ir.actions.client',
+            'tag': 'display_notification',
+            'params': {
+                'title': _("Actualización de alícuotas"),
+                'message': _("Se han actualizado las alícuotas de percepción y retención para el CUIT ingresado."),
+                'type': 'success',
+                'sticky': False,
+            }
+        }
             
     def udpdate_iibb_agip(self):
         """Actualizar diario y cuenta para facturas de proveedor AFIP Import según CUIT."""
+        date_today = date.today()
+        date_from = date(date_today.year, date_today.month, 1)
+        date_to = date_from + relativedelta(months=1, days=-1)
+        cuit = ''.join(ch for ch in (self.vat or '') if ch.isdigit())
+        period_key = f"{date_today.month:02d}-{date_today.year}"
         for company in COMPANY_IDS:
-            date_today = date.today()
-            period = f"{date_today.year}{date_today.month:02d}"
-            date_from = date(date_today.year, date_today.month, 1)
-            date_to = date_from + relativedelta(months=1, days=-1)
             arba_alicuotas = self.env['res.partner.arba_alicuot'].search([('partner_id','=',self.id), ('company_id','=',company), 
                                                                             ('from_date','=',date_from), ('to_date','=',date_to)], limit=1)
             if not arba_alicuotas:
-                padron_iibb = self.env['ar.padron.iibb'].search([('cuit', '=', ''.join(ch for ch in (self.vat or '') if ch.isdigit())), 
-                                                                    ('iibb_type', '=', 'agip'), ('period', '=', period)], limit=1)
+                padron_iibb = self.env['ar.padron.iibb'].search([('cuit', '=', cuit), ('period', '=', period_key)], limit=1)
                 if padron_iibb:
                     vals = {
                         'partner_id': self.id,
@@ -89,231 +119,81 @@ class ResPartnerInherit(models.Model):
                 
     def update_iibb_arba(self):
         """Actualizar diario y cuenta para facturas de proveedor AFIP Import según CUIT de todos los partners."""
-        partners = self.search([('vat', '!=', False)])
-        for partner in partners:
-            cuit = ''.join(ch for ch in (partner.vat or '') if ch.isdigit())
-            if len(cuit) != 11:
-                continue
-            padron = self.env['ar.padron.iibb'].search([('cuit', '=', cuit), ('iibb_type', '=', 'arba')], limit=1)
-            if padron:
-                diario_key = padron.partner_id.diario_prov_afip_import_id or 'lavalle'
-                cuenta = padron.partner_id.cuenta_prov_afip_import_id
-                partner.diario_prov_afip_import_id = diario_key
-                partner.cuenta_prov_afip_import_id = cuenta.id if cuenta else None
+        date_today = date.today()
+        date_from = date(date_today.year, date_today.month, 1)
+        date_to = date_from + relativedelta(months=1, days=-1)
+        cuit = ''.join(ch for ch in (self.vat or '') if ch.isdigit())
+        period_key = f"{date_today.month:02d}-{date_today.year}"
+        for company in COMPANY_IDS:
+            arba_alicuotas = self.env['res.partner.arba_alicuot'].search([('partner_id','=',self.id), ('company_id','=',company), 
+                                                                            ('from_date','=',date_from), ('to_date','=',date_to)], limit=1)
+            if not arba_alicuotas:
+                padron_iibb = self.env['ar.padron.iibb'].search([('cuit', '=', cuit), ('period', '=', period_key), ('arba_verified', '=', True)], limit=1)
+                if padron_iibb:
+                    vals = {
+                        'partner_id': self.id,
+                        'company_id': company,
+                        'tag_id': 20, #tag de alícuota general ARBA
+                        'alicuota_percepcion': padron_iibb.perception_arba,
+                        'alicuota_retencion': padron_iibb.retention_arba,
+                        'from_date': date_from,
+                        'to_date': date_to,
+                    }
+            else:
+                padron_iibb = self.verificar_padron_iibb_arba(cuit, period_key)
+                if padron_iibb:
+                    vals = {
+                        'partner_id': self.id,
+                        'company_id': company,
+                        'alicuota_percepcion': padron_iibb.get('perception_arba', arba_alicuotas.alicuota_percepcion),
+                        'alicuota_retencion': padron_iibb.get('retention_arba', arba_alicuotas.alicuota_retencion),
+                        'from_date': date_from,
+                        'to_date': date_to,
+                    }
+            self.env['res.partner.arba_alicuot'].create(vals)
                 
-
-# -*- coding: utf-8 -*-
-from odoo import models, fields, _
-from odoo.exceptions import UserError
-from datetime import date
-from calendar import monthrange
-
-from pyafipws.iibb import IIBB
-import logging
-_logger = logging.getLogger(__name__)
-
-ARBA_TEST_URL = "https://dfe.test.arba.gov.ar/DomicilioElectronico/SeguridadCliente/dfeServicioConsulta.do"
-ARBA_PROD_URL = "https://dfe.arba.gov.ar/DomicilioElectronico/SeguridadCliente/dfeServicioConsulta.do"
-COMPANY_IDS = [2, 3, 4]  # SEBIGUS, BECHAR, FUNTOYS
-
-
-class ImportAfipArbaWizard(models.TransientModel):
-    _name = 'import.afip.arba.wizard'
-    _description = 'Wizard: Importar Alicuotas AFIP ARBA'
-
-    month = fields.Selection(
-        selection=[(str(i), date(1900, i, 1).strftime('%B')) for i in range(1, 13)],
-        string='Mes',
-        required=True,
-        default=lambda self: str(fields.Date.today().month),
-    )
-    year = fields.Integer(
-        string='Año',
-        required=True,
-        default=lambda self: fields.Date.today().year,
-    )
-    arba_iibb_user = fields.Char(string="ARBA IIBB Usuario")
-    arba_iibb_password = fields.Char(string="ARBA IIBB Password")
-    arba_iibb_testing = fields.Boolean(string="ARBA IIBB Testing", default=False)
-
-    def _get_partner_cuit_clean(self, partner):
-        self.ensure_one()
-        vat = (partner.vat or "").replace("-", "").replace(" ", "")
-        if vat.upper().startswith("AR"):
-            vat = vat[2:]
-        return vat
-
-    def _to_float_ar(self, value):
-        if value in (False, None, ''):
-            return 0.0
-        value = str(value).strip()
-        if ',' in value and '.' in value:
-            value = value.replace('.', '').replace(',', '.')
-        elif ',' in value:
-            value = value.replace(',', '.')
-        try:
-            return float(value)
-        except Exception:
-            return 0.0
-
-    def action_consultar_arba_iibb(self):
-        self.ensure_one()
-
-        user = self.arba_iibb_user or '30708077034'
-        password = self.arba_iibb_password or 'Funtoys0205'
-        url = ARBA_TEST_URL if self.arba_iibb_testing else ARBA_PROD_URL
-
-        iibb = IIBB()
-        iibb.Usuario = user
-        iibb.Password = password
-        iibb.Conectar(url=url)
-
-        hoy = date(int(self.year), int(self.month), 1)
+    def verificar_padron_iibb_arba(self, cuit, period_key):
+        hoy = date.today()
         desde = hoy.replace(day=1)
         hasta = hoy.replace(day=monthrange(hoy.year, hoy.month)[1])
+        period_key = "%02d-%04d" % (hoy.month, hoy.year)
+        iibb = IIBB()
+        iibb.Usuario = USUARIO_ARBA
+        iibb.Password = CONTRASENA_ARBA
+        iibb.Conectar(url=ARBA_PROD_URL)
+        
+        try:
+            ok = iibb.ConsultarContribuyentes(
+                desde.strftime("%Y%m%d"),
+                hasta.strftime("%Y%m%d"),
+                cuit
+            )
+        except Exception as e:
+            _logger.error("Error consultando ARBA para CUIT %s: %s", cuit, str(e))
+            return None
+        
+        if not ok:
+            return None
+        leido = iibb.LeerContribuyente()
+        if not leido:
+            return None        
 
-        tag_id = self.env['account.account.tag'].search([('name', '=', 'Ret/Perc IIBB ARBA')], limit=1)
-        if not tag_id:
-            raise UserError(_("No se encontró el tag 'Ret/Perc IIBB ARBA'. Por favor, cree este tag antes de ejecutar la consulta."))
+        alicuota_percepcion = self._to_float_ar(iibb.AlicuotaPercepcion)
+        alicuota_retencion = self._to_float_ar(iibb.AlicuotaRetencion)
 
-        # Filtrá más si podés: customer_rank, company_type, etc.
-        partners = self.env['res.partner'].search([
-            ('active', '=', True),
-            ('vat', '!=', False),
-        ])
-
-        _logger.warning(
-            "Iniciando consulta ARBA IIBB para %s partners activos con período %s/%s",
-            len(partners), self.month, self.year
-        )
-
-        arba_model = self.env['res.partner.arba_alicuot']
-
-        # Traigo todos los existentes de una sola vez
-        existing_records = arba_model.search([
-            ('from_date', '=', desde),
-            ('to_date', '=', hasta),
-            ('tag_id', '=', tag_id.id),
-            ('partner_id', 'in', partners.ids),
-            ('company_id', 'in', COMPANY_IDS),
-        ])
-        existing_map = {
-            (rec.partner_id.id, rec.company_id.id): rec
-            for rec in existing_records
-        }
-
-        errors = []
-        create_vals = []
-        to_update = []
-
-        create_count = 0
-        update_count = 0
-
-        for idx, partner in enumerate(partners, start=1):
-            cuit = self._get_partner_cuit_clean(partner)
-            if not cuit or not cuit.isdigit() or len(cuit) != 11:
-                errors.append("Partner %s tiene CUIT inválido: %s" % (partner.name, partner.vat))
-                continue
-            try:
-                ok = iibb.ConsultarContribuyentes(
-                    desde.strftime("%Y%m%d"),
-                    hasta.strftime("%Y%m%d"),
-                    cuit
-                )
-            except Exception as e:
-                errors.append("Error al consultar ARBA para partner %s (CUIT %s): %s" % (partner.name, partner.vat, str(e)))
-                continue
-
-            if not ok:
-                continue
-
-            leido = iibb.LeerContribuyente()
-            if not leido:
-                continue
-
-            alicuota_percepcion = self._to_float_ar(iibb.AlicuotaPercepcion)
-            alicuota_retencion = self._to_float_ar(iibb.AlicuotaRetencion)
-            
-            if alicuota_percepcion == 0 and alicuota_retencion == 0:
-                continue
-
-            for company_id in COMPANY_IDS:
-                key = (partner.id, company_id)
-                existing = existing_map.get(key)
-
-                if existing:
-                    if (existing.alicuota_percepcion != alicuota_percepcion or
-                        existing.alicuota_retencion != alicuota_retencion):
-                        to_update.append((existing, {
-                            "alicuota_percepcion": alicuota_percepcion,
-                            "alicuota_retencion": alicuota_retencion,
-                        }))
-                else:
-                    create_vals.append({
-                        "partner_id": partner.id,
-                        "company_id": company_id,
-                        "tag_id": tag_id.id,
-                        "from_date": desde,
-                        "to_date": hasta,
-                        "alicuota_percepcion": alicuota_percepcion,
-                        "alicuota_retencion": alicuota_retencion,
-                    })
-            if idx % 100 == 0:
-                _logger.warning("ARBA IIBB procesados %s/%s partners", idx, len(partners))
-
-        # Crear en lote
-        if create_vals:
-            #crear por las COMPANY_IDS para evitar problemas de multiempresa con reglas de acceso
-            for company_id in COMPANY_IDS:
-                for vals in create_vals:
-                    vals['company_id'] = company_id
-                    arba_model.create([vals])
-                    create_count = len(create_vals)
-
-        # Actualizar existentes
-        for rec, vals in to_update:
-            rec.write(vals)
-        update_count = len(to_update)
-
-        if create_count == 0 and update_count == 0 and errors:
-            return {
-                "type": "ir.actions.client",
-                "tag": "display_notification",
-                "params": {
-                    "title": _("Consulta ARBA"),
-                    "message": "No se crearon ni actualizaron alícuotas para el período %s/%s. Errores:\n\n%s"
-                               % (self.month, self.year, "\n".join(errors[:50])),
-                    "type": "warning",
-                    "sticky": True,
-                }
-            }
-
-        elif (create_count > 0 or update_count > 0) and errors:
-            return {
-                "type": "ir.actions.client",
-                "tag": "display_notification",
-                "params": {
-                    "title": _("Consulta ARBA"),
-                    "message": (
-                        f"Se crearon {create_count} alícuotas y se actualizaron {update_count} alícuotas "
-                        f"para el período {self.month}/{self.year}. Sin embargo, hubo errores:\n\n"
-                        + "\n".join(errors[:50])
-                    ),
-                    "type": "warning",
-                    "sticky": True,
-                }
-            }
+        #CREAR ar.padron.iibb con arba_verified = True para no volver a consultar a ARBA por ese cuit en esa gestión
+        self.env['ar.padron.iibb'].create({
+            'cuit': cuit,
+            'period': period_key,
+            'alicuota_percepcion': alicuota_percepcion,
+            'alicuota_retencion': alicuota_retencion,
+            'arba_verified': True,
+        })
+    
+        if alicuota_percepcion == 0 or alicuota_retencion == 0:
+            return None
 
         return {
-            "type": "ir.actions.client",
-            "tag": "display_notification",
-            "params": {
-                "title": _("Consulta ARBA"),
-                "message": (
-                    f"Se crearon {create_count} alícuotas y se actualizaron {update_count} alícuotas "
-                    f"para el período {self.month}/{self.year}."
-                ),
-                "type": "success",
-                "sticky": True,
-            }
+            "perception_arba": alicuota_percepcion,
+            "retention_arba": alicuota_retencion,
         }

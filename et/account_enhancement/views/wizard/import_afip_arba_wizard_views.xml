@@ -3,7 +3,7 @@
         <field name="name">import.afip.arba.wizard.form</field>
         <field name="model">import.afip.arba.wizard</field>
         <field name="arch" type="xml">
-            <form string="Importar Alicuotas Afip ARBA">
+            <form string="Importar IIBB ARBA">
                 <group>
                     <field name="month" />
                     <field name="year" />
@@ -18,9 +18,9 @@
     </record>
 
     <record id="action_import_afip_arba_wizard" model="ir.actions.act_window">
-    <field name="name">Importar Alicuotas AFIP ARBA</field>
-    <field name="res_model">import.afip.arba.wizard</field>
-    <field name="view_mode">form</field>
-    <field name="target">new</field>
+        <field name="name">Importar IIBB ARBA</field>
+        <field name="res_model">import.afip.arba.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
     </record>
 </odoo>

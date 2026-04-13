@@ -8,9 +8,10 @@ from pyafipws.iibb import IIBB
 import logging
 _logger = logging.getLogger(__name__)
 
-ARBA_TEST_URL = "https://dfe.test.arba.gov.ar/DomicilioElectronico/SeguridadCliente/dfeServicioConsulta.do"
 ARBA_PROD_URL = "https://dfe.arba.gov.ar/DomicilioElectronico/SeguridadCliente/dfeServicioConsulta.do"
 COMPANY_IDS = [2, 3, 4]  # SEBIGUS, BECHAR, FUNTOYS
+USUARIO_ARBA = "30708077034"
+CONTRASENA_ARBA = "Funtoys0205"
 
 
 class ImportAfipArbaWizard(models.TransientModel):
@@ -101,11 +102,16 @@ class ImportAfipArbaWizard(models.TransientModel):
             
             ar_padron_iibb = self.env['ar.padron.iibb'].search([('cuit', '=', cuit), ('period', '=', period), ('arba_verified', '=', True)], limit=1)
             if not ar_padron_iibb:
-                errors.append("Partner %s con CUIT %s no encontrado en el padrón de AFIP IIBB" % (partner.name, cuit))
-                continue
-
-            alicuota_percepcion = self._to_float_ar(ar_padron_iibb.perception_arba)
-            alicuota_retencion = self._to_float_ar(ar_padron_iibb.retention_arba)
+                consultar_arba = self.verificar_padron_iibb_arba(cuit, period)
+                if not consultar_arba:
+                    errors.append("Partner %s con CUIT %s no encontrado en el padrón de AFIP IIBB" % (partner.name, cuit))
+                    continue
+                else:
+                    alicuota_percepcion = self._to_float_ar(consultar_arba.get('perception_arba'))
+                    alicuota_retencion = self._to_float_ar(consultar_arba.get('retention_arba'))
+            else:
+                alicuota_percepcion = self._to_float_ar(ar_padron_iibb.perception_arba)
+                alicuota_retencion = self._to_float_ar(ar_padron_iibb.retention_arba)
             
             if alicuota_percepcion == 0 and alicuota_retencion == 0:
                 continue
@@ -182,4 +188,47 @@ class ImportAfipArbaWizard(models.TransientModel):
                 "type": "success",
                 "sticky": True,
             }
+        }
+        
+    def verificar_padron_iibb_arba(self, cuit, period_key):
+        self.ensure_one()
+
+        hoy = date(int(self.year), int(self.month), 1)
+        desde = hoy.replace(day=1)
+        hasta = hoy.replace(day=monthrange(hoy.year, hoy.month)[1])
+        period_key = "%02d-%04d" % (hoy.month, hoy.year)
+        iibb = IIBB()
+        iibb.Usuario = USUARIO_ARBA
+        iibb.Password = CONTRASENA_ARBA
+        iibb.Conectar(url=ARBA_PROD_URL)
+        
+        try:
+            ok = iibb.ConsultarContribuyentes(
+                desde.strftime("%Y%m%d"),
+                hasta.strftime("%Y%m%d"),
+                cuit
+            )
+        except Exception as e:
+            _logger.error("Error consultando ARBA para CUIT %s: %s", cuit, str(e))
+            return None
+        
+        if not ok:
+            return None
+        
+        leido = iibb.LeerContribuyente()
+        if not leido:
+            return None        
+        
+        #CREAR ar.padron.iibb con arba_verified = True para no volver a consultar a ARBA por ese cuit en esa gestión
+        self.env['ar.padron.iibb'].create({
+            'cuit': cuit,
+            'period': period_key,
+            'alicuota_percepcion': self._to_float_ar(iibb.AlicuotaPercepcion),
+            'alicuota_retencion': self._to_float_ar(iibb.AlicuotaRetencion),
+            'arba_verified': True,
+        })
+
+        return {
+            "perception_arba": self._to_float_ar(iibb.AlicuotaPercepcion),
+            "retention_arba": self._to_float_ar(iibb.AlicuotaRetencion),
         }

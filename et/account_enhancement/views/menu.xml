@@ -52,21 +52,21 @@
     <!-- SUBMENU DE IMPUESTOS BRUTOS -->
     <menuitem
         id="account_enhancement.menu_account_import_afip_impuesto_bruto_wizard"
-        name="Importar Impuestos Brutos AFIP"
+        name="Importar IIBB"
         parent="l10n_ar.menu_afip_config"
         action="action_import_afip_impuesto_bruto_wizard"
         sequence="70"/>
 
     <menuitem
         id="account_enhancement.menu_account_import_afip_iibb_wizard"
-        name="Importar AFIP IIBB"
+        name="Importar IIBB AGIP"
         parent="l10n_ar.menu_afip_config"
         action="action_import_afip_iibb_wizard"
         sequence="80"/>
     
     <menuitem
         id="account_enhancement.menu_account_import_afip_arba_wizard"
-        name="Importar AFIP ARBA"
+        name="Importar IIBB ARBA"
         parent="l10n_ar.menu_afip_config"
         action="action_import_afip_arba_wizard"
         sequence="90"/>
