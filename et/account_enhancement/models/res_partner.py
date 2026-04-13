@@ -53,8 +53,10 @@ class ResPartnerInherit(models.Model):
     @api.onchange('vat')
     def onchange_vat_iibb_agip_arba(self):
         """Sugerir diario y cuenta para facturas de proveedor AFIP Import según CUIT."""
+        _logger.warning("onchange_vat_iibb_agip_arba triggered for partner %s with VAT %s", self.name, self.vat)
         if not self.vat:
             return # Si no hay CUIT, no hacer nada
+        _logger.warning("Procesando CUIT %s para partner %s", self.vat, self.name)
         cuit = ''.join(ch for ch in self.vat if ch.isdigit()) # Extraer solo dígitos del CUIT
         if len(cuit) != 11:
             return {
