@@ -119,19 +119,6 @@ class SaleOrderInherit(models.Model):
                 transfers.mapped('task_ids').write(vals_to_write_task)
                 
                 
-    #ACTUALIZAR LAS LINEAS CON EL PRODUCT SU UXB
-    def update_sale_line_uxb_for_bults(self):
-        res = super().update_sale_line_uxb_for_bults()
-        for order in self:
-            for line in order.order_line:
-                wms_transfer_line = self.env['wms.transfer.line'].search([('sale_line_id', '=', line.id)], limit=1)
-                wms_transfer_line.write({
-                    'uxb': line.product_packaging_id.qty,
-                    'bultos': line.product_packaging_qty,
-                    'qty_demand': line.product_uom_qty,
-                })
-        return res
-
 class SaleOrderLineInherit(models.Model):
     _inherit = 'sale.order.line'
     

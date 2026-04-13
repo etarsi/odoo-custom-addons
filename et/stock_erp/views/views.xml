@@ -20,7 +20,7 @@
                 <field name="comprometido_unidades" optional="hide"/>
                 <field name="disponible_unidades" optional="show"/>
                 <field name="entregable_unidades" optional="show"/>
-
+                <field name="salable_physical" optional="show"/> <!-- Nuevo campo para mostrar el stock físico vendible -->
                 <field name="fisico_bultos" optional="hide"/>
                 <field name="enelagua_bultos" optional="hide"/>
                 <field name="total_bultos" optional="hide"/>

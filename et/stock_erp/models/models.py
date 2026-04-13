@@ -46,6 +46,7 @@ class StockERP(models.Model):
     entregable_bultos = fields.Float('Entregable Bultos', compute="_compute_entregable_bultos", store=True)
     comprado_bultos = fields.Float('Comprado Bultos', compute="_compute_comprado_bultos", store=True)
     entrante_bultos = fields.Float('Entrante Bultos', compute="_compute_entrante_bultos", store=True)
+    salable_physical = fields.Float('Fisico Vendible', compute="_compute_fisico_vendible", store=True)
 
     entrante_fecha = fields.Date('ETA')
     entrante_licencia = fields.Char('Licencia')
@@ -283,6 +284,13 @@ class StockERP(models.Model):
 
 
     #####  COMPUTE METHODS #####
+
+    @api.depends('fisico_unidades', 'comprometido_unidades')
+    def _compute_fisico_vendible(self):
+        for record in self:
+            # Físico Vendible = Físico Unidades - Comprometido Unidades
+            record.salable_physical = record.fisico_unidades - record.comprometido_unidades
+
 
     @api.depends('product_id')
     def _compute_product_info(self):
