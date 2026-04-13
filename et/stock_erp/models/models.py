@@ -36,6 +36,7 @@ class StockERP(models.Model):
     entregable_unidades = fields.Integer('Entregable Unidades')
     comprado_unidades = fields.Integer('Comprado Unidades')
     entrante_unidades = fields.Integer('Entrante Unidades')
+    salable_physical_unidades = fields.Integer('Fisico Vendible', compute="_compute_fisico_vendible", store=True)
     
 
     fisico_bultos = fields.Float('Físico Bultos', compute="_compute_fisico_bultos", store=True)
@@ -46,7 +47,6 @@ class StockERP(models.Model):
     entregable_bultos = fields.Float('Entregable Bultos', compute="_compute_entregable_bultos", store=True)
     comprado_bultos = fields.Float('Comprado Bultos', compute="_compute_comprado_bultos", store=True)
     entrante_bultos = fields.Float('Entrante Bultos', compute="_compute_entrante_bultos", store=True)
-    salable_physical = fields.Float('Fisico Vendible', compute="_compute_fisico_vendible", store=True)
 
     entrante_fecha = fields.Date('ETA')
     entrante_licencia = fields.Char('Licencia')

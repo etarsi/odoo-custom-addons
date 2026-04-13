@@ -53,7 +53,7 @@
                       <field name="uxb"/>
                       <field name="comprometido_unidades"/>
                       <field name="disponible_unidades"/>
-                      <field name="salable_physical" readonly="1"/> <!-- Nuevo campo para mostrar el stock físico vendible -->
+                      <field name="salable_physical_unidades" readonly="1"/> <!-- Nuevo campo para mostrar el stock físico vendible -->
                     </group>
                     <group name="alert_stock" string="Alertas de Stock" groups="stock_erp.group_alert_stock">
                         <field name="stock_limit_unidades"/>
