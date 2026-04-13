@@ -289,7 +289,7 @@ class StockERP(models.Model):
     def _compute_fisico_vendible(self):
         for record in self:
             # Físico Vendible = Físico Unidades - Comprometido Unidades
-            record.salable_physical = record.fisico_unidades - record.comprometido_unidades
+            record.salable_physical_unidades = record.fisico_unidades - record.comprometido_unidades
 
 
     @api.depends('product_id')
