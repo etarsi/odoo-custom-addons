@@ -61,6 +61,9 @@ class ImportAfipArbaWizard(models.TransientModel):
         tag_id = self.env['account.account.tag'].search([('name', '=', 'Ret/Perc IIBB ARBA')], limit=1)
         if not tag_id:
             raise UserError(_("No se encontró el tag 'Ret/Perc IIBB ARBA'. Por favor, cree este tag antes de ejecutar la consulta."))
+        tag_id_agip = self.env['account.account.tag'].search([('name', '=', 'Ret/Perc IIBB AGIP')], limit=1)
+        if not tag_id_agip:
+            raise UserError(_("No se encontró el tag 'Ret/Perc IIBB AGIP'. Por favor, cree este tag antes de ejecutar la consulta."))
         # Filtrá más si podés: customer_rank, company_type, etc.
         partners = self.env['res.partner'].search([('active', '=', True), ('vat', '!=', False)])
         arba_model = self.env['res.partner.arba_alicuot']
@@ -117,7 +120,7 @@ class ImportAfipArbaWizard(models.TransientModel):
                 continue
 
             for company_id in COMPANY_IDS:
-                self.udpdate_iibb_agip(partner, tag_id, company_id, ar_padron_iibb)
+                self.udpdate_iibb_agip(partner, tag_id_agip, company_id, desde, hasta, ar_padron_iibb)
                 key = (partner.id, company_id)
                 existing = existing_map.get(key)
                 if not existing:
@@ -226,20 +229,16 @@ class ImportAfipArbaWizard(models.TransientModel):
             "retention_arba": self._to_float_ar(iibb.AlicuotaRetencion),
         }
         
-    def udpdate_iibb_agip(self, partner, tag_id, company_id, ar_padron_iibb):
+    def udpdate_iibb_agip(self, partner, tag_id_agip, company_id, desde, hasta, ar_padron_iibb):
         """Actualizar diario y cuenta para facturas de proveedor AFIP Import según CUIT."""
-        hoy = date(int(self.year), int(self.month), 1)
-        desde = hoy.replace(day=1)
-        hasta = hoy.replace(day=monthrange(hoy.year, hoy.month)[1])
-        tag_id = self.env['account.account.tag'].search([('name', '=', 'Ret/Perc IIBB AGIP')], limit=1)
         arba_alicuotas = self.env['res.partner.arba_alicuot'].search([('partner_id','=',partner.id), ('company_id','=', company_id), 
-                                                                        ('from_date','=',desde), ('to_date','=',hasta), ('tag_id','=',tag_id.id)], limit=1)
+                                                                        ('from_date','=',desde), ('to_date','=',hasta), ('tag_id','=', tag_id_agip.id)], limit=1)
         if not arba_alicuotas:
             if ar_padron_iibb:
                 vals = {
                     'partner_id': partner.id,
                     'company_id': company_id,
-                    'tag_id': tag_id.id,
+                    'tag_id': tag_id_agip.id,
                     'alicuota_percepcion': ar_padron_iibb.perception_agip,
                     'alicuota_retencion': ar_padron_iibb.retention_agip,
                     'from_date': desde,
