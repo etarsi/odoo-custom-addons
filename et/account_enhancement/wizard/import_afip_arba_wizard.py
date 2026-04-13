@@ -2,6 +2,7 @@
 from odoo import models, fields, _
 from odoo.exceptions import UserError
 from datetime import date
+from dateutil.relativedelta import relativedelta
 from calendar import monthrange
 
 from pyafipws.iibb import IIBB
@@ -77,7 +78,6 @@ class ImportAfipArbaWizard(models.TransientModel):
 
         errors = []
         create_vals = []
-        to_update = []
         create_count = 0
         update_count = 0
 
@@ -117,16 +117,10 @@ class ImportAfipArbaWizard(models.TransientModel):
                 continue
 
             for company_id in COMPANY_IDS:
+                self.udpdate_iibb_agip(partner, tag_id, company_id, ar_padron_iibb)
                 key = (partner.id, company_id)
                 existing = existing_map.get(key)
-                if existing:
-                    if (existing.alicuota_percepcion != alicuota_percepcion or
-                        existing.alicuota_retencion != alicuota_retencion):
-                        to_update.append((existing, {
-                            "alicuota_percepcion": alicuota_percepcion,
-                            "alicuota_retencion": alicuota_retencion,
-                        }))
-                else:
+                if not existing:
                     create_vals.append({
                         "partner_id": partner.id,
                         "company_id": company_id,
@@ -141,11 +135,6 @@ class ImportAfipArbaWizard(models.TransientModel):
         if create_vals:
             arba_model.with_context(allowed_company_ids=COMPANY_IDS).sudo().create(create_vals)
             create_count = len(create_vals)
-
-        # Actualizar existentes
-        for rec, vals in to_update:
-            rec.write(vals)
-        update_count = len(to_update)
 
         if create_count == 0 and update_count == 0 and errors:
             return {
@@ -168,7 +157,7 @@ class ImportAfipArbaWizard(models.TransientModel):
                     "title": _("Consulta ARBA"),
                     "message": (
                         f"Se crearon {create_count} alícuotas y se actualizaron {update_count} alícuotas "
-                        f"para el período {self.month}/{self.year}. Sin embargo, hubo errores:\n\n"
+                        f"para el período {self.month}-{self.year}. Sin embargo, hubo errores:\n\n"
                         + "\n".join(errors[:50])
                     ),
                     "type": "warning",
@@ -183,7 +172,7 @@ class ImportAfipArbaWizard(models.TransientModel):
                 "title": _("Consulta ARBA"),
                 "message": (
                     f"Se crearon {create_count} alícuotas y se actualizaron {update_count} alícuotas "
-                    f"para el período {self.month}/{self.year}."
+                    f"para el período {self.month}-{self.year}."
                 ),
                 "type": "success",
                 "sticky": True,
@@ -223,12 +212,37 @@ class ImportAfipArbaWizard(models.TransientModel):
         self.env['ar.padron.iibb'].create({
             'cuit': cuit,
             'period': period_key,
-            'alicuota_percepcion': self._to_float_ar(iibb.AlicuotaPercepcion),
-            'alicuota_retencion': self._to_float_ar(iibb.AlicuotaRetencion),
+            'perception_agip': 0.0,
+            'retention_agip': 0.0,
+            'perception_arba': self._to_float_ar(iibb.AlicuotaPercepcion),
+            'retention_arba': self._to_float_ar(iibb.AlicuotaRetencion),
             'arba_verified': True,
         })
 
         return {
+            "perception_agip": 0.0,
+            "retention_agip": 0.0,
             "perception_arba": self._to_float_ar(iibb.AlicuotaPercepcion),
             "retention_arba": self._to_float_ar(iibb.AlicuotaRetencion),
         }
+        
+    def udpdate_iibb_agip(self, partner, tag_id, company_id, ar_padron_iibb):
+        """Actualizar diario y cuenta para facturas de proveedor AFIP Import según CUIT."""
+        hoy = date(int(self.year), int(self.month), 1)
+        desde = hoy.replace(day=1)
+        hasta = hoy.replace(day=monthrange(hoy.year, hoy.month)[1])
+        tag_id = self.env['account.account.tag'].search([('name', '=', 'Ret/Perc IIBB AGIP')], limit=1)
+        arba_alicuotas = self.env['res.partner.arba_alicuot'].search([('partner_id','=',partner.id), ('company_id','=', company_id), 
+                                                                        ('from_date','=',desde), ('to_date','=',hasta), ('tag_id','=',tag_id.id)], limit=1)
+        if not arba_alicuotas:
+            if ar_padron_iibb:
+                vals = {
+                    'partner_id': partner.id,
+                    'company_id': company_id,
+                    'tag_id': tag_id.id,
+                    'alicuota_percepcion': ar_padron_iibb.perception_agip,
+                    'alicuota_retencion': ar_padron_iibb.retention_agip,
+                    'from_date': desde,
+                    'to_date': hasta,
+                }
+                self.env['res.partner.arba_alicuot'].create(vals)
