@@ -58,7 +58,7 @@
                 <xpath expr="//field[@name='order_line']/tree/field[@name='product_uom_qty']" position="after">
                     <field name="disponible_unidades" string="Disponible" optional="hide"/>
                     <field name="is_compromised" string="Comprom." optional="hide"/>
-                    <field name="salable_physical" string="FísicoVendible" optional="hide"/>
+                    <field name="salable_physical" string="Físico Vendible" optional="hide"/>
                 </xpath>
             </field>
         </record>
