@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from odoo import api, fields, models, _
-from odoo.exceptions import UserError
+from odoo.exceptions import UserError, ValidationError
 
 import base64
 import io
@@ -328,12 +328,17 @@ class ImportAfipIibbWizard(models.TransientModel):
         # Validación año
         if self.year < 2000 or self.year > 2100:
             raise UserError(_("El año ingresado no es válido."))
-
+        
         m = int(self.month)
         y = int(self.year)
         from_date = date(y, m, 1)
         to_date = date(y, m, monthrange(y, m)[1])
         t0 = time.monotonic()
+        
+        #VERIFICAR SI YA EXISTE REGISTROS DE ESE PERIODO
+        existing = self.env['ar.padron.iibb'].search_count([('period', '=', f"{m:02d}-{y:04d}")])
+        if existing:
+            raise ValidationError(_("Ya existen %s registros del padrón de AGIP para el período %s-%s.") % (existing, m, y)) 
         # 0) Input stream (URL->disco)
         fb, close_fb, real_data_path, saved_path, target_dir = self._get_input_binary_stream()
 

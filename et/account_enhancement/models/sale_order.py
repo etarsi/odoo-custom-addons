@@ -16,25 +16,50 @@ class SaleOrderInherit(models.Model):
 
     period_cut_locked = fields.Boolean(string="Período de Corte Bloqueado", default=False, tracking=True)
 
+
+
     @api.model_create_multi
     def create(self, vals_list):
         for vals in vals_list:
-            if vals.get("period_cut_locked"):
+            rec = self.new(vals)
+            if rec.period_cut_locked:
                 raise ValidationError(_("No se puede crear un pedido con 'Período de Corte Bloqueado' activo."))
+            if rec.date_order:
+                rec._validate_account_blocked(rec.date_order)
         return super().create(vals_list)
 
     def write(self, vals):
         for rec in self:
-            if vals.get("period_cut_locked") or rec.period_cut_locked:
+            if rec.period_cut_locked:
                 raise ValidationError(_("No se puede modificar un pedido con 'Período de Corte Bloqueado' activo."))
+            date_order = vals.get('date_order', rec.date_order)
+            if date_order:
+                rec._validate_account_blocked(date_order)
         return super().write(vals)
 
     def unlink(self):
         for rec in self:
             if rec.period_cut_locked:
                 raise ValidationError(_("No se puede eliminar un pedido con 'Período de Corte Bloqueado' activo."))
+            if rec.date_order:
+                rec._validate_account_blocked(rec.date_order)
         return super().unlink()
-    
+
+    def _validate_account_blocked(self, date_value):
+        self.ensure_one()
+
+        blocked_record = self.env['account.blocked'].search([
+            ('company_id', '=', self.company_id.id),
+            ('state', '=', 'blocked'),
+            ('date_limit', '>=', fields.Date.to_date(date_value)),
+        ], limit=1)
+
+        if blocked_record:
+            raise ValidationError(_(
+                "No se puede crear, modificar o eliminar un pedido con fecha dentro del período bloqueado. "
+                "Por favor, revise la configuración de bloqueo de períodos contables."
+            ))
+
     def action_lock_period_cut(self):
         self.ensure_one()
         sql = """

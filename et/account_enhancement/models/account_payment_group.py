@@ -43,15 +43,25 @@ class AccountPaymentGroupInherit(models.Model):
     @api.model_create_multi
     def create(self, vals_list):
         for vals in vals_list:
-            if vals.get("period_cut_locked"):
+            rec = self.new(vals)
+            if rec.period_cut_locked:
                 raise ValidationError(_("No se puede crear un grupo de pago con 'Período de Corte Bloqueado' activo."))
+            else:
+                payment_date = self._pg_date(rec, vals)
+                if payment_date:
+                    rec._validate_account_blocked(payment_date)
         return super().create(vals_list)
 
     def write(self, vals):
+        res = super().write(vals)
         for rec in self:
-            if vals.get("period_cut_locked") or rec.period_cut_locked:
+            if rec.period_cut_locked:
                 raise ValidationError(_("No se puede modificar un grupo de pago con 'Período de Corte Bloqueado' activo."))
-        return super().write(vals)
+            else:
+                payment_date = self._pg_date(rec, vals)
+                if payment_date:
+                    rec._validate_account_blocked(payment_date)
+        return res
     
     def un_link(self):
         for record in self:
@@ -76,12 +86,47 @@ class AccountPaymentGroupInherit(models.Model):
                 'sticky': False,
             }
         }
-        
+                
     def unlink(self):
         for record in self:
             if record.period_cut_locked:
                 raise ValidationError(_("No se puede eliminar un grupo de pago con 'Período de Corte Bloqueado' activo."))
         return super().unlink()
+    
+
+
+    def write(self, vals):
+        for rec in self:
+            if rec.period_cut_locked:
+                raise ValidationError(_("No se puede modificar un pedido con 'Período de Corte Bloqueado' activo."))
+            date_order = vals.get('date_order', rec.date_order)
+            if date_order:
+                rec._validate_account_blocked(date_order)
+        return super().write(vals)
+
+    def unlink(self):
+        for rec in self:
+            if rec.period_cut_locked:
+                raise ValidationError(_("No se puede eliminar un pedido con 'Período de Corte Bloqueado' activo."))
+            if rec.date_order:
+                rec._validate_account_blocked(rec.date_order)
+        return super().unlink()
+
+    def _validate_account_blocked(self, date_value):
+        self.ensure_one()
+
+        blocked_record = self.env['account.blocked'].search([
+            ('company_id', '=', self.company_id.id),
+            ('state', '=', 'blocked'),
+            ('date_limit', '>=', fields.Date.to_date(date_value)),
+        ], limit=1)
+
+        if blocked_record:
+            raise ValidationError(_(
+                "No se puede crear, modificar o eliminar un pedido con fecha dentro del período bloqueado. "
+                "Por favor, revise la configuración de bloqueo de períodos contables."
+            ))
+    
     
     def action_lock_period_cut(self):
         self.ensure_one()
