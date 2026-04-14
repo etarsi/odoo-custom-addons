@@ -61,6 +61,12 @@
             <xpath expr="//field[@name='invoice_date']" position="after">
                 <field name="date_paid" attrs="{'invisible': [('move_type', '!=', 'in_invoice')]}" optional="show" />
             </xpath>
+            <!-- sacás el original -->
+            <xpath expr="//tree/field[@name='company_id']" position="replace"/>
+            <!-- lo agregás al final, o después del último campo que quieras -->
+            <xpath expr="//tree/field[@name='move_type']" position="after">
+                <field name="company_id" optional="show"/>
+            </xpath>
         </field>
     </record>
 
@@ -83,7 +89,6 @@
                 <field name="company_id" groups="base.group_multi_company" optional="hide"/>
                 <field name="payment_state" widget="badge" decoration-danger="payment_state == 'not_paid'" decoration-warning="payment_state in ('partial', 'in_payment')" decoration-success="payment_state in ('paid', 'reversed')" attrs="{'invisible': [('payment_state', 'in', ('invoicing_legacy'))]}" optional="hide"/>
                 <field name="state" widget="badge" decoration-success="state == 'posted'" decoration-info="state == 'draft'" optional="hide"/>       
-            
             </tree>
         </field>
     </record>
