@@ -22,8 +22,8 @@ class AccountBlocked(models.TransientModel):
     _inherit = 'account.blocked'
     _description = "Contabilidad - Asientos bloqueados por conciliación"
 
-    company_id = models.Many2one('res.company', string="Compañía", required=True, default=lambda self: self.env.company)
-    date_limit = models.Date(string="Fecha límite", required=True, default=lambda self: self.env.context.get('fecha_limite', fields.Date.context_today(self)))
+    company_id = fields.Many2one('res.company', string="Compañía", required=True, default=lambda self: self.env.company)
+    date_limit = fields.Date(string="Fecha límite", required=True, default=lambda self: self.env.context.get('fecha_limite', fields.Date.context_today(self)))
     state = fields.Selection([
         ('draft', 'Borrador'),
         ('blocked', 'Bloqueado'),
