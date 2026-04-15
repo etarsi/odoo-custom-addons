@@ -51,8 +51,6 @@ action = {
         </field>
     </record>
 
-
-
     <!--ACTUALIZAR EL action_update_wms_transfer_lines-->
     <record id="action_update_wms_transfer_lines" model="ir.actions.server">
         <field name="name">Actualizar Líneas de Transferencia</field>
@@ -61,5 +59,15 @@ action = {
         <field name="binding_view_types">form</field>
         <field name="state">code</field>
         <field name="code">action = records.action_update_wms_transfer_lines()</field>
+    </record>
+
+    <!--ACTUALIZAR LOTES EN LA LINEA DE TAREAS-->
+    <record id="action_update_task_lot_lines" model="ir.actions.server">
+        <field name="name">Actualizar Lotes de linea Tareas</field>
+        <field name="model_id" ref="wms_enhancement.model_wms_task"/>
+        <field name="binding_model_id" ref="wms_enhancement.model_wms_task"/>
+        <field name="binding_view_types">form</field>
+        <field name="state">code</field>
+        <field name="code">action = records.action_update_task_lot()</field>
     </record>
 </odoo>

@@ -628,14 +628,13 @@ class WMSTask(models.Model):
                 product_description = product_description[:55]
                 product_name = f"[{line.product_id.default_code}] {line.product_id.name}"
                 product_name = product_name[:60]
-
                 
                 lines.append({
                     'bultos': bultos,
                     'code': product_code,
                     'description': product_description,
                     'nombre': product_name,
-                    'lote': '123',
+                    'lote': lote,
                     'unidades': qty,
                 })
 
@@ -1068,6 +1067,12 @@ class WMSTask(models.Model):
             'view_mode': 'form',
             'res_id': self.tms_stock_picking_id.id,
         }
+        
+    #ACTUALIZAR EL LOTE DE LAS LINEAS DE TAREA
+    def action_update_task_lot(self):
+        for record in self:
+            for line in record.task_line_ids:
+                line.get_lote_name()
 
 class WMSTaskLine(models.Model):
     _name = 'wms.task.line'
@@ -1094,3 +1099,19 @@ class WMSTaskLine(models.Model):
                 record.has_pending = True
             else:
                 record.has_pending = False
+                
+    #agregar el lote que corresponde a la linea de tarea
+    @api.onchange('product_id')
+    def get_lote_name(self):
+        for record in self:
+            if record.product_id:
+                lot = self.env['wms.product.lot'].search([('product_id', '=', record.product_id.id)], order='date desc', limit=1)
+                if lot:
+                    record.lot = lot.lot_name
+                    
+    def write(self, vals):
+        res = super().write(vals)
+        for record in self:
+            if 'product_id' in vals:
+                record.get_lote_name()
+        return res
