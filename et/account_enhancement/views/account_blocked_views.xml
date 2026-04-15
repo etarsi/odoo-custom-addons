@@ -7,7 +7,7 @@
             <tree>
                 <field name="company_id"/>
                 <field name="date_limit"/>
-                <field name="state"/>
+                <field name="state" widget="badge" decoration-danger="state=='blocked'" decoration-success="state=='unblocked'" decoration-info="state=='draft'"/>
             </tree>
         </field>
     </record>
@@ -31,7 +31,6 @@
                         <group>
                             <field name="company_id"/>
                             <field name="date_limit"/>
-                            <field name="date_end"/>
                         </group>
                     </group>
                 </sheet>
