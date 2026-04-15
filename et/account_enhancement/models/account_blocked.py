@@ -17,9 +17,8 @@ from odoo.tools.float_utils import float_round
 import logging
 _logger = logging.getLogger(__name__)
 
-
-class AccountBlocked(models.TransientModel):
-    _inherit = 'account.blocked'
+class AccountBlocked(models.Model):
+    _name = "account.blocked"
     _description = "Contabilidad - Asientos bloqueados por conciliación"
 
     company_id = fields.Many2one('res.company', string="Compañía", required=True, default=lambda self: self.env.company)
