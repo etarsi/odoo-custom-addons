@@ -215,6 +215,7 @@
                                     <field name="quantity"/>
                                     <field name="quantity_picked"/>
                                     <field name="quantity_controlled"/>
+                                    <field name="lot" optional="hide" readonly="1"/>
                                     <!-- <field name="quantity_controlled" attrs="{'column_invisible': [('state_preparation', 'in', ('no', 'pending', 'preparation'))]}"/> -->
                                 </tree>
 
