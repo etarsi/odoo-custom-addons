@@ -41,19 +41,10 @@ class AccountBlocked(models.Model):
     #---------------------------
     def action_block(self):
         for record in self:
-            if record.state == 'draft':
+            if record.state == 'draft' or record.state == 'unblocked':
                 record.state = 'blocked'
                 record.action_lock_period_cut()
-            return {
-                "type": "ir.actions.client",
-                "tag": "display_notification",
-                "params": {
-                    "title": _("Periodo contable bloqueado"),
-                    'message': f'Se bloquearon correctamente los periodos contables para la compañía {self.company_id.name}. Por favor, refresque la vista.',
-                    "type": "success",
-                    "sticky": True
-                }
-            }
+
     
     #---------------------------
     # Acciones de desbloqueo
@@ -63,18 +54,8 @@ class AccountBlocked(models.Model):
             if record.state == 'blocked':
                 record.state = 'unblocked'
                 record.unlock_contable()
-                
-            return {
-                "type": "ir.actions.client",
-                "tag": "display_notification",
-                "params": {
-                    "title": _("Periodo contable desbloqueado"),
-                    'message': f'Se desbloquearon correctamente los periodos contables para la compañía {self.company_id.name}. Por favor, refresque la vista.',
-                    "type": "success",
-                    "sticky": True
-                }
-            }
-        
+
+
     # ---------------------------
     # Validaciones de bloqueo de Periodo en modelos relacionados
     # ---------------------------
@@ -87,21 +68,47 @@ class AccountBlocked(models.Model):
             WHERE company_id = %s AND date_order <= %s
         """
         self.env.cr.execute(sql, (self.company_id.id, self.date_limit))
+        sql = """
+            UPDATE sale_order_line SET period_cut_locked = TRUE
+            WHERE company_id = %s AND date_order <= %s
+        """
+        self.env.cr.execute(sql, (self.company_id.id, self.date_limit))
+        
+
         # Bloquear en purchase.order
         sql = """
             UPDATE purchase_order SET period_cut_locked = TRUE
             WHERE company_id = %s AND date_order <= %s
         """
         self.env.cr.execute(sql, (self.company_id.id, self.date_limit))
+        sql = """
+            UPDATE purchase_order_line SET period_cut_locked = TRUE
+            WHERE company_id = %s AND date_order <= %s
+        """
+        self.env.cr.execute(sql, (self.company_id.id, self.date_limit))
+        
+
         # Bloquear en account.payment.group
         sql = """
             UPDATE account_payment_group SET period_cut_locked = TRUE
             WHERE company_id = %s AND payment_date <= %s
         """
         self.env.cr.execute(sql, (self.company_id.id, self.date_limit))
+        sql = """
+            UPDATE account_payment SET period_cut_locked = TRUE
+            WHERE company_id = %s AND payment_date <= %s
+        """
+        self.env.cr.execute(sql, (self.company_id.id, self.date_limit))
+        
+
         # Bloquear en account.move
         sql = """
             UPDATE account_move SET period_cut_locked = TRUE
+            WHERE company_id = %s AND date <= %s
+        """
+        self.env.cr.execute(sql, (self.company_id.id, self.date_limit))
+        sql = """
+            UPDATE account_move_line SET period_cut_locked = TRUE
             WHERE company_id = %s AND date <= %s
         """
         self.env.cr.execute(sql, (self.company_id.id, self.date_limit))
@@ -116,22 +123,47 @@ class AccountBlocked(models.Model):
             WHERE company_id = %s AND date_order <= %s
         """
         self.env.cr.execute(sql, (self.company_id.id, self.date_limit))
+        sql = """
+            UPDATE sale_order_line SET period_cut_locked = FALSE
+            WHERE company_id = %s AND date_order <= %s
+        """
+        self.env.cr.execute(sql, (self.company_id.id, self.date_limit))
+        
+
         # Desbloquear en purchase.order
         sql = """
             UPDATE purchase_order SET period_cut_locked = FALSE
             WHERE company_id = %s AND date_order <= %s
         """
         self.env.cr.execute(sql, (self.company_id.id, self.date_limit))
+        sql = """
+            UPDATE purchase_order_line SET period_cut_locked = FALSE
+            WHERE company_id = %s AND date_order <= %s
+        """
+        self.env.cr.execute(sql, (self.company_id.id, self.date_limit))
+        
+
         # Desbloquear en account.payment.group
         sql = """
             UPDATE account_payment_group SET period_cut_locked = FALSE
             WHERE company_id = %s AND payment_date <= %s
         """
         self.env.cr.execute(sql, (self.company_id.id, self.date_limit))
+        sql = """
+            UPDATE account_payment SET period_cut_locked = FALSE
+            WHERE company_id = %s AND payment_date <= %s
+        """
+        self.env.cr.execute(sql, (self.company_id.id, self.date_limit))
+        
+
         # Desbloquear en account.move
         sql = """
             UPDATE account_move SET period_cut_locked = FALSE
             WHERE company_id = %s AND date <= %s
         """
         self.env.cr.execute(sql, (self.company_id.id, self.date_limit))
-        
+        sql = """
+            UPDATE account_move_line SET period_cut_locked = FALSE
+            WHERE company_id = %s AND date <= %s
+        """
+        self.env.cr.execute(sql, (self.company_id.id, self.date_limit))
