@@ -1108,6 +1108,10 @@ class WMSTaskLine(models.Model):
                 lot = self.env['wms.product.lot'].search([('product_id', '=', record.product_id.id)], order='date desc', limit=1)
                 if lot:
                     record.lot = lot.lot_name
+                else:
+                    lot = self.env['stock.move.line'].search([('product_id_id', '=', record.product_id.id), ('lot_id', '!=', False)], order='date desc', limit=1)
+                    if lot:
+                        record.lot = lot.lot_id.name
                     
     def write(self, vals):
         res = super().write(vals)
