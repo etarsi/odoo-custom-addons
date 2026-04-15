@@ -46,9 +46,10 @@ class AccountPaymentGroupInherit(models.Model):
             rec = self.new(vals)
             if rec.period_cut_locked:
                 raise ValidationError(_("No se puede crear un grupo de pago con 'Período de Corte Bloqueado' activo."))
-            if rec.date_order:
+            date_order = rec._pg_date(rec, vals)
+            if date_order and rec.company_id.id:
                 rec._validate_account_blocked(
-                    date_value=rec._pg_date(rec, vals),
+                    date_value=date_order,
                     company_id=rec.company_id.id,
                 )
         return super().create(vals_list)
