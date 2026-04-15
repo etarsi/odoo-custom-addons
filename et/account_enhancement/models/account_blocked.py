@@ -70,7 +70,7 @@ class AccountBlocked(models.Model):
         self.env.cr.execute(sql, (self.company_id.id, self.date_limit))
         sql = """
             UPDATE sale_order_line SET period_cut_locked = TRUE
-            WHERE company_id = %s AND date_order <= %s
+            WHERE order_id IN (SELECT id FROM sale_order WHERE company_id = %s AND date_order <= %s)
         """
         self.env.cr.execute(sql, (self.company_id.id, self.date_limit))
         
@@ -83,7 +83,7 @@ class AccountBlocked(models.Model):
         self.env.cr.execute(sql, (self.company_id.id, self.date_limit))
         sql = """
             UPDATE purchase_order_line SET period_cut_locked = TRUE
-            WHERE company_id = %s AND date_order <= %s
+            WHERE order_id IN (SELECT id FROM purchase_order WHERE company_id = %s AND date_order <= %s)
         """
         self.env.cr.execute(sql, (self.company_id.id, self.date_limit))
         
@@ -96,7 +96,7 @@ class AccountBlocked(models.Model):
         self.env.cr.execute(sql, (self.company_id.id, self.date_limit))
         sql = """
             UPDATE account_payment SET period_cut_locked = TRUE
-            WHERE company_id = %s AND payment_date <= %s
+            WHERE payment_group_id IN (SELECT id FROM account_payment_group WHERE company_id = %s AND payment_date <= %s)
         """
         self.env.cr.execute(sql, (self.company_id.id, self.date_limit))
         
@@ -109,11 +109,13 @@ class AccountBlocked(models.Model):
         self.env.cr.execute(sql, (self.company_id.id, self.date_limit))
         sql = """
             UPDATE account_move_line SET period_cut_locked = TRUE
-            WHERE company_id = %s AND date <= %s
+            WHERE move_id IN (SELECT id FROM account_move WHERE company_id = %s AND date <= %s)
         """
         self.env.cr.execute(sql, (self.company_id.id, self.date_limit))
 
-
+    #---------------------------
+    # Método para desbloquear el periodo contable
+    #---------------------------
     def unlock_contable(self):
         """Método para desbloquear el periodo contable, se puede ejecutar desde un botón en la vista de configuración."""
         self.ensure_one()
@@ -125,7 +127,7 @@ class AccountBlocked(models.Model):
         self.env.cr.execute(sql, (self.company_id.id, self.date_limit))
         sql = """
             UPDATE sale_order_line SET period_cut_locked = FALSE
-            WHERE company_id = %s AND date_order <= %s
+            WHERE order_id IN (SELECT id FROM sale_order WHERE company_id = %s AND date_order <= %s)
         """
         self.env.cr.execute(sql, (self.company_id.id, self.date_limit))
         
@@ -138,7 +140,7 @@ class AccountBlocked(models.Model):
         self.env.cr.execute(sql, (self.company_id.id, self.date_limit))
         sql = """
             UPDATE purchase_order_line SET period_cut_locked = FALSE
-            WHERE company_id = %s AND date_order <= %s
+            WHERE order_id IN (SELECT id FROM purchase_order WHERE company_id = %s AND date_order <= %s)
         """
         self.env.cr.execute(sql, (self.company_id.id, self.date_limit))
         
@@ -151,7 +153,7 @@ class AccountBlocked(models.Model):
         self.env.cr.execute(sql, (self.company_id.id, self.date_limit))
         sql = """
             UPDATE account_payment SET period_cut_locked = FALSE
-            WHERE company_id = %s AND payment_date <= %s
+            WHERE payment_group_id IN (SELECT id FROM account_payment_group WHERE company_id = %s AND payment_date <= %s)
         """
         self.env.cr.execute(sql, (self.company_id.id, self.date_limit))
         
@@ -164,6 +166,6 @@ class AccountBlocked(models.Model):
         self.env.cr.execute(sql, (self.company_id.id, self.date_limit))
         sql = """
             UPDATE account_move_line SET period_cut_locked = FALSE
-            WHERE company_id = %s AND date <= %s
+            WHERE move_id IN (SELECT id FROM account_move WHERE company_id = %s AND date <= %s)
         """
         self.env.cr.execute(sql, (self.company_id.id, self.date_limit))
