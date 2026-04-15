@@ -1109,7 +1109,7 @@ class WMSTaskLine(models.Model):
                 if lot:
                     record.lot = lot.lot_name
                 else:
-                    lot = self.env['stock.move.line'].search([('product_id_id', '=', record.product_id.id), ('lot_id', '!=', False)], order='date desc', limit=1)
+                    lot = self.env['stock.move.line'].search([('product_id', '=', record.product_id.id), ('lot_id', '!=', False)], order='date desc', limit=1)
                     if lot:
                         record.lot = lot.lot_id.name
                     
