@@ -14,6 +14,7 @@
                 </header>     
                 <field name="product_id"/>
                 <field name="lot_name"/>
+                <field name="date"/>
             </tree>
         </field>
     </record>
@@ -28,6 +29,7 @@
             <search string="Buscar Lotes">
                 <field name="product_id"/>
                 <field name="lot_name"/>
+                <field name="date"/>
             </search>
         </field>
     </record>
@@ -48,6 +50,7 @@
                         </group>
                         <group string="LOTE">
                             <field name="lot_name" required="1"/>
+                            <field name="date" required="1"/>
                         </group>
                     </group>                    
                 </sheet>
@@ -66,7 +69,7 @@
         <field name="context">{}</field>
         <field name="help" type="html">
             <p class="o_view_nocontent_smiling_face">
-                Creá tu primera Tarea WMS
+                Creá tu primer Lote WMS
             </p>
         </field>
     </record>

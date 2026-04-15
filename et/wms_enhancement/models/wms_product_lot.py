@@ -7,3 +7,4 @@ class WMSProductLot(models.Model):
     name = fields.Char(string="Nombre")
     product_id = fields.Many2one(string="Producto", comodel_name="product.product")
     lot_name = fields.Char(string="Lote")
+    date = fields.Date(string="Fecha del lote")
