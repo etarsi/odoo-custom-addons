@@ -50,4 +50,16 @@ action = {
 }
         </field>
     </record>
+
+
+
+    <!--ACTUALIZAR EL action_update_wms_transfer_lines-->
+    <record id="action_update_wms_transfer_lines" model="ir.actions.server">
+        <field name="name">Actualizar Líneas de Transferencia</field>
+        <field name="model_id" ref="wms_enhancement.model_wms_transfer"/>
+        <field name="binding_model_id" ref="wms_enhancement.model_wms_transfer"/>
+        <field name="binding_view_types">form</field>
+        <field name="state">code</field>
+        <field name="code">action = records.action_update_wms_transfer_lines()</field>
+    </record>
 </odoo>

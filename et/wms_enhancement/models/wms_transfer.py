@@ -350,8 +350,22 @@ class WMSTransfer(models.Model):
             'target': 'current',
         }
   
-
-
+    def action_update_wms_transfer_lines(self):
+        for record in self:
+            if record.sale_id:
+                for line in record.line_ids:
+                    corresponding_sale_line = record.sale_id.order_line.filtered(lambda l: l.id == line.sale_line_id.id)
+                    if corresponding_sale_line:
+                        line.write({
+                            'qty_demand': corresponding_sale_line.product_uom_qty,
+                            'bultos': corresponding_sale_line.product_packaging_qty,
+                        })
+                    #las que no poner en cero
+                    else:
+                        line.write({
+                            'qty_demand': 0,
+                            'bultos': 0,
+                        })
 
     def action_close_transfer(self):
         return

@@ -128,3 +128,20 @@ class SaleOrderLineInherit(models.Model):
 
     def _action_launch_stock_rule(self, previous_product_uom_qty=False):
         return
+    
+    def write(self, vals):
+        res = super().write(vals)
+        if 'product_uom_qty' in vals or 'product_packaging_qty' in vals:
+            #actualizar cantidad demandada en wms.transfer.line
+            for line in self:
+                line.update_wms_transfer_line()
+        return res
+    
+    def update_wms_transfer_line(self):
+        for line in self:
+            transfer_line = self.env['wms.transfer.line'].search([('sale_line_id', '=', line.id)], limit=1)
+            if transfer_line:
+                transfer_line.write({
+                    'qty_demand': line.product_uom_qty,
+                    'bultos': line.product_packaging_qty,
+                })
