@@ -31,8 +31,8 @@
                 <sheet>
                     <group string="Información del Bloqueo">
                         <group>
-                            <field name="company_id"/>
-                            <field name="date_limit"/>
+                            <field name="company_id" attrs="{'readonly': [('state', '=', 'blocked')]}"/>
+                            <field name="date_limit" attrs="{'readonly': [('state', '=', 'blocked')]}"/>
                         </group>
                     </group>
                 </sheet>
