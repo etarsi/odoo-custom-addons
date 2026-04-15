@@ -25,16 +25,24 @@ class SaleOrderInherit(models.Model):
             if rec.period_cut_locked:
                 raise ValidationError(_("No se puede crear un pedido con 'Período de Corte Bloqueado' activo."))
             if rec.date_order:
-                rec._validate_account_blocked(rec.date_order)
+                rec._validate_account_blocked(
+                    date_value=rec.date_order,
+                    company_id=rec.company_id.id,
+                )
         return super().create(vals_list)
 
     def write(self, vals):
         for rec in self:
-            if rec.period_cut_locked:
+            period_cut_locked = vals.get('period_cut_locked', rec.period_cut_locked)
+            if period_cut_locked:
                 raise ValidationError(_("No se puede modificar un pedido con 'Período de Corte Bloqueado' activo."))
             date_order = vals.get('date_order', rec.date_order)
+            company_id = vals.get('company_id', rec.company_id.id)
             if date_order:
-                rec._validate_account_blocked(date_order)
+                rec._validate_account_blocked(
+                    date_value=date_order,
+                    company_id=company_id,
+                )
         return super().write(vals)
 
     def unlink(self):
@@ -42,14 +50,17 @@ class SaleOrderInherit(models.Model):
             if rec.period_cut_locked:
                 raise ValidationError(_("No se puede eliminar un pedido con 'Período de Corte Bloqueado' activo."))
             if rec.date_order:
-                rec._validate_account_blocked(rec.date_order)
+                rec._validate_account_blocked(
+                    date_value=rec.date_order,
+                    company_id=rec.company_id.id,
+                )
         return super().unlink()
 
-    def _validate_account_blocked(self, date_value):
+    def _validate_account_blocked(self, date_value, company_id):
         self.ensure_one()
 
         blocked_record = self.env['account.blocked'].search([
-            ('company_id', '=', self.company_id.id),
+            ('company_id', '=', company_id),
             ('state', '=', 'blocked'),
             ('date_limit', '>=', fields.Date.to_date(date_value)),
         ], limit=1)

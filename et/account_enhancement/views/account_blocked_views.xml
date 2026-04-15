@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_account_blocked_tree" model="ir.ui.view">
+        <field name="name">account.blocked.tree</field>
+        <field name="model">account.blocked</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="company_id"/>
+                <field name="date_limit"/>
+                <field name="state"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_account_blocked_form" model="ir.ui.view">
+        <field name="name">account.blocked.form</field>
+        <field name="model">account.blocked</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,blocked,unblocked"/>
+                    <button name="action_block" type="object"
+                            class="oe_highlight"
+                            string="Bloquear"/>
+                    <button name="action_unblock" type="object"
+                            class="oe_highlight"
+                            string="Desbloquear"/>
+                </header>
+                <sheet>
+                    <group string="Información del Bloqueo">
+                        <group>
+                            <field name="company_id"/>
+                            <field name="date_limit"/>
+                            <field name="date_end"/>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_account_blocked" model="ir.actions.act_window">
+        <field name="name">Bloqueo de Períodos - Contables</field>
+        <field name="res_model">account.blocked</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+</odoo>

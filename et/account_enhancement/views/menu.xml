@@ -85,22 +85,18 @@
         name="Cierre y Apertura de Gestión"
         parent="account.menu_finance_configuration"
         sequence="10"/>
+
     <menuitem
         id="account_enhancement.menu_account_fiscal_period"
         name="Ejercicio de Cierre y Apertura"
         parent="account_enhancement.menu_account_configuration_fiscal_period"
         action="action_fiscal_period_config"
         sequence="10"/>
+
     <menuitem
-        id="account_enhancement.menu_account_bloqued_period"
+        id="account_enhancement.menu_account_blocked_period"
         name="Bloquear Periodo Contable"
         parent="account_enhancement.menu_account_configuration_fiscal_period"
-        action="action_account_bloqued_period_wizard"
+        action="action_account_blocked"
         sequence="20"/>
-    <menuitem
-        id="account_enhancement.menu_account_unlock_period"
-        name="Desbloquear Periodo Contable"
-        parent="account_enhancement.menu_account_configuration_fiscal_period"
-        action="action_account_unlock_period_wizard"
-        sequence="30"/>
 </odoo>

@@ -173,39 +173,74 @@ class AccountMoveInherit(models.Model):
                 body="Factura enviada por correo a %s" % (move.partner_id.email or "N/A"), attachment_ids=[attachment.id])
         return
     # FIN ENVIO DE CORREO---------------------------------------------------------
-
+    
+    
+    #---------------------------
+    # Acciones de desbloqueo
+    #---------------------------
     @api.model_create_multi
     def create(self, vals_list):
-        res = super().create(vals_list)
-        locked_records = res.filtered('period_cut_locked')
-        if locked_records:
-            raise ValidationError(_("No se puede crear un movimiento con 'Período de Corte Bloqueado' activo."))
-        res.validate_invoice_payment_term_id()
-        return res
-
+        for vals in vals_list:
+            rec = self.new(vals)
+            if rec.period_cut_locked:
+                raise ValidationError(_("No se puede crear un pedido con 'Período de Corte Bloqueado' activo."))
+            if rec.date:
+                rec._validate_account_blocked(
+                    date_value=rec.date,
+                    company_id=rec.company_id.id,
+                )
+        return super().create(vals_list)
+    
     def write(self, vals):
         for rec in self:
-            if rec.period_cut_locked:
-                raise ValidationError(_("No se puede modificar un movimiento con 'Período de Corte Bloqueado' activo."))
-            rec.validate_invoice_payment_term_id()    
-        return super().write(vals)
+            period_cut_locked = vals.get('period_cut_locked', rec.period_cut_locked)
+            if period_cut_locked:
+                raise ValidationError(_("No se puede modificar un pedido con 'Período de Corte Bloqueado' activo."))
+            date = vals.get('date', rec.date)
+            company_id = vals.get('company_id', rec.company_id.id)
+            if date:
+                rec._validate_account_blocked(
+                    date_value=date,
+                    company_id=company_id,
+                )
+        return super().write(vals)    
     
-    def validate_invoice_payment_term_id(self):
-        for rec in self:
-            if rec.move_type == 'out_invoice':
-                if rec.l10n_latam_document_type_id.code in ['201', '206', '211'] and not rec.invoice_payment_term_id:
-                    raise ValidationError(_("El plazo de pago de la factura es obligatorio para facturas electrónicas de cliente."))
-
     def unlink(self):
         for rec in self:
             if rec.period_cut_locked:
                 raise ValidationError(_("No se puede eliminar un movimiento con 'Período de Corte Bloqueado' activo."))
+            if rec.date:
+                rec._validate_account_blocked(
+                    date_value=rec.date,
+                    company_id=rec.company_id.id,
+                )
             Return = rec.env['return.move']
             returns = Return.search([('credit_notes', 'in', rec.id)])
             if returns:
                 cmds = [(3, rec.id)]
                 returns.write({'credit_notes': cmds})
         return super().unlink()
+    
+    def _validate_account_blocked(self, date_value, company_id):
+        self.ensure_one()
+
+        blocked_record = self.env['account.blocked'].search([
+            ('company_id', '=', company_id),
+            ('state', '=', 'blocked'),
+            ('date_limit', '>=', fields.Date.to_date(date_value)),
+        ], limit=1)
+
+        if blocked_record:
+            raise ValidationError(_(
+                "No se puede crear, modificar o eliminar un movimiento con fecha dentro del período bloqueado. "
+                "Por favor, revise la configuración de bloqueo de períodos contables."
+            ))
+    
+    def validate_invoice_payment_term_id(self):
+        for rec in self:
+            if rec.move_type == 'out_invoice':
+                if rec.l10n_latam_document_type_id.code in ['201', '206', '211'] and not rec.invoice_payment_term_id:
+                    raise ValidationError(_("El plazo de pago de la factura es obligatorio para facturas electrónicas de cliente."))
     
     def action_lock_period_cut(self):
         self.ensure_one()
