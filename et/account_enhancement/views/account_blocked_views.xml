@@ -21,10 +21,12 @@
                     <field name="state" widget="statusbar" statusbar_visible="draft,blocked,unblocked"/>
                     <button name="action_block" type="object"
                             class="oe_highlight"
-                            string="Bloquear"/>
+                            string="Bloquear"
+                            attrs="{'invisible': [('state', '=', 'blocked')]}"/>
                     <button name="action_unblock" type="object"
                             class="oe_highlight"
-                            string="Desbloquear"/>
+                            string="Desbloquear"
+                            attrs="{'invisible': [('state', '!=', 'blocked')]}"/>
                 </header>
                 <sheet>
                     <group string="Información del Bloqueo">
