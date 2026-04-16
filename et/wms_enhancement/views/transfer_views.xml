@@ -50,7 +50,7 @@
                 <field name="partner_address_id" optional="show"/>
                 <!-- <field name="partner_tag"/>
                 <field name="partner_tag"/> -->
-                <field name="category_producto_ids" widget="many2many_tags" options="{'color_field':'color'}" string="Categorías Producto" optional="show"/>
+                <field name="category_producto_ids" widget="many2many_tags" string="Categorías Producto" optional="show"/>
                 <field name="total_bultos" sum="total" optional="show"/>
                 <field name="total_bultos_prepared" sum="total" optional="show"/>
                 <field name="total_available_percentage" string="Disponible" optional="show" widget="progressbar"/>
