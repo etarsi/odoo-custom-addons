@@ -191,6 +191,7 @@
                                     <field name="available_percent"/>                   
                                     <field name="availability"/>
                                     <field name="sale_line_id" optional="hide"/>
+                                    <field name="category_producto_id" optional="hide"/>
                                 </tree>
 
                                 <form string="Línea de Transferencia">
