@@ -63,17 +63,6 @@ class TmsCitation(models.Model):
         for rec in self:
             rec.tms_roadmap_citation_ids = rec.tms_roadmap_ids
             rec.tms_roadmap_citation_count = len(rec.tms_roadmap_citation_ids)
-        
-    def action_view_tms_roadmaps(self):
-        self.ensure_one()
-        return {
-            "name": _("Hojas de Ruta"),
-            "type": "ir.actions.act_window",
-            "res_model": "tms.roadmap",
-            "view_mode": "tree,form",
-            "domain": [("id", "in", self.tms_roadmap_ids.ids)],
-            "context": {"default_citation_id": self.id},
-        }
 
     @api.depends("tms_roadmap_ids.total_bulk_defendant", "tms_roadmap_ids.total_bulk_picking")
     def _compute_total_bulk(self):
@@ -161,3 +150,26 @@ class TmsCitation(models.Model):
             rec.state = "completed"
             rec.message_post(body=_("La hoja de ruta ha sido completada."))
             rec.tms_roadmap_ids.write({"state": "completed"})
+            
+    def action_view_tms_roadmaps(self):
+        self.ensure_one()
+        if not self.tms_roadmap_ids:
+            raise ValidationError(_("No hay hojas de ruta asociadas a esta citación."))
+        if len(self.tms_roadmap_ids) == 1:
+            return {
+                "name": _("Hoja de Ruta"),
+                "type": "ir.actions.act_window",
+                "res_model": "tms.roadmap",
+                "view_mode": "form",
+                "res_id": self.tms_roadmap_ids.id,
+                "context": {"default_citation_id": self.id},
+            }
+        else:
+            return {
+                "name": _("Hojas de Ruta"),
+                "type": "ir.actions.act_window",
+                "res_model": "tms.roadmap",
+                "view_mode": "tree,form",
+                "domain": [("id", "in", self.tms_roadmap_ids.ids)],
+                "context": {"default_citation_id": self.id},
+            }

@@ -139,7 +139,7 @@
                 <field name="user_id" optional="show"/>
             </tree>
         </field>
-    </record>
+    </record>    
 
     <!-- esta vista es para el que mirara las aprobaciones a realizar -->
     <record id="view_tms_stock_picking_search" model="ir.ui.view">

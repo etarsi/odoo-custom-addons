@@ -138,44 +138,50 @@ class ResPartnerInherit(models.Model):
             return
 
         #VALIDAR SI HAY ALÍCUOTAS ARBA, SI NO HAY, NO CREAR REGISTRO DE ALÍCUOTA (para evitar llenar la tabla con alícuotas 0)
-        if data.get('perception_arba', 0.0) == 0 and data.get('retention_arba', 0.0) == 0:
+        perception = data.get('perception_arba', 0.0) or 0.0
+        retention = data.get('retention_arba', 0.0) or 0.0
+        if perception == 0 and retention == 0:
             return
+        
+        sql = """
+            INSERT INTO res_partner_arba_alicuot
+                (partner_id, company_id, tag_id,
+                    alicuota_percepcion, alicuota_retencion,
+                    from_date, to_date,
+                    create_uid, create_date, write_uid, write_date)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, NOW(), %s, NOW())
+        """
 
         for company in COMPANY_IDS:
             existing = self.env['res.partner.arba_alicuot'].search([
-                ('partner_id', '=', self.id),
-                ('company_id', '=', company),
-                ('tag_id', '=', tag_id.id),
-                ('from_date', '=', date_from),
-                ('to_date', '=', date_to),
+                ('partner_id','=',self.id), 
+                ('company_id','=',company), 
+                ('from_date','=',date_from), 
+                ('to_date','=',date_to), 
+                ('tag_id','=',tag_id.id)
             ], limit=1)
 
-            vals = {
-                'partner_id': self.id,
-                'company_id': company,
-                'tag_id': tag_id.id,
-                'alicuota_percepcion': data.get('perception_arba', 0.0),
-                'alicuota_retencion': data.get('retention_arba', 0.0),
-                'from_date': date_from,
-                'to_date': date_to,
-            }
-
             if existing:
-                existing.write(vals)
+                existing.write({
+                    'alicuota_percepcion': perception,
+                    'alicuota_retencion': retention,
+                })
             else:
-                data_today = date.today()
-                #CREAR POR SQL
-                sql = """INSERT INTO res_partner_arba_alicuot (partner_id, company_id, tag_id, alicuota_percepcion, alicuota_retencion, from_date, to_date,create_date, write_date)
-                         VALUES (%s, %s, %s, %s, %s, %s, %s, NOW(), NOW())
-                         ON CONFLICT (partner_id, company_id, tag_id, from_date, to_date) DO UPDATE SET
-                         alicuota_percepcion = EXCLUDED.alicuota_percepcion,
-                         alicuota_retencion = EXCLUDED.alicuota_retencion,
-                         write_date = NOW()
-                """
-                self.env.cr.execute(sql, (self.id, company, tag_id.id, vals['alicuota_percepcion'], vals['alicuota_retencion'], date_from, date_to))
-                # Si prefieres usar ORM, puedes descomentar la siguiente línea y comentar el bloque SQL anterior:
-                # self.env['res.partner.arba_alicuot'].create(vals)                
-                         
+                self.env.cr.execute(sql, (
+                    self.id,
+                    company,
+                    tag_id.id,
+                    perception,
+                    retention,
+                    date_from,
+                    date_to,
+                    self.env.uid,
+                    self.env.uid,
+                ))
+                create_by_sql = True
+            if create_by_sql:
+                self.env['res.partner.arba_alicuot'].invalidate_cache() # Invalidar cache para que los cambios se reflejen inmediatamente en búsquedas posteriores
+
     def verificar_padron_iibb_arba(self, cuit, period_key):
         self.ensure_one()
 

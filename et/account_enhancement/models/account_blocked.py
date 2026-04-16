@@ -35,7 +35,6 @@ class AccountBlocked(models.Model):
     ]
 
 
-
     #---------------------------
     # Acciones de bloqueo
     #---------------------------
@@ -45,7 +44,6 @@ class AccountBlocked(models.Model):
                 record.state = 'blocked'
                 record.action_lock_period_cut()
 
-    
     #---------------------------
     # Acciones de desbloqueo
     #---------------------------
@@ -54,7 +52,6 @@ class AccountBlocked(models.Model):
             if record.state == 'blocked':
                 record.state = 'unblocked'
                 record.unlock_contable()
-
 
     # ---------------------------
     # Validaciones de bloqueo de Periodo en modelos relacionados
@@ -169,3 +166,6 @@ class AccountBlocked(models.Model):
             WHERE move_id IN (SELECT id FROM account_move WHERE company_id = %s AND date <= %s)
         """
         self.env.cr.execute(sql, (self.company_id.id, self.date_limit))
+
+
+
