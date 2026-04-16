@@ -15,8 +15,8 @@ class ResPartnerArbaAlicuot(models.Model):
     _inherit = "res.partner.arba_alicuot"
 
 
-    exclusion_percepcion = fields.Boolean(string="Exclusión Percepción ARBA", default=False)
-    exclusion_retencion = fields.Boolean(string="Exclusión Retención ARBA", default=False)
+    exclusion_percepcion = fields.Boolean(string="Exclusión Percepción", default=False)
+    exclusion_retencion = fields.Boolean(string="Exclusión Retención", default=False)
 
     def write(self, vals):
         if 'exclusion_percepcion' in vals and vals['exclusion_percepcion']:

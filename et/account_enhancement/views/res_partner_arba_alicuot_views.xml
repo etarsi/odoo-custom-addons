@@ -6,10 +6,8 @@
         <field name="model">res.partner.arba_alicuot</field>
         <field name="inherit_id" ref="l10n_ar_account_withholding.view_res_partner_arba_alicuot_form"/>
         <field name="arch" type="xml">
-            <xpath expr="//field[@name='alicuota_percepcion']" position="after">
-                <field name="exclusion_percepcion"/>
-            </xpath>
             <xpath expr="//field[@name='alicuota_retencion']" position="after">
+                <field name="exclusion_percepcion"/>
                 <field name="exclusion_retencion"/>
             </xpath>
         </field>
