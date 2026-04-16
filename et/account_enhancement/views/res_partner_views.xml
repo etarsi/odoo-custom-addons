@@ -41,4 +41,27 @@
             </xpath>
         </field>
     </record>
+
+    <!-- l10n_ar_account_withholding.view_partner_form-->
+    <record id="view_res_partner_form_inherit" model="ir.ui.view">
+        <field name="name">res.partner.form.inherit.withholding</field>
+        <field name="model">res.partner</field>
+        <field name="inherit_id" ref="l10n_ar_account_withholding.view_partner_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='arba_alicuot_ids']" position="replace">
+                <field name="arba_alicuot_ids">
+                    <tree string="Alícuotas ARBA" editable="bottom">
+                        <field name="company_id"/>
+                        <field name="tag_id"/>
+                        <field name="exclusion_percepcion"/>
+                        <field name="exclusion_retencion"/>
+                        <field name="alicuota_percepcion"/>
+                        <field name="alicuota_retencion"/>
+                        <field name="from_date"/>
+                        <field name="to_date"/>
+                    </tree>
+                </field>
+            </xpath>
+        </field>
+    </record>
 </odoo>
