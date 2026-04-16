@@ -73,6 +73,7 @@ class TmsStockPicking(models.Model):
         ('cancel', 'Solo canceladas'),
         ('mixed', 'Mixto'),
     ], string='Estado Facturas', compute='_compute_invoice_status', store=True, tracking=True)
+    tms_roadmap_line_id = fields.Many2one('tms.roadmap.line', string='Línea de Hoja de Ruta', ondelete='set null', index=True, tracking=True)
     
     
     @api.depends('account_move_ids', 'account_move_ids.state')

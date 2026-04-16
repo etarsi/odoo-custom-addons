@@ -5,7 +5,7 @@
 
     <!-- Submenu de Ruteo de Inventario-->
     <menuitem id="menu_tms_inventario" name="Ruteo de Inventario" parent="tms_root_logo"
-              action="action_tms_stock_picking" sequence="10"/>
+              action="action_open_tms_stock_picking" sequence="10"/>
     
     <!-- SUBMENU DE HOJA DE RUTA-->
     <menuitem id="menu_tms_roadmap"
@@ -51,5 +51,8 @@
     <!-- CONFIGURACION/CONTRATOS/CONTRATACIONES DE TRANSPORTE -->
     <menuitem id="menu_tms_hiring" name="Contrataciones de Transporte" parent="menu_tms_hiring_main"
               action="action_tms_hiring" sequence="10"/>
+
+    <menuitem id="menu_tms_stock_picking" name="Ruteo de Inventario" parent="menu_tms_hiring_main"
+              action="action_tms_stock_picking" sequence="20"/>
 
 </odoo>

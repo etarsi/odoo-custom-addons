@@ -264,3 +264,21 @@ class TmsRoadmapLine(models.Model):
                 self.patente = self.transport_id.patente_semi
         else:
             self.patente = False
+            
+    @api.model
+    def create(self, vals):
+        res = super().create(vals)
+        if res.tms_stock_picking_id:
+            res.tms_stock_picking_id.tms_roadmap_line_id = res.id  # vincula la línea de hoja de ruta con el ruteo
+        return res
+    
+    
+    def write(self, vals):
+        res = super().write(vals)
+        for rec in self:
+            if rec.tms_stock_picking_id:
+                rec.tms_stock_picking_id.tms_roadmap_line_id = rec.id  # asegúrate de mantener la vinculación actualizada
+            else:
+                rec.tms_stock_picking_id.tms_roadmap_line_id = False  # si se desvincula el ruteo, limpia la referencia
+        return res
+    

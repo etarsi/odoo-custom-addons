@@ -210,4 +210,17 @@
         <field name="view_mode">tree,form</field>
         <field name="search_view_id" ref="view_tms_stock_picking_search"/>
     </record>
+
+    <!-- ACTION PARA TRAER FILTRADO -->
+    <record id="action_open_tms_stock_picking" model="ir.actions.act_window">
+        <field name="name">Ruteo de Inventario</field>
+        <field name="res_model">tms.stock.picking</field>
+        <field name="view_mode">tree,form</field>
+        <field name="domain">[
+            ('tms_roadmap_line_id', '=', False),
+            ('fecha_envio_wms', '!=', False),
+            ('fecha_envio_wms', '&gt;=', '2026-01-01')
+        ]</field>
+        <field name="search_view_id" ref="view_tms_stock_picking_search"/>
+    </record>
 </odoo>

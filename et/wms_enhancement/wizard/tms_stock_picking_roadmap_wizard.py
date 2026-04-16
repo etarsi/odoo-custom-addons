@@ -110,7 +110,6 @@ class TmsStockPickingRoadmapWizard(models.TransientModel):
                 "bulk_defendant": wl.bulto_defendant,
                 "bulk_picking": wl.bulto_picking,
             })
-
         # opcional: abrir la HDR creada/vinculada
         return {
             "type": "ir.actions.act_window",
