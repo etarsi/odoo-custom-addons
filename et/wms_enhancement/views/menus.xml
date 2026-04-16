@@ -20,7 +20,7 @@
                 parent="wms_logo"
                 action="action_wms_transfer"
                 sequence="10"/>
-    <menuitem id="wms_menu_transfers_lines"
+    <menuitem id="wms_menu_transfers_data"
                 name="Transferencias"
                 parent="wms_menu_transfers"
                 action="action_wms_transfer"
