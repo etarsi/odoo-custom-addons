@@ -10,7 +10,7 @@ class TmsCitation(models.Model):
 
     name = fields.Char(string="Número", required=True, copy=False, index=True, default=lambda self: _("New"), tracking=True)
     tms_roadmap_ids = fields.One2many("tms.roadmap", "citation_id", string="Hojas de Rutas", index=True, tracking=True)
-    tms_roadmap_citation_ids = fields.Many2many('wms.task', string='Tareas WMS', compute="_compute_tms_roadmap_count", store=False)
+    tms_roadmap_citation_ids = fields.Many2many('tms.roadmap', string='Hojas de Ruta', compute="_compute_tms_roadmap_count", store=False)
     tms_roadmap_citation_count = fields.Integer(string="Cantidad de Hojas de Ruta", compute="_compute_tms_roadmap_count", store=True, tracking=True)
     date = fields.Date(string="Fecha", required=True, default=fields.Date.context_today, index=True, tracking=True)
     mes = fields.Char(string="Mes", compute="_compute_mes", store=True, index=True, tracking=True)
@@ -61,7 +61,7 @@ class TmsCitation(models.Model):
 
     def _compute_tms_roadmap_count(self):
         for rec in self:
-            rec.tms_roadmap_citation_ids = rec.tms_roadmap_ids.mapped("wms_task_id")
+            rec.tms_roadmap_citation_ids = rec.tms_roadmap_ids
             rec.tms_roadmap_citation_count = len(rec.tms_roadmap_citation_ids)
         
     def action_view_tms_roadmaps(self):
