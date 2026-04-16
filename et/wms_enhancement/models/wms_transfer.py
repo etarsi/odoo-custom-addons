@@ -35,11 +35,6 @@ class WMSTransfer(models.Model):
     lines_count = fields.Integer(string="Cantidad de Líneas", compute="_compute_lines_count")
     origin = fields.Char(string="Documento", tracking=True)
     company_id = fields.Many2one(string="Compañía", comodel_name="res.company", tracking=True)
-    
-
-    # partner_tag = fields.Many2many()
-    # products_categ = fields.Many2many()
-
     total_bultos = fields.Float(string="Bultos", compute="_compute_total_bultos", store=True, tracking=True)
     total_bultos_prepared = fields.Float(string="Bultos Preparados", compute="_compute_total_bultos_prepared", store=True, tracking=True)
     total_available_percentage = fields.Float(string="Porcentaje Disponible", compute="_compute_total_available_percentage", store=True, tracking=True)

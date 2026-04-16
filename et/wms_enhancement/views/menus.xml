@@ -21,10 +21,15 @@
                 action="action_wms_transfer"
                 sequence="10"/>
     <menuitem id="wms_menu_transfers_lines"
+                name="Transferencias"
+                parent="wms_menu_transfers"
+                action="action_wms_transfer"
+                sequence="10"/>
+    <menuitem id="wms_menu_transfers_lines"
                 name="Líneas de Transferencias"
                 parent="wms_menu_transfers"
                 action="action_wms_transfer_line"
-                sequence="10"/>
+                sequence="20"/>
 
     <!-- Tareas -->
     <menuitem id="wms_menu_tasks"
