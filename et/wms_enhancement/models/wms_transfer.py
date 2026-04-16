@@ -478,7 +478,7 @@ class WMSTransferLine(models.Model):
     )
 
     @api.depends('product_id', 'product_id.categ_id', 'product_id.categ_id.parent_id')
-    def _compute_category_root_id(self):
+    def _compute_category_producto_id(self):
         for rec in self:
             categ = rec.product_id.categ_id
             while categ and categ.parent_id:
