@@ -161,12 +161,7 @@ class ResPartnerInherit(models.Model):
                 ('tag_id','=',tag_id.id)
             ], limit=1)
 
-            if existing:
-                existing.write({
-                    'alicuota_percepcion': perception,
-                    'alicuota_retencion': retention,
-                })
-            else:
+            if not existing:
                 self.env.cr.execute(sql, (
                     self.id,
                     company,
@@ -179,8 +174,8 @@ class ResPartnerInherit(models.Model):
                     self.env.uid,
                 ))
                 create_by_sql = True
-            if create_by_sql:
-                self.env['res.partner.arba_alicuot'].invalidate_cache() # Invalidar cache para que los cambios se reflejen inmediatamente en búsquedas posteriores
+                if create_by_sql:
+                    self.env['res.partner.arba_alicuot'].invalidate_cache() # Invalidar cache para que los cambios se reflejen inmediatamente en búsquedas posteriores
 
     def verificar_padron_iibb_arba(self, cuit, period_key):
         self.ensure_one()

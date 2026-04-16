@@ -14,6 +14,17 @@ ARBA_LOCK_KEY = 987654321  # sirve para evitar que el cron se ejecute concurrent
 class ResPartnerArbaAlicuot(models.Model):
     _inherit = "res.partner.arba_alicuot"
 
+
+    exclusion_percepcion = fields.Boolean(string="Exclusión Percepción ARBA", default=False)
+    exclusion_retencion = fields.Boolean(string="Exclusión Retención ARBA", default=False)
+
+    def write(self, vals):
+        if 'exclusion_percepcion' in vals and vals['exclusion_percepcion']:
+            vals['alicuota_percepcion'] = 0.0
+        if 'exclusion_retencion' in vals and vals['exclusion_retencion']:
+            vals['alicuota_retencion'] = 0.0
+        return super().write(vals)
+
     @api.model
     def _to_float_ar_sql_cron(self, value):
         if value in (None, False, ""):

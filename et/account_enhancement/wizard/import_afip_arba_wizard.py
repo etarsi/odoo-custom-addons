@@ -212,26 +212,11 @@ class ImportAfipArbaWizard(models.TransientModel):
                 errors.append("No se encontró padrón para CUIT %s" % cuit)
                 continue
 
-            agip_per = self._to_float_ar(getattr(padron, 'perception_agip', 0.0))
-            agip_ret = self._to_float_ar(getattr(padron, 'retention_agip', 0.0))
             arba_per = self._to_float_ar(getattr(padron, 'perception_arba', 0.0))
             arba_ret = self._to_float_ar(getattr(padron, 'retention_arba', 0.0))
 
             for partner in partner_recs:
                 for company_id in COMPANY_IDS:
-                    # AGIP
-                    key_agip = (partner.id, company_id, tag_agip.id)
-                    if key_agip not in existing_map and not (agip_per == 0 and agip_ret == 0):
-                        create_vals.append({
-                            'partner_id': partner.id,
-                            'company_id': company_id,
-                            'tag_id': tag_agip.id,
-                            'alicuota_percepcion': agip_per,
-                            'alicuota_retencion': agip_ret,
-                            'from_date': desde,
-                            'to_date': hasta,
-                        })
-
                     # ARBA
                     key_arba = (partner.id, company_id, tag_arba.id)
                     if key_arba not in existing_map and not (arba_per == 0 and arba_ret == 0):
