@@ -471,8 +471,17 @@ class WMSTask(models.Model):
     ### REMITO 
     def action_print_remito(self):
         self.ensure_one()
+        #validar la tarea que tenga date_done, task_line_ids.lot y invoicing_type para generar el remito
+        if not self.date_done:
+            raise UserError(_("La tarea debe tener una fecha de finalización para generar el remito."))
+        if not self.task_line_ids.filtered(lambda l: l.lot):
+            raise UserError(_("Todas las líneas de la tarea deben tener lote para generar el remito."))
+        if not self.invoicing_type:
+            raise UserError(_("La tarea debe tener un tipo de facturación para generar el remito."))
         if self.digip_state == 'received':
             self.send_remitido()
+            
+
         return {
             'type': 'ir.actions.act_url',
             'url': f'/nremito/auto/{self.id}',
