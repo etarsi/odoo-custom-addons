@@ -483,7 +483,7 @@ class WMSTransferLine(models.Model):
             categ = rec.product_id.categ_id
             while categ and categ.parent_id:
                 categ = categ.parent_id
-            rec.category_root_id = categ.id or False
+            rec.category_producto_id = categ.id or False
 
     @api.model
     def create(self, vals):
