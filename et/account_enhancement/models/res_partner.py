@@ -137,6 +137,10 @@ class ResPartnerInherit(models.Model):
         if not data:
             return
 
+        #VALIDAR SI HAY ALÍCUOTAS ARBA, SI NO HAY, NO CREAR REGISTRO DE ALÍCUOTA (para evitar llenar la tabla con alícuotas 0)
+        if data.get('perception_arba', 0.0) == 0 and data.get('retention_arba', 0.0) == 0:
+            return
+
         for company in COMPANY_IDS:
             existing = self.env['res.partner.arba_alicuot'].search([
                 ('partner_id', '=', self.id),
@@ -159,7 +163,18 @@ class ResPartnerInherit(models.Model):
             if existing:
                 existing.write(vals)
             else:
-                self.env['res.partner.arba_alicuot'].create(vals)                
+                data_today = date.today()
+                #CREAR POR SQL
+                sql = """INSERT INTO res_partner_arba_alicuot (partner_id, company_id, tag_id, alicuota_percepcion, alicuota_retencion, from_date, to_date,create_date, write_date)
+                         VALUES (%s, %s, %s, %s, %s, %s, %s, NOW(), NOW())
+                         ON CONFLICT (partner_id, company_id, tag_id, from_date, to_date) DO UPDATE SET
+                         alicuota_percepcion = EXCLUDED.alicuota_percepcion,
+                         alicuota_retencion = EXCLUDED.alicuota_retencion,
+                         write_date = NOW()
+                """
+                self.env.cr.execute(sql, (self.id, company, tag_id.id, vals['alicuota_percepcion'], vals['alicuota_retencion'], date_from, date_to))
+                # Si prefieres usar ORM, puedes descomentar la siguiente línea y comentar el bloque SQL anterior:
+                # self.env['res.partner.arba_alicuot'].create(vals)                
                          
     def verificar_padron_iibb_arba(self, cuit, period_key):
         self.ensure_one()
@@ -222,3 +237,17 @@ class ResPartnerInherit(models.Model):
             "perception_arba": alicuota_percepcion,
             "retention_arba": alicuota_retencion,
         }
+    
+    def _to_float_ar(self, value):
+        """Convertir string numérico con formato argentino a float."""
+        if isinstance(value, (int, float)):
+            return float(value)
+        if not value:
+            return 0.0
+        try:
+            # Eliminar puntos de miles y reemplazar coma decimal por punto
+            normalized = value.replace('.', '').replace(',', '.')
+            return float(normalized)
+        except ValueError:
+            _logger.error("No se pudo convertir el valor '%s' a float", value)
+            return 0.0
