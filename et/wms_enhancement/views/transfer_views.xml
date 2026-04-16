@@ -248,19 +248,19 @@
         <field name="model">wms.transfer.line</field>
         <field name="arch" type="xml">
             <tree string="Líneas de Transferencia">
-                <field name="transfer_id"/>
-                <field name="state"/>
-                <field name="invoice_state"/>
-                <field name="product_id"/>
-                <field name="lot_name"/>
-                <field name="uxb"/>
-                <field name="availability"/>
-                <field name="available_percent"/>
-                <field name="qty_demand"/>
-                <field name="qty_done"/>
-                <field name="qty_invoiced"/>
+                <field name="transfer_id" optional="show"/>
+                <field name="product_id" optional="show"/>
+                <field name="category_producto_id" optional="show"/>
+                <field name="lot_name" optional="hide"/>
+                <field name="uxb" optional="hide"/>
+                <field name="availability" optional="hide"/>
+                <field name="available_percent" optional="hide"/>
+                <field name="qty_demand" optional="show" sum="total"/>
+                <field name="qty_done" optional="show" sum="total"/>
+                <field name="qty_invoiced" optional="show" sum="total"/>
                 <field name="sale_line_id" optional="hide"/>
-                <field name="category_producto_id" optional="hide"/>
+                <field name="invoice_state" optional="show"/>
+                <field name="state" widget="badge" decoration-danger="state=='no'" decoration-warning="state=='pending'" decoration-info="state=='process'" decoration-success="state=='finished'" optional="show"/>
             </tree>
         </field>
     </record>
@@ -277,23 +277,20 @@
                 <field name="product_id"/>
                 <field name="lot_name"/>
                 <field name="sale_line_id"/>
-
+                <field name="category_producto_id"/>
                 <separator/>
-
                 <filter string="Pendiente" name="st_pending" domain="[('state','=','pending')]"/>
                 <filter string="En Preparación" name="st_prep" domain="[('state','=','preparation')]"/>
                 <filter string="Hecho" name="st_done" domain="[('state','=','done')]"/>
-
                 <separator/>
-
                 <filter string="No Facturado" name="inv_no" domain="[('invoice_state','=','no')]"/>
                 <filter string="Parcial" name="inv_partial" domain="[('invoice_state','=','partial')]"/>
                 <filter string="Facturado" name="inv_total" domain="[('invoice_state','=','total')]"/>
-
                 <group expand="0" string="Agrupar por">
                     <filter string="Transferencia" name="group_transfer" context="{'group_by':'transfer_id'}"/>
                     <filter string="Producto" name="group_product" context="{'group_by':'product_id'}"/>
                     <filter string="Estado" name="group_state" context="{'group_by':'state'}"/>
+                    <filter string="Categoría de Producto" name="group_category" context="{'group_by':'category_producto_id'}"/>
                 </group>
             </search>
         </field>

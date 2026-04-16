@@ -16,10 +16,15 @@
 
     <!-- Transferencias -->
     <menuitem id="wms_menu_transfers"
-              name="Transferencias"
-              parent="wms_logo"
-              action="action_wms_transfer"
-              sequence="10"/>
+                name="Transferencias"
+                parent="wms_logo"
+                action="action_wms_transfer"
+                sequence="10"/>
+    <menuitem id="wms_menu_transfers_lines"
+                name="Líneas de Transferencias"
+                parent="wms_menu_transfers"
+                action="action_wms_transfer_line"
+                sequence="10"/>
 
     <!-- Tareas -->
     <menuitem id="wms_menu_tasks"
