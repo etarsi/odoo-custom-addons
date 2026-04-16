@@ -470,7 +470,20 @@ class WMSTransferLine(models.Model):
 
     bultos = fields.Float(string="Bultos", compute="_compute_bultos", store=True)
     bultos_available = fields.Float(string="Bultos Disponible")
+    category_producto_id = fields.Many2one(
+        'product.category',
+        string='Categoría Padre',
+        compute='_compute_category_producto_id',
+        store=True
+    )
 
+    @api.depends('product_id', 'product_id.categ_id', 'product_id.categ_id.parent_id')
+    def _compute_category_root_id(self):
+        for rec in self:
+            categ = rec.product_id.categ_id
+            while categ and categ.parent_id:
+                categ = categ.parent_id
+            rec.category_root_id = categ.id or False
 
     @api.model
     def create(self, vals):
@@ -531,7 +544,6 @@ class WMSTransferLine(models.Model):
                 record.invoice_state = 'total'
             else:
                 record.invoice_state = 'no'
-
 
     @api.depends('qty_pending')
     def _compute_state(self):

@@ -257,6 +257,7 @@
                 <field name="qty_done"/>
                 <field name="qty_invoiced"/>
                 <field name="sale_line_id" optional="hide"/>
+                <field name="category_producto_id" optional="hide"/>
             </tree>
         </field>
     </record>
