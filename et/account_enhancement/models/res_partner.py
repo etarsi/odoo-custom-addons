@@ -75,9 +75,9 @@ class ResPartnerInherit(models.Model):
         cuit = ''.join(ch for ch in self.vat if ch.isdigit()) # Extraer solo dígitos del CUIT
         if len(cuit) != 11:
             raise ValidationError(_("El CUIT debe tener 11 dígitos. Por favor, ingrese un CUIT válido para el partner %s.") % self.name)
-        #no agregar cuit duplicados en vat de contactos hijos
-        if self.env['res.partner'].search([('vat', '=', self.vat), ('id', '!=', self.id), ('active', '=', True), ('parent_id', '!=', False)], limit=1):
-            raise ValidationError(_("El CUIT %s ya existe en otro partner. Por favor, ingrese un CUIT único para el partner %s.") % (self.vat, self.name))
+        ##no agregar cuit duplicados en vat de contactos hijos
+        #if self.env['res.partner'].search([('vat', '=', self.vat), ('id', '!=', self.id), ('active', '=', True), ('parent_id', '!=', False)], limit=1):
+        #    raise ValidationError(_("El CUIT %s ya existe en otro partner. Por favor, ingrese un CUIT único para el partner %s.") % (self.vat, self.name))
         #ACTUALIZAR AGIP
         self.udpdate_iibb_agip()
         self.update_iibb_arba()

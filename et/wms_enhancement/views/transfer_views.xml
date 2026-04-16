@@ -50,6 +50,7 @@
                 <field name="partner_address_id" optional="show"/>
                 <!-- <field name="partner_tag"/>
                 <field name="partner_tag"/> -->
+                <field name="category_producto_ids" widget="many2many_tags" options="{'color_field':'color'}" string="Categorías Producto" optional="show"/>
                 <field name="total_bultos" sum="total" optional="show"/>
                 <field name="total_bultos_prepared" sum="total" optional="show"/>
                 <field name="total_available_percentage" string="Disponible" optional="show" widget="progressbar"/>
@@ -72,7 +73,7 @@
                 <field name="partner_address_id"/>
                 <field name="sale_id"/>
                 <field name="purchase_id"/>
-
+                <field name="category_producto_ids"/>
                 <filter string="Ingreso" name="incoming" domain="[('operation_type','=','incoming')]"/>
                 <filter string="Entrega" name="outgoing" domain="[('operation_type','=','outgoing')]"/>
 
@@ -83,6 +84,7 @@
                     <filter string="Pedido" name="group_origin" context="{'group_by':'origin'}"/>
                     <filter string="Fecha" name="group_date" context="{'group_by':'create_date:month'}"/>
                     <filter string="Etiqueta" name="group_partner_tag" context="{'group_by':'partner_tag_ids'}"/>
+                    <filter string="Categoría Producto" name="group_category_producto" context="{'group_by':'category_producto_ids'}"/>
                 </group>
             </search>
         </field>

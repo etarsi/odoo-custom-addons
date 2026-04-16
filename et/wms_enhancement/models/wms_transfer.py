@@ -55,7 +55,18 @@ class WMSTransfer(models.Model):
         store=True,
         readonly=True,
     )
+    
+    category_producto_ids = fields.Many2many(
+        'product.category',
+        string='Categorías Productos',
+        compute='_compute_category_producto_ids',
+        store=True
+    )
 
+    @api.depends('line_ids.category_producto_id')
+    def _compute_category_producto_ids(self):
+        for record in self:
+            record.category_producto_ids = record.line_ids.mapped('category_producto_id')
 
     @api.model
     def create(self, vals):
