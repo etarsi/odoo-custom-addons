@@ -50,6 +50,14 @@
                 </header>
 
                 <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_view_tms_roadmaps"
+                                type="object"
+                                class="oe_stat_button"
+                                icon="fa-building">
+                            <field name="tms_roadmap_citation_count" widget="statinfo" string="Hojas de Ruta"/>
+                        </button>
+                    </div>
                     <div class="oe_title">
                         <h1>
                             <field name="name" readonly="1"/>

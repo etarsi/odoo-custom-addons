@@ -680,20 +680,20 @@ class AccountMoveLineInherit(models.Model):
     @api.model_create_multi
     def create(self, vals_list):
         for vals in vals_list:
-            move = self.env['account.move'].browse(vals.get('move_id'))
-            if move.period_cut_locked:
+            self.period_cut_locked = vals.get('period_cut_locked', False)
+            if self.period_cut_locked:
                 raise ValidationError(_("No se pueden crear líneas para un movimiento con 'Período de Corte Bloqueado' activo."))
         return super().create(vals_list)
 
     def write(self, vals):
         for rec in self:
-            if rec.move_id.period_cut_locked:
+            if rec.period_cut_locked:
                 raise ValidationError(_("No se pueden modificar líneas para un movimiento con 'Período de Corte Bloqueado' activo."))
         return super().write(vals)
 
     def unlink(self):
         for rec in self:
-            if rec.move_id.period_cut_locked:
+            if rec.period_cut_locked:
                 raise ValidationError(_("No se pueden eliminar líneas para un movimiento con 'Período de Corte Bloqueado' activo."))
         return super().unlink()
 

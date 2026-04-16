@@ -10,6 +10,8 @@ class TmsCitation(models.Model):
 
     name = fields.Char(string="Número", required=True, copy=False, index=True, default=lambda self: _("New"), tracking=True)
     tms_roadmap_ids = fields.One2many("tms.roadmap", "citation_id", string="Hojas de Rutas", index=True, tracking=True)
+    tms_roadmap_citation_ids = fields.Many2many('wms.task', string='Tareas WMS', compute="_compute_tms_roadmap_count", store=False)
+    tms_roadmap_citation_count = fields.Integer(string="Cantidad de Hojas de Ruta", compute="_compute_tms_roadmap_count", store=True, tracking=True)
     date = fields.Date(string="Fecha", required=True, default=fields.Date.context_today, index=True, tracking=True)
     mes = fields.Char(string="Mes", compute="_compute_mes", store=True, index=True, tracking=True)
     empresa_id = fields.Many2one("delivery.carrier", string="Empresa", domain="[('active', '=', True)]", required=True, index=True, tracking=True)
@@ -57,6 +59,21 @@ class TmsCitation(models.Model):
     #                     amount += line.stock_move_id.product_uom_qty * line.stock_move_id.product_id.standard_price
     #         rec.amount_stock_valued = amount
 
+    def _compute_tms_roadmap_count(self):
+        for rec in self:
+            rec.tms_roadmap_citation_ids = rec.tms_roadmap_ids.mapped("wms_task_id")
+            rec.tms_roadmap_citation_count = len(rec.tms_roadmap_citation_ids)
+        
+    def action_view_tms_roadmaps(self):
+        self.ensure_one()
+        return {
+            "name": _("Hojas de Ruta"),
+            "type": "ir.actions.act_window",
+            "res_model": "tms.roadmap",
+            "view_mode": "tree,form",
+            "domain": [("id", "in", self.tms_roadmap_ids.ids)],
+            "context": {"default_citation_id": self.id},
+        }
 
     @api.depends("tms_roadmap_ids.total_bulk_defendant", "tms_roadmap_ids.total_bulk_picking")
     def _compute_total_bulk(self):
