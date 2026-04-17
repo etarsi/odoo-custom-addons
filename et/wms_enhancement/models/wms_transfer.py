@@ -582,7 +582,12 @@ class WMSTransferLine(models.Model):
             task_lines_ids = self.env['wms.task.line'].search([('transfer_line_id', '=', record.id)])
             if task_lines_ids:
                 qty_invoiced = sum(task_lines_ids.filtered(lambda tl: tl.task_id.invoice_ids and tl.task_id.invoice_ids.mapped('state') == 'posted').mapped('quantity_picked'))
-                record.qty_pending = record.qty_demand - sum(task_lines_ids.filtered(lambda tl: tl.task_id.digip_state in ['remitido', 'received', 'completed']).mapped('quantity'))
+                qty_pending = sum(task_lines_ids.filtered(lambda tl: tl.task_id.digip_state in ['remitido', 'received', 'completed']).mapped('quantity'))
+                record.qty_pending = record.qty_demand - qty_pending
                 record.qty_done = sum(task_lines_ids.filtered(lambda tl: tl.task_id.digip_state in ['remitido', 'received', 'completed']).mapped('quantity_picked'))
                 record.qty_invoiced = qty_invoiced
+            else:
+                record.qty_pending = record.qty_demand
+                record.qty_done = 0
+                record.qty_invoiced = 0
                 
