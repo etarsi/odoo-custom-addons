@@ -192,6 +192,7 @@ class AccountMoveInherit(models.Model):
         return super().create(vals_list)
     
     def write(self, vals):
+        _logger.warning("ACCOUNT.MOVE WRITE bloqueado? ids=%s vals=%s context=%s", self.ids, vals, self.env.context)
         for rec in self:
             period_cut_locked = vals.get('period_cut_locked', rec.period_cut_locked)
             if period_cut_locked:
