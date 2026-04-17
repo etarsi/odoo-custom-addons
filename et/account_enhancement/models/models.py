@@ -192,7 +192,14 @@ class AccountMoveInherit(models.Model):
         return super().create(vals_list)
     
     def write(self, vals):
-        _logger.warning("ACCOUNT.MOVE WRITE bloqueado? ids=%s vals=%s context=%s", self.ids, vals, self.env.context)
+        # PARA QUE DEJE LA IMPRESION DE LOS PDF DE FACTURA, AUNQUE EL USUARIO NO TENGA PERMISO DE EDICION SOBRE LA FACTURA,
+        # PERO QUE NO PERMITA OTRAS MODIFICACIONES SI EL PERIODO DE CORTE ESTA BLOQUEADO
+        technical_fields_allowed = {'message_main_attachment_id'}
+
+        if set(vals.keys()).issubset(technical_fields_allowed):
+            return super().write(vals)
+        
+
         for rec in self:
             period_cut_locked = vals.get('period_cut_locked', rec.period_cut_locked)
             if period_cut_locked:
