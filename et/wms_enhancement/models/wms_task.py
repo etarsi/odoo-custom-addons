@@ -79,42 +79,34 @@ class WMSTask(models.Model):
     ], default='no')
 
     ## recepcion
-
     container = fields.Char(string="Contenedor")
     dispatch = fields.Char(string="N° Despacho")
     license = fields.Char(string="Licencia")
 
     # preparation
-
     pending_task_line_ids = fields.One2many(string="Pendiente", comodel_name="wms.task.line", compute="_compute_pending_task_lines")
     declared_value = fields.Float(string="Valor Declarado", default=0)
     next_location_id = fields.Many2one(string="Siguiente Ubicación", comodel_name="wms.stock.location", compute="_compute_next_location")
 
     ## statistics
-
     percent_complete = fields.Float(string="Completado %")
 
     # category_ids = fields.One2many()
-
     bultos_count = fields.Float(string="Bultos")
     bultos_prepared = fields.Float(string="Bultos Preparados")
     packages_count = fields.Float(string="Paquetes")
 
-
     # scheduled_at = fields.Datetime()
-
     date_start = fields.Datetime(string="Inicio")
-
     date_done = fields.Datetime(string="Fin")
-
     preparation_time = fields.Datetime(string="Tiempo de Preparación")
-    
     shared_route = fields.Selection([('no', 'No Enviado HDR'), ('si', 'Enviado HDR')], default='no', string='Ruteo HDR', copy=False)
     
     # transporte
     carrier_id = fields.Many2one(string="Transporte", related='partner_id.property_delivery_carrier_id', store=True)
     tms_stock_picking_id = fields.Many2one("tms.stock.picking", string="Ruteo TMS", ondelete="set null", index=True, tracking=True)
-
+    
+    
     @api.model
     def create(self, vals):
         if vals.get('name', 'New') in (False, 'New', '/'):
@@ -187,7 +179,6 @@ class WMSTask(models.Model):
            'target': 'current',
         }
     
-
     # OMITIR CODIGO durante el picking
     # def omitir_codigo(self):
     # def lanzar_pedido(self):
@@ -1110,7 +1101,7 @@ class WMSTaskLine(models.Model):
                 record.has_pending = False
                 
     #agregar el lote que corresponde a la linea de tarea
-    @api.onchange('product_id')
+    @api.depends('product_id')
     def get_lote_name(self):
         for record in self:
             if record.product_id:

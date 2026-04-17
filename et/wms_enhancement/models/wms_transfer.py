@@ -168,12 +168,9 @@ class WMSTransfer(models.Model):
     def update_available_lines(self):
         for record in self:
             lines_to_update = self.env['wms.transfer.line'].search([('transfer_id', '=', record.id), ('is_available', '=', False)])
-
             if lines_to_update:
                 for line in lines_to_update:
-                    
                     sale_line_id = line.sale_line_id
-
                     if sale_line_id.is_available:
                         line.is_available = True
                         line.qty_demand = sale_line_id.product_uom_qty
@@ -363,15 +360,12 @@ class WMSTransfer(models.Model):
                     corresponding_sale_line = record.sale_id.order_line.filtered(lambda l: l.id == line.sale_line_id.id)
                     if corresponding_sale_line:
                         line.write({
-                            'qty_demand': corresponding_sale_line.product_uom_qty,
                             'bultos': corresponding_sale_line.product_packaging_qty,
+                            'uxb': corresponding_sale_line.product_packaging_id.qty or False,
+                            'qty_demand': corresponding_sale_line.product_uom_qty,
                         })
-                    #las que no poner en cero
-                    else:
-                        line.write({
-                            'qty_demand': 0,
-                            'bultos': 0,
-                        })
+                        #actualizar qty_pending, qty_done e invoiced
+                        line.update_qty_pending_done_invoiced()
 
     def action_close_transfer(self):
         return
@@ -445,7 +439,6 @@ class WMSTransfer(models.Model):
             #cancelamos las tareas asociadas que no fueron enviadas a DIGIP
             record.task_ids.filtered(lambda t: t.digip_state == 'no').write({'state': 'cancel'})
             record.state = 'cancel'
-
 
 class WMSTransferLine(models.Model):
     _name = 'wms.transfer.line'
@@ -583,3 +576,13 @@ class WMSTransferLine(models.Model):
 
         record.available_percent = available_percent
         record.bultos_available = fisico_unidades / uxb
+        
+    def update_qty_pending_done_invoiced(self):
+        for record in self:
+            task_lines_ids = self.env['wms.task.line'].search([('transfer_line_id', '=', record.id)])
+            if task_lines_ids:
+                qty_invoiced = sum(task_lines_ids.filtered(lambda tl: tl.task_id.invoice_ids and tl.task_id.invoice_ids.mapped('state') == 'posted').mapped('quantity_picked'))
+                record.qty_pending = record.qty_demand - sum(task_lines_ids.mapped('quantity'))
+                record.qty_done = sum(task_lines_ids.filtered(lambda tl: tl.task_id.digip_state in ['remitido', 'received', 'completed']).mapped('quantity_picked'))
+                record.qty_invoiced = qty_invoiced
+                

@@ -898,10 +898,8 @@ class SaleOrderLineInherit(models.Model):
             if line.product_uom_qty > 0:
                 if line._origin and line._origin.id and line.product_id:
                     in_preparation = self.env['stock.moves.erp'].search([('sale_line_id', '=', line._origin.id), ('type', '=', 'preparation')], limit=1)
-
                     if in_preparation:
                         raise UserError('No se puede actualizar las cantidades porque ya están siendo preparadas o ya fueron entregadas')
-
                     stock_moves_erp = self.env['stock.moves.erp'].search([('sale_line_id', '=', line._origin.id), ('type', '=', 'reserve')], limit=1)
 
                     if stock_moves_erp:
@@ -909,10 +907,7 @@ class SaleOrderLineInherit(models.Model):
                             diferencia = stock_moves_erp.quantity - line.product_uom_qty
                             stock_moves_erp.quantity = line.product_uom_qty
                             stock_erp = stock_moves_erp.stock_erp
-                            stock_erp.write({
-                                'comprometido_unidades': stock_erp.comprometido_unidades - diferencia
-                            })
-                            
+                            stock_erp.write({'comprometido_unidades': stock_erp.comprometido_unidades - diferencia})
                             stock_moves_erp.update_sale_orders()
                             line.update_stock_erp()                            
                             line._compute_is_available()

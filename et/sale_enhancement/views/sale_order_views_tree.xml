@@ -19,7 +19,7 @@
                             type="object"
                             class="btn-secondary"
                             confirm="¿Estás seguro de que deseas cancelar este pedido?"
-                            attrs="{'invisible': [('state', '=', 'cancel')]}"/>
+                            attrs="{'invisible': [('state', 'in', ['draft', 'cancel'])]}"/>
                     
                 </xpath>
                 <xpath expr="//page[@name='other_information']//field[@name='company_id']" position="after">

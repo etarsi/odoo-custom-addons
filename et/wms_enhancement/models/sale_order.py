@@ -63,9 +63,7 @@ class SaleOrderInherit(models.Model):
                    transfer_lines_list.append(transfer_line)
             
             self.env['wms.transfer.line'].create(transfer_lines_list)
-
             record.transfer_id = transfer_id.id
-            
 
     @api.depends('partner_id')
     def _compute_is_fraction(self):
@@ -144,4 +142,6 @@ class SaleOrderLineInherit(models.Model):
                 transfer_line.write({
                     'qty_demand': line.product_uom_qty,
                     'bultos': line.product_packaging_qty,
+                    'uxb': line.product_packaging_id.qty,
                 })
+                transfer_line.update_qty_pending_done_invoiced()
