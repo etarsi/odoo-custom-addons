@@ -147,6 +147,6 @@ class SaleOrderLineInherit(models.Model):
                 #modificar las lineas de lineas de tareas asociadas a esta línea de transferencia
                 for transfer_line in transfer_lines:
                     #solo actualizar las lineas de tarea que no han sido procesadas
-                    line_task_lines = self.env['wms.task.line'].search([('transfer_line_id', '=', transfer_line.id), ('digip_state', '=', 'no')])
+                    line_task_lines = self.env['wms.task.line'].search([('transfer_line_id', '=', transfer_line.id), ('task_id.digip_state', '=', 'no')])
                     line_task_lines.write({'quantity': line.product_uom_qty})
                 transfer_line.update_qty_pending_done_invoiced()
